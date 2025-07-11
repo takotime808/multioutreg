@@ -8,6 +8,8 @@ from sklearn.model_selection import train_test_split
 
 from multioutreg.performance.metrics_generalized_api import get_uq_performance_metrics_flexible
 
+savefig = False
+
 rng = np.random.RandomState(42)
 X = rng.rand(300, 5)
 Y = np.dot(X, rng.rand(5, 3)) + rng.randn(300, 3) * 0.1
@@ -21,8 +23,8 @@ multi_gp.fit(X_train, Y_train)
 metrics_df, overall_metrics = get_uq_performance_metrics_flexible(multi_gp, X_test, Y_test)
 
 print("Available columns:", metrics_df.columns)
-# metrics_to_plot = [m for m in ['rmse', 'mae', 'nll', 'miscal_area'] if m in metrics_df.columns]
-metrics_to_plot = 
+metrics_to_plot = [m for m in ['rmse', 'mae', 'nll', 'miscal_area'] if m in metrics_df.columns]
+
 if not metrics_to_plot:
     print("No matching metrics found in metrics_df. Available columns:", metrics_df.columns)
 else:
@@ -32,4 +34,7 @@ else:
     plt.title('Uncertainty Toolbox Metrics per Output')
     plt.legend(title="Metric")
     plt.tight_layout()
-    plt.show()
+    if savefig:
+        plt.savefig("metrics.png")
+    else:
+        plt.show()
