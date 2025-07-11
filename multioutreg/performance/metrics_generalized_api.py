@@ -2,13 +2,8 @@
 
 import numpy as np
 import pandas as pd
+import uncertainty_toolbox as uct
 from typing import Optional, Tuple, Dict, Any
-
-from typing import Optional, Tuple, Dict, Any
-import numpy as np
-import pandas as pd
-from uncertainty_toolbox.metrics import get_all_metrics
-
 
 def get_uq_performance_metrics_flexible(
     model: Any,
@@ -119,7 +114,7 @@ def get_uq_performance_metrics_flexible(
     n_outputs: int = y_true.shape[1]
     metrics_list: list[Dict[str, float | int]] = []
     for i in range(n_outputs):
-        metrics = get_all_metrics(
+        metrics = uct.get_all_metrics(
             y_true[:, i],
             y_pred[:, i],
             y_std[:, i]
@@ -128,7 +123,7 @@ def get_uq_performance_metrics_flexible(
         metrics_list.append(metrics)
 
     metrics_df: pd.DataFrame = pd.DataFrame(metrics_list)
-    overall_metrics: Dict[str, float] = get_all_metrics(
+    overall_metrics: Dict[str, float] = uct.get_all_metrics(
         y_true.flatten(),
         y_pred.flatten(),
         y_std.flatten()
