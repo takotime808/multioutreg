@@ -1,0 +1,118 @@
+# # name: CI
+
+# # on:
+# #   push:
+# #     branches:    
+# #       - master
+
+# # jobs:
+# #   build:
+
+# #     runs-on: ubuntu-latest
+
+# #     steps:
+# #     - uses: actions/checkout@v1
+# #     - uses: ammaraskar/sphinx-action@master
+# #       with:
+# #         pre-build-command: "apt-get update --allow-releaseinfo-change -y && apt-get install -y pandoc librsvg2-bin inkscape latexmk texlive-latex-recommended texlive-latex-extra texlive-fonts-recommended fonts-lmodern"
+# #         docs-folder: "source"
+# #         build-command: "make -C ../docs html " # latexpdf
+# #     # Create an artifact of the html build.
+# #     - uses: actions/upload-artifact@v1
+# #       with:
+# #         name: HTML
+# #         path: docs/build/html/
+# #     # Create an artifact of the pdf build.
+# #     # - uses: actions/upload-artifact@v1
+# #     #   with:
+# #     #     name: PDF
+# #     #     path: build/latex/nbsphinx.pdf
+# #     # Publish html build to gh-pages branch.
+# #     - name: Deploy
+# #       uses: peaceiris/actions-gh-pages@v3
+# #       with:
+# #         github_token: ${{ secrets.GITHUB_TOKEN }}
+# #         publish_dir: ./docs/build/html
+
+# name: documentation
+
+# on: [push, pull_request, workflow_dispatch]
+
+# permissions:
+#   contents: write
+
+# jobs:
+#   docs:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: actions/setup-python@v5
+#       - name: Install dependencies
+#         run: |
+#           pip install sphinx \
+#                       sphinx_rtd_theme \
+#                       nbsphinx \
+#                       nbsphinx>=0.9.2 \
+#                       sphinxcontrib.mermaid>==0.9.2 \
+#                       sphinx-autoapi>=2.1.1 \
+#                       sphinx-copybutton>=0.5.0 \
+#                       myst-parser>=2.0.0 \
+#                       furo>=2023.7.26 \
+#                       jupyter-black>=0.3.4 \
+#                       sphinxcontrib.bibtex>=2.6.2 \
+#                       sphinx-gallery
+#       - name: Sphinx build
+#         run: |
+#           sphinx-build docs _build
+#       - name: Deploy to GitHub Pages
+#         uses: peaceiris/actions-gh-pages@v3
+#         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+#         with:
+#           publish_branch: gh-pages
+#           github_token: ${{ secrets.GITHUB_TOKEN }}
+#           publish_dir: _build/
+#           force_orphan: true
+
+name: Documentation
+
+on:
+  push:
+    branches: [main, master]
+
+jobs:
+  make-pages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: select python version
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+      - name: install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install .
+          python -m pip install sphinx
+          python -m pip install sphinx_rtd_theme
+          python -m pip install sphinx-click
+          python -m pip install nbsphinx
+          python -m pip install nbsphinx>=0.9.2
+          python -m pip install sphinxcontrib.mermaid>==0.9.2
+          python -m pip install sphinx-autoapi>=2.1.1
+          python -m pip install sphinx-copybutton>=0.5.0
+          python -m pip install myst-parser>=2.0.0
+          python -m pip install furo>=2023.7.26
+          python -m pip install jupyter-black>=0.3.4
+          python -m pip install sphinxcontrib.bibtex>=2.6.2
+          python -m pip install sphinx-gallery
+      - name: build documentation
+        run: |
+          cd docs
+          make html
+      - name: deploy
+        uses: peaceiris/actions-gh-pages@v3.6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/_build/html
+          force_orphan: true
+          full_commit_message: ${{ github.event.head_commit.message }}
