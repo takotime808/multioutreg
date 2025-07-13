@@ -22,6 +22,12 @@ dependencies = [
   "uncertainty-toolbox",#>=0.1.4,<0.1.7",
 ]
 
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-cov"
+]
+
 [tool.setuptools.packages.find]
 where = [".", "mor_cli", "multioutreg"]
 namespaces = false
@@ -33,17 +39,8 @@ multioutreg = "mor_cli:main"
 requires = ["setuptools>=43.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
-# This field adds keywords for your project which will appear on the
-# project page. What does your project relate to?
-#
-# Note that this is a list of additional keywords, separated
-# by commas, to be used to assist searching for the distribution in a
-# larger catalog.
-# keywords = ["sample", "setuptools", "development"]
-
-# [project.urls]
-# "Homepage" = "https://github.com/pypa/sampleproject"
-# "Bug Reports" = "https://github.com/pypa/sampleproject/issues"
-# "Funding" = "https://donate.pypi.org"
-# "Say Thanks!" = "http://saythanks.io/to/example"
-# "Source" = "https://github.com/pypa/sampleproject/"
+# [tool.pytest.ini_options]
+# addopts = "-v"  # Run tests in verbose mode
+# testpaths = [
+#     "tests"
+# ]
