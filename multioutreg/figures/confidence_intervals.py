@@ -70,6 +70,89 @@ def plot_multioutput_confidence_intervals(
     plt.show()
 
 
+def plot_confidence_interval(
+    y_true, y_pred, y_std, output_names=None, n_cols=3, alpha=0.05
+):
+    """
+    Plot predicted values with 95% confidence intervals (confidence interval plot).
+    Handles single and multi-output regression.
+
+    Parameters:
+    - y_true: shape (n_samples, n_outputs) or (n_samples,)
+    - y_pred: shape (n_samples, n_outputs) or (n_samples,)
+    - y_std: shape (n_samples, n_outputs) or (n_samples,)
+    - output_names: list of output variable names (optional)
+    - n_cols: number of subplot columns for multi-output (default: 3)
+    - alpha: significance level for confidence interval (default 0.05 for 95%)
+    """
+    y_true = np.asarray(y_true)
+    y_pred = np.asarray(y_pred)
+    y_std  = np.asarray(y_std)
+    if y_true.ndim == 1:
+        y_true = y_true.reshape(-1, 1)
+        y_pred = y_pred.reshape(-1, 1)
+        y_std  = y_std.reshape(-1, 1)
+
+    n_targets = y_true.shape[1]
+    z = abs(np.percentile(np.random.normal(0, 1, 100000), 100 * (1 - alpha / 2)))  # ~1.96 for 95%
+
+    # Use provided names or default
+    if output_names is None:
+        output_names = [f"Output {i}" for i in range(n_targets)]
+
+    # Single output case
+    if n_targets == 1:
+        fig, ax = plt.subplots(figsize=(7, 5))
+        lower = y_pred[:, 0] - z * y_std[:, 0]
+        upper = y_pred[:, 0] + z * y_std[:, 0]
+        ax.plot(y_true[:, 0], label='True', marker='o', linestyle='None', alpha=0.6)
+        ax.plot(y_pred[:, 0], label='Predicted', marker='x', linestyle='None', alpha=0.8)
+        ax.fill_between(
+            np.arange(len(y_pred)),
+            lower,
+            upper,
+            color="gray",
+            alpha=0.3,
+            label=f'{int((1-alpha)*100)}% CI'
+        )
+        ax.set_xlabel("Sample index")
+        ax.set_ylabel("Value")
+        ax.set_title(output_names[0])
+        ax.legend()
+        plt.tight_layout()
+        plt.show()
+        return
+
+    # Multi-output
+    n_rows = int(np.ceil(n_targets / n_cols))
+    fig, axs = plt.subplots(n_rows, n_cols, figsize=(5 * n_cols, 4 * n_rows))
+    axs = np.array(axs).reshape(-1)
+
+    for i in range(n_targets):
+        lower = y_pred[:, i] - z * y_std[:, i]
+        upper = y_pred[:, i] + z * y_std[:, i]
+        axs[i].plot(y_true[:, i], label='True', marker='o', linestyle='None', alpha=0.6)
+        axs[i].plot(y_pred[:, i], label='Predicted', marker='x', linestyle='None', alpha=0.8)
+        axs[i].fill_between(
+            np.arange(len(y_pred)),
+            lower,
+            upper,
+            color="gray",
+            alpha=0.3,
+            label=f'{int((1-alpha)*100)}% CI'
+        )
+        axs[i].set_xlabel("Sample index")
+        axs[i].set_ylabel("Value")
+        axs[i].set_title(output_names[i])
+        axs[i].legend()
+    # Hide unused axes
+    for j in range(n_targets, n_rows * n_cols):
+        axs[j].set_visible(False)
+
+    plt.tight_layout()
+    plt.show()
+
+
 if __name__ == "__main__":
     # Generate example data and run the function
     n_samples = 200
