@@ -150,18 +150,9 @@ def plot_confidence_interval(
         axs[j].set_visible(False)
 
     plt.tight_layout()
-    plt.show()
-
-
-if __name__ == "__main__":
-    # Generate example data and run the function
-    n_samples = 200
-    n_features = 3
-    n_targets = 3
-    rng = np.random.RandomState(42)
-    X = rng.randn(n_samples, n_features)
-    Y = X @ rng.randn(n_features, n_targets) + rng.randn(n_samples, n_targets) * 0.5
-
-    plot_multioutput_confidence_intervals(X, Y, z=1.96)
-
-
+    if savefig:
+        plt.savefig(savefig)
+        plt.close()
+    else:
+        plt.show()
+    return
