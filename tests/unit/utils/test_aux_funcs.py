@@ -1,5 +1,6 @@
 # Copyright (c) 2025 takotime808
 
+import pytest
 import subprocess
 
 from multioutreg.utils.aux_funcs import execute_command, parse_out_response
