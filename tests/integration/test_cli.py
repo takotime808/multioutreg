@@ -1,5 +1,6 @@
 # Copyright (c) 2025 takotime808
 
+import pytest
 from typer.testing import CliRunner
 
 from mor_cli.example import app as example_app

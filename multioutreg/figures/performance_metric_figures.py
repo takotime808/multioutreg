@@ -65,35 +65,3 @@ def plot_uq_metrics_bar(
     return ax
 
 
-def plot_predictions(
-    model,
-    X_test: pd.DataFrame | np.ndarray,
-    y_test: pd.DataFrame | np.ndarray,
-    ax: Optional[plt.Axes] = None,
-) -> plt.Axes:
-    """Scatter plot of predicted vs. true values for each output.
-
-    This mirrors the visualisation used in scikit-learn's multioutput
-    regression example.
-    """
-    import numpy as np
-
-    y_pred = model.predict(X_test)
-    y_true = np.asarray(y_test)
-    y_pred = np.asarray(y_pred)
-
-    n_outputs = y_true.shape[1]
-    if ax is None:
-        _, ax = plt.subplots(figsize=(6, 6))
-
-    for i in range(n_outputs):
-        ax.scatter(y_true[:, i], y_pred[:, i], s=15, label=f"Output {i}")
-    min_v = min(y_true.min(), y_pred.min())
-    max_v = max(y_true.max(), y_pred.max())
-    ax.plot([min_v, max_v], [min_v, max_v], "k--", lw=2)
-    ax.set_xlabel("True value")
-    ax.set_ylabel("Predicted value")
-    ax.set_title("Predicted vs. true values")
-    ax.legend()
-    plt.tight_layout()
-    return ax

@@ -1,5 +1,6 @@
 # Copyright (c) 2025 takotime808
 
+import pytest
 import subprocess
 import sys
 from pathlib import Path

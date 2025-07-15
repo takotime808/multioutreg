@@ -1,5 +1,6 @@
 # Copyright (c) 2025 takotime808
 
+import pytest
 import pandas as pd
 
 from multioutreg.utils.metric_utils import flatten_metrics_df
