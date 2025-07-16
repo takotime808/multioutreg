@@ -65,6 +65,7 @@ def plot_uct_intervals_ordered_multioutput(
     supylabel: str = "Predicted Values and Intervals",
     target_list: list = None,
     ylims: Union[Tuple[float, float], None] = None,
+    max_cols: int = 3,   # Add this parameter if you want to override default 3
 ) -> List[Axes]:
     """
     Plot ordered prediction intervals for each dimension (output) of a multi-output regression problem.
@@ -123,6 +124,8 @@ def plot_uct_intervals_ordered_multioutput(
       - observed (true) values,
       - shared axis labels and an overall figure title.
     """
+    import math
+
     y_pred = np.asarray(y_pred)
     y_std = np.asarray(y_std)
     y_true = np.asarray(y_true)
@@ -160,12 +163,16 @@ def plot_uct_intervals_ordered_multioutput(
     n_outputs = y_pred.shape[1]
     if target_list is None:
         target_list = [f"Output {i+1}" for i in range(n_outputs)]
+    
+    n_cols = min(n_outputs, max_cols)
+    n_rows = math.ceil(n_outputs / n_cols)
+
     if ax_list is None:
-        fig, ax_list = plt.subplots(1, n_outputs, figsize=(5 * n_outputs, 5))
+        fig, ax_list = plt.subplots(n_rows, n_cols, figsize=(5 * n_cols, 5 * n_rows))
     else:
         fig = plt.gcf()
 
-    axes = np.atleast_1d(ax_list).ravel()
+    axes = np.array(ax_list).reshape(-1)
     out_axes = []
     for i in range(n_outputs):
         ax_i = axes[i]
@@ -182,6 +189,9 @@ def plot_uct_intervals_ordered_multioutput(
             target=target_list[i],
         )
         out_axes.append(ax_i)
+    # Hide any unused axes
+    for j in range(n_outputs, len(axes)):
+        axes[j].axis("off")
 
     fig.supxlabel(supxlabel, fontsize=16)
     fig.supylabel(supylabel, fontsize=16)
