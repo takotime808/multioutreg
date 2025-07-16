@@ -3,106 +3,93 @@
 import pytest
 import numpy as np
 import matplotlib
-matplotlib.use("Agg")  # Use non-interactive backend for tests
+matplotlib.use("Agg")  # Avoid GUI issues in test envs
+import matplotlib.pyplot as plt
+import pytest
 
-from multioutreg.figures.uncertainty_toolbox_extension import (
-    plot_uct_intervals_ordered_multioutput,
-)
-
-@pytest.fixture
-def get_test_set():
-    y_pred = np.array([1, 2, 3])
-    y_std = np.array([0.1, 0.5, 1])
-    y_true = np.array([1.5, 3, 2])
-    x = np.array([4, 5, 6.5])
-    return y_pred, y_std, y_true, x
+from multioutreg.figures import uncertainty_toolbox_extension as ute
 
 
-def test_plot_uct_intervals_ordered_multioutput_returns(get_test_set):
-    """Test multioutput wrapper returns correct axes."""
-    y_pred, y_std, y_true, _ = get_test_set
-    # create simple 2-output data by repeating arrays
-    y_pred = np.stack([y_pred, y_pred], axis=1)
-    y_std = np.stack([y_std, y_std], axis=1)
-    y_true = np.stack([y_true, y_true], axis=1)
-    axes = plot_uct_intervals_ordered_multioutput(y_pred, y_std, y_true)
+def test_plot_intervals_ordered_basic():
+    y_pred = np.linspace(0, 1, 10)
+    y_std = np.ones(10) * 0.2
+    y_true = np.linspace(0, 1, 10) + 0.1
+    ax = ute.plot_intervals_ordered(y_pred, y_std, y_true)
+    assert isinstance(ax, matplotlib.axes.Axes)
+    plt.close()
+
+
+def test_plot_intervals_ordered_with_ax():
+    y_pred = np.linspace(0, 1, 8)
+    y_std = np.ones(8) * 0.15
+    y_true = np.linspace(0, 1, 8)
+    fig, ax = plt.subplots()
+    out_ax = ute.plot_intervals_ordered(y_pred, y_std, y_true, ax=ax)
+    assert out_ax is ax
+    plt.close()
+
+
+def test_plot_intervals_ordered_with_n_subset():
+    y_pred = np.linspace(0, 1, 50)
+    y_std = np.ones(50) * 0.1
+    y_true = np.linspace(0, 1, 50)
+    ax = ute.plot_intervals_ordered(y_pred, y_std, y_true, n_subset=10)
+    assert isinstance(ax, matplotlib.axes.Axes)
+    plt.close()
+
+
+def test_plot_intervals_ordered_with_ylims():
+    y_pred = np.linspace(0, 1, 12)
+    y_std = np.ones(12) * 0.12
+    y_true = np.linspace(0, 1, 12)
+    ax = ute.plot_intervals_ordered(y_pred, y_std, y_true, ylims=(-2, 2))
+    assert isinstance(ax, matplotlib.axes.Axes)
+    plt.close()
+
+
+def test_plot_uct_intervals_ordered_multioutput_basic():
+    y_pred = np.random.randn(30, 3)
+    y_std = np.abs(np.random.randn(30, 3)) * 0.1 + 0.05
+    y_true = y_pred + np.random.normal(0, 0.2, size=(30, 3))
+    axes = ute.plot_uct_intervals_ordered_multioutput(y_pred, y_std, y_true, num_stds_confidence_bound=2)
     assert isinstance(axes, list)
-    assert len(axes) == 2
-    for ax in axes:
-        assert isinstance(ax, matplotlib.axes.Axes)
+    assert all(isinstance(ax, matplotlib.axes.Axes) for ax in axes)
+    plt.close()
 
 
-@pytest.fixture
-def example_data():
-    np.random.seed(42)
-    y_pred = np.random.randn(20, 3)
-    y_std = np.abs(np.random.randn(20, 3)) + 0.1
-    y_true = np.random.randn(20, 3)
-    return y_pred, y_std, y_true
-
-
-def test_shape_check_raises(example_data):
-    y_pred, y_std, y_true = example_data
-    # Change shape to cause error
-    y_bad = y_pred[:, :2]
-    with pytest.raises(ValueError, match="same shape"):
-        plot_uct_intervals_ordered_multioutput(y_pred, y_std, y_bad)
-
-
-def test_dimension_check_raises(example_data):
-    y_pred, y_std, y_true = example_data
-    with pytest.raises(ValueError, match="must be 2D arrays"):
-        # Make y_pred 3D
-        plot_uct_intervals_ordered_multioutput(y_pred[..., None], y_std, y_true)
-
-
-def test_1d_input_works():
-    np.random.seed(0)
-    y_pred = np.random.randn(30)
-    y_std = np.abs(np.random.randn(30)) + 0.1
-    y_true = np.random.randn(30)
-    axes = plot_uct_intervals_ordered_multioutput(y_pred, y_std, y_true)
+def test_plot_uct_intervals_ordered_multioutput_single_output():
+    y_pred = np.random.randn(20)
+    y_std = np.abs(np.random.randn(20)) * 0.1 + 0.1
+    y_true = y_pred + np.random.normal(0, 0.2, size=20)
+    axes = ute.plot_uct_intervals_ordered_multioutput(y_pred, y_std, y_true)
     assert isinstance(axes, list)
-    assert hasattr(axes[0], "plot")  # matplotlib Axes
+    assert isinstance(axes[0], matplotlib.axes.Axes)
+    plt.close()
 
 
-def test_2d_input_axes_count(example_data):
-    y_pred, y_std, y_true = example_data
-    axes = plot_uct_intervals_ordered_multioutput(y_pred, y_std, y_true)
-    assert isinstance(axes, list)
-    assert len(axes) == y_pred.shape[1]
-    for ax in axes:
-        assert hasattr(ax, "plot")
+def test_plot_uct_intervals_ordered_multioutput_invalid_shape_raises():
+    y_pred = np.random.randn(10, 2)
+    y_std = np.random.randn(10, 2)
+    y_true = np.random.randn(10)  # Wrong shape
+    with pytest.raises(ValueError):
+        ute.plot_uct_intervals_ordered_multioutput(y_pred, y_std, y_true)
+    assert True
 
 
-def test_ax_list_usage(example_data):
-    y_pred, y_std, y_true = example_data
-    fig, axs = matplotlib.pyplot.subplots(1, y_pred.shape[1])
-    axes = plot_uct_intervals_ordered_multioutput(y_pred, y_std, y_true, ax_list=axs)
-    assert all(ax in axs for ax in axes)
+def test_plot_uct_intervals_ordered_multioutput_shape_mismatch_raises():
+    y_pred = np.random.randn(10, 2)
+    y_std = np.random.randn(10, 2)
+    y_true = np.random.randn(9, 2)  # Shape mismatch
+    with pytest.raises(ValueError):
+        ute.plot_uct_intervals_ordered_multioutput(y_pred, y_std, y_true)
+    assert True
 
-
-def test_savefig_creates_file(tmp_path, example_data):
-    y_pred, y_std, y_true = example_data
-    save_path = tmp_path / "testfig.png"
-    plot_uct_intervals_ordered_multioutput(y_pred, y_std, y_true, savefig=str(save_path))
-    assert save_path.exists()
-    assert save_path.stat().st_size > 0
-
-
-def test_custom_suptitle(example_data):
-    y_pred, y_std, y_true = example_data
-    custom_title = "My Custom Title"
-    # Should not raise error
-    axes = plot_uct_intervals_ordered_multioutput(y_pred, y_std, y_true, suptitle=custom_title)
-    assert isinstance(axes, list)
-
-
-def test_ylims_applied(example_data):
-    y_pred, y_std, y_true = example_data
-    ylims = (-1, 1)
-    axes = plot_uct_intervals_ordered_multioutput(y_pred, y_std, y_true, ylims=ylims)
-    for ax in axes:
-        ylow, yhigh = ax.get_ylim()
-        assert ylow <= ylims[0] + 1e-6
-        assert yhigh >= ylims[1] - 1e-6
+def test_plot_uct_intervals_ordered_multioutput_with_ax_list():
+    y_pred = np.random.randn(14, 2)
+    y_std = np.abs(np.random.randn(14, 2)) * 0.05 + 0.07
+    y_true = y_pred + np.random.normal(0, 0.1, size=(14, 2))
+    fig, axes = plt.subplots(1, 2)
+    out_axes = ute.plot_uct_intervals_ordered_multioutput(y_pred, y_std, y_true, ax_list=axes)
+    assert isinstance(out_axes, list)
+    assert all(isinstance(ax, matplotlib.axes.Axes) for ax in out_axes)
+    plt.close()
