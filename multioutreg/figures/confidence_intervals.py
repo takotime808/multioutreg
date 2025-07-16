@@ -2,12 +2,214 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import Optional, List, Union
-from sklearn.multioutput import MultiOutputRegressor
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.base import RegressorMixin
+from math import ceil
 from scipy.stats import norm
+from typing import Optional, List, Union, Tuple
+from sklearn.base import RegressorMixin
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.multioutput import MultiOutputRegressor
+from sklearn.model_selection import train_test_split
+
+
+def plot_intervals_ordered(
+    y_pred: np.ndarray,
+    y_std: np.ndarray,
+    y_true: np.ndarray,
+    n_subset: Optional[int] = None,
+    ylims: Optional[Tuple[float, float]] = None,
+    num_stds_confidence_bound: float = 2,
+    ax: Optional[plt.Axes] = None,
+    add_legend: bool = True,
+) -> Tuple[plt.Line2D, plt.Line2D, plt.Axes]:
+    """
+    Plot ordered predicted values and intervals for a single target.
+
+    Parameters
+    ----------
+    y_pred : np.ndarray
+        Predicted values, shape (n_samples,).
+    y_std : np.ndarray
+        Predicted standard deviations, shape (n_samples,).
+    y_true : np.ndarray
+        Observed/true values, shape (n_samples,).
+    n_subset : int, optional
+        If provided, subsample n_subset random points.
+    ylims : tuple of float, optional
+        Y-axis limits as (ymin, ymax).
+    num_stds_confidence_bound : float, optional
+        Number of standard deviations for error bars. Default is 2.
+    ax : plt.Axes, optional
+        Matplotlib axes to plot on. If None, a new one is created.
+    add_legend : bool, optional
+        Whether to add a legend to the plot.
+
+    Returns
+    -------
+    pred_line : plt.Line2D
+        The line artist for the predicted values.
+    obs_line : plt.Line2D
+        The line artist for the observed values.
+    ax : plt.Axes
+        The matplotlib axes containing the plot.
+    """
+    if ax is None:
+        fig, ax = plt.subplots(figsize=(7, 6))
+    if n_subset is not None:
+        idx = np.random.choice(len(y_pred), n_subset, replace=False)
+        idx = np.sort(idx)
+        y_pred, y_std, y_true = y_pred[idx], y_std[idx], y_true[idx]
+    order = np.argsort(y_true.flatten())
+    y_pred, y_std, y_true = y_pred[order], y_std[order], y_true[order]
+    xs = np.arange(len(order))
+    intervals = num_stds_confidence_bound * y_std
+    pred_points = ax.errorbar(xs, y_pred, intervals, fmt="o", ls="none", linewidth=1.5, c="#1f77b4", alpha=0.5, label="Predicted Values")
+    pred_line, = ax.plot(xs, y_pred, "o", c="#1f77b4", label=None)
+    obs_line, = ax.plot(xs, y_true, "--", linewidth=2.0, c="#ff7f0e", label="Observed Values")
+    if add_legend:
+        ax.legend([pred_line, obs_line], ["Predicted Values", "Observed Values"], loc=4)
+    if ylims is not None:
+        ax.set_ylim(ylims)
+    # Remove per-axis labels for shared labels
+    # ax.set_xlabel("Index (Ordered by Observed Value)", fontsize=14)
+    # ax.set_ylabel("Predicted Values and Intervals", fontsize=14)
+    ax.set_title("Ordered Prediction Intervals", fontsize=18)
+    ax.tick_params(labelsize=12)
+    return pred_line, obs_line, ax
+
+
+def plot_intervals_ordered_multi(
+    y_pred: np.ndarray,
+    y_std: np.ndarray,
+    y_true: np.ndarray,
+    handles: Optional[List[plt.Line2D]] = None,
+    n_subset: Optional[int] = None,
+    base_height: int = 7,
+    base_width: int = 8,
+    num_stds_confidence_bound: float = 2,
+    max_cols: int = 3,
+    savefig: Union[str, bool] = False,
+    supxlabel: str = "Index (Ordered by Observed Value)",
+    supylabel: str = "Predicted Values and Intervals",
+    suptitle: str = "Ordered Prediction Intervals",
+    target_list: Optional[List[str]] = None,
+) -> None:
+    """
+    Plot ordered prediction intervals for multi-output regression.
+
+    Parameters
+    ----------
+    y_pred : np.ndarray
+        Predicted values, shape (n_samples, n_targets) or (n_targets, n_samples).
+    y_std : np.ndarray
+        Predicted standard deviations, shape (n_samples, n_targets) or (n_targets, n_samples).
+    y_true : np.ndarray
+        Observed/true values, shape (n_samples, n_targets) or (n_targets, n_samples).
+    handles : list of plt.Line2D, optional
+        Handles for legend entries.
+    n_subset : int, optional
+        Subsample to this many data points.
+    base_height : int, optional
+        Height per subplot, in inches.
+    base_width : int, optional
+        Width per subplot, in inches.
+    num_stds_confidence_bound : float, optional
+        Number of standard deviations for intervals.
+    max_cols : int, optional
+        Maximum columns in grid layout.
+    savefig : str or bool, optional
+        Path to save the figure. If False, shows the plot.
+    supxlabel : str, optional
+        Super x-axis label for the figure.
+    supylabel : str, optional
+        Super y-axis label for the figure.
+    suptitle : str, optional
+        Super title for the figure.
+    target_list : list of str, optional
+        Names of targets to use as subplot titles.
+
+    Returns
+    -------
+    None
+    """
+    y_pred = np.atleast_2d(y_pred)
+    y_std = np.atleast_2d(y_std)
+    y_true = np.atleast_2d(y_true)
+
+    if y_pred.shape[0] == 1 or y_pred.shape[0] != y_true.shape[0]:
+        y_pred = y_pred.T
+        y_std = y_std.T
+        y_true = y_true.T
+
+    n_targets = y_pred.shape[1]
+
+    if target_list is None:
+        target_list = [f"Output {idx}" for idx in range(n_targets)]
+
+    n_cols = min(n_targets, max_cols)
+    n_rows = ceil(n_targets / n_cols)
+    intervals = num_stds_confidence_bound * y_std
+
+    ylims = (np.floor(np.min(y_pred - intervals)), np.ceil(np.max(y_pred + intervals)))
+
+    fig, axes = plt.subplots(
+        n_rows, n_cols,
+        figsize=(base_width * n_cols, base_height * n_rows),
+        sharey=True,
+        constrained_layout=True
+    )
+
+    axes = np.array(axes).reshape(n_rows, n_cols)
+    axes_flat = axes.flatten()
+
+    for i in range(n_targets):
+        pred_line, obs_line, ax = plot_intervals_ordered(
+            y_pred[:, i], y_std[:, i], y_true[:, i],
+            n_subset=n_subset, ylims=ylims,
+            num_stds_confidence_bound=num_stds_confidence_bound,
+            ax=axes_flat[i], add_legend=False
+        )
+        if handles is None:
+            handles = [pred_line, obs_line]
+        axes_flat[i].set_title(f"Target {i+1}", fontsize=18)
+        axes_flat[i].tick_params(labelsize=12)
+
+    for j in range(n_targets, n_rows * n_cols):
+        axes_flat[j].axis('off')
+
+    # # Shared legend at the bottom
+    # fig.legend(
+    #     handles,
+    #     ["Predicted Values", "Observed Values"],
+    #     loc='lower center',
+    #     ncol=2,
+    #     fontsize=16,
+    #     frameon=False,
+    #     bbox_to_anchor=(0.5, 0.01)
+    # )
+
+    # Shared legend at the top left
+    fig.legend(
+        handles, ["Predicted Values", "Observed Values"],
+        loc='upper left',
+        bbox_to_anchor=(0.0001, 0.9999),
+        fontsize=16,
+        frameon=False
+    )
+
+    fig.supxlabel(supxlabel, fontsize=18)
+    fig.supylabel(supylabel, fontsize=18)
+    fig.suptitle(suptitle + f" (n_targets={n_targets})", fontsize=22)
+    plt.subplots_adjust(bottom=0.13)
+
+    axes_flat[:n_targets]
+
+    if savefig:
+        plt.savefig(savefig)
+        plt.close()
+    else:
+        plt.show()
+    # return axes_flat[:n_targets]
+    return
 
 
 def plot_confidence_interval(
