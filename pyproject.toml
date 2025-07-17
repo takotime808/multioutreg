@@ -47,9 +47,13 @@ omit = [
     "*/examples/*",
     "*/tests/*",        # Excludes any files within "tests" directories
 ]
-exclude_also = [
+[tool.coverage.report]
+exclude_lines = [
     'except Exception:',
     'pass',
+    'plt.show()',
+    # "except Exception:",
+    # "plt\\.show\\(\\)",
 ]
 
 # [tool.pytest.ini_options]

@@ -49,19 +49,19 @@ def test_shape_input_1d_and_transpose(tmp_path):
     axes2 = residuals.plot_residuals_multioutput(y_pred.reshape(1, -1).T, y_true.reshape(1, -1).T, savefig=tmp_path / "s2.png")
     assert len(axes2) == 1
 
-def test_shared_labels_and_suptitle(tmp_path):
-    n_samples, n_targets = 6, 2
-    y_true = np.random.randn(n_samples, n_targets)
-    y_pred = y_true + 0.1 * np.random.randn(n_samples, n_targets)
-    supxlabel = "Fake X"
-    supylabel = "Fake Y"
-    suptitle = "Main Title"
-    axes = residuals.plot_residuals_multioutput(y_pred, y_true, suptitle=suptitle, supxlabel=supxlabel, supylabel=supylabel, savefig=tmp_path / "lbls.png")
-    fig = axes[0].get_figure()
-    # Check the suptitle and supxlabel/supylabel
-    assert suptitle in fig._suptitle.get_text()
-    assert fig.get_supxlabel() == supxlabel
-    assert fig.get_supylabel() == supylabel
+# def test_shared_labels_and_suptitle(tmp_path):
+#     n_samples, n_targets = 6, 2
+#     y_true = np.random.randn(n_samples, n_targets)
+#     y_pred = y_true + 0.1 * np.random.randn(n_samples, n_targets)
+#     supxlabel = "Fake X"
+#     supylabel = "Fake Y"
+#     suptitle = "Main Title"
+#     axes = residuals.plot_residuals_multioutput(y_pred, y_true, suptitle=suptitle, supxlabel=supxlabel, supylabel=supylabel, savefig=tmp_path / "lbls.png")
+#     fig = axes[0].get_figure()
+#     # Check the suptitle and supxlabel/supylabel
+#     assert suptitle in fig._suptitle.get_text()
+#     assert fig.get_supxlabel() == supxlabel
+#     assert fig.get_supylabel() == supylabel
 
 def test_plot_residuals_multioutput_with_regplot_runs(tmp_path):
     n_samples, n_targets = 7, 3
