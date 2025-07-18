@@ -3,11 +3,24 @@
 import base64
 import io
 import matplotlib.pyplot as plt
+from typing import Callable, Any
 
-def safe_plot_b64(plot_func, *args, **kwargs):
+def safe_plot_b64(
+    plot_func: Callable[..., Any], 
+    *args: Any, 
+    **kwargs: Any
+) -> str:
     """
-    Calls plot_func and returns a base64 string of the plot.
-    If plotting fails, returns a blank plot with an error message.
+    Executes a plotting function and returns a PNG plot as a base64-encoded string.
+    
+    Args:
+        plot_func: A function that generates a matplotlib plot (e.g., a plotting routine).
+        *args: Positional arguments to pass to `plot_func`.
+        **kwargs: Keyword arguments to pass to `plot_func`.
+    
+    Returns:
+        A base64-encoded PNG image of the generated plot. If the plotting function
+        raises an exception, returns a base64-encoded blank plot with the error message.
     """
     try:
         plot_func(*args, **kwargs)

@@ -13,14 +13,14 @@ from multioutreg.utils.figure_utils import (
     # plot_to_b64,
 )
 
-# # ---- Helper to convert plot to base64 ----
-def plot_to_b64():
-    buf = io.BytesIO()
-    plt.savefig(buf, format='png', bbox_inches='tight')
-    plt.close()
-    buf.seek(0)
-    img_b64 = base64.b64encode(buf.read()).decode('utf-8')
-    return img_b64
+# # # ---- Helper to convert plot to base64 ----
+# def plot_to_b64():
+#     buf = io.BytesIO()
+#     plt.savefig(buf, format='png', bbox_inches='tight')
+#     plt.close()
+#     buf.seek(0)
+#     img_b64 = base64.b64encode(buf.read()).decode('utf-8')
+#     return img_b64
 
 # ---- Fake Data ----
 np.random.seed(42)
@@ -42,17 +42,15 @@ uncertainty_metrics = {"NLL": 1.12, "Sharpness": 0.19, "Miscoverage": 0.06, "Cal
 # Predictions vs True (with error bars)
 prediction_plots = {}
 for i, name in enumerate(output_names):
-    plt.figure()
-    plt.errorbar(y_true[:,i], y_pred[:,i], yerr=y_std[:,i], fmt='o', alpha=0.6)
-    plt.plot(y_true[:,i], y_true[:,i], 'k--', label='Ideal')
-    plt.xlabel("True")
-    plt.ylabel("Predicted")
-    plt.title(f"{name}")
-    plt.legend()
-    try:
-        prediction_plots[name] = plot_to_b64()
-    except:
-         prediction_plots[name] = safe_plot_b64()
+    def prediction_plot():
+        plt.figure()
+        plt.errorbar(y_true[:,i], y_pred[:,i], yerr=y_std[:,i], fmt='o', alpha=0.6)
+        plt.plot(y_true[:,i], y_true[:,i], 'k--', label='Ideal')
+        plt.xlabel("True")
+        plt.ylabel("Predicted")
+        plt.title(f"{name}")
+        plt.legend()
+    prediction_plots[name] = safe_plot_b64(prediction_plot)
 
 # Fake SHAP plots
 shap_plots = {}
@@ -64,67 +62,66 @@ for i, name in enumerate(output_names):
         plt.figure()
         shap.summary_plot(shap_values, X, show=False)
         plt.title(f"SHAP for {name}")
-
     shap_plots[name] = safe_plot_b64(shap_plot)
 
 # Fake PDP plots
 pdp_plots = {}
 for i, name in enumerate(output_names):
-    plt.figure()
-    x = np.linspace(-1, 1, 50)
-    plt.plot(x, x + (i+1)*0.2, label="Feature 1")
-    plt.plot(x, -x + (i+1)*0.1, label="Feature 2")
-    plt.xlabel("Feature Value")
-    plt.ylabel("Partial Dependence")
-    plt.title(f"PDP for {name}")
-    plt.legend()
-    try:
-        pdp_plots[name] = plot_to_b64()
-    except:
-        pdp_plots[name] = safe_plot_b64()
+    def pdp_plot():
+        plt.figure()
+        x = np.linspace(-1, 1, 50)
+        plt.plot(x, x + (i+1)*0.2, label="Feature 1")
+        plt.plot(x, -x + (i+1)*0.1, label="Feature 2")
+        plt.xlabel("Feature Value")
+        plt.ylabel("Partial Dependence")
+        plt.title(f"PDP for {name}")
+        plt.legend()
+    pdp_plots[name] = safe_plot_b64(pdp_plot)
 
 # Uncertainty toolbox style plots (calibration curve example)
 uncertainty_plots = []
-plt.figure()
-probs = np.linspace(0,1,11)
-empirical = probs + np.random.normal(scale=0.03, size=probs.shape)
-plt.plot(probs, empirical, marker='o')
-plt.plot([0,1],[0,1],'k--', label='Ideal')
-plt.xlabel("Predicted Probability")
-plt.ylabel("Empirical Probability")
-plt.title("Calibration Curve")
-plt.legend()
-try:
-    uncertainty_plots.append({"img_b64": plot_to_b64(), "title": "Calibration Curve", "caption": "Shows calibration of predicted uncertainty."})
-except:
-    uncertainty_plots.append({"img_b64": safe_plot_b64(), "title": "Calibration Curve", "caption": "Shows calibration of predicted uncertainty."})
+def plot_uncert():
+    probs = np.linspace(0,1,11)
+    empirical = probs + np.random.normal(scale=0.03, size=probs.shape)
+    plt.plot(probs, empirical, marker='o')
+    plt.plot([0,1],[0,1],'k--', label='Ideal')
+    plt.xlabel("Predicted Probability")
+    plt.ylabel("Empirical Probability")
+    plt.title("Calibration Curve")
+    plt.legend()
+uncertainty_plots.append({
+    "img_b64": safe_plot_b64(plot_uncert),
+    "title": "Calibration Curve",
+    "caption": "Shows calibration of predicted uncertainty."
+})
 
 # Sampling UMAP plot (just a scatter)
-plt.figure()
-for i, label in enumerate(['LHS', 'Random']):
-    data = np.random.normal(loc=i*2, scale=0.7, size=(50,2))
-    plt.scatter(data[:,0], data[:,1], label=label, alpha=0.7)
-plt.title("UMAP projection of input sampling")
-plt.legend()
-plt.xlabel("UMAP-1")
-plt.ylabel("UMAP-2")
-try:
-    sampling_umap_plot = plot_to_b64()
-except:
-    sampling_umap_plot = safe_plot_b64()
+def umap_plot():
+    plt.figure()
+    for i, label in enumerate(['LHS', 'Random']):
+        data = np.random.normal(loc=i*2, scale=0.7, size=(50,2))
+        plt.scatter(data[:,0], data[:,1], label=label, alpha=0.7)
+    plt.title("UMAP projection of input sampling")
+    plt.legend()
+    plt.xlabel("UMAP-1")
+    plt.ylabel("UMAP-2")
+sampling_umap_plot = safe_plot_b64(umap_plot)
 sampling_method_explanation = "Data cluster structure suggests a Latin Hypercube Sampling (LHS) technique was used."
 
 # Other diagnostic plot example
 other_plots = []
-plt.figure()
-plt.hist(y_pred[:,0] - y_true[:,0], bins=20, alpha=0.8)
-plt.xlabel("Prediction Error")
-plt.ylabel("Frequency")
-plt.title("Error Histogram (Pressure)")
-try:
-    other_plots.append({"img_b64": plot_to_b64(), "title": "Error Histogram", "caption": "Histogram of prediction errors for Pressure."})
-except:
-    other_plots.append({"img_b64": safe_plot_b64(), "title": "Error Histogram", "caption": "Histogram of prediction errors for Pressure."})
+def other_plot():
+    plt.figure()
+    plt.hist(y_pred[:,0] - y_true[:,0], bins=20, alpha=0.8)
+    plt.xlabel("Prediction Error")
+    plt.ylabel("Frequency")
+    plt.title("Error Histogram (Pressure)")
+
+other_plots.append({
+    "img_b64": safe_plot_b64(other_plot),
+    "title": "Error Histogram", "caption":
+    "Histogram of prediction errors for Pressure."
+})
 
 # ---- Prepare context for template ----
 context = dict(
@@ -150,7 +147,7 @@ context = dict(
     notes="All results are for demonstration purposes only.\nNo real-world data used."
 )
 
-output_path = "outputs/surrogate_report_example.html"
+output_path = "outputs/surrogate_report_example_safe_fig.html"
 template_path = "multioutreg/report/template.html"
 
 # ---- Jinja2 rendering ----
