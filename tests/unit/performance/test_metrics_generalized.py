@@ -1,6 +1,7 @@
 # Copyright (c) 2025 takotime808
 
 import pytest
+# import types
 import numpy as np
 import pandas as pd
 from sklearn.multioutput import MultiOutputRegressor
@@ -11,6 +12,41 @@ from multioutreg.performance.metrics_generalized_api import (
     _predict_with_uncertainty,
     get_uq_performance_metrics_flexible,
 )
+from multioutreg.performance import metrics_generalized_api
+
+
+class DummyEstimator:
+    def predict(self, X, return_std=False, return_cov=False):
+        if return_std:
+            return np.ones((X.shape[0], 2)), np.ones((X.shape[0], 2)) * 0.5
+        if return_cov:
+            cov = np.zeros((X.shape[0], 2, 2))
+            np.fill_diagonal(cov[0], 0.25)
+            return np.ones((X.shape[0], 2)), cov
+        return np.ones((X.shape[0], 2))
+    def predict_std(self, X):
+        return np.ones((X.shape[0], 2)) * 0.4
+    def predict_var(self, X):
+        return np.ones((X.shape[0], 2)) * 0.16
+
+
+def test_predict_with_uncertainty_all_methods():
+    X = np.ones((3,2))
+    est = DummyEstimator()
+    # All supported methods
+    for method in ["return_std", "return_cov", "predict_std", "predict_var", None]:
+        mean, std = metrics_generalized_api._predict_with_uncertainty(est, X, method=method)
+        assert mean.shape == std.shape == (3,2)
+
+
+def test_predict_with_uncertainty_invalid_method():
+    class BadEstimator:
+        def predict(self, X):
+            return np.ones((X.shape[0], 2))
+    X = np.ones((3,2))
+    # Should raise an informative exception for no std/var/cov
+    with pytest.raises(Exception):
+        metrics_generalized_api._predict_with_uncertainty(BadEstimator(), X, method="foo")
 
 
 def test_get_uq_performance_metrics_flexible():
@@ -27,8 +63,6 @@ def test_get_uq_performance_metrics_flexible():
     assert {'rmse', 'mae', 'nll', 'miscal_area', 'output'} <= set(metrics_df.columns)
     assert 'mae' in overall
 
-# # --- Mock for uncertainty_toolbox.get_all_metrics ---
-# import types
 
 dummy_metrics = {
     'accuracy': {'rmse': 1.2, 'mae': 0.7},
@@ -73,6 +107,7 @@ class BadEstimator:
         raise TypeError
 
 # --- _predict_with_uncertainty tests ---
+
 def test_predict_with_uncertainty_return_std():
     est = EstimatorReturnStd()
     X = np.zeros((4, 2))
@@ -185,3 +220,12 @@ def test_get_uq_performance_metrics_multioutput():
     y = np.ones((4, 2))
     metrics_df, overall = get_uq_performance_metrics_flexible(model, X, y, uncertainty_method="return_std")
     assert 'mae' in overall and 'rmse' in metrics_df.columns
+
+# def test_metrics_api_with_nans():
+#     # Should handle NaNs gracefully
+#     y_true = np.array([[1.0, np.nan], [2.0, 2.0]])
+#     y_pred = np.array([[1.0, 2.0], [2.0, np.nan]])
+#     std = np.ones_like(y_true)
+#     # If there's a function that summarizes metrics, test with NaNs and mismatches
+#     out = metrics_generalized_api.rmse(y_true, y_pred)
+#     assert np.isnan(out) or out >= 0
