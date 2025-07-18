@@ -3,12 +3,17 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import shap
+# import shap
 import base64
 import io
 from jinja2 import Environment, FileSystemLoader
 
-# ---- Helper to convert plot to base64 ----
+from multioutreg.utils.figure_utils import (
+    safe_plot_b64,
+    # plot_to_b64,
+)
+
+# # ---- Helper to convert plot to base64 ----
 def plot_to_b64():
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight')
@@ -44,19 +49,24 @@ for i, name in enumerate(output_names):
     plt.ylabel("Predicted")
     plt.title(f"{name}")
     plt.legend()
-    prediction_plots[name] = plot_to_b64()
+    try:
+        prediction_plots[name] = plot_to_b64()
+    except:
+         prediction_plots[name] = safe_plot_b64()
 
 # Fake SHAP plots
 shap_plots = {}
-X = np.random.uniform(-1,1,(n_samples,3))
-for i, name in enumerate(output_names):
-    explainer = shap.Explainer(lambda X: X[:,0] + 0.5*X[:,1] + 0.2*X[:,2], X)
-    shap_values = explainer(X)
-    plt.figure()
-    shap.summary_plot(shap_values, X, show=False)
-    plt.title(f"SHAP for {name}")
-    shap_plots[name] = plot_to_b64()
-
+# X = np.random.uniform(-1,1,(n_samples,3))
+# for i, name in enumerate(output_names):
+#     explainer = shap.Explainer(lambda X: X[:,0] + 0.5*X[:,1] + 0.2*X[:,2], X)
+#     shap_values = explainer(X)
+#     plt.figure()
+#     shap.summary_plot(shap_values, X, show=False)
+#     plt.title(f"SHAP for {name}")
+#     try:
+#         shap_plots[name] = safe_plot_b64()
+#     except:
+#         shap_plots[name] = safe_plot_b64()
 
 # Fake PDP plots
 pdp_plots = {}
@@ -69,7 +79,10 @@ for i, name in enumerate(output_names):
     plt.ylabel("Partial Dependence")
     plt.title(f"PDP for {name}")
     plt.legend()
-    pdp_plots[name] = plot_to_b64()
+    try:
+        pdp_plots[name] = plot_to_b64()
+    except:
+        pdp_plots[name] = safe_plot_b64()
 
 # Uncertainty toolbox style plots (calibration curve example)
 uncertainty_plots = []
@@ -82,7 +95,10 @@ plt.xlabel("Predicted Probability")
 plt.ylabel("Empirical Probability")
 plt.title("Calibration Curve")
 plt.legend()
-uncertainty_plots.append({"img_b64": plot_to_b64(), "title": "Calibration Curve", "caption": "Shows calibration of predicted uncertainty."})
+try:
+    uncertainty_plots.append({"img_b64": plot_to_b64(), "title": "Calibration Curve", "caption": "Shows calibration of predicted uncertainty."})
+except:
+    uncertainty_plots.append({"img_b64": safe_plot_b64(), "title": "Calibration Curve", "caption": "Shows calibration of predicted uncertainty."})
 
 # Sampling UMAP plot (just a scatter)
 plt.figure()
@@ -93,7 +109,10 @@ plt.title("UMAP projection of input sampling")
 plt.legend()
 plt.xlabel("UMAP-1")
 plt.ylabel("UMAP-2")
-sampling_umap_plot = plot_to_b64()
+try:
+    sampling_umap_plot = plot_to_b64()
+except:
+    sampling_umap_plot = safe_plot_b64()
 sampling_method_explanation = "Data cluster structure suggests a Latin Hypercube Sampling (LHS) technique was used."
 
 # Other diagnostic plot example
@@ -103,7 +122,10 @@ plt.hist(y_pred[:,0] - y_true[:,0], bins=20, alpha=0.8)
 plt.xlabel("Prediction Error")
 plt.ylabel("Frequency")
 plt.title("Error Histogram (Pressure)")
-other_plots.append({"img_b64": plot_to_b64(), "title": "Error Histogram", "caption": "Histogram of prediction errors for Pressure."})
+try:
+    other_plots.append({"img_b64": plot_to_b64(), "title": "Error Histogram", "caption": "Histogram of prediction errors for Pressure."})
+except:
+    other_plots.append({"img_b64": safe_plot_b64(), "title": "Error Histogram", "caption": "Histogram of prediction errors for Pressure."})
 
 # ---- Prepare context for template ----
 context = dict(
@@ -129,12 +151,15 @@ context = dict(
     notes="All results are for demonstration purposes only.\nNo real-world data used."
 )
 
+output_path = "outputs/surrogate_report_example.html"
+template_path = "multioutreg/report/template.html"
+
 # ---- Jinja2 rendering ----
 env = Environment(loader=FileSystemLoader("."))
-template = env.get_template("multioutreg/report/template.html")
+template = env.get_template(template_path)
 html = template.render(**context)
 
-with open("outputs/surrogate_report_example.html", "w") as f:
+with open(output_path, "w") as f:
     f.write(html)
 
-print("Report written to surrogate_report_example.html")
+print(f"Report written to {output_path}")
