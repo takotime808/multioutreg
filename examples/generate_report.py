@@ -109,7 +109,12 @@ def main(
 ):
     X_train, X_test, Y_train, Y_test = make_data()
     model = train_model(X_train, Y_train)
-    preds, std, metrics_df, paths = make_plots(model, X_test, Y_test)
+    preds, std, metrics_df, paths = make_plots(
+                                        model,
+                                        X_test,
+                                        Y_test,
+                                        # out_dir="outputs", # needs an absolute path
+                                    )
     metrics_df2, overall = get_uq_performance_metrics_flexible(model, X_test, Y_test)
     render_report(
         metrics_df=metrics_df2,
@@ -119,6 +124,8 @@ def main(
         template_filename=template_filename,
         output_path=output_path,
     )
+    # import joblib
+    # joblib.dump(paths,"paths.joblib")
     print(f"Report written to {output_path}")
 
 
