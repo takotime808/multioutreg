@@ -23,6 +23,8 @@ dependencies = [
   "uncertainty-toolbox",#>=0.1.4,<0.1.7",
   "shap>=0.48.0",
   # "jinja2>=3.0",
+  "umap-learn",
+  "kaleido",
 ]
 
 [project.optional-dependencies]
