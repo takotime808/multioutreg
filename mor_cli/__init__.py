@@ -10,12 +10,12 @@ def main():
     from wasabi import msg
     from .example import example
     from .print_fonts import print_fonts
-    from .generate_report import generate_report
+    # from .generate_report import generate_report
 
     commands = {
         "run_example": example,
         "print_fonts": print_fonts,
-        "generate_report": generate_report,
+        # "generate_report": generate_report,
     }
     if len(sys.argv) == 1:
         msg.info("Available commands", ", ".join(commands), exits=1)

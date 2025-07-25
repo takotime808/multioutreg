@@ -26,9 +26,9 @@ dependencies = [
   "umap-learn",
   # "kaleido",
   "nbformat>=4.2.0",
-  "ray[tune]>=2.30",
-  "hyperopt>=0.2",
-  "textual",
+  # "ray[tune]>=2.30",
+  # "hyperopt>=0.2",
+  # "textual",
 ]
 
 [project.optional-dependencies]
