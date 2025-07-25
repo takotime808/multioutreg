@@ -239,7 +239,7 @@ def generate_html_report(
     # pdp_plots = generate_pdp_plot(output_names)
     pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=input_cols)
     uncertainty_plots = generate_uncertainty_plots()
-    sampling_umap_plot, sampling_method_explanation = generate_umap_plot()
+    sampling_umap_plot, sampling_method_explanation = generate_umap_plot(X_train)
     other_plots = generate_error_histogram(y_test, best_pred, output_names)
     sampling_other_plots = []
     
@@ -275,7 +275,7 @@ def generate_html_report(
 # ----- Streamlit App -----
 st.title("Multi-Output Surrogate Model Grid Search & Report Generator")
 
-uploaded_file = st.file_uploader("Upload CSV file", type=["csv"])
+uploaded_file = st.file_uploader("Upload CSV file. Example files can be found in the repo: `multioutreg/docs/_static/example_datasets/`.", type=["csv"])
 
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
