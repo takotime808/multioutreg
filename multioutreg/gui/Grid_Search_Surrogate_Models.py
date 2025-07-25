@@ -6,6 +6,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import os
+from typing import Dict, List, Tuple, Union, Any
 from sklearn.model_selection import train_test_split, ParameterGrid
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.gaussian_process import GaussianProcessRegressor
@@ -26,118 +27,32 @@ from multioutreg.gui.report_plotting_utils import (
     generate_error_histogram
 )
 
-# # Utility to convert plots to base64
-# def plot_to_b64(plot_fn):
-#     buf = io.BytesIO()
-#     plot_fn()
-#     plt.savefig(buf, format='png', bbox_inches='tight')
-#     plt.close()
-#     buf.seek(0)
-#     return base64.b64encode(buf.read()).decode('utf-8')
-
-# def generate_prediction_plot(y_true, y_pred, y_std, output_names):
-#     plots = {}
-#     for i, name in enumerate(output_names):
-#         def plot_fn():
-#             plt.figure()
-#             plt.errorbar(y_true[:, i], y_pred[:, i], yerr=y_std[:, i], fmt='o', alpha=0.6)
-#             plt.plot(y_true[:, i], y_true[:, i], 'k--', label='Ideal')
-#             plt.xlabel("True")
-#             plt.ylabel("Predicted")
-#             plt.title(f"{name}")
-#             plt.legend()
-#         plots[name] = plot_to_b64(plot_fn)
-#     return plots
-
-# def generate_shap_plot(model, X, output_names):
-#     plots = {}
-#     for i, name in enumerate(output_names):
-#         def plot_fn():
-#             est = model.estimators_[i]
-#             try:
-#                 explainer = shap.Explainer(est.predict, X)  # safer, functional interface
-#                 shap_values = explainer(X)
-#                 shap.summary_plot(shap_values, X, show=False)
-#                 plt.title(f"SHAP for {name}")
-#             except Exception as e:
-#                 plt.figure()
-#                 plt.text(0.5, 0.5, f"SHAP not supported for {type(est).__name__}", ha='center')
-#                 plt.axis('off')
-#         plots[name] = plot_to_b64(plot_fn)
-#     return plots
-
-
-# def generate_pdp_plot(output_names):
-#     plots = {}
-#     for i, name in enumerate(output_names):
-#         def plot_fn():
-#             plt.figure()
-#             x = np.linspace(-1, 1, 50)
-#             plt.plot(x, x + (i+1)*0.2, label="Feature 1")
-#             plt.plot(x, -x + (i+1)*0.1, label="Feature 2")
-#             plt.xlabel("Feature Value")
-#             plt.ylabel("Partial Dependence")
-#             plt.title(f"PDP for {name}")
-#             plt.legend()
-#         plots[name] = plot_to_b64(plot_fn)
-#     return plots
-
-# def generate_uncertainty_plots():
-#     plots = []
-#     def plot_fn():
-#         probs = np.linspace(0, 1, 11)
-#         empirical = probs + np.random.normal(scale=0.03, size=probs.shape)
-#         plt.plot(probs, empirical, marker='o')
-#         plt.plot([0,1],[0,1],'k--', label='Ideal')
-#         plt.xlabel("Predicted Probability")
-#         plt.ylabel("Empirical Probability")
-#         plt.title("Calibration Curve")
-#         plt.legend()
-#     plots.append({
-#         "img_b64": plot_to_b64(plot_fn),
-#         "title": "Calibration Curve",
-#         "caption": "Shows calibration of predicted uncertainty."
-#     })
-#     return plots
-
-# def generate_umap_plot():
-#     def plot_fn():
-#         plt.figure()
-#         for i, label in enumerate(['LHS', 'Random']):
-#             data = np.random.normal(loc=i*2, scale=0.7, size=(50,2))
-#             plt.scatter(data[:,0], data[:,1], label=label, alpha=0.7)
-#         plt.title("UMAP projection of input sampling")
-#         plt.legend()
-#         plt.xlabel("UMAP-1")
-#         plt.ylabel("UMAP-2")
-#     return plot_to_b64(plot_fn), "Data cluster structure suggests a Latin Hypercube Sampling (LHS) technique was used."
-
-# def generate_error_histogram(y_true, y_pred, output_names):
-#     plots = []
-#     for i, name in enumerate(output_names):
-#         def plot_fn():
-#             plt.figure()
-#             plt.hist(y_pred[:, i] - y_true[:, i], bins=20, alpha=0.8)
-#             plt.xlabel("Prediction Error")
-#             plt.ylabel("Frequency")
-#             plt.title(f"Error Histogram ({name})")
-#         plots.append({
-#             "img_b64": plot_to_b64(plot_fn),
-#             "title": f"Error Histogram", 
-#             "caption": f"Histogram of prediction errors for {name}."
-#         })
-#     return plots
-
 
 # ----- Surrogate Models with Uncertainty -----
 class RandomForestWithUncertainty(RandomForestRegressor):
-    def predict(self, X, return_std=False):
+    def predict(self, X: np.ndarray, return_std: bool = False) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+        """
+        Predict using the random forest, optionally returning standard deviation.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input feature array.
+        return_std : bool, optional
+            Whether to return the standard deviation of predictions.
+
+        Returns
+        -------
+        np.ndarray or Tuple[np.ndarray, np.ndarray]
+            Mean predictions or (mean, std) tuple.
+        """
         mean = super().predict(X)
         if not return_std:
             return mean
         all_preds = np.stack([tree.predict(X) for tree in self.estimators_], axis=0)
         std = all_preds.std(axis=0)
         return mean, std
+
 
 class GradientBoostingWithUncertainty(BaseEstimator, RegressorMixin):
     def __init__(self, alpha=0.95, n_estimators=100):
@@ -147,13 +62,43 @@ class GradientBoostingWithUncertainty(BaseEstimator, RegressorMixin):
         self.upper = GradientBoostingRegressor(loss="quantile", alpha=1 - (1 - alpha) / 2, n_estimators=n_estimators)
         self.mid = GradientBoostingRegressor(loss="squared_error", n_estimators=n_estimators)
 
-    def fit(self, X, y):
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "GradientBoostingWithUncertainty":
+        """
+        Fit the quantile and mid regressors.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Feature matrix.
+        y : np.ndarray
+            Target array.
+
+        Returns
+        -------
+        GradientBoostingWithUncertainty
+            The fitted model.
+        """
         self.lower.fit(X, y)
         self.upper.fit(X, y)
         self.mid.fit(X, y)
         return self
 
-    def predict(self, X, return_std=False):
+    def predict(self, X: np.ndarray, return_std: bool = False) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+        """
+        Predict using the model.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input feature array.
+        return_std : bool, optional
+            Whether to return standard deviation.
+
+        Returns
+        -------
+        np.ndarray or Tuple[np.ndarray, np.ndarray]
+            Mean predictions or (mean, std) tuple.
+        """
         y_pred = self.mid.predict(X)
         if not return_std:
             return y_pred
@@ -162,8 +107,24 @@ class GradientBoostingWithUncertainty(BaseEstimator, RegressorMixin):
         std = (upper - lower) / 2
         return y_pred, std
 
+
 class KNeighborsRegressorWithUncertainty(KNeighborsRegressor):
-    def predict(self, X, return_std=False):
+    def predict(self, X: np.ndarray, return_std: bool = False) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+        """
+        Predict using KNN, optionally returning standard deviation.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input feature array.
+        return_std : bool, optional
+            Whether to return standard deviation.
+
+        Returns
+        -------
+        np.ndarray or Tuple[np.ndarray, np.ndarray]
+            Mean predictions or (mean, std) tuple.
+        """
         mean = super().predict(X)
         if not return_std:
             return mean
@@ -172,11 +133,27 @@ class KNeighborsRegressorWithUncertainty(KNeighborsRegressor):
         std = y_neigh.std(axis=1)
         return mean, std
 
+
 class BootstrapLinearRegression(BaseEstimator, RegressorMixin):
     def __init__(self, n_bootstraps=20):
         self.n_bootstraps = n_bootstraps
 
-    def fit(self, X, y):
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "BootstrapLinearRegression":
+        """
+        Fit bootstrapped linear regression models.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Feature matrix.
+        y : np.ndarray
+            Target array.
+
+        Returns
+        -------
+        BootstrapLinearRegression
+            The fitted model.
+        """
         self.models_ = []
         n = X.shape[0]
         for _ in range(self.n_bootstraps):
@@ -185,7 +162,22 @@ class BootstrapLinearRegression(BaseEstimator, RegressorMixin):
             self.models_.append(model)
         return self
 
-    def predict(self, X, return_std=False):
+    def predict(self, X: np.ndarray, return_std: bool = False) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+        """
+        Predict using ensemble of linear models.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input feature array.
+        return_std : bool, optional
+            Whether to return standard deviation.
+
+        Returns
+        -------
+        np.ndarray or Tuple[np.ndarray, np.ndarray]
+            Mean predictions or (mean, std) tuple.
+        """
         all_preds = [m.predict(X).reshape(X.shape[0], -1) for m in self.models_]
         preds = np.stack(all_preds, axis=2)
         mean = preds.mean(axis=2)
@@ -194,11 +186,27 @@ class BootstrapLinearRegression(BaseEstimator, RegressorMixin):
         std = preds.std(axis=2)
         return mean, std
 
+
 class PerTargetRegressorWithStd(BaseEstimator, RegressorMixin):
     def __init__(self, estimators):
         self.estimators = list(estimators)
 
-    def fit(self, X, y):
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "PerTargetRegressorWithStd":
+        """
+        Fit separate estimators for each output column.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Feature matrix.
+        y : np.ndarray
+            Multi-output target matrix.
+
+        Returns
+        -------
+        PerTargetRegressorWithStd
+            The fitted model.
+        """
         self.estimators_ = []
         y = np.asarray(y)
         if y.ndim == 1:
@@ -209,7 +217,22 @@ class PerTargetRegressorWithStd(BaseEstimator, RegressorMixin):
             self.estimators_.append(est_fitted)
         return self
 
-    def predict(self, X, return_std=False):
+    def predict(self, X: np.ndarray, return_std: bool = False) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+        """
+        Predict using individual estimators for each target dimension.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input feature array.
+        return_std : bool, optional
+            Whether to return standard deviation.
+
+        Returns
+        -------
+        np.ndarray or Tuple[np.ndarray, np.ndarray]
+            Mean predictions or (mean, std) tuple.
+        """
         preds, stds = [], []
         for est in self.estimators_:
             if return_std:
@@ -228,12 +251,69 @@ class PerTargetRegressorWithStd(BaseEstimator, RegressorMixin):
         return np.hstack(preds)
 
 
+
 # ----- HTML Report Generation Wrapper -----
 def generate_html_report(
-    model_type, fidelity_levels, output_names, description, metrics,
-    uncertainty_metrics, y_test, best_pred, best_std, best_model, X_train,
-    n_train, n_test, cross_validation, seed, notes
-):
+    model_type: str,
+    fidelity_levels: List[str],
+    output_names: List[str],
+    description: str,
+    metrics: Dict[str, Dict[str, float]],
+    uncertainty_metrics: Dict[str, float],
+    y_test: np.ndarray,
+    best_pred: np.ndarray,
+    best_std: np.ndarray,
+    best_model: Any,
+    X_train: np.ndarray,
+    n_train: int,
+    n_test: int,
+    cross_validation: str,
+    seed: int,
+    notes: str
+) -> str:
+    """
+    Generate an HTML report from model training and evaluation results.
+
+    Parameters
+    ----------
+    model_type : str
+        Type of model used.
+    fidelity_levels : List[str]
+        Fidelity levels used (if any).
+    output_names : List[str]
+        Names of the output dimensions.
+    description : str
+        Description of the modeling project.
+    metrics : Dict[str, Dict[str, float]]
+        Dictionary of evaluation metrics for each output.
+    uncertainty_metrics : Dict[str, float]
+        Dictionary of uncertainty metrics.
+    y_test : np.ndarray
+        Ground truth values for test set.
+    best_pred : np.ndarray
+        Predictions from the best model.
+    best_std : np.ndarray
+        Uncertainty estimates from the best model.
+    best_model : Any
+        The best performing model.
+    X_train : np.ndarray
+        Training input features.
+    n_train : int
+        Number of training samples.
+    n_test : int
+        Number of test samples.
+    cross_validation : str
+        Description of the CV strategy.
+    seed : int
+        Random seed used.
+    notes : str
+        Additional notes.
+
+    Returns
+    -------
+    str
+        Rendered HTML report.
+    """
     prediction_plots = generate_prediction_plot(y_test, best_pred, best_std, output_names)
     shap_plots = generate_shap_plot(best_model, X_train, output_names)
     # pdp_plots = generate_pdp_plot(output_names)

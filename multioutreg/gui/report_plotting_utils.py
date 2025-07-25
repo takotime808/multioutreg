@@ -6,6 +6,7 @@ import umap
 import base64
 import numpy as np
 import matplotlib.pyplot as plt
+from typing import Callable, Dict, List, Any
 from sklearn.inspection import PartialDependenceDisplay
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import silhouette_score
@@ -13,8 +14,22 @@ from sklearn.neighbors import KDTree
 from sklearn.cluster import KMeans
 from scipy.stats import entropy
 
+
 # Utility to convert plots to base64
-def plot_to_b64(plot_fn):
+def plot_to_b64(plot_fn: Callable[[], None]) -> str:
+    """
+    Convert a plot function to a base64-encoded PNG image.
+
+    Parameters
+    ----------
+    plot_fn : Callable[[], None]
+        Function that generates a matplotlib plot.
+
+    Returns
+    -------
+    str
+        Base64-encoded string of the PNG plot image.
+    """
     buf = io.BytesIO()
     plot_fn()
     plt.savefig(buf, format='png', bbox_inches='tight')
@@ -22,7 +37,32 @@ def plot_to_b64(plot_fn):
     buf.seek(0)
     return base64.b64encode(buf.read()).decode('utf-8')
 
-def generate_prediction_plot(y_true, y_pred, y_std, output_names):
+
+def generate_prediction_plot(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    y_std: np.ndarray,
+    output_names: List[str]
+) -> Dict[str, str]:
+    """
+    Generate base64-encoded scatter plots of predictions with error bars.
+
+    Parameters
+    ----------
+    y_true : np.ndarray
+        Ground truth target values of shape (n_samples, n_outputs).
+    y_pred : np.ndarray
+        Predicted target values of shape (n_samples, n_outputs).
+    y_std : np.ndarray
+        Standard deviations of predictions of shape (n_samples, n_outputs).
+    output_names : List[str]
+        Names of output dimensions.
+
+    Returns
+    -------
+    Dict[str, str]
+        Dictionary mapping output names to base64-encoded plot images.
+    """
     plots = {}
     for i, name in enumerate(output_names):
         def plot_fn():
@@ -36,7 +76,29 @@ def generate_prediction_plot(y_true, y_pred, y_std, output_names):
         plots[name] = plot_to_b64(plot_fn)
     return plots
 
-def generate_shap_plot(model, X, output_names):
+
+def generate_shap_plot(
+    model: Any,
+    X: np.ndarray,
+    output_names: List[str]
+) -> Dict[str, str]:
+    """
+    Generate SHAP summary plots for each output dimension.
+
+    Parameters
+    ----------
+    model : Any
+        Multi-output model with `estimators_` attribute.
+    X : np.ndarray
+        Input features used to compute SHAP values.
+    output_names : List[str]
+        Names of output dimensions.
+
+    Returns
+    -------
+    Dict[str, str]
+        Dictionary mapping output names to base64-encoded SHAP plots.
+    """
     plots = {}
     for i, name in enumerate(output_names):
         def plot_fn():
@@ -53,7 +115,32 @@ def generate_shap_plot(model, X, output_names):
         plots[name] = plot_to_b64(plot_fn)
     return plots
 
-def generate_pdp_plot(model, X, output_names, feature_names):
+
+def generate_pdp_plot(
+    model: Any,
+    X: np.ndarray,
+    output_names: List[str],
+    feature_names: List[str]
+) -> Dict[str, str]:
+    """
+    Generate partial dependence plots (PDPs) for each output dimension.
+
+    Parameters
+    ----------
+    model : Any
+        Multi-output model with `estimators_` attribute.
+    X : np.ndarray
+        Input features.
+    output_names : List[str]
+        Names of output dimensions.
+    feature_names : List[str]
+        Names of the input features.
+
+    Returns
+    -------
+    Dict[str, str]
+        Dictionary mapping output names to base64-encoded PDP plots.
+    """
     plots = {}
     for i, name in enumerate(output_names):
         def plot_fn():
@@ -69,7 +156,17 @@ def generate_pdp_plot(model, X, output_names, feature_names):
         plots[name] = plot_to_b64(plot_fn)
     return plots
 
-def generate_uncertainty_plots():
+
+def generate_uncertainty_plots() -> List[Dict[str, str]]:
+    """
+    Generate a dummy calibration curve for uncertainty illustration.
+
+    Returns
+    -------
+    List[Dict[str, str]]
+        List containing a single dictionary with base64-encoded plot,
+        title, and caption.
+    """
     plots = []
     def plot_fn():
         probs = np.linspace(0, 1, 11)
@@ -87,19 +184,20 @@ def generate_uncertainty_plots():
     })
     return plots
 
+
 def generate_umap_plot(X):
-    """Generate a UMAP projection plot and infer sampling method.
+    """
+    Generate a UMAP projection and infer the sampling method.
 
     Parameters
     ----------
-    X : np.ndarray
-        Input feature matrix used for the surrogate model.
+    X : np.ndarray or None
+        Input feature matrix.
 
     Returns
     -------
-    tuple[str, str]
-        Base64 encoded plot image and textual explanation of the inferred
-        sampling method.
+    Tuple[str, str]
+        Base64-encoded plot and inferred sampling explanation.
     """
 
     if X is None or len(X) == 0:
@@ -140,7 +238,29 @@ def generate_umap_plot(X):
         plt.ylabel(ylabel)
     return plot_to_b64(plot_fn), explanation
 
-def generate_error_histogram(y_true, y_pred, output_names):
+
+def generate_error_histogram(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    output_names: List[str]
+) -> List[Dict[str, str]]:
+    """
+    Generate error histograms for each output dimension.
+
+    Parameters
+    ----------
+    y_true : np.ndarray
+        Ground truth values.
+    y_pred : np.ndarray
+        Predicted values.
+    output_names : List[str]
+        Names of output dimensions.
+
+    Returns
+    -------
+    List[Dict[str, str]]
+        List of dictionaries containing base64-encoded histograms and metadata.
+    """
     plots = []
     for i, name in enumerate(output_names):
         def plot_fn():
