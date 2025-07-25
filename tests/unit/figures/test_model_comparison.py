@@ -1,7 +1,5 @@
 # Copyright (c) 2025 takotime808
 
-# tests/test_model_comparison.py
-
 import os
 import pytest
 import numpy as np
