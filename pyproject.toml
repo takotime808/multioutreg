@@ -29,6 +29,7 @@ dependencies = [
   # "ray[tune]>=2.30",
   # "hyperopt>=0.2",
   # "textual",
+  "streamlit",
 ]
 
 [project.optional-dependencies]
