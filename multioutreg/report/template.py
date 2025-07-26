@@ -106,6 +106,22 @@ template = Template("""
         </div>
         {% endfor %}
     </div>
+    {% if pca_explained_variance %}
+    <div class="section">
+        <h2>PCA Explained Variance</h2>
+        <div class="plot">
+            {% if pca_variance_plot %}
+            <img src="data:image/png;base64,{{ pca_variance_plot }}" alt="PCA Variance">
+            {% endif %}
+        </div>
+        <table>
+            <tr><th>Component</th><th>Explained Variance Ratio</th></tr>
+            {% for var in pca_explained_variance %}
+            <tr><td>PC{{ loop.index }}</td><td>{{ var|round(3) }}</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
     <div class="section">
         <h2>Sampling & Input Space Visualization</h2>
         <div>

@@ -10,9 +10,11 @@ from typing import Callable, Dict, List, Any
 from sklearn.inspection import PartialDependenceDisplay
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import silhouette_score
+from sklearn.decomposition import PCA
 from sklearn.neighbors import KDTree
 from sklearn.cluster import KMeans
 from scipy.stats import entropy
+
 
 
 # Utility to convert plots to base64
@@ -275,3 +277,28 @@ def generate_error_histogram(
             "caption": f"Histogram of prediction errors for {name}."
         })
     return plots
+
+
+def generate_pca_variance_plot(pca: PCA) -> str:
+    """
+    Generate a base64-encoded bar plot showing the explained variance ratio of each principal component.
+
+    Parameters
+    ----------
+    pca : PCA
+        A fitted scikit-learn PCA object with the `explained_variance_ratio_` attribute.
+
+    Returns
+    -------
+    str
+        A base64-encoded string of the PCA explained variance bar plot image.
+    """
+    def plot_fn():
+        plt.figure()
+        comps = np.arange(1, len(pca.explained_variance_ratio_) + 1)
+        plt.bar(comps, pca.explained_variance_ratio_)
+        plt.xlabel("Principal Component")
+        plt.ylabel("Explained Variance Ratio")
+        plt.title("PCA Explained Variance")
+
+    return plot_to_b64(plot_fn)

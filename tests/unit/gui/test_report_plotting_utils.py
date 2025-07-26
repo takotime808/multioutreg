@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 from sklearn.linear_model import LinearRegression
 from sklearn.multioutput import MultiOutputRegressor
+from sklearn.decomposition import PCA
 from multioutreg.gui import report_plotting_utils as utils
 
 @pytest.fixture
@@ -72,3 +73,10 @@ def test_generate_error_histogram(sample_regression_data):
         assert "img_b64" in plot
         assert isinstance(plot["img_b64"], str)
         assert len(plot["img_b64"]) > 100
+
+def test_generate_pca_variance_plot():
+    X = np.random.rand(50, 4)
+    pca = PCA(n_components=3).fit(X)
+    b64 = utils.generate_pca_variance_plot(pca)
+    assert isinstance(b64, str)
+    assert len(b64) > 100

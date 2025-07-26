@@ -11,6 +11,7 @@ from sklearn.model_selection import train_test_split, ParameterGrid
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, Matern
+from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import LinearRegression
@@ -30,7 +31,10 @@ from jinja2 import Template
 from multioutreg.gui.report_plotting_utils import (
     generate_shap_plot,
     generate_error_histogram,
+    generate_pca_variance_plot,
 )
+from multioutreg.figures.doe_plots import make_doe_plot
+from multioutreg.figures.model_comparison import plot_surrogate_model_summary
 from multioutreg.figures.pdp_plots import generate_pdp_plot
 from multioutreg.utils.figure_utils import safe_plot_b64
 from multioutreg.figures.umap_plot_classify import generate_umap_plot
@@ -281,7 +285,10 @@ def generate_html_report(
     n_test: int,
     cross_validation: str,
     seed: int,
-    notes: str
+    notes: str,
+    feature_names_pca: List[str] | None = None,
+    pca_explained_variance: List[float] | None = None,
+    pca_variance_plot: str | None = None,
 ) -> str:
     """
     Generate an HTML report from model training and evaluation results.
@@ -320,6 +327,12 @@ def generate_html_report(
         Random seed used.
     notes : str
         Additional notes.
+    feature_names_pca : List[str] | None, optional
+        Names to use for PCA.
+    pca_explained_variance : List[float] | None, optional
+        Explained variance ratios from PCA if applied.
+    pca_variance_plot : str | None, optional
+        Base64-encoded plot showing PCA variance ratios.
 
     Returns
     -------
@@ -350,7 +363,7 @@ def generate_html_report(
         plot_coverage, y_test, best_pred, best_std, output_names=output_names
     )
     uncertainty_plots = [{"img_b64": unc_img, "title": "Coverage Plot", "caption": "Nominal vs empirical coverage."}]
-    pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=input_cols)
+    pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=feature_names)
     
     sampling_umap_plot, sampling_method_explanation = generate_umap_plot(X_train)
     # other_plots = generate_error_histogram(y_test, best_pred, output_names)
@@ -389,6 +402,9 @@ def generate_html_report(
         cross_validation=cross_validation,
         seed=seed,
         notes=notes,
+        feature_names_pca=feature_names_pca,
+        pca_explained_variance=pca_explained_variance,
+        pca_variance_plot=pca_variance_plot,
     )
     return rendered
 
@@ -404,6 +420,18 @@ if uploaded_file:
     with st.form("column_selection"):
         input_cols = st.multiselect("Select input features", options=df.columns)
         output_cols = st.multiselect("Select output targets", options=df.columns)
+        use_pca = st.checkbox("Apply PCA to input features")
+        n_components = None
+        if use_pca:
+            # max_comp = max(1, len(input_cols)) if input_cols else len(df.columns)
+            max_comp = len(df.columns)
+            n_components = st.number_input(
+                "Number of PCA components",
+                min_value=1,
+                max_value=max_comp,
+                value=min(2, max_comp),
+                step=1,
+            )
         description = st.text_area("Optional: Project description")
         submitted = st.form_submit_button("Run Grid Search")
 
@@ -411,6 +439,30 @@ if uploaded_file:
         X = df[input_cols].values
         y = df[output_cols].values
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
+        feature_names = list(input_cols)
+
+        # # Show seaborn PairGrid plot with KDE in lower triangle
+        # if df.shape[1] >= 2:
+        #     st.write("### PairGrid Visualization (KDE Lower Triangle)")
+
+        #     numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
+        #     if len(numeric_cols) >= 2:
+        #         g = make_doe_plot(df=df, numeric_cols=numeric_cols)
+        #         st.pyplot(g.fig)
+        #     else:
+        #         st.info("Not enough numeric columns for pairwise plot.")
+
+        # PCA.
+        pca_variance_plot = None
+        pca_explained_variance = None
+        if use_pca:
+            pca = PCA(n_components=int(n_components))
+            X_train = pca.fit_transform(X_train)
+            X_test = pca.transform(X_test)
+            feature_names_pca = [f"PC{i+1}" for i in range(int(n_components))]
+            # input_cols = feature_names
+            pca_variance_plot = generate_pca_variance_plot(pca)
+            pca_explained_variance = pca.explained_variance_ratio_.tolist()
 
         surrogate_defs = [
             ("gpr", GaussianProcessRegressor, {"alpha": [1e-4], "kernel": [RBF(), Matern(nu=1.5)]}),
@@ -444,6 +496,28 @@ if uploaded_file:
             except Exception:
                 continue
 
+        # # Show seaborn PairGrid plot with KDE in lower triangle
+        # if df.shape[1] >= 2:
+        #     st.write("### PairGrid Visualization (KDE Lower Triangle)")
+
+        #     numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
+        #     if len(numeric_cols) >= 2:
+        #         g = make_doe_plot(df=df, numeric_cols=numeric_cols)
+        #         st.pyplot(g.fig)
+        #         del g
+        #         grid_plot = plot_surrogate_model_summary(
+        #                 X_train=X_train,
+        #                 X_test=X_test,
+        #                 Y_train=y_train,
+        #                 Y_test=y_test,
+        #                 model=best_model,
+        #                 savefig=False,
+        #         )
+        #         st.pyplot(grid_plot)
+        #         del grid_plot
+        #     else:
+        #         st.info("Not enough numeric columns for pairwise plot.")
+
         st.write("### Best Model Configuration")
         st.json(best_combo)
 
@@ -476,7 +550,9 @@ if uploaded_file:
             n_test=X_test.shape[0],
             cross_validation="None",
             seed=0,
-            notes="Streamlit-generated report."
+            notes="Generated report.",
+            pca_explained_variance=pca_explained_variance,
+            pca_variance_plot=pca_variance_plot,
         )
 
         st.download_button("Download HTML Report", html, file_name="model_report.html", mime="text/html")

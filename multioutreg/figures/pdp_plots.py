@@ -40,11 +40,11 @@ def generate_pdp_plot(
     for i, name in enumerate(output_names):
         def plot_fn():
             plt.figure()
+            plt.title(f"{name}")
             try:
                 PartialDependenceDisplay.from_estimator(
                     model.estimators_[i], X, range(X.shape[1]), feature_names=feature_names, ax=plt.gca()
                 )
-                plt.title(f"PDP for {name}")
             except Exception as e:
                 plt.text(0.5, 0.5, f"PDP not supported for {type(model.estimators_[i]).__name__}", ha='center')
                 plt.axis('off')
