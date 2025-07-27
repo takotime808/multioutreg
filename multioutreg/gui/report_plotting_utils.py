@@ -1,7 +1,7 @@
 # Copyright (c) 2025 takotime808
 
 import io
-import shap
+# import shap
 import umap
 import base64
 import numpy as np
@@ -10,7 +10,7 @@ from typing import Callable, Dict, List, Any
 from sklearn.inspection import PartialDependenceDisplay
 from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import silhouette_score
-from sklearn.decomposition import PCA
+# from sklearn.decomposition import PCA
 from sklearn.neighbors import KDTree
 from sklearn.cluster import KMeans
 from scipy.stats import entropy
@@ -76,45 +76,6 @@ def generate_prediction_plot(
             plt.title(f"{name}")
             plt.legend()
 
-        plots[name] = plot_to_b64(plot_fn)
-    return plots
-
-
-def generate_shap_plot(
-    model: Any,
-    X: np.ndarray,
-    output_names: List[str]
-) -> Dict[str, str]:
-    """
-    Generate SHAP summary plots for each output dimension.
-
-    Parameters
-    ----------
-    model : Any
-        Multi-output model with `estimators_` attribute.
-    X : np.ndarray
-        Input features used to compute SHAP values.
-    output_names : List[str]
-        Names of output dimensions.
-
-    Returns
-    -------
-    Dict[str, str]
-        Dictionary mapping output names to base64-encoded SHAP plots.
-    """
-    plots = {}
-    for i, name in enumerate(output_names):
-        def plot_fn():
-            est = model.estimators_[i]
-            try:
-                explainer = shap.Explainer(est.predict, X)  # safer, functional interface
-                shap_values = explainer(X)
-                shap.summary_plot(shap_values, X, show=False)
-                plt.title(f"SHAP for {name}")
-            except Exception as e:
-                plt.figure()
-                plt.text(0.5, 0.5, f"SHAP not supported for {type(est).__name__}", ha="center")
-                plt.axis("off")
         plots[name] = plot_to_b64(plot_fn)
     return plots
 
