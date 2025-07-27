@@ -311,6 +311,7 @@ def generate_html_report(
     pca_method: str | None = None,
     pca_threshold: float | None = None,
     pca_n_components: int | None = None,
+    kaiser_rule_suggestion: str | None = None,
 ) -> str:
     """
     Generate an HTML report from model training and evaluation results.
@@ -361,6 +362,8 @@ def generate_html_report(
         Explained variance threshold if that method was used.
     pca_n_components : int | None, optional
         Final number of PCA components retained.
+    kaiser_rule_suggestion: str | None, optional
+        PCA explanation statement.
 
     Returns
     -------
@@ -464,6 +467,7 @@ def generate_html_report(
         pca_method=pca_method,
         pca_threshold=pca_threshold,
         pca_n_components=pca_n_components,
+        kaiser_rule_suggestion=kaiser_rule_suggestion,
     )
     return rendered
 
@@ -564,9 +568,8 @@ if uploaded_file:
                 threshold=pca_threshold if pca_method == "Explained variance threshold" else None,
             )
             pca_explained_variance = preview_pca.explained_variance_ratio_.tolist()
-            st.markdown(
-                f"Kaiser rule suggests **{kaiser_k}** components (eigenvalues > 1)."
-            )
+            kaiser_rule_suggestion = f"Kaiser rule suggests **{kaiser_k}** components (eigenvalues > 1)."
+            st.markdown(kaiser_rule_suggestion)
             st.image(
                 f"data:image/png;base64,{pca_variance_plot}",
                 caption="Scree Plot",
@@ -665,6 +668,7 @@ if uploaded_file:
             pca_method=pca_method,
             pca_threshold=pca_threshold,
             pca_n_components=pca_n_components,
+            kaiser_rule_suggestion=kaiser_rule_suggestion,
         )
 
         st.download_button("Download HTML Report", html, file_name="model_report.html", mime="text/html")

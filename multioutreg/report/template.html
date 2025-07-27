@@ -181,6 +181,13 @@
                 The following plot and table summarize the variance captured by each principal component.
             </i>
         </p>
+        {% if kaiser_rule_suggestion %}
+        <p>
+            <i>
+                {{ kaiser_rule_suggestion }}
+            </i>
+        </p>
+        {% endif %}
         {% if pca_n_components %}
         <p>
             <i>
