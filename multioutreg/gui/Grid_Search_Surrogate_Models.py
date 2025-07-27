@@ -548,6 +548,7 @@ if uploaded_file:
         pca_explained_variance = None
         pca_n_components = None
         feature_names_pca = None
+        kaiser_rule_suggestion = None
         if use_pca:
             preview_pca = PCA().fit(X_train)
             kaiser_k = int(np.sum(preview_pca.explained_variance_ > 1))
