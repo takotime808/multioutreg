@@ -13,7 +13,12 @@ class RandomForestSurrogate(BaseSurrogate):
         preds = self.model.predict(X)
         if not return_std:
             return preds
-        # estimate std across trees
-        all_preds = np.array([tree.predict(X) for tree in self.model.estimators_])
-        std = all_preds.std(axis=0)
+
+        # Estimate std across trees for each output dimension
+        stds = []
+        for i, estimator in enumerate(self.model.estimators_):
+            # each estimator corresponds to one output dimension
+            output_preds = np.array([tree.predict(X) for tree in estimator.estimators_])
+            stds.append(output_preds.std(axis=0))
+        std = np.column_stack(stds)
         return preds, std
