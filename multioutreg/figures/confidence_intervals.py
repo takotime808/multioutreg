@@ -175,7 +175,7 @@ def plot_intervals_ordered_multi(
             y_true[:, i],
             n_subset=n_subset, 
             # ylims=False, # NOTE: To share ylimits, set: ylims=ylime
-            ylims=ylims_i,
+            # ylims=ylims_i,
             num_stds_confidence_bound=num_stds_confidence_bound,
             ax=axes_flat[i], 
             add_legend=False,

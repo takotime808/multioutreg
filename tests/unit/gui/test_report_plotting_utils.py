@@ -74,9 +74,3 @@ def test_generate_error_histogram(sample_regression_data):
         assert isinstance(plot["img_b64"], str)
         assert len(plot["img_b64"]) > 100
 
-def test_generate_pca_variance_plot():
-    X = np.random.rand(50, 4)
-    pca = PCA(n_components=3).fit(X)
-    b64 = utils.generate_pca_variance_plot(pca)
-    assert isinstance(b64, str)
-    assert len(b64) > 100

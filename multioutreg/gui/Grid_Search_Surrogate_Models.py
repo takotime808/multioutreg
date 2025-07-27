@@ -27,14 +27,12 @@ from jinja2 import Template
 #     generate_uncertainty_plots,
 #     generate_umap_plot,
 #     generate_error_histogram
+#     generate_pca_variance_plot,
 # )
-from multioutreg.gui.report_plotting_utils import (
-    generate_shap_plot,
-    generate_error_histogram,
-    generate_pca_variance_plot,
-)
-from multioutreg.figures.doe_plots import make_doe_plot
-from multioutreg.figures.model_comparison import plot_surrogate_model_summary
+
+from multioutreg.figures.error_histograms import generate_error_histogram
+from multioutreg.figures.shap_multioutput import generate_shap_plot
+from multioutreg.figures.pca_plots import generate_pca_variance_plot
 from multioutreg.figures.pdp_plots import generate_pdp_plot
 from multioutreg.utils.figure_utils import safe_plot_b64
 from multioutreg.figures.umap_plot_classify import generate_umap_plot
@@ -44,6 +42,11 @@ from multioutreg.figures.coverage_plots import plot_coverage
 from multioutreg.figures.residuals import plot_residuals_multioutput_with_regplot
 # from multioutreg.figures.prediction_plots import plot_predictions
 from multioutreg.figures.confidence_intervals import plot_intervals_ordered_multi
+
+# NOTE: NOT used...yet.
+from multioutreg.figures.doe_plots import make_doe_plot
+from multioutreg.figures.model_comparison import plot_surrogate_model_summary
+
 
 # ----- Surrogate Models with Uncertainty -----
 class RandomForestWithUncertainty(RandomForestRegressor):
@@ -305,6 +308,9 @@ def generate_html_report(
     feature_names_pca: List[str] | None = None,
     pca_explained_variance: List[float] | None = None,
     pca_variance_plot: str | None = None,
+    pca_method: str | None = None,
+    pca_threshold: float | None = None,
+    pca_n_components: int | None = None,
 ) -> str:
     """
     Generate an HTML report from model training and evaluation results.
@@ -349,6 +355,12 @@ def generate_html_report(
         Explained variance ratios from PCA if applied.
     pca_variance_plot : str | None, optional
         Base64-encoded plot showing PCA variance ratios.
+    pca_method : str | None, optional
+        Method used to choose the number of PCA components.
+    pca_threshold : float | None, optional
+        Explained variance threshold if that method was used.
+    pca_n_components : int | None, optional
+        Final number of PCA components retained.
 
     Returns
     -------
@@ -449,6 +461,9 @@ def generate_html_report(
         feature_names_pca=feature_names_pca,
         pca_explained_variance=pca_explained_variance,
         pca_variance_plot=pca_variance_plot,
+        pca_method=pca_method,
+        pca_threshold=pca_threshold,
+        pca_n_components=pca_n_components,
     )
     return rendered
 
@@ -470,16 +485,40 @@ if uploaded_file:
         output_cols = st.multiselect("Select output targets", options=df.columns)
         use_pca = st.checkbox("Apply PCA to input features")
         n_components = None
+        pca_method = None
+        pca_threshold = None
         if use_pca:
-            # max_comp = max(1, len(input_cols)) if input_cols else len(df.columns)
+            # # max_comp = max(1, len(input_cols)) if input_cols else len(df.columns)
+            # max_comp = len(df.columns)
+            # n_components = st.number_input(
+            #     "Number of PCA components",
+            #     min_value=1,
+            #     max_value=max_comp,
+            #     value=min(2, max_comp),
+            #     step=1,
+            # )
             max_comp = len(df.columns)
-            n_components = st.number_input(
-                "Number of PCA components",
-                min_value=1,
-                max_value=max_comp,
-                value=min(2, max_comp),
-                step=1,
+            pca_method = st.selectbox(
+                "PCA component selection method",
+                ["Manual", "Explained variance threshold", "Kaiser rule"],
             )
+            if pca_method == "Manual":
+                n_components = st.number_input(
+                    "Number of PCA components",
+                    min_value=1,
+                    max_value=max_comp,
+                    value=min(2, max_comp),
+                    step=1,
+                )
+            elif pca_method == "Explained variance threshold":
+                pca_threshold = st.slider(
+                    "Explained variance threshold",
+                    min_value=0.5,
+                    max_value=0.99,
+                    value=0.9,
+                    step=0.01,
+                )
+
         description = st.text_area("Optional: Project description")
         submitted = st.form_submit_button("Run Grid Search")
 
@@ -503,14 +542,36 @@ if uploaded_file:
         # PCA.
         pca_variance_plot = None
         pca_explained_variance = None
+        pca_n_components = None
+        feature_names_pca = None
         if use_pca:
-            pca = PCA(n_components=int(n_components))
+            preview_pca = PCA().fit(X_train)
+            kaiser_k = int(np.sum(preview_pca.explained_variance_ > 1))
+            if pca_method == "Manual":
+                pca_n_components = int(n_components)
+            elif pca_method == "Explained variance threshold":
+                cum = np.cumsum(preview_pca.explained_variance_ratio_)
+                pca_n_components = int(np.searchsorted(cum, pca_threshold) + 1)
+            else:  # Kaiser rule
+                pca_n_components = max(1, kaiser_k)
+            pca = PCA(n_components=pca_n_components)
             X_train = pca.fit_transform(X_train)
             X_test = pca.transform(X_test)
-            feature_names_pca = [f"PC{i+1}" for i in range(int(n_components))]
-            # input_cols = feature_names
-            pca_variance_plot = generate_pca_variance_plot(pca)
-            pca_explained_variance = pca.explained_variance_ratio_.tolist()
+            feature_names_pca = [f"PC{i+1}" for i in range(pca_n_components)]
+            pca_variance_plot = generate_pca_variance_plot(
+                preview_pca,
+                n_selected=pca_n_components,
+                threshold=pca_threshold if pca_method == "Explained variance threshold" else None,
+            )
+            pca_explained_variance = preview_pca.explained_variance_ratio_.tolist()
+            st.markdown(
+                f"Kaiser rule suggests **{kaiser_k}** components (eigenvalues > 1)."
+            )
+            st.image(
+                f"data:image/png;base64,{pca_variance_plot}",
+                caption="Scree Plot",
+                use_column_width=True,
+            )
 
         surrogate_defs = [
             ("gpr", GaussianProcessRegressor, {"alpha": [1e-4], "kernel": [RBF(), Matern(nu=1.5)]}),
@@ -601,6 +662,9 @@ if uploaded_file:
             notes="Generated report.",
             pca_explained_variance=pca_explained_variance,
             pca_variance_plot=pca_variance_plot,
+            pca_method=pca_method,
+            pca_threshold=pca_threshold,
+            pca_n_components=pca_n_components,
         )
 
         st.download_button("Download HTML Report", html, file_name="model_report.html", mime="text/html")

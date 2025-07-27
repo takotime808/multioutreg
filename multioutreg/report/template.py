@@ -109,6 +109,13 @@ template = Template("""
     {% if pca_explained_variance %}
     <div class="section">
         <h2>PCA Explained Variance</h2>
+        {% if pca_n_components %}
+        <p>
+            <i>
+                Components retained: {{ pca_n_components }}{% if pca_method %} (method: {{ pca_method }}{% if pca_threshold %}, threshold {{ pca_threshold|round(2) }}{% endif %}){% endif %}.
+            </i>
+        </p>
+        {% endif %}
         <div class="plot">
             {% if pca_variance_plot %}
             <img src="data:image/png;base64,{{ pca_variance_plot }}" alt="PCA Variance">

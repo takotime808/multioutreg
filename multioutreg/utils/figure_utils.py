@@ -39,3 +39,25 @@ def safe_plot_b64(
         plt.close()
         buf.seek(0)
         return base64.b64encode(buf.read()).decode('utf-8')
+
+
+def plot_to_b64(plot_fn: Callable[[], None]) -> str:
+    """
+    Convert a plot function to a base64-encoded PNG image.
+
+    Parameters
+    ----------
+    plot_fn : Callable[[], None]
+        Function that generates a matplotlib plot.
+
+    Returns
+    -------
+    str
+        Base64-encoded string of the PNG plot image.
+    """
+    buf = io.BytesIO()
+    plot_fn()
+    plt.savefig(buf, format="png", bbox_inches="tight")
+    plt.close()
+    buf.seek(0)
+    return base64.b64encode(buf.read()).decode("utf-8")

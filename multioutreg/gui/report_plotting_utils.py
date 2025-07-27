@@ -278,29 +278,3 @@ def generate_error_histogram(
             "caption": f"Histogram of prediction errors for {name}."
         })
     return plots
-
-
-def generate_pca_variance_plot(pca: PCA) -> str:
-    """
-    Generate a base64-encoded bar plot showing the explained variance ratio of each principal component.
-
-    Parameters
-    ----------
-    pca : PCA
-        A fitted scikit-learn PCA object with the `explained_variance_ratio_` attribute.
-
-    Returns
-    -------
-    str
-        A base64-encoded string of the PCA explained variance bar plot image.
-    """
-    def plot_fn():
-        plt.figure()
-        comps = np.arange(1, len(pca.explained_variance_ratio_) + 1)
-        plt.barh(comps, pca.explained_variance_ratio_)
-        plt.ylabel("Principal Component")
-        plt.xlabel("Explained Variance Ratio")
-        plt.yticks(comps, [f"PC{i}" for i in comps])
-        plt.title("PCA Explained Variance")
-
-    return plot_to_b64(plot_fn)
