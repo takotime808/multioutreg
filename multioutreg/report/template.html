@@ -101,7 +101,7 @@
         </div>
         {% endfor %}
     </div>
-    <div class="section">
+    <!-- <div class="section">
         <h2>Predictions vs. True Values (per output)</h2>
         <p>
             <i>
@@ -118,7 +118,25 @@
             {% endif %}
         </div>
         {% endfor %}
+    </div> -->
+<div class="section">
+        <h2>Predictions vs. True Values (per output)</h2>
+        <p>
+            <i>
+                Each scatter plot below compares predicted vs. actual values for each output. Error bars (if shown) reflect predictive uncertainty.
+            </i>
+        </p>
+        {% for name in (prediction_plots.keys()) %}
+        <div class="plot">
+            {% if prediction_plots[name] %}
+                <img src="data:image/png;base64,{{ prediction_plots[name] }}" alt="Pred vs True for {{ name }}">
+            {% else %}
+                <div class="errormsg">Prediction plot for {{ name }} is unavailable.</div>
+            {% endif %}
+        </div>
+        {% endfor %}
     </div>
+
     <div class="section">
         <h2>SHAP Explanations</h2>
         <p>

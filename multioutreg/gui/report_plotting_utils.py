@@ -16,7 +16,6 @@ from sklearn.cluster import KMeans
 from scipy.stats import entropy
 
 
-
 # Utility to convert plots to base64
 def plot_to_b64(plot_fn: Callable[[], None]) -> str:
     """
@@ -34,10 +33,10 @@ def plot_to_b64(plot_fn: Callable[[], None]) -> str:
     """
     buf = io.BytesIO()
     plot_fn()
-    plt.savefig(buf, format='png', bbox_inches='tight')
+    plt.savefig(buf, format="png", bbox_inches="tight")
     plt.close()
     buf.seek(0)
-    return base64.b64encode(buf.read()).decode('utf-8')
+    return base64.b64encode(buf.read()).decode("utf-8")
 
 
 def generate_prediction_plot(
@@ -67,14 +66,16 @@ def generate_prediction_plot(
     """
     plots = {}
     for i, name in enumerate(output_names):
-        def plot_fn():
+
+        def plot_fn(alpha=0.6):
             plt.figure()
-            plt.errorbar(y_true[:, i], y_pred[:, i], yerr=y_std[:, i], fmt='o', alpha=0.6)
-            plt.plot(y_true[:, i], y_true[:, i], 'k--', label='Ideal')
+            plt.errorbar(y_true[:, i], y_pred[:, i], yerr=y_std[:, i], fmt="o", alpha=alpha)
+            plt.plot(y_true[:, i], y_true[:, i], "k--", label="Ideal")
             plt.xlabel("True")
             plt.ylabel("Predicted")
             plt.title(f"{name}")
             plt.legend()
+
         plots[name] = plot_to_b64(plot_fn)
     return plots
 
@@ -112,8 +113,8 @@ def generate_shap_plot(
                 plt.title(f"SHAP for {name}")
             except Exception as e:
                 plt.figure()
-                plt.text(0.5, 0.5, f"SHAP not supported for {type(est).__name__}", ha='center')
-                plt.axis('off')
+                plt.text(0.5, 0.5, f"SHAP not supported for {type(est).__name__}", ha="center")
+                plt.axis("off")
         plots[name] = plot_to_b64(plot_fn)
     return plots
 
@@ -153,8 +154,8 @@ def generate_pdp_plot(
                 )
                 plt.title(f"PDP for {name}")
             except Exception as e:
-                plt.text(0.5, 0.5, f"PDP not supported for {type(model.estimators_[i]).__name__}", ha='center')
-                plt.axis('off')
+                plt.text(0.5, 0.5, f"PDP not supported for {type(model.estimators_[i]).__name__}", ha="center")
+                plt.axis("off")
         plots[name] = plot_to_b64(plot_fn)
     return plots
 
@@ -173,8 +174,8 @@ def generate_uncertainty_plots() -> List[Dict[str, str]]:
     def plot_fn():
         probs = np.linspace(0, 1, 11)
         empirical = probs + np.random.normal(scale=0.03, size=probs.shape)
-        plt.plot(probs, empirical, marker='o')
-        plt.plot([0,1],[0,1],'k--', label='Ideal')
+        plt.plot(probs, empirical, marker="o")
+        plt.plot([0,1],[0,1],"k--", label="Ideal")
         plt.xlabel("Predicted Probability")
         plt.ylabel("Empirical Probability")
         plt.title("Calibration Curve")
@@ -296,9 +297,10 @@ def generate_pca_variance_plot(pca: PCA) -> str:
     def plot_fn():
         plt.figure()
         comps = np.arange(1, len(pca.explained_variance_ratio_) + 1)
-        plt.bar(comps, pca.explained_variance_ratio_)
-        plt.xlabel("Principal Component")
-        plt.ylabel("Explained Variance Ratio")
+        plt.barh(comps, pca.explained_variance_ratio_)
+        plt.ylabel("Principal Component")
+        plt.xlabel("Explained Variance Ratio")
+        plt.yticks(comps, [f"PC{i}" for i in comps])
         plt.title("PCA Explained Variance")
 
     return plot_to_b64(plot_fn)

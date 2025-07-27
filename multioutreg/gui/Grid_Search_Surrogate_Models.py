@@ -43,10 +43,15 @@ from multioutreg.figures.prediction_plots import plot_predictions_with_error_bar
 from multioutreg.figures.coverage_plots import plot_coverage
 from multioutreg.figures.residuals import plot_residuals_multioutput_with_regplot
 # from multioutreg.figures.prediction_plots import plot_predictions
+from multioutreg.figures.confidence_intervals import plot_intervals_ordered_multi
 
 # ----- Surrogate Models with Uncertainty -----
 class RandomForestWithUncertainty(RandomForestRegressor):
-    def predict(self, X: np.ndarray, return_std: bool = False) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+    def predict(
+        self,
+        X: np.ndarray,
+        return_std: bool = False,
+    ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
         """
         Predict using the random forest, optionally returning standard deviation.
 
@@ -99,7 +104,11 @@ class GradientBoostingWithUncertainty(BaseEstimator, RegressorMixin):
         self.mid.fit(X, y)
         return self
 
-    def predict(self, X: np.ndarray, return_std: bool = False) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+    def predict(
+            self,
+            X: np.ndarray,
+            return_std: bool = False
+    ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
         """
         Predict using the model.
 
@@ -178,7 +187,11 @@ class BootstrapLinearRegression(BaseEstimator, RegressorMixin):
             self.models_.append(model)
         return self
 
-    def predict(self, X: np.ndarray, return_std: bool = False) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+    def predict(
+            self,
+            X: np.ndarray,
+            return_std: bool = False,
+    ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
         """
         Predict using ensemble of linear models.
 
@@ -233,7 +246,11 @@ class PerTargetRegressorWithStd(BaseEstimator, RegressorMixin):
             self.estimators_.append(est_fitted)
         return self
 
-    def predict(self, X: np.ndarray, return_std: bool = False) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
+    def predict(
+            self,
+            X: np.ndarray,
+            return_std: bool = False,
+    ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
         """
         Predict using individual estimators for each target dimension.
 
@@ -265,7 +282,6 @@ class PerTargetRegressorWithStd(BaseEstimator, RegressorMixin):
         if return_std:
             return np.hstack(preds), np.hstack(stds)
         return np.hstack(preds)
-
 
 
 # ----- HTML Report Generation Wrapper -----
@@ -343,12 +359,26 @@ def generate_html_report(
     # # pdp_plots = generate_pdp_plot(output_names)
     # pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=input_cols)
     # uncertainty_plots = generate_uncertainty_plots()
+
     prediction_plots = {}
+    prediction_plots["all_in_one"] = safe_plot_b64(
+        plot_intervals_ordered_multi,
+        best_pred,
+        best_std,
+        y_test,
+        # max_cols=3,
+        target_list=output_names,
+    )
+    # # PREDICTION PLOTS OPTION 2
+    # prediction_plots = {}
     for i, name in enumerate(output_names):
         prediction_plots[name] = safe_plot_b64(
             plot_predictions_with_error_bars,
-            y_test[:, [i]], best_pred[:, [i]], best_std[:, [i]],
-            output_names=[name], n_cols=1
+            y_test[:, [i]],
+            best_pred[:, [i]],
+            best_std[:, [i]],
+            output_names=[name],
+            n_cols=3
         )
 
     shap_plots = generate_shap_plot(best_model, X_train, output_names)
@@ -362,20 +392,34 @@ def generate_html_report(
     unc_img = safe_plot_b64(
         plot_coverage, y_test, best_pred, best_std, output_names=output_names
     )
-    uncertainty_plots = [{"img_b64": unc_img, "title": "Coverage Plot", "caption": "Nominal vs empirical coverage."}]
+    # uncertainty_plots = [{"img_b64": unc_img, "title": "Coverage Plot", "caption": "Nominal vs empirical coverage."}]
+    uncertainty_plots = [
+        {
+            "img_b64": unc_img,
+            "title": "Coverage Plot",
+            "caption": "Nominal vs empirical coverage.",
+        }
+    ]
+
     pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=feature_names)
     
     sampling_umap_plot, sampling_method_explanation = generate_umap_plot(X_train)
     # other_plots = generate_error_histogram(y_test, best_pred, output_names)
     other_img = safe_plot_b64(
         plot_residuals_multioutput_with_regplot,
-        best_pred, y_test, target_list=output_names
+        best_pred,
+        y_test,
+        target_list=output_names,
     )
-    sampling_other_plots = [{"img_b64": other_img, "title": "Residuals", "caption": "Residual vs predicted values."}]
+    sampling_other_plots = [
+        {
+            "img_b64": other_img,
+            "title": "Residuals",
+            "caption": "Residual vs predicted values.",
+        }
+    ]
 
-     
     other_plots = generate_error_histogram(y_test, best_pred, output_names)
-    
 
     template_path = os.path.join(os.path.dirname(__file__), "../report/template.html")
     with open(template_path, "r", encoding="utf-8") as f:
@@ -408,10 +452,14 @@ def generate_html_report(
     )
     return rendered
 
+
 # ----- Streamlit App -----
 st.title("Multi-Output Surrogate Model Grid Search & Report Generator")
 
-uploaded_file = st.file_uploader("Upload CSV file. Example files can be found in the repo: `multioutreg/docs/_static/example_datasets/`.", type=["csv"])
+uploaded_file = st.file_uploader(
+    "Upload CSV file. Example files can be found in the repo: `multioutreg/docs/_static/example_datasets/`.",
+    type=["csv"]
+)
 
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
@@ -480,7 +528,7 @@ if uploaded_file:
         best_std = None
         best_model = None
 
-        for est_params in ParameterGrid({"combos": [configs]*y_train.shape[1]}):
+        for est_params in ParameterGrid({"combos": [configs] * y_train.shape[1]}):
             try:
                 combo = est_params["combos"][:y_train.shape[1]]
                 estimators = [est(**params) for (_, est, params) in combo]
@@ -530,7 +578,7 @@ if uploaded_file:
                 "r2": r2_score(y_true, y_pred),
                 "rmse": mean_squared_error(y_true, y_pred, squared=False),
                 "mae": mean_absolute_error(y_true, y_pred),
-                "mean_predicted_std": float(np.mean(best_std[:, i]))
+                "mean_predicted_std": float(np.mean(best_std[:, i])),
             }
         st.dataframe(pd.DataFrame(metrics).T)
 
