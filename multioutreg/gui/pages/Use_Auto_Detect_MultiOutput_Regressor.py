@@ -445,7 +445,7 @@ def generate_html_report(
         template_text = f.read()
     template = Template(template_text)
     rendered = template.render(
-        project_title="Multi-Fidelity Surrogate Modeling Report",
+        project_title="Auto-Detected Multi-Fidelity Surrogate Modeling Report",
         model_type=model_type,
         fidelity_levels=fidelity_levels,
         output_names=output_names,
@@ -477,7 +477,7 @@ def generate_html_report(
 
 
 # ----- Streamlit App -----
-st.title("Multi-Output Surrogate Model Grid Search & Report Generator")
+st.title("Auto-Detected Multi-Output Surrogate Model Grid Search & Report Generator")
 
 uploaded_file = st.file_uploader(
     "Upload CSV file. Example files can be found in the repo: `multioutreg/docs/_static/example_datasets/`.",
@@ -609,7 +609,7 @@ if uploaded_file:
         #     else:
         #         st.info("Not enough numeric columns for pairwise plot.")
 
-        st.write("### Best Model Configuration")
+        st.write("### Selected Surrogates")
         st.json(best_combo)
 
         st.write("### Metrics Table")
@@ -650,4 +650,4 @@ if uploaded_file:
             kaiser_rule_suggestion=kaiser_rule_suggestion,
         )
 
-        st.download_button("Download HTML Report", html, file_name="model_report.html", mime="text/html")
+        st.download_button("Download HTML Report", html, file_name="model_report_auto.html", mime="text/html")
