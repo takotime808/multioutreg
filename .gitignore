@@ -11,7 +11,7 @@ docs/_build
 docs/build
 docs/source/_build
 docs/source/build
-
+outputs/
 nbsphinx-template/
 
 # Byte-compiled / optimized / DLL files

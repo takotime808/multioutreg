@@ -147,14 +147,17 @@ def plot_intervals_ordered_multi(
 
     n_cols = min(n_targets, max_cols)
     n_rows = ceil(n_targets / n_cols)
-    intervals = num_stds_confidence_bound * y_std
 
-    ylims = (np.floor(np.min(y_pred - intervals)), np.ceil(np.max(y_pred + intervals)))
+    # # NOTE: To share ylimits., un-comment-out the 2 lines.
+    # intervals = num_stds_confidence_bound * y_std
+    # ylims = (np.floor(np.min(y_pred - intervals)), np.ceil(np.max(y_pred + intervals)))
+
+    intervals = num_stds_confidence_bound * y_std
 
     fig, axes = plt.subplots(
         n_rows, n_cols,
         figsize=(base_width * n_cols, base_height * n_rows),
-        sharey=True,
+        # sharey=True, # NOTE: To share ylimits., un-comment-out this line.
         constrained_layout=True
     )
 
@@ -162,15 +165,24 @@ def plot_intervals_ordered_multi(
     axes_flat = axes.flatten()
 
     for i in range(n_targets):
+        ylims_i = (
+            np.floor(np.min(y_pred[:, i] - intervals[:, i])),
+            np.ceil(np.max(y_pred[:, i] + intervals[:, i]))
+        )
         pred_line, obs_line, ax = plot_intervals_ordered(
-            y_pred[:, i], y_std[:, i], y_true[:, i],
-            n_subset=n_subset, ylims=ylims,
+            y_pred[:, i], 
+            y_std[:, i], 
+            y_true[:, i],
+            n_subset=n_subset, 
+            # ylims=False, # NOTE: To share ylimits, set: ylims=ylime
+            # ylims=ylims_i,
             num_stds_confidence_bound=num_stds_confidence_bound,
-            ax=axes_flat[i], add_legend=False
+            ax=axes_flat[i], 
+            add_legend=False,
         )
         if handles is None:
             handles = [pred_line, obs_line]
-        axes_flat[i].set_title(f"Target {i+1}", fontsize=18)
+        axes_flat[i].set_title(f"{target_list[i]}", fontsize=18)
         axes_flat[i].tick_params(labelsize=12)
 
     for j in range(n_targets, n_rows * n_cols):
@@ -253,8 +265,6 @@ def plot_confidence_interval(
     -------
     None
     """
-    import numpy as np
-    import matplotlib.pyplot as plt
 
     y_true = np.asarray(y_true)
     preds = np.asarray(preds)

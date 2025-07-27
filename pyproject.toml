@@ -3,7 +3,7 @@ name = "multioutreg"
 version = "0.0.1"
 description = "Multi-Output Regressors"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 # authors = [
 #     {name = "takotime808", email = "takotime808"},
 # ]
@@ -21,6 +21,15 @@ dependencies = [
   "scikit-learn>=1.2,<1.5",
   "seaborn>=0.11.2,<=0.13.2",
   "uncertainty-toolbox",#>=0.1.4,<0.1.7",
+  "shap>=0.48.0",
+  # "jinja2>=3.0",
+  "umap-learn",
+  # "kaleido",
+  "nbformat>=4.2.0",
+  # "ray[tune]>=2.30",
+  # "hyperopt>=0.2",
+  # "textual",
+  "streamlit",
 ]
 
 [project.optional-dependencies]

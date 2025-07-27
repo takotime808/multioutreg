@@ -176,24 +176,30 @@ def plot_residuals_multioutput_with_regplot(
     if target_list is None:
         target_list = [f"Target {i+1}" for i in range(n_targets)]
     
-    rmin = np.floor(np.min(residuals))
-    rmax = np.ceil(np.max(residuals))
+    # rmin = np.floor(np.min(residuals)) # NOTE: un-comment to revert.
+    # rmax = np.ceil(np.max(residuals)) # NOTE: un-comment to revert.
     fig, axes = plt.subplots(
         n_rows, n_cols,
         figsize=(base_width * n_cols, base_height * n_rows),
-        sharey=True,
+        # sharey=True, # NOTE: un-comment to revert.
+        sharey=False, # NOTE: comment to revert.
+        sharex=False, # NOTE: comment to revert.
         constrained_layout=True
     )
     axes = np.array(axes).reshape(n_rows, n_cols)
     axes_flat = axes.flatten()
     for i in range(n_targets):
+        yres = residuals[:, i] # NOTE: comment to revert.
+        yp = y_pred[:, i] # NOTE: comment to revert.
         ax = axes_flat[i]
         sns.regplot(
             x=y_pred[:, i], y=residuals[:, i], ax=ax,
             scatter_kws={'alpha': 0.7, 's': 40}, line_kws={'color': 'black', 'lw': 2}
         )
         ax.axhline(0, color="red", linestyle="--", lw=2)
-        ax.set_ylim([rmin, rmax])
+        # ax.set_ylim([rmin, rmax]) # NOTE: un-comment to revert.
+        margin = 0.1 * (np.max(yres) - np.min(yres) + 1e-8)  # avoid zero range # NOTE: comment to revert.
+        ax.set_ylim(np.min(yres) - margin, np.max(yres) + margin) # NOTE: comment to revert.
         ax.set_title(target_list[i], fontsize=18)
         ax.tick_params(labelsize=12)
     for j in range(n_targets, n_rows * n_cols):

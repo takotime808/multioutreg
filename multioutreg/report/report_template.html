@@ -1,0 +1,62 @@
+<!-- # Copyright (c) 2025 takotime808 -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Multi-Fidelity Multi-Output Surrogate Modeling Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        table { border-collapse: collapse; margin-bottom: 2em; }
+        th, td { padding: 6px 12px; border: 1px solid #999; text-align: right; }
+        th { background-color: #f0f0f0; }
+        img { max-width: 100%; height: auto; margin-bottom: 2em; }
+    </style>
+</head>
+<body>
+<h1>Multi-Fidelity Multi-Output Surrogate Modeling with UQ</h1>
+<p>This report summarizes model performance and uncertainty metrics computed
+with <code>multioutreg</code>. Plots below illustrate predictions, residuals and
+uncertainty calibration.</p>
+<h2>Overall Metrics</h2>
+<ul>
+    <li>RMSE: {{ overall.rmse | round(3) }}</li>
+    <li>MAE: {{ overall.mae | round(3) }}</li>
+    <li>NLL: {{ overall.nll | round(3) }}</li>
+    <li>Miscalibration Area: {{ overall.miscal_area | round(3) }}</li>
+</ul>
+<h2>Per Output Metrics</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Output</th>
+            <th>RMSE</th>
+            <th>MAE</th>
+            <th>NLL</th>
+            <th>Miscal. Area</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for row in metrics %}
+        <tr>
+            <td>{{ row.output }}</td>
+            <td>{{ row.rmse | round(3) }}</td>
+            <td>{{ row.mae | round(3) }}</td>
+            <td>{{ row.nll | round(3) }}</td>
+            <td>{{ row.miscal_area | round(3) }}</td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<h2>Plots</h2>
+<h3>Predictions with Error Bars</h3>
+<img src="{{ preds_plot }}" alt="Predictions">
+<h3>Residuals</h3>
+<img src="{{ residuals_plot }}" alt="Residuals">
+<h3>Coverage</h3>
+<img src="{{ coverage_plot }}" alt="Coverage">
+<h3>Prediction Intervals</h3>
+<img src="{{ intervals_plot }}" alt="Intervals">
+<h3>Uncertainty Metrics</h3>
+<img src="{{ metrics_plot }}" alt="Metric summary">
+</body>
+</html>
