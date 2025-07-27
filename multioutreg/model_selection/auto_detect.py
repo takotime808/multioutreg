@@ -66,6 +66,18 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             else:
                 best_est.fit(X, y[:, i])
                 self.models_.append(best_est)
+
+        # expose base estimators for compatibility with plotting utilities
+        self.estimators_ = []
+        for model in self.models_:
+            if hasattr(model, "model") and hasattr(model.model, "estimators_"):
+                # vendored surrogate using MultiOutputRegressor internally
+                self.estimators_.append(model.model.estimators_[0])
+            elif hasattr(model, "estimators_"):
+                self.estimators_.append(model.estimators_[0])
+            else:
+                self.estimators_.append(model)
+
         return self
 
     def predict(self, X: np.ndarray, return_std: bool = False) -> np.ndarray:
