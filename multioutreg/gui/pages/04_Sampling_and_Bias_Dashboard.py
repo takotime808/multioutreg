@@ -42,9 +42,9 @@ def show_base64_image(b64_str: str, caption: str = ""):
 
 
 def main():
-    st.title("Sampling Method & Bias Detection")
+    st.title("🧪 Sampling & Bias Dashboard")
 
-    uploaded_file = st.file_uploader("Upload CSV dataset", type=["csv"])
+    uploaded_file = st.file_uploader("📂 Upload CSV dataset", type=["csv"])
 
     if uploaded_file:
         df = pd.read_csv(uploaded_file)
@@ -52,67 +52,67 @@ def main():
         column_options = df.columns.tolist()
 
         # Sidebar Controls
-        st.sidebar.title("Visualization Parameters")
+        st.sidebar.title("🔧 Visualization Parameters")
         st.sidebar.subheader("UMAP")
         umap_neighbors = st.sidebar.slider("UMAP: n_neighbors", 5, 50, 15)
         umap_min_dist = st.sidebar.slider("UMAP: min_dist", 0.0, 1.0, 0.1)
-        umap_target = st.sidebar.selectbox("UMAP color by (optional)", [None] + column_options)
+        umap_target = st.sidebar.selectbox("Color by column (optional)", [None] + column_options)
 
         st.sidebar.subheader("PCA")
         pca_thresh = st.sidebar.slider("PCA: Variance Threshold (optional)", 0.0, 1.0, 0.9)
 
-        # Tabs for UI
-        tabs = st.tabs(["Dataset & Sampling", "Bias Metrics", "PCA", "UMAP"])
+        # Tabs
+        tabs = st.tabs(["📊 Dataset & Sampling", "🚨 Bias Metrics", "📈 PCA", "🔍 UMAP"])
 
-        # --- TAB 1: Dataset & Sampling Detection ---
+        # Tab 1: Dataset & Sampling
         with tabs[0]:
-            st.subheader("Data Preview")
+            st.subheader("🔍 Dataset Preview")
             st.write(df.head())
 
             with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
                 df.to_csv(tmp.name, index=False)
                 runner = CliRunner()
                 result = runner.invoke(detect_app, [tmp.name])
-                st.subheader("Detected Sampling Method")
+                st.subheader("📌 Detected Sampling Method")
                 if result.exit_code == 0:
                     st.text(result.stdout)
                 else:
                     st.error(result.stdout or result.stderr)
 
-        # --- TAB 2: Bias Metrics ---
+        # Tab 2: Bias Metrics
         with tabs[1]:
-            st.subheader("Bias Metrics")
+            st.subheader("📉 Bias Metrics")
             metrics = compute_bias_metrics(df)
             st.table(pd.DataFrame([metrics]))
 
             alerts = []
             if metrics["duplicate_rate"] > 0.05:
-                alerts.append("High duplicate rate")
+                alerts.append("⚠️ High duplicate rate")
             if metrics["max_abs_corr"] > 0.95:
-                alerts.append("Highly correlated features")
+                alerts.append("⚠️ Highly correlated features")
 
-            log_path = st.text_input("Log file to scan (optional)", value="output.log")
+            log_path = st.text_input("🔍 Log file to scan (optional)", value="output.log")
             alerts.extend(scan_logs(log_path))
 
             if alerts:
-                st.error("Alerts:\n" + "\n".join(alerts))
+                st.error("🚨 Alerts:\n" + "\n".join(alerts))
             else:
-                st.success("No significant bias detected")
+                st.success("✅ No significant bias detected")
 
-        # --- TAB 3: PCA ---
+        # Tab 3: PCA
         with tabs[2]:
             if numeric_df.shape[1] >= 2:
-                st.subheader("PCA Scree Plot")
+                st.subheader("📈 PCA Scree Plot")
                 pca = PCA().fit(StandardScaler().fit_transform(numeric_df))
                 pca_b64 = generate_pca_variance_plot(pca, threshold=pca_thresh)
                 show_base64_image(pca_b64, caption="Explained Variance per Component")
             else:
-                st.warning("Not enough numeric features for PCA.")
+                st.warning("⚠️ Not enough numeric features for PCA.")
 
-        # --- TAB 4: UMAP ---
+        # Tab 4: UMAP
         with tabs[3]:
             if numeric_df.shape[1] >= 2:
-                st.subheader("UMAP Projection")
+                st.subheader("🔍 UMAP Projection")
                 label_data = df[umap_target].to_numpy() if umap_target else None
                 umap_b64, umap_explanation = generate_umap_plot(
                     X=numeric_df.to_numpy(),
@@ -122,9 +122,9 @@ def main():
                 )
                 show_base64_image(umap_b64, caption=f"UMAP Projection — {umap_explanation}")
             else:
-                st.warning("Not enough numeric features for UMAP.")
+                st.warning("⚠️ Not enough numeric features for UMAP.")
     else:
-        st.info("Please upload a CSV file to begin analysis.")
+        st.info("📥 Please upload a CSV file to begin analysis.")
 
 
 if __name__ == "__main__":
