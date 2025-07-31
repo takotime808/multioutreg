@@ -45,7 +45,21 @@ streamlit run multioutreg/gui/Grid_Search_Surrogate_Models.py
 
 [Notebooks and scripts](examples/) can be run once the tool is installed.
 
-**NOTE:** The CLI is not deployed yet.
+**CLI:**
+
+```sh
+multioutreg
+```
+
+Example use command:
+```sh
+multioutreg grid_search_auto_detect docs/_static/example_datasets/sample_data.csv "x0,x1,x2,x3,x4,x5" "y0,y1"
+```
+
+Help menu for any command can be called with flag:
+```sh
+multioutreg grid_search --help
+```
 
 ----
 ### ☁️ Deployments ###
