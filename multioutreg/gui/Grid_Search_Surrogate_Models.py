@@ -416,7 +416,7 @@ def generate_html_report(
         }
     ]
 
-    pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=feature_names)
+    pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=list(output_names))
     
     sampling_umap_plot, sampling_method_explanation = generate_umap_plot(X_train)
     # other_plots = generate_error_histogram(y_test, best_pred, output_names)
