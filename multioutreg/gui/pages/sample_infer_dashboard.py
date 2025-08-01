@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+from sklearn.decomposition import PCA
+import umap.umap_ as umap
 
 st.set_page_config(page_title="Sampling Bias Detection Dashboard", layout="wide")
 
@@ -30,7 +32,15 @@ def main():
         selected_cols = st.multiselect("Select numeric columns for analysis", num_cols, default=num_cols[:5])
 
         # Analysis Tabs
-        tabs = st.tabs(["📉 Sampling Pattern", "🔍 Pairwise KDE & Scatter", "🧮 Correlation Heatmap", "📈 Distributions", "❓ Missing Data"])
+        tabs = st.tabs([
+            "📉 Sampling Pattern",
+            "🔍 Pairwise KDE & Scatter",
+            "🧮 Correlation Heatmap",
+            "📈 Distributions",
+            "❓ Missing Data",
+            "📊 PCA Projection",
+            "🧬 UMAP Projection"
+        ])
 
         with tabs[0]:
             st.subheader("📉 Sampling Pattern Analysis")
@@ -51,6 +61,14 @@ def main():
         with tabs[4]:
             st.subheader("❓ Missing Data Overview")
             show_missing_data(df)
+
+        with tabs[5]:
+            st.subheader("📊 PCA Projection (2D)")
+            plot_pca(df, selected_cols)
+
+        with tabs[6]:
+            st.subheader("🧬 UMAP Projection (2D)")
+            plot_umap(df, selected_cols)
 
     else:
         st.info("Please upload a CSV file to begin.")
@@ -107,6 +125,37 @@ def show_missing_data(df):
     else:
         st.warning("⚠ Missing values found:")
         st.dataframe(missing.reset_index().rename(columns={"index": "Feature", 0: "Missing Values"}))
+
+def plot_pca(df, cols):
+    if len(cols) < 2:
+        st.warning("PCA requires at least two numeric columns.")
+        return
+    X = df[cols].dropna()
+    pca = PCA(n_components=2)
+    components = pca.fit_transform(X)
+
+    fig, ax = plt.subplots()
+    scatter = ax.scatter(components[:, 0], components[:, 1], alpha=0.7)
+    ax.set_title("PCA Projection (2D)")
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+    st.pyplot(fig, clear_figure=True)
+
+def plot_umap(df, cols):
+    if len(cols) < 2:
+        st.warning("UMAP requires at least two numeric columns.")
+        return
+    X = df[cols].dropna()
+    reducer = umap.UMAP(n_components=2, random_state=42)
+    embedding = reducer.fit_transform(X)
+
+    fig, ax = plt.subplots()
+    ax.scatter(embedding[:, 0], embedding[:, 1], alpha=0.7)
+    ax.set_title("UMAP Projection (2D)")
+    ax.set_xlabel("UMAP-1")
+    ax.set_ylabel("UMAP-2")
+    st.pyplot(fig, clear_figure=True)
+
 
 # === Entry Point ===
 if __name__ == "__main__":
