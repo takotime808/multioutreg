@@ -3,13 +3,13 @@
 
 Multi-Output Multi-Fidelity Surrogate Modeling with Uncertainty Quantification.
 
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://multioutreg-sample.streamlit.app/)
 [![Docs](https://img.shields.io/badge/docs-online-blue.svg)](https://takotime808.github.io/multioutreg/)
-<!-- [![Build](https://github.com/takotime808/multioutreg/actions/workflows/python-ci.yml/badge.svg)](https://github.com/takotime808/multioutreg/actions/workflows/python-ci.yml) -->
-<!-- [![Streamlit Smoke Test](https://github.com/takotime808/multioutreg/actions/workflows/streamlit-smoke.yml/badge.svg)](https://github.com/takotime808/multioutreg/actions/workflows/streamlit-smoke.yml) -->
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 <!-- [![PyPI](https://img.shields.io/pypi/v/multioutreg.svg)](https://pypi.org/project/multioutreg/) -->
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://multioutreg-sample.streamlit.app/)
 <!-- [![License](https://img.shields.io/github/license/takotime808/multioutreg)](./LICENSE) -->
+<!-- [![Build](https://github.com/takotime808/multioutreg/actions/workflows/python-ci.yml/badge.svg)](https://github.com/takotime808/multioutreg/actions/workflows/python-ci.yml) -->
+<!-- [![Streamlit Smoke Test](https://github.com/takotime808/multioutreg/actions/workflows/streamlit-smoke.yml/badge.svg)](https://github.com/takotime808/multioutreg/actions/workflows/streamlit-smoke.yml) -->
 
 This repository provides utilities for evaluating multi-output surrogate models
 with uncertainty estimation. Example notebooks in `examples/` demonstrate the
