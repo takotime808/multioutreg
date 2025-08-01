@@ -71,3 +71,20 @@ multioutreg grid_search --help
 📂 Example input files for testing the app can be found here:  
 [./docs/_static/example_datasets/](./docs/_static/example_datasets/)
 
+----
+## Visual Overview
+
+### Sequence of Interactions
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant S as Streamlit App
+    participant M as Metrics
+    U->>S: Upload CSVs
+    S->>S: Apply filters and preprocessing
+    U->>S: Select metrics and run
+    S->>M: Compute metrics
+    M-->>S: Return results
+    S->>U: Display plots and metrics
+```
