@@ -2,20 +2,14 @@
 
 """Streamlit script performing a grid search over several surrogate models."""
 
-import streamlit as st
-import pandas as pd
-import numpy as np
 import os
-from typing import Dict, List, Tuple, Union, Any
+import numpy as np
+import pandas as pd
+import streamlit as st
+from typing import Any, Dict, List, Optional, Union
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, Matern
 from sklearn.decomposition import PCA
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.linear_model import LinearRegression
-from sklearn.base import BaseEstimator, RegressorMixin, clone
 from jinja2 import Template
 
 
@@ -44,248 +38,10 @@ from multioutreg.figures.residuals import plot_residuals_multioutput_with_regplo
 from multioutreg.figures.confidence_intervals import plot_intervals_ordered_multi
 from multioutreg.model_selection import AutoDetectMultiOutputRegressor
 
-# NOTE: NOT used...yet.
-from multioutreg.figures.doe_plots import make_doe_plot
-from multioutreg.figures.model_comparison import plot_surrogate_model_summary
+# # NOTE: NOT used...yet.
+# from multioutreg.figures.doe_plots import make_doe_plot
+# from multioutreg.figures.model_comparison import plot_surrogate_model_summary
 
-
-# ----- Surrogate Models with Uncertainty -----
-class RandomForestWithUncertainty(RandomForestRegressor):
-    def predict(
-        self,
-        X: np.ndarray,
-        return_std: bool = False,
-    ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
-        """
-        Predict using the random forest, optionally returning standard deviation.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Input feature array.
-        return_std : bool, optional
-            Whether to return the standard deviation of predictions.
-
-        Returns
-        -------
-        np.ndarray or Tuple[np.ndarray, np.ndarray]
-            Mean predictions or (mean, std) tuple.
-        """
-        mean = super().predict(X)
-        if not return_std:
-            return mean
-        all_preds = np.stack([tree.predict(X) for tree in self.estimators_], axis=0)
-        std = all_preds.std(axis=0)
-        return mean, std
-
-
-class GradientBoostingWithUncertainty(BaseEstimator, RegressorMixin):
-    def __init__(self, alpha=0.95, n_estimators=100):
-        self.alpha = alpha
-        self.n_estimators = n_estimators
-        self.lower = GradientBoostingRegressor(loss="quantile", alpha=(1 - alpha) / 2, n_estimators=n_estimators)
-        self.upper = GradientBoostingRegressor(loss="quantile", alpha=1 - (1 - alpha) / 2, n_estimators=n_estimators)
-        self.mid = GradientBoostingRegressor(loss="squared_error", n_estimators=n_estimators)
-
-    def fit(self, X: np.ndarray, y: np.ndarray) -> "GradientBoostingWithUncertainty":
-        """
-        Fit the quantile and mid regressors.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Feature matrix.
-        y : np.ndarray
-            Target array.
-
-        Returns
-        -------
-        GradientBoostingWithUncertainty
-            The fitted model.
-        """
-        self.lower.fit(X, y)
-        self.upper.fit(X, y)
-        self.mid.fit(X, y)
-        return self
-
-    def predict(
-            self,
-            X: np.ndarray,
-            return_std: bool = False
-    ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
-        """
-        Predict using the model.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Input feature array.
-        return_std : bool, optional
-            Whether to return standard deviation.
-
-        Returns
-        -------
-        np.ndarray or Tuple[np.ndarray, np.ndarray]
-            Mean predictions or (mean, std) tuple.
-        """
-        y_pred = self.mid.predict(X)
-        if not return_std:
-            return y_pred
-        lower = self.lower.predict(X)
-        upper = self.upper.predict(X)
-        std = (upper - lower) / 2
-        return y_pred, std
-
-
-class KNeighborsRegressorWithUncertainty(KNeighborsRegressor):
-    def predict(self, X: np.ndarray, return_std: bool = False) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
-        """
-        Predict using KNN, optionally returning standard deviation.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Input feature array.
-        return_std : bool, optional
-            Whether to return standard deviation.
-
-        Returns
-        -------
-        np.ndarray or Tuple[np.ndarray, np.ndarray]
-            Mean predictions or (mean, std) tuple.
-        """
-        mean = super().predict(X)
-        if not return_std:
-            return mean
-        neigh_ind = self.kneighbors(X, return_distance=False)
-        y_neigh = self._y[neigh_ind]
-        std = y_neigh.std(axis=1)
-        return mean, std
-
-
-class BootstrapLinearRegression(BaseEstimator, RegressorMixin):
-    def __init__(self, n_bootstraps=20):
-        self.n_bootstraps = n_bootstraps
-
-    def fit(self, X: np.ndarray, y: np.ndarray) -> "BootstrapLinearRegression":
-        """
-        Fit bootstrapped linear regression models.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Feature matrix.
-        y : np.ndarray
-            Target array.
-
-        Returns
-        -------
-        BootstrapLinearRegression
-            The fitted model.
-        """
-        self.models_ = []
-        n = X.shape[0]
-        for _ in range(self.n_bootstraps):
-            idx = np.random.choice(n, n, replace=True)
-            model = LinearRegression().fit(X[idx], y[idx])
-            self.models_.append(model)
-        return self
-
-    def predict(
-            self,
-            X: np.ndarray,
-            return_std: bool = False,
-    ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
-        """
-        Predict using ensemble of linear models.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Input feature array.
-        return_std : bool, optional
-            Whether to return standard deviation.
-
-        Returns
-        -------
-        np.ndarray or Tuple[np.ndarray, np.ndarray]
-            Mean predictions or (mean, std) tuple.
-        """
-        all_preds = [m.predict(X).reshape(X.shape[0], -1) for m in self.models_]
-        preds = np.stack(all_preds, axis=2)
-        mean = preds.mean(axis=2)
-        if not return_std:
-            return mean
-        std = preds.std(axis=2)
-        return mean, std
-
-
-class PerTargetRegressorWithStd(BaseEstimator, RegressorMixin):
-    def __init__(self, estimators):
-        self.estimators = list(estimators)
-
-    def fit(self, X: np.ndarray, y: np.ndarray) -> "PerTargetRegressorWithStd":
-        """
-        Fit separate estimators for each output column.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Feature matrix.
-        y : np.ndarray
-            Multi-output target matrix.
-
-        Returns
-        -------
-        PerTargetRegressorWithStd
-            The fitted model.
-        """
-        self.estimators_ = []
-        y = np.asarray(y)
-        if y.ndim == 1:
-            y = y.reshape(-1, 1)
-        for est, col in zip(self.estimators, y.T):
-            est_fitted = clone(est)
-            est_fitted.fit(X, col)
-            self.estimators_.append(est_fitted)
-        return self
-
-    def predict(
-            self,
-            X: np.ndarray,
-            return_std: bool = False,
-    ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
-        """
-        Predict using individual estimators for each target dimension.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Input feature array.
-        return_std : bool, optional
-            Whether to return standard deviation.
-
-        Returns
-        -------
-        np.ndarray or Tuple[np.ndarray, np.ndarray]
-            Mean predictions or (mean, std) tuple.
-        """
-        preds, stds = [], []
-        for est in self.estimators_:
-            if return_std:
-                try:
-                    pred, std = est.predict(X, return_std=True)
-                except TypeError:
-                    pred = est.predict(X)
-                    std = np.full(pred.shape, np.nan)
-                preds.append(pred.reshape(-1, 1))
-                stds.append(std.reshape(-1, 1))
-            else:
-                pred = est.predict(X)
-                preds.append(np.asarray(pred).reshape(-1, 1))
-        if return_std:
-            return np.hstack(preds), np.hstack(stds)
-        return np.hstack(preds)
 
 
 # ----- HTML Report Generation Wrapper -----
@@ -314,66 +70,88 @@ def generate_html_report(
     pca_threshold: float | None = None,
     pca_n_components: int | None = None,
     kaiser_rule_suggestion: str | None = None,
+    template_path: Optional[Union[str, os.PathLike]] = None, # For unit tests
 ) -> str:
     """
-    Generate an HTML report from model training and evaluation results.
+    Generate an HTML report summarizing surrogate model results, including performance metrics,
+    uncertainty plots, SHAP values, PDPs, PCA visualizations, and residual analysis.
+
+    This function wraps model output and diagnostics into a styled report by rendering a Jinja2
+    HTML template. It supports optional PCA annotations, sampling visualizations, and error histograms.
+    Designed to be used interactively or programmatically within the Streamlit grid search app.
 
     Parameters
     ----------
     model_type : str
-        Type of model used.
+        Type of surrogate model used (e.g., "AutoDetectMultiOutputRegressor").
     fidelity_levels : List[str]
-        Fidelity levels used (if any).
+        List of fidelity levels (e.g., ["Low", "High"]) if multi-fidelity data is involved.
     output_names : List[str]
-        Names of the output dimensions.
+        Names of output variables for multi-output regression.
     description : str
-        Description of the modeling project.
+        Optional project description to embed in the report.
     metrics : Dict[str, Dict[str, float]]
-        Dictionary of evaluation metrics for each output.
+        Dictionary containing performance metrics (r2, rmse, mae, etc.) for each output.
     uncertainty_metrics : Dict[str, float]
-        Dictionary of uncertainty metrics.
+        Global uncertainty metrics across all outputs.
     y_test : np.ndarray
-        Ground truth values for test set.
+        Ground truth test targets.
     best_pred : np.ndarray
-        Predictions from the best model.
+        Model predictions on test data.
     best_std : np.ndarray
-        Uncertainty estimates from the best model.
+        Predicted standard deviation (uncertainty) per test prediction.
     best_model : Any
-        The best performing model.
+        Trained surrogate model object.
     X_train : np.ndarray
-        Training input features.
+        Training feature matrix.
     n_train : int
         Number of training samples.
     n_test : int
         Number of test samples.
     cross_validation : str
-        Description of the CV strategy.
+        Text description of the cross-validation strategy used.
     seed : int
-        Random seed used.
+        Random seed used during data splitting or model training.
     notes : str
-        Additional notes.
+        Additional notes to be included in the report.
     feature_names : List[str] | None, optional
-        Names of features.
+        Names of original input features (used in PDP plots).
     feature_names_pca : List[str] | None, optional
-        Names to use for PCA.
+        Names of PCA components (used for visualization if PCA was applied).
     pca_explained_variance : List[float] | None, optional
-        Explained variance ratios from PCA if applied.
+        Explained variance ratios from PCA analysis.
     pca_variance_plot : str | None, optional
-        Base64-encoded plot showing PCA variance ratios.
+        Base64-encoded PNG string of the scree plot (PCA variance).
     pca_method : str | None, optional
-        Method used to choose the number of PCA components.
+        Method used to select the number of PCA components ("Manual", "Kaiser rule", etc.).
     pca_threshold : float | None, optional
-        Explained variance threshold if that method was used.
+        Explained variance threshold used, if applicable.
     pca_n_components : int | None, optional
-        Final number of PCA components retained.
-    kaiser_rule_suggestion: str | None, optional
-        PCA explanation statement.
+        Number of PCA components retained.
+    kaiser_rule_suggestion : str | None, optional
+        Human-readable explanation of the Kaiser rule component count.
+    template_path : str | None, optional
+        Path to the HTML Jinja2 template. Used for unit testing or template overrides.
+        If not provided, falls back to the default report template or env variable "MOR_TEMPLATE_PATH".
 
     Returns
     -------
     str
-        Rendered HTML report.
+        Fully rendered HTML report as a string, ready to be saved or displayed.
     """
+    DEFAULT_TEMPLATE_PATH = os.path.join(
+        os.path.dirname(__file__),
+        "../../report/template.html"
+    )
+    
+    # For unit tests
+    if template_path is None:
+        template_path = os.getenv("MOR_TEMPLATE_PATH", DEFAULT_TEMPLATE_PATH)
+
+    # Check that the template exists
+    if not os.path.isfile(template_path):
+        raise FileNotFoundError(f"Template file not found: {template_path}")
+
     # prediction_plots = generate_prediction_plot(y_test, best_pred, best_std, output_names)
     # # pdp_plots = generate_pdp_plot(output_names)
     # pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=input_cols)
@@ -439,11 +217,16 @@ def generate_html_report(
     ]
 
     other_plots = generate_error_histogram(y_test, best_pred, output_names)
+    
+    # template_path = os.path.join(os.path.dirname(__file__), "../../report/template.html")
+    # with open(template_path, "r", encoding="utf-8") as f:
+    #     template_text = f.read()
 
-    template_path = os.path.join(os.path.dirname(__file__), "../../report/template.html")
-    with open(template_path, "r", encoding="utf-8") as f:
+    with open(DEFAULT_TEMPLATE_PATH, "r", encoding="utf-8") as f:
         template_text = f.read()
+
     template = Template(template_text)
+
     rendered = template.render(
         project_title="Auto-Detected Multi-Fidelity Surrogate Modeling Report",
         model_type=model_type,
