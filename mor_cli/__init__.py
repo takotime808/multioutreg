@@ -13,6 +13,8 @@ def main():
     from .detect_sampling import detect_sampling
     from .grid_search import grid_search
     from .grid_search_auto_detect import grid_search_auto_detect
+    from .infer_sampling import infer_sampling
+    from .use_ks_for_sample_bias import compare_sample_methods
     # from .generate_report import generate_report
 
     commands = {
@@ -21,6 +23,8 @@ def main():
         "detect_sampling": detect_sampling,
         "grid_search": grid_search,
         "grid_search_auto_detect": grid_search_auto_detect,
+        "infer_sampling": infer_sampling,
+        "compare_sample_methods": compare_sample_methods,
         # "generate_report": generate_report,
     }
     if len(sys.argv) == 1:
