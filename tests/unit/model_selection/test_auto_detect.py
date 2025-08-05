@@ -7,6 +7,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 
 from multioutreg.model_selection import AutoDetectMultiOutputRegressor
+from multioutreg.surrogates import MultiFidelitySurrogate
 
 
 def test_auto_detect_multi_output_regressor_selects_best():
@@ -103,3 +104,15 @@ def test_predict_return_std(monkeypatch, sample_data):
     pred, std = model.predict(X, return_std=True)
     assert pred.shape == y.shape
     assert std.shape == y.shape
+
+
+def test_vendored_surrogates_with_multi_fidelity(sample_data):
+    X, y = sample_data
+    model = AutoDetectMultiOutputRegressor.with_vendored_surrogates(
+        cv=2, fidelity_levels=["single"]
+    )
+    model.fit(X, y)
+    preds = model.predict(X)
+
+    assert preds.shape == y.shape
+    assert isinstance(model.models_[0], MultiFidelitySurrogate)

@@ -42,6 +42,7 @@ from multioutreg.figures.coverage_plots import plot_coverage
 from multioutreg.figures.residuals import plot_residuals_multioutput_with_regplot
 # from multioutreg.figures.prediction_plots import plot_predictions
 from multioutreg.figures.confidence_intervals import plot_intervals_ordered_multi
+from multioutreg.surrogates import MultiFidelitySurrogate, LinearRegressionSurrogate
 
 # NOTE: NOT used...yet.
 from multioutreg.figures.doe_plots import make_doe_plot
@@ -583,6 +584,11 @@ if uploaded_file:
             ("gb", GradientBoostingWithUncertainty, {"alpha": [0.95], "n_estimators": [50]}),
             ("knn", KNeighborsRegressorWithUncertainty, {"n_neighbors": [3]}),
             ("blr", BootstrapLinearRegression, {"n_bootstraps": [20]}),
+            (
+                "mfs_lr",
+                lambda: MultiFidelitySurrogate(LinearRegressionSurrogate, ["default"]),
+                {},
+            ),
         ]
 
         configs = [(name, Est, params) for name, Est, grid in surrogate_defs for params in ParameterGrid(grid)]
