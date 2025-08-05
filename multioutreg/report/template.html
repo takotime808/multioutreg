@@ -144,11 +144,11 @@
                 SHAP values show how each input feature influences model predictions for each output, helping identify key drivers of model behavior.
             </i>
         </p>
-        {% for name in output_names %}
+        {% for name, img in shap_plots.items() %}
         <h3>{{ name }}</h3>
         <div class="plot">
-            {% if shap_plots[name] %}
-                <img src="data:image/png;base64,{{ shap_plots[name] }}" alt="SHAP for {{ name }}">
+            {% if img %}
+                <img src="data:image/png;base64,{{ img }}" alt="SHAP for {{ name }}">
             {% else %}
                 <div class="errormsg">SHAP plot for {{ name }} is unavailable.</div>
             {% endif %}

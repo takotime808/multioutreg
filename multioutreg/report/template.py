@@ -90,10 +90,10 @@ template = Template("""
     </div>
     <div class="section">
         <h2>SHAP Explanations</h2>
-        {% for name in output_names %}
+        {% for name, img in shap_plots.items() %}
         <h3>{{ name }}</h3>
         <div class="plot">
-            <img src="data:image/png;base64,{{ shap_plots[name] }}" alt="SHAP for {{ name }}">
+            <img src="data:image/png;base64,{{ img }}" alt="SHAP for {{ name }}">
         </div>
         {% endfor %}
     </div>

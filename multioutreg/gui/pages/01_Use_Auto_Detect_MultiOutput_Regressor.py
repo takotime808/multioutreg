@@ -25,7 +25,10 @@ from jinja2 import Template
 # )
 
 from multioutreg.figures.error_histograms import generate_error_histogram
-from multioutreg.figures.shap_multioutput import generate_shap_plot
+from multioutreg.figures.shap_multioutput import (
+    generate_shap_plot,
+    plot_multioutput_shap_bar_subplots,
+)
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
 from multioutreg.figures.pdp_plots import generate_pdp_plot
 from multioutreg.utils.figure_utils import safe_plot_b64
@@ -71,6 +74,7 @@ def generate_html_report(
     pca_n_components: int | None = None,
     kaiser_rule_suggestion: str | None = None,
     template_path: Optional[Union[str, os.PathLike]] = None, # For unit tests
+    shap_plot: str | None = None,
 ) -> str:
     """
     Generate an HTML report summarizing surrogate model results, including performance metrics,
@@ -133,6 +137,8 @@ def generate_html_report(
     template_path : str | None, optional
         Path to the HTML Jinja2 template. Used for unit testing or template overrides.
         If not provided, falls back to the default report template or env variable "MOR_TEMPLATE_PATH".
+    shap_plot: str | None,
+        Generate multioupyt shap plots as subplots on one figure.
 
     Returns
     -------
@@ -178,7 +184,19 @@ def generate_html_report(
             n_cols=3
         )
 
-    shap_plots = generate_shap_plot(best_model, X_train, output_names)
+    if feature_names is None:
+        feature_names = [f"feature_{i}" for i in range(X_train.shape[1])]
+
+    if shap_plot is None:
+        shap_plot = safe_plot_b64(
+            plot_multioutput_shap_bar_subplots,
+            best_model,
+            X_train,
+            feature_names=feature_names,
+            output_names=output_names,
+        )
+    shap_plots = {"SHAP Summary": shap_plot}
+
     # shap_img = safe_plot_b64(
     #     plot_multioutput_shap_bar_subplots,
     #     best_model, X_train,
@@ -318,6 +336,7 @@ if uploaded_file:
         y = df[output_cols].values
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
         feature_names = list(input_cols)
+        used_feature_names = feature_names
 
         # # Show seaborn PairGrid plot with KDE in lower triangle
         # if df.shape[1] >= 2:
@@ -363,6 +382,7 @@ if uploaded_file:
                 caption="Scree Plot",
                 use_column_width=True,
             )
+            used_feature_names = feature_names_pca
 
         model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
         model.fit(X_train, y_train)
@@ -408,6 +428,21 @@ if uploaded_file:
             }
         st.dataframe(pd.DataFrame(metrics).T)
 
+        # Shap plots
+        shap_img = safe_plot_b64(
+            plot_multioutput_shap_bar_subplots,
+            best_model,
+            X_train,
+            feature_names=used_feature_names,
+            output_names=output_cols,
+        )
+        st.write("### SHAP Summary Plot")
+        st.image(
+            f"data:image/png;base64,{shap_img}",
+            caption="Mean(|SHAP value|) for each feature and output",
+            use_column_width=True,
+        )
+
         html = generate_html_report(
             model_type="AutoDetectMultiOutputRegressor",
             fidelity_levels=[],
@@ -425,12 +460,14 @@ if uploaded_file:
             cross_validation="None",
             seed=0,
             notes="Generated report.",
+            feature_names=used_feature_names,
             pca_explained_variance=pca_explained_variance,
             pca_variance_plot=pca_variance_plot,
             pca_method=pca_method,
             pca_threshold=pca_threshold,
             pca_n_components=pca_n_components,
             kaiser_rule_suggestion=kaiser_rule_suggestion,
+            shap_plot=shap_img,
         )
 
         st.download_button("Download HTML Report", html, file_name="model_report_auto.html", mime="text/html")
