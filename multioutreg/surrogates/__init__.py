@@ -10,6 +10,7 @@ from multioutreg.surrogates.gradient_boosting_sklearn import GradientBoostingSur
 from multioutreg.surrogates.svr_sklearn import SVRSurrogate
 from multioutreg.surrogates.knn_sklearn import KNeighborsSurrogate
 from multioutreg.surrogates.decision_tree_sklearn import DecisionTreeRegressorSurrogate
+from multioutreg.surrogates.multi_fidelity import MultiFidelitySurrogate
 
 __all__ = [
     "BaseSurrogate",
@@ -20,5 +21,6 @@ __all__ = [
     "SVRSurrogate",
     "KNeighborsSurrogate",
     "DecisionTreeRegressorSurrogate",
+    "MultiFidelitySurrogate",
 ]
 

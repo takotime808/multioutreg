@@ -1,0 +1,86 @@
+# Copyright (c) 2025 takotime808
+name: Streamlit Smoke Test
+
+# on:
+#   push:
+#     branches: [main, surrogate_vendor]
+#   pull_request:
+#     branches: [main]
+#   workflow_dispatch:
+#     inputs:
+#       app_path:
+#         description: "Path to Streamlit app"
+#         required: false
+#         default: "multioutreg/gui/Grid_Search_Surrogate_Models.py"
+
+on:
+  push:
+    branches: [main, surrogate_vendor]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+
+jobs:
+  smoke-test:
+    name: Launch Streamlit App
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.10"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install .[test]
+        pip install streamlit
+
+    - name: Run Streamlit in headless mode
+      run: |
+        echo "Launching Streamlit app..."
+        streamlit run multioutreg/gui/Grid_Search_Surrogate_Models.py --server.headless true &
+        sleep 10
+        echo "Terminating Streamlit process..."
+        pkill streamlit
+
+    - name: Confirm Streamlit exited cleanly
+      run: echo "Streamlit app launched and shut down without error."
+
+# # Copyright (c) 2025 takotime808
+# name: Streamlit Smoke Test
+
+# on:
+#   push:
+#     branches: [main]
+#   pull_request:
+#     branches: [main]
+
+# jobs:
+#   smoke-test:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#     - name: Checkout repo
+#       uses: actions/checkout@v4
+
+#     - name: Set up Python
+#       uses: actions/setup-python@v5
+#       with:
+#         python-version: "3.10"
+
+#     - name: Install app dependencies
+#       run: |
+#         pip install .[test]
+#         pip install streamlit
+
+#     - name: Run Streamlit in headless mode
+#       run: |
+#         streamlit run multioutreg/gui/pages/01_Use_Auto_Detect_MultiOutput_Regressor.py --server.headless true &
+#         sleep 10
+#         pkill streamlit
