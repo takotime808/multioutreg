@@ -1,11 +1,12 @@
 # Copyright (c) 2025 takotime808
 
+import os
 import numpy as np
-import pandas as pd
+# import pandas as pd
 import matplotlib.pyplot as plt
 import shap
-import base64
-import io
+# import base64
+# import io
 from jinja2 import Environment, FileSystemLoader
 
 from multioutreg.utils.figure_utils import (
@@ -154,6 +155,9 @@ template_path = "multioutreg/report/template.html"
 env = Environment(loader=FileSystemLoader("."))
 template = env.get_template(template_path)
 html = template.render(**context)
+
+# Ensure the output directory exists before writing the report
+os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
 with open(output_path, "w") as f:
     f.write(html)

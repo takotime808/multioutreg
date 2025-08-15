@@ -10,6 +10,7 @@ from multioutreg.gui.Grid_Search_Surrogate_Models import (
     BootstrapLinearRegression,
     PerTargetRegressorWithStd
 )
+from multioutreg.surrogates import MultiFidelitySurrogate, LinearRegressionSurrogate
 
 @pytest.fixture
 def sample_data():
@@ -61,3 +62,10 @@ def test_per_target_regressor_with_std(sample_data):
     assert mean.shape == y.shape
     assert std.shape == y.shape
     assert np.all(std >= 0)
+
+def test_multi_fidelity_surrogate_single_level(sample_data):
+    X, y = sample_data
+    mfs = MultiFidelitySurrogate(LinearRegressionSurrogate, ["default"])
+    mfs.fit((X, y))
+    preds = mfs.predict(X)
+    assert preds.shape == y.shape

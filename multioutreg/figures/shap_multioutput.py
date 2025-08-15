@@ -58,8 +58,16 @@ def plot_multioutput_shap_bar_subplots(
         output_names = [f"Output {i}" for i in range(n_outputs)]
 
     for i, estimator in enumerate(model.estimators_):
-        explainer = shap.TreeExplainer(estimator)
-        shap_values = explainer.shap_values(X)
+        # Try a fast TreeExplainer; fall back to the model-agnostic Explainer
+        try:
+            explainer = shap.TreeExplainer(estimator)
+            shap_values = explainer.shap_values(X)
+        except Exception:
+            explainer = shap.Explainer(estimator.predict, X)
+            shap_values = explainer(X)
+            # ``shap_values`` can be either an Explanation or ndarray
+            shap_values = getattr(shap_values, "values", shap_values)
+
         means = np.abs(shap_values).mean(axis=0)
         bars = axs[i].barh(feature_names, means)
         axs[i].set_title(output_names[i])
@@ -125,3 +133,57 @@ def generate_shap_plot(
                 plt.axis("off")
         plots[name] = plot_to_b64(plot_fn)
     return plots
+
+
+def plot_multioutput_shap_bar_subplots_no_tree(
+    model: MultiOutputRegressor,
+    X: np.ndarray,
+    feature_names: Optional[Sequence[str]] = None,
+    output_names: Optional[Sequence[str]] = None,
+    max_cols: int = 3,
+    savefig: Optional[str] = None
+) -> plt.Figure:
+    import shap
+
+    n_outputs = len(model.estimators_)
+    n_features = X.shape[1]
+    n_cols = min(max_cols, n_outputs)
+    n_rows = int(np.ceil(n_outputs / n_cols))
+    fig, axs = plt.subplots(n_rows, n_cols, figsize=(5 * n_cols, 4 * n_rows))
+    axs = np.array(axs).reshape(-1)
+
+    if feature_names is None:
+        feature_names = [f"feature_{i}" for i in range(n_features)]
+    if output_names is None:
+        output_names = [f"Output {i}" for i in range(n_outputs)]
+
+    for i, estimator in enumerate(model.estimators_):
+        # KernelExplainer-compatible
+        explainer = shap.Explainer(estimator.predict, X)
+        shap_values = explainer(X)
+        means = np.abs(shap_values.values).mean(axis=0)
+
+        bars = axs[i].barh(feature_names, means)
+        axs[i].set_title(output_names[i])
+        axs[i].set_xlabel("Mean(|SHAP value|)")
+        axs[i].invert_yaxis()
+        for bar, value in zip(bars, means):
+            axs[i].text(
+                bar.get_width() + max(means) * 0.01,
+                bar.get_y() + bar.get_height() / 2,
+                f"{value:.3f}",
+                va='center',
+                ha='left',
+                fontsize=10
+            )
+
+    for j in range(n_outputs, n_rows * n_cols):
+        axs[j].set_visible(False)
+
+    plt.tight_layout()
+    if savefig:
+        fig.savefig(savefig)
+        plt.close(fig)
+    else:
+        plt.show()
+    return fig
