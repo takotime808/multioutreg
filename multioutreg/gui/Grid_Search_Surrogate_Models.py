@@ -17,6 +17,7 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.base import BaseEstimator, RegressorMixin, clone
 from jinja2 import Template
+from multioutreg.timeseries import TimeSeriesForecaster
 
 
 # from multioutreg.gui.report_plotting_utils import (
@@ -47,6 +48,39 @@ from multioutreg.surrogates import MultiFidelitySurrogate, LinearRegressionSurro
 # NOTE: NOT used...yet.
 from multioutreg.figures.doe_plots import make_doe_plot
 from multioutreg.figures.model_comparison import plot_surrogate_model_summary
+
+
+# ----- Time-Series Forecasting Helper -----
+def forecast_series(
+    series: np.ndarray,
+    lags: int,
+    horizon: int,
+    base_estimator: RegressorMixin | None = None,
+) -> np.ndarray:
+    """Forecast a univariate ``series`` using the :class:`TimeSeriesForecaster`.
+
+    Parameters
+    ----------
+    series:
+        Historical data points.
+    lags:
+        Number of lagged observations to use when creating features.
+    horizon:
+        Number of future steps to predict.
+    base_estimator:
+        Optional regressor following the scikit-learn API. Defaults to
+        :class:`~sklearn.linear_model.LinearRegression`.
+
+    Returns
+    -------
+    np.ndarray
+        Forecast of length ``horizon``.
+    """
+    if base_estimator is None:
+        base_estimator = LinearRegression()
+    forecaster = TimeSeriesForecaster(base_estimator, lags=lags, horizon=horizon)
+    forecaster.fit(series)
+    return forecaster.predict(series)
 
 
 # ----- Surrogate Models with Uncertainty -----
@@ -313,6 +347,7 @@ def generate_html_report(
     pca_threshold: float | None = None,
     pca_n_components: int | None = None,
     kaiser_rule_suggestion: str | None = None,
+    ts_forecast: np.ndarray | None = None,
 ) -> str:
     """
     Generate an HTML report from model training and evaluation results.
@@ -365,6 +400,8 @@ def generate_html_report(
         Final number of PCA components retained.
     kaiser_rule_suggestion: str | None, optional
         PCA explanation statement.
+    ts_forecast : np.ndarray | None, optional
+        Optional time-series forecast to include in the report.
 
     Returns
     -------
@@ -469,6 +506,7 @@ def generate_html_report(
         pca_threshold=pca_threshold,
         pca_n_components=pca_n_components,
         kaiser_rule_suggestion=kaiser_rule_suggestion,
+        ts_forecast=ts_forecast,
     )
     return rendered
 
@@ -652,6 +690,11 @@ if uploaded_file:
                 "mean_predicted_std": float(np.mean(best_std[:, i])),
             }
         st.dataframe(pd.DataFrame(metrics).T)
+        ts_forecast = None
+        try:
+            ts_forecast = forecast_series(y_train[:, 0], lags=3, horizon=2)
+        except Exception:
+            ts_forecast = None
 
         html = generate_html_report(
             model_type="PerTargetRegressorWithStd",
@@ -676,6 +719,7 @@ if uploaded_file:
             pca_threshold=pca_threshold,
             pca_n_components=pca_n_components,
             kaiser_rule_suggestion=kaiser_rule_suggestion,
+            ts_forecast=ts_forecast,
         )
 
         st.download_button("Download HTML Report", html, file_name="model_report.html", mime="text/html")
