@@ -24,6 +24,7 @@ from multioutreg.surrogates import (
     SVRSurrogate,
     KNeighborsSurrogate,
     DecisionTreeRegressorSurrogate,
+    MultiFidelitySurrogate,
 )
 
 class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
@@ -61,7 +62,10 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
 
             if hasattr(self, "_surrogate_constructors") and best_idx is not None:
                 surrogate = self._surrogate_constructors[best_idx](**best_params)
-                surrogate.fit(X, y[:, [i]])
+                if isinstance(surrogate, MultiFidelitySurrogate):
+                    surrogate.fit((X, y[:, [i]]))
+                else:
+                    surrogate.fit(X, y[:, [i]])
                 self.models_.append(surrogate)
             else:
                 best_est.fit(X, y[:, i])
@@ -115,7 +119,10 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
 
     @classmethod
     def with_vendored_surrogates(
-        cls, cv: int = 3, scoring: str = "neg_mean_squared_error"
+        cls,
+        cv: int = 3,
+        scoring: str = "neg_mean_squared_error",
+        fidelity_levels: Sequence[str] | None = None,
     ) -> "AutoDetectMultiOutputRegressor":
         """Return instance configured to search all vendored surrogates."""
 
@@ -141,13 +148,31 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
 
         instance = cls(estimators, param_spaces, cv=cv, scoring=scoring)
 
-        instance._surrogate_constructors = [
-            LinearRegressionSurrogate,
-            GaussianProcessSurrogate,
-            RandomForestSurrogate,
-            GradientBoostingSurrogate,
-            SVRSurrogate,
-            KNeighborsSurrogate,
-            DecisionTreeRegressorSurrogate,
-        ]
+        if fidelity_levels is None:
+            instance._surrogate_constructors = [
+                LinearRegressionSurrogate,
+                GaussianProcessSurrogate,
+                RandomForestSurrogate,
+                GradientBoostingSurrogate,
+                SVRSurrogate,
+                KNeighborsSurrogate,
+                DecisionTreeRegressorSurrogate,
+            ]
+        else:
+            def wrap(cls_sur):
+                return lambda **p: MultiFidelitySurrogate(
+                    lambda: cls_sur(**p), fidelity_levels
+                )
+
+            instance._surrogate_constructors = [
+                wrap(LinearRegressionSurrogate),
+                wrap(GaussianProcessSurrogate),
+                wrap(RandomForestSurrogate),
+                wrap(GradientBoostingSurrogate),
+                wrap(SVRSurrogate),
+                wrap(KNeighborsSurrogate),
+                wrap(DecisionTreeRegressorSurrogate),
+            ]
+            instance.fidelity_levels = list(fidelity_levels)
+
         return instance

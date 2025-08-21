@@ -5,6 +5,15 @@
 See example notebooks in `{root_dir}/examples/` for how to generate figures with functions in this module.
 
 
+**`generate_umap_plot` Classification Table**
+
+| Metric             | Grid   | LHS       | Random | Sobol     |
+| ------------------ | ------ | --------- | ------ | --------- |
+| `std_dist`         | < 0.05 | 0.05–0.15 | > 0.2  | 0.05–0.15 |
+| `silhouette_score` | > 0.6  | \~0.4     | < 0.3  | \~0.4     |
+| `entropy`          | low    | high      | high   | low       |
+
+
 ----
 
 **Multi-output ordered interval plots:**

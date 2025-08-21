@@ -3,7 +3,7 @@
 To install this python library:
 
 ```bash
-git clone https://github.com/cmutnik/repo-template.git && cd repo-template
+git clone https://github.com/takotime808/multioutreg.git && cd multioutreg
 
 pip install .
 ```

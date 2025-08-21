@@ -42,6 +42,7 @@ from multioutreg.figures.coverage_plots import plot_coverage
 from multioutreg.figures.residuals import plot_residuals_multioutput_with_regplot
 # from multioutreg.figures.prediction_plots import plot_predictions
 from multioutreg.figures.confidence_intervals import plot_intervals_ordered_multi
+from multioutreg.surrogates import MultiFidelitySurrogate, LinearRegressionSurrogate
 
 # NOTE: NOT used...yet.
 from multioutreg.figures.doe_plots import make_doe_plot
@@ -416,7 +417,7 @@ def generate_html_report(
         }
     ]
 
-    pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=feature_names)
+    pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=list(output_names))
     
     sampling_umap_plot, sampling_method_explanation = generate_umap_plot(X_train)
     # other_plots = generate_error_histogram(y_test, best_pred, output_names)
@@ -583,6 +584,11 @@ if uploaded_file:
             ("gb", GradientBoostingWithUncertainty, {"alpha": [0.95], "n_estimators": [50]}),
             ("knn", KNeighborsRegressorWithUncertainty, {"n_neighbors": [3]}),
             ("blr", BootstrapLinearRegression, {"n_bootstraps": [20]}),
+            (
+                "mfs_lr",
+                lambda: MultiFidelitySurrogate(LinearRegressionSurrogate, ["default"]),
+                {},
+            ),
         ]
 
         configs = [(name, Est, params) for name, Est, grid in surrogate_defs for params in ParameterGrid(grid)]
