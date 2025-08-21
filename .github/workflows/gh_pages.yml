@@ -6,6 +6,9 @@ on:
   push:
     branches: [main, master, surrogate_vendor]
 
+permissions:
+  contents: write
+
 jobs:
   build-docs:
     name: Build and Deploy Docs
@@ -28,13 +31,13 @@ jobs:
         pip install sphinx_rtd_theme
         pip install sphinx-click
         pip install nbsphinx>=0.9.2
-        pip install sphinxcontrib.mermaid>=0.9.2
+        pip install sphinxcontrib-mermaid>=0.9.2
         pip install sphinx-autoapi>=2.1.1
         pip install sphinx-copybutton>=0.5.0
         pip install myst-parser>=2.0.0
         pip install furo>=2023.7.26
         pip install jupyter-black>=0.3.4
-        pip install sphinxcontrib.bibtex>=2.6.2
+        pip install sphinxcontrib-bibtex>=2.6.2
         pip install sphinx-gallery
 
     - name: Build Sphinx HTML
