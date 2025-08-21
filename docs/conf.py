@@ -1,5 +1,5 @@
 
-"""Configuration file for the Repo Template project."""
+"""Configuration file for the multioutreg project."""
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -16,16 +16,16 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('../../repo-template/multioutreg'))
+sys.path.insert(0, os.path.abspath('../../multioutreg/multioutreg'))
 # sys.path.insert(0, os.path.abspath('../multioutreg'))
 
 
 # -- Project information -----------------------------------------------------
 master_doc = 'index' # the master toctree document
 
-project = 'Repo Remplate -- nbphinx'
-copyright = '2021, TT'
-author = 'TT'
+project = 'multioutreg'
+copyright = '2025, takotime808'
+author = 'takotime808'
 
 
 # -- General configuration ---------------------------------------------------
@@ -81,7 +81,7 @@ autoapi_options = [
     "show-module-summary",
 ]
 
-autoapi_dirs = ["../../repo-template/multioutreg"]
+autoapi_dirs = ["../../multioutreg/multioutreg"]
 # autoapi_dirs = ["../multioutreg"]
 
 # Used to avoid error for too many levels on relative imports
@@ -163,7 +163,7 @@ html_logo = "_static/logos/favicon.ico.png"
 # html_favicon = "_static/logos/favicon.ico" # TODO: test ico is working, if not then ue png
 html_favicon = "_static/logos/favicon.png" # TODO: test ico is working, if not then ue png
 html_theme_options = {
-    "announcement": "Live and uncut: <em>TT's Repo Template</em>",
+    "announcement": "Live and uncut: takotime808's <em>multioutreg</em>",
     # "logo_only": True, # only for sphinx_rtd_theme
     # "display_version": True, # this line makes favicon fail to load...why? idk
 }
