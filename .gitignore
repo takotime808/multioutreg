@@ -11,6 +11,8 @@ docs/_build
 docs/build
 docs/source/_build
 docs/source/build
+docs/sources/_build
+docs/sources/build
 outputs/
 nbsphinx-template/
 

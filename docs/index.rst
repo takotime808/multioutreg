@@ -7,16 +7,29 @@
    inside that file having `.. include:: ../README.md` 
    just copy file and add to toctree, to preserve formatting.
 
-.. include:: ../README.md
-    :parser: myst_parser.sphinx_
-
 Notes about project.
+
+.. include:: _README_docs.md
+   :parser: myst_parser.sphinx_
+
 
 .. toctree::
    :caption: Installation and Usage
 
    install
    usage
+
+.. toctree::
+   :maxdepth: 3
+   :caption: Tutorials
+
+   tutorials/forecasting_with_chronos
+
+.. toctree::
+   :maxdepth: 2
+   :caption: References
+
+   references
 
 .. toctree::
    :maxdepth: 3
