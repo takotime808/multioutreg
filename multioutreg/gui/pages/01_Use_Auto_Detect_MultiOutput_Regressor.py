@@ -11,6 +11,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.decomposition import PCA
 from jinja2 import Template
+from sklearn.linear_model import LinearRegression
+from multioutreg.timeseries import TimeSeriesForecaster
 
 
 # from multioutreg.gui.report_plotting_utils import (
@@ -47,6 +49,39 @@ from multioutreg.model_selection import AutoDetectMultiOutputRegressor
 
 
 
+# ----- Time-Series Forecasting Helper -----
+def forecast_series(
+    series: np.ndarray,
+    lags: int,
+    horizon: int,
+    base_estimator: Any | None = None,
+) -> np.ndarray:
+    """Forecast a univariate series using :class:`TimeSeriesForecaster`.
+
+    Parameters
+    ----------
+    series:
+        Historical data points.
+    lags:
+        Number of lagged observations to use.
+    horizon:
+        Number of future steps to predict.
+    base_estimator:
+        Optional base regressor. Defaults to
+        :class:`~sklearn.linear_model.LinearRegression`.
+
+    Returns
+    -------
+    np.ndarray
+        Forecasted values of length ``horizon``.
+    """
+    if base_estimator is None:
+        base_estimator = LinearRegression()
+    forecaster = TimeSeriesForecaster(base_estimator, lags=lags, horizon=horizon)
+    forecaster.fit(series)
+    return forecaster.predict(series)
+
+
 # ----- HTML Report Generation Wrapper -----
 def generate_html_report(
     model_type: str,
@@ -75,6 +110,7 @@ def generate_html_report(
     kaiser_rule_suggestion: str | None = None,
     template_path: Optional[Union[str, os.PathLike]] = None, # For unit tests
     shap_plot: str | None = None,
+    ts_forecast: np.ndarray | None = None,
 ) -> str:
     """
     Generate an HTML report summarizing surrogate model results, including performance metrics,
@@ -139,6 +175,8 @@ def generate_html_report(
         If not provided, falls back to the default report template or env variable "MOR_TEMPLATE_PATH".
     shap_plot: str | None,
         Generate multioupyt shap plots as subplots on one figure.
+    ts_forecast : np.ndarray | None, optional
+        Optional time-series forecast to embed in the report.
 
     Returns
     -------
@@ -273,6 +311,7 @@ def generate_html_report(
         pca_threshold=pca_threshold,
         pca_n_components=pca_n_components,
         kaiser_rule_suggestion=kaiser_rule_suggestion,
+        ts_forecast=ts_forecast,
     )
     return rendered
 
@@ -442,6 +481,11 @@ if uploaded_file:
             caption="Mean(|SHAP value|) for each feature and output",
             use_column_width=True,
         )
+        ts_forecast = None
+        try:
+            ts_forecast = forecast_series(y_train[:, 0], lags=3, horizon=2)
+        except Exception:
+            ts_forecast = None
 
         html = generate_html_report(
             model_type="AutoDetectMultiOutputRegressor",
@@ -468,6 +512,7 @@ if uploaded_file:
             pca_n_components=pca_n_components,
             kaiser_rule_suggestion=kaiser_rule_suggestion,
             shap_plot=shap_img,
+            ts_forecast=ts_forecast,
         )
 
         st.download_button("Download HTML Report", html, file_name="model_report_auto.html", mime="text/html")

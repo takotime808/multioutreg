@@ -74,3 +74,10 @@ def test_generate_html_report_runs_without_error(tmp_path, dummy_model_and_data)
 
     assert isinstance(html, str)
     # assert "TestModel report" in html
+
+
+def test_forecast_series_linear():
+    series = np.arange(10.0)
+    preds = use_auto_detect.forecast_series(series, lags=3, horizon=2)
+    assert preds.shape == (2,)
+    assert np.allclose(preds, [10.0, 11.0])

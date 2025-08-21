@@ -8,7 +8,8 @@ from multioutreg.gui.Grid_Search_Surrogate_Models import (
     GradientBoostingWithUncertainty,
     KNeighborsRegressorWithUncertainty,
     BootstrapLinearRegression,
-    PerTargetRegressorWithStd
+    PerTargetRegressorWithStd,
+    forecast_series,
 )
 from multioutreg.surrogates import MultiFidelitySurrogate, LinearRegressionSurrogate
 
@@ -69,3 +70,10 @@ def test_multi_fidelity_surrogate_single_level(sample_data):
     mfs.fit((X, y))
     preds = mfs.predict(X)
     assert preds.shape == y.shape
+
+
+def test_forecast_series_linear():
+    series = np.arange(10.0)
+    preds = forecast_series(series, lags=3, horizon=2)
+    assert preds.shape == (2,)
+    assert np.allclose(preds, [10.0, 11.0])
