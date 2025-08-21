@@ -162,7 +162,7 @@ def generate_grid_sampling_dataset(num_points_per_axis: int = 10):
 def generate_random_sampling_dataset(n_points=100):
     """
     Generate a dataset using random uniform sampling.
-    Designed to produce high std and low silhouette → Random.
+    Designed to produce high std and low silhouette --> Random.
 
     Returns
     -------
@@ -178,7 +178,7 @@ def generate_random_sampling_dataset(n_points=100):
 def generate_sobol_sampling_dataset(n_points=128):
     """
     Generate a dataset using Sobol low-discrepancy sequence.
-    Designed to produce moderate std and low entropy → Sobol.
+    Designed to produce moderate std and low entropy --> Sobol.
 
     Returns
     -------
@@ -195,7 +195,7 @@ def generate_sobol_sampling_dataset(n_points=128):
 def generate_lhs_sampling_dataset(n_points=100):
     """
     Generate a dataset using Latin Hypercube Sampling.
-    Designed to produce moderate std and higher entropy → LHS.
+    Designed to produce moderate std and higher entropy --> LHS.
 
     Returns
     -------
