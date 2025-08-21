@@ -86,6 +86,17 @@ def test_value_labels_present(fitted_model_and_data):
     plt.close(fig)
 
 
+def test_non_tree_model_support():
+    from sklearn.linear_model import LinearRegression
+
+    X, Y = make_regression(n_samples=30, n_features=4, n_targets=2, noise=0.1, random_state=0)
+    model = MultiOutputRegressor(LinearRegression())
+    model.fit(X, Y)
+    fig = plot_multioutput_shap_bar_subplots(model, X)
+    assert isinstance(fig, plt.Figure)
+    plt.close(fig)
+
+
 @pytest.fixture
 def multioutput_model_and_data():
     X, Y = make_regression(n_samples=100, n_features=5, n_targets=2, noise=0.1, random_state=42)
