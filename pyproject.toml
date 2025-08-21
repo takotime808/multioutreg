@@ -15,8 +15,8 @@ dependencies = [
   "termcolor",
   "pyfiglet",
   "terminology",
-  "numpy>=1.22,<2.0",
-  "pandas>=1.5,<2.2",
+  # "numpy>=1.22,<2.0",
+  # "pandas>=1.5,<2.2",
   "matplotlib>=3.5,<4.0",
   "scikit-learn>=1.2,<1.5",
   "seaborn>=0.11.2,<=0.13.2",
@@ -30,6 +30,12 @@ dependencies = [
   # "hyperopt>=0.2",
   # "textual",
   "streamlit",
+  # ----- Below this line are duplicates from [ts] below...this is necessary for the 
+  "chronos-forecasting>=1.5.0",
+  "torch>=2.1",
+  "torch>=2.1",
+  "pandas>=2.0",
+  "numpy>=1.26"  
 ]
 
 [project.optional-dependencies]
@@ -38,8 +44,8 @@ ts = [
   "chronos-forecasting>=1.5.0",
   "torch>=2.1",
   # These may clash with normal dependencies.
-  "pandas>=2.0",
-  "numpy>=1.26"
+  "pandas>=2.0,<2.2",
+  "numpy>=1.26,<2.0"
 ]
 test = [
     "pytest",
