@@ -3,6 +3,7 @@
 """Streamlit script performing a grid search over several surrogate models."""
 
 import os
+import io
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -11,18 +12,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.decomposition import PCA
 from jinja2 import Template
-
-
-# from multioutreg.gui.report_plotting_utils import (
-#     # plot_to_b64,
-#     generate_prediction_plot,
-#     generate_shap_plot,
-#     generate_pdp_plot,
-#     generate_uncertainty_plots,
-#     generate_umap_plot,
-#     generate_error_histogram
-#     generate_pca_variance_plot,
-# )
+import joblib
 
 from multioutreg.figures.error_histograms import generate_error_histogram
 from multioutreg.figures.shap_multioutput import (
@@ -34,17 +24,13 @@ from multioutreg.figures.pdp_plots import generate_pdp_plot
 from multioutreg.utils.figure_utils import safe_plot_b64
 from multioutreg.figures.umap_plot_classify import generate_umap_plot
 from multioutreg.figures.prediction_plots import plot_predictions_with_error_bars
-# from multioutreg.figures.shap_multioutput import plot_multioutput_shap_bar_subplots
 from multioutreg.figures.coverage_plots import plot_coverage
 from multioutreg.figures.residuals import plot_residuals_multioutput_with_regplot
-# from multioutreg.figures.prediction_plots import plot_predictions
 from multioutreg.figures.confidence_intervals import plot_intervals_ordered_multi
 from multioutreg.model_selection import AutoDetectMultiOutputRegressor
 
-# # NOTE: NOT used...yet.
-# from multioutreg.figures.doe_plots import make_doe_plot
-# from multioutreg.figures.model_comparison import plot_surrogate_model_summary
-
+# Multi-objective regret imports
+from multioutreg.metrics import hypervolume_regret, scalarized_regret, epsilon_regret
 
 
 # ----- HTML Report Generation Wrapper -----
@@ -73,83 +59,18 @@ def generate_html_report(
     pca_threshold: float | None = None,
     pca_n_components: int | None = None,
     kaiser_rule_suggestion: str | None = None,
-    template_path: Optional[Union[str, os.PathLike]] = None, # For unit tests
+    template_path: Optional[Union[str, os.PathLike]] = None,  # For unit tests
     shap_plot: str | None = None,
 ) -> str:
     """
     Generate an HTML report summarizing surrogate model results, including performance metrics,
     uncertainty plots, SHAP values, PDPs, PCA visualizations, and residual analysis.
-
-    This function wraps model output and diagnostics into a styled report by rendering a Jinja2
-    HTML template. It supports optional PCA annotations, sampling visualizations, and error histograms.
-    Designed to be used interactively or programmatically within the Streamlit grid search app.
-
-    Parameters
-    ----------
-    model_type : str
-        Type of surrogate model used (e.g., "AutoDetectMultiOutputRegressor").
-    fidelity_levels : List[str]
-        List of fidelity levels (e.g., ["Low", "High"]) if multi-fidelity data is involved.
-    output_names : List[str]
-        Names of output variables for multi-output regression.
-    description : str
-        Optional project description to embed in the report.
-    metrics : Dict[str, Dict[str, float]]
-        Dictionary containing performance metrics (r2, rmse, mae, etc.) for each output.
-    uncertainty_metrics : Dict[str, float]
-        Global uncertainty metrics across all outputs.
-    y_test : np.ndarray
-        Ground truth test targets.
-    best_pred : np.ndarray
-        Model predictions on test data.
-    best_std : np.ndarray
-        Predicted standard deviation (uncertainty) per test prediction.
-    best_model : Any
-        Trained surrogate model object.
-    X_train : np.ndarray
-        Training feature matrix.
-    n_train : int
-        Number of training samples.
-    n_test : int
-        Number of test samples.
-    cross_validation : str
-        Text description of the cross-validation strategy used.
-    seed : int
-        Random seed used during data splitting or model training.
-    notes : str
-        Additional notes to be included in the report.
-    feature_names : List[str] | None, optional
-        Names of original input features (used in PDP plots).
-    feature_names_pca : List[str] | None, optional
-        Names of PCA components (used for visualization if PCA was applied).
-    pca_explained_variance : List[float] | None, optional
-        Explained variance ratios from PCA analysis.
-    pca_variance_plot : str | None, optional
-        Base64-encoded PNG string of the scree plot (PCA variance).
-    pca_method : str | None, optional
-        Method used to select the number of PCA components ("Manual", "Kaiser rule", etc.).
-    pca_threshold : float | None, optional
-        Explained variance threshold used, if applicable.
-    pca_n_components : int | None, optional
-        Number of PCA components retained.
-    kaiser_rule_suggestion : str | None, optional
-        Human-readable explanation of the Kaiser rule component count.
-    template_path : str | None, optional
-        Path to the HTML Jinja2 template. Used for unit testing or template overrides.
-        If not provided, falls back to the default report template or env variable "MOR_TEMPLATE_PATH".
-    shap_plot: str | None,
-        Generate multioupyt shap plots as subplots on one figure.
-
-    Returns
-    -------
-    str
-        Fully rendered HTML report as a string, ready to be saved or displayed.
     """
     DEFAULT_TEMPLATE_PATH = os.path.join(
         os.path.dirname(__file__),
         "../../report/template.html"
     )
-    
+
     # For unit tests
     if template_path is None:
         template_path = os.getenv("MOR_TEMPLATE_PATH", DEFAULT_TEMPLATE_PATH)
@@ -158,22 +79,14 @@ def generate_html_report(
     if not os.path.isfile(template_path):
         raise FileNotFoundError(f"Template file not found: {template_path}")
 
-    # prediction_plots = generate_prediction_plot(y_test, best_pred, best_std, output_names)
-    # # pdp_plots = generate_pdp_plot(output_names)
-    # pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=input_cols)
-    # uncertainty_plots = generate_uncertainty_plots()
-
     prediction_plots = {}
     prediction_plots["all_in_one"] = safe_plot_b64(
         plot_intervals_ordered_multi,
         best_pred,
         best_std,
         y_test,
-        # max_cols=3,
         target_list=output_names,
     )
-    # # PREDICTION PLOTS OPTION 2
-    # prediction_plots = {}
     for i, name in enumerate(output_names):
         prediction_plots[name] = safe_plot_b64(
             plot_predictions_with_error_bars,
@@ -197,17 +110,9 @@ def generate_html_report(
         )
     shap_plots = {"SHAP Summary": shap_plot}
 
-    # shap_img = safe_plot_b64(
-    #     plot_multioutput_shap_bar_subplots,
-    #     best_model, X_train,
-    #     feature_names=input_cols, output_names=output_names
-    # )
-    # shap_plots = {name: shap_img for name in output_names}
-
     unc_img = safe_plot_b64(
         plot_coverage, y_test, best_pred, best_std, output_names=output_names
     )
-    # uncertainty_plots = [{"img_b64": unc_img, "title": "Coverage Plot", "caption": "Nominal vs empirical coverage."}]
     uncertainty_plots = [
         {
             "img_b64": unc_img,
@@ -217,9 +122,9 @@ def generate_html_report(
     ]
 
     pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=feature_names)
-    
+
     sampling_umap_plot, sampling_method_explanation = generate_umap_plot(X_train)
-    # other_plots = generate_error_histogram(y_test, best_pred, output_names)
+
     other_img = safe_plot_b64(
         plot_residuals_multioutput_with_regplot,
         best_pred,
@@ -235,10 +140,6 @@ def generate_html_report(
     ]
 
     other_plots = generate_error_histogram(y_test, best_pred, output_names)
-    
-    # template_path = os.path.join(os.path.dirname(__file__), "../../report/template.html")
-    # with open(template_path, "r", encoding="utf-8") as f:
-    #     template_text = f.read()
 
     with open(DEFAULT_TEMPLATE_PATH, "r", encoding="utf-8") as f:
         template_text = f.read()
@@ -297,15 +198,6 @@ if uploaded_file:
         pca_method = None
         pca_threshold = None
         if use_pca:
-            # # max_comp = max(1, len(input_cols)) if input_cols else len(df.columns)
-            # max_comp = len(df.columns)
-            # n_components = st.number_input(
-            #     "Number of PCA components",
-            #     min_value=1,
-            #     max_value=max_comp,
-            #     value=min(2, max_comp),
-            #     step=1,
-            # )
             max_comp = len(df.columns)
             pca_method = st.selectbox(
                 "PCA component selection method",
@@ -334,22 +226,17 @@ if uploaded_file:
     if submitted and input_cols and output_cols:
         X = df[input_cols].values
         y = df[output_cols].values
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
+        # Ensure y is 2-D for single-output selections
+        if y.ndim == 1:
+            y = y.reshape(-1, 1)
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.25, random_state=0
+        )
         feature_names = list(input_cols)
         used_feature_names = feature_names
 
-        # # Show seaborn PairGrid plot with KDE in lower triangle
-        # if df.shape[1] >= 2:
-        #     st.write("### PairGrid Visualization (KDE Lower Triangle)")
-
-        #     numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
-        #     if len(numeric_cols) >= 2:
-        #         g = make_doe_plot(df=df, numeric_cols=numeric_cols)
-        #         st.pyplot(g.fig)
-        #     else:
-        #         st.info("Not enough numeric columns for pairwise plot.")
-
-        # PCA.
+        # PCA
         pca_variance_plot = None
         pca_explained_variance = None
         pca_n_components = None
@@ -387,30 +274,21 @@ if uploaded_file:
         model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
         model.fit(X_train, y_train)
         best_pred, best_std = model.predict(X_test, return_std=True)
+
+        # Ensure predictions/uncertainty are 2-D even for single-output models
+        if isinstance(best_pred, list):
+            best_pred = np.asarray(best_pred)
+        if isinstance(best_std, list):
+            best_std = np.asarray(best_std)
+        if best_pred.ndim == 1:
+            best_pred = best_pred.reshape(-1, 1)
+        if best_std.ndim == 1:
+            best_std = best_std.reshape(-1, 1)
+        if y_test.ndim == 1:
+            y_test = y_test.reshape(-1, 1)
+
         best_model = model
         best_combo = [m.__class__.__name__ for m in model.models_]
-
-        # # Show seaborn PairGrid plot with KDE in lower triangle
-        # if df.shape[1] >= 2:
-        #     st.write("### PairGrid Visualization (KDE Lower Triangle)")
-
-        #     numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
-        #     if len(numeric_cols) >= 2:
-        #         g = make_doe_plot(df=df, numeric_cols=numeric_cols)
-        #         st.pyplot(g.fig)
-        #         del g
-        #         grid_plot = plot_surrogate_model_summary(
-        #                 X_train=X_train,
-        #                 X_test=X_test,
-        #                 Y_train=y_train,
-        #                 Y_test=y_test,
-        #                 model=best_model,
-        #                 savefig=False,
-        #         )
-        #         st.pyplot(grid_plot)
-        #         del grid_plot
-        #     else:
-        #         st.info("Not enough numeric columns for pairwise plot.")
 
         st.write("### Selected Surrogates")
         st.json(best_combo)
@@ -418,17 +296,44 @@ if uploaded_file:
         st.write("### Metrics Table")
         metrics = {}
         for i, name in enumerate(output_cols):
-            y_true = y_test[:, i]
-            y_pred = best_pred[:, i]
+            y_true_i = y_test[:, i]
+            y_pred_i = best_pred[:, i]
             metrics[name] = {
-                "r2": r2_score(y_true, y_pred),
-                "rmse": mean_squared_error(y_true, y_pred, squared=False),
-                "mae": mean_absolute_error(y_true, y_pred),
+                "r2": r2_score(y_true_i, y_pred_i),
+                "rmse": mean_squared_error(y_true_i, y_pred_i, squared=False),
+                "mae": mean_absolute_error(y_true_i, y_pred_i),
                 "mean_predicted_std": float(np.mean(best_std[:, i])),
             }
         st.dataframe(pd.DataFrame(metrics).T)
 
-        # Shap plots
+        # ----- Multi-Objective Regret (robust to m=1 or m>1) -----
+        Y_true = y_test     # (n, m)
+        Y_pred = best_pred  # (n, m)
+        m = Y_true.shape[1]
+
+        # Choose weights for scalarized regret
+        if m == 1:
+            W = 1.0
+        elif m == 2:
+            W = np.array([
+                [0.5, 0.5],
+                [0.2, 0.8],
+                [0.8, 0.2],
+            ])
+        else:
+            rng = np.random.default_rng(7)
+            W = rng.dirichlet(alpha=np.ones(m), size=8)  # (8, m)
+
+        r_hv = hypervolume_regret(Y_true, Y_pred)
+        r_sc = scalarized_regret(Y_true, Y_pred, weights=W, reduce="mean")
+        r_eps = epsilon_regret(Y_true, Y_pred)
+
+        st.subheader("Multi-Objective Regret")
+        st.write(f"Hypervolume regret: {r_hv:.4g}")
+        st.write(f"Scalarized regret (mean): {r_sc:.4g}")
+        st.write(f"Epsilon regret: {r_eps:.4g}")
+
+        # SHAP plots
         shap_img = safe_plot_b64(
             plot_multioutput_shap_bar_subplots,
             best_model,
@@ -443,6 +348,8 @@ if uploaded_file:
             use_column_width=True,
         )
 
+        # ----- Downloads -----
+        # A) HTML report
         html = generate_html_report(
             model_type="AutoDetectMultiOutputRegressor",
             fidelity_levels=[],
@@ -469,5 +376,20 @@ if uploaded_file:
             kaiser_rule_suggestion=kaiser_rule_suggestion,
             shap_plot=shap_img,
         )
+        st.download_button(
+            "Download HTML Report",
+            html,
+            file_name="model_report_auto.html",
+            mime="text/html",
+        )
 
-        st.download_button("Download HTML Report", html, file_name="model_report_auto.html", mime="text/html")
+        # B) Trained model as .joblib
+        model_buf = io.BytesIO()
+        joblib.dump(best_model, model_buf)
+        model_buf.seek(0)
+        st.download_button(
+            "Download Trained Model (.joblib)",
+            data=model_buf.getvalue(),
+            file_name="multioutreg_best_model.joblib",
+            mime="application/octet-stream",
+        )

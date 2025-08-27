@@ -33,6 +33,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+moo = ["pymoo>=0.6.1"]
 ts = [
   # provides BaseChronosPipeline / ChronosPipeline
   "chronos-forecasting>=1.5.0",
