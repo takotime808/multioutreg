@@ -4,6 +4,7 @@
 
 import os
 import io
+import re
 import hashlib
 import numpy as np
 import pandas as pd
@@ -47,7 +48,13 @@ if "artifacts" not in st.session_state:
         "best_std": None,
         "used_feature_names": None,
         "output_cols": None,
-        "regret": None,
+        "settings": None,
+        "regret": {
+            "hv": None,
+            "scalar": None,
+            "eps": None,
+            "bounds": {"hv": None, "scalar": None, "eps": None},
+        },
     }
 
 
@@ -58,6 +65,7 @@ def _serialize_model(model: Any) -> bytes:
     buf.seek(0)
     return buf.getvalue()
 
+
 def _config_hash(
     file_bytes: bytes,
     input_cols: List[str],
@@ -66,6 +74,14 @@ def _config_hash(
     pca_method: Optional[str],
     pca_threshold: Optional[float],
     n_components: Optional[int],
+    hv_ref_mode: str,
+    hv_margin_pct: Optional[float],
+    hv_ref_custom: Optional[str],
+    weights_mode: str,
+    weights_custom: Optional[str],
+    bounds_hv: Optional[str],
+    bounds_scalar: Optional[str],
+    bounds_eps: Optional[str],
     test_size: float = 0.25,
     random_state: int = 0,
 ) -> str:
@@ -73,13 +89,72 @@ def _config_hash(
     h.update(file_bytes)
     h.update(("|".join(input_cols)).encode("utf-8"))
     h.update(("|".join(output_cols)).encode("utf-8"))
-    h.update(str(use_pca).encode())
-    h.update(str(pca_method).encode() if pca_method else b"")
-    h.update(str(pca_threshold).encode() if pca_threshold is not None else b"")
-    h.update(str(n_components).encode() if n_components is not None else b"")
-    h.update(str(test_size).encode())
-    h.update(str(random_state).encode())
+    for v in [
+        use_pca,
+        pca_method,
+        pca_threshold,
+        n_components,
+        hv_ref_mode,
+        hv_margin_pct,
+        hv_ref_custom,
+        weights_mode,
+        weights_custom,
+        bounds_hv,
+        bounds_scalar,
+        bounds_eps,
+        test_size,
+        random_state,
+    ]:
+        h.update(str(v).encode() if v is not None else b"")
     return h.hexdigest()
+
+
+def _parse_optional_float(txt: Optional[str]) -> Optional[float]:
+    if not txt:
+        return None
+    try:
+        return float(txt.strip())
+    except Exception:
+        return None
+
+
+def _parse_csv_floats(txt: str) -> List[float]:
+    return [float(x) for x in re.split(r"[,\s]+", txt.strip()) if x]
+
+
+def _parse_weight_matrix(txt: str, m: int) -> Optional[np.ndarray]:
+    """
+    Each line = one weight vector (comma/space separated). Returns (k,m) or None if invalid.
+    """
+    if not txt:
+        return None
+    rows = []
+    for line in txt.strip().splitlines():
+        if not line.strip():
+            continue
+        vals = _parse_csv_floats(line)
+        if len(vals) != m:
+            return None
+        rows.append(vals)
+    if not rows:
+        return None
+    W = np.asarray(rows, dtype=float)
+    # Normalize rows to simplex robustly
+    W = np.clip(W, 0.0, np.inf)
+    sums = W.sum(axis=1, keepdims=True)
+    sums[sums == 0] = 1.0
+    return W / sums
+
+
+def _auto_reference_point(Y_true: np.ndarray, Y_pred: np.ndarray, margin_pct: float) -> np.ndarray:
+    """
+    Compute a safe minimization reference point:
+    worst + margin_pct% * span, with a 1.0 fallback when span==0.
+    """
+    allY = np.vstack([Y_true, Y_pred])
+    worst = np.max(allY, axis=0)
+    span = np.ptp(allY, axis=0)
+    return worst + np.where(span > 0, (margin_pct / 100.0) * span, 1.0)
 
 
 # ----- HTML Report Generation Wrapper -----
@@ -113,7 +188,7 @@ def generate_html_report(
 ) -> str:
     DEFAULT_TEMPLATE_PATH = os.path.join(
         os.path.dirname(__file__),
-        "../../report/template.html"
+        "../../report/template.html",
     )
     if template_path is None:
         template_path = os.getenv("MOR_TEMPLATE_PATH", DEFAULT_TEMPLATE_PATH)
@@ -131,7 +206,7 @@ def generate_html_report(
             best_pred[:, [i]],
             best_std[:, [i]],
             output_names=[name],
-            n_cols=3
+            n_cols=3,
         )
 
     if feature_names is None:
@@ -150,11 +225,13 @@ def generate_html_report(
     unc_img = safe_plot_b64(
         plot_coverage, y_test, best_pred, best_std, output_names=output_names
     )
-    uncertainty_plots = [{
-        "img_b64": unc_img,
-        "title": "Coverage Plot",
-        "caption": "Nominal vs empirical coverage.",
-    }]
+    uncertainty_plots = [
+        {
+            "img_b64": unc_img,
+            "title": "Coverage Plot",
+            "caption": "Nominal vs empirical coverage.",
+        }
+    ]
 
     pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=feature_names)
     sampling_umap_plot, sampling_method_explanation = generate_umap_plot(X_train)
@@ -162,11 +239,13 @@ def generate_html_report(
     other_img = safe_plot_b64(
         plot_residuals_multioutput_with_regplot, best_pred, y_test, target_list=output_names
     )
-    sampling_other_plots = [{
-        "img_b64": other_img,
-        "title": "Residuals",
-        "caption": "Residual vs predicted values.",
-    }]
+    sampling_other_plots = [
+        {
+            "img_b64": other_img,
+            "title": "Residuals",
+            "caption": "Residual vs predicted values.",
+        }
+    ]
 
     other_plots = generate_error_histogram(y_test, best_pred, output_names)
 
@@ -211,7 +290,7 @@ st.title("Auto-Detected Multi-Output Surrogate Model Grid Search & Report Genera
 
 uploaded_file = st.file_uploader(
     "Upload CSV file. Example files can be found in the repo: `multioutreg/docs/_static/example_datasets/`.",
-    type=["csv"]
+    type=["csv"],
 )
 
 if uploaded_file:
@@ -248,6 +327,52 @@ if uploaded_file:
                     step=0.01,
                 )
 
+        # ------------------- Regret settings & bounds -------------------
+        st.markdown("### Regret settings & bounds")
+        colA, colB = st.columns(2)
+        with colA:
+            hv_ref_mode = st.selectbox(
+                "Hypervolume reference point",
+                ["Auto (10% beyond worst)", "Auto with margin (%)", "Custom"],
+                index=0,
+            )
+            hv_margin_pct = None
+            hv_ref_custom = None
+            if hv_ref_mode == "Auto with margin (%)":
+                hv_margin_pct = st.number_input(
+                    "Reference margin (%)", 0.0, 100.0, value=10.0, step=0.5
+                )
+            elif hv_ref_mode == "Auto (10% beyond worst)":
+                hv_margin_pct = 10.0
+            else:
+                hv_ref_custom = st.text_input(
+                    "Custom reference point (comma/space separated; one value per objective)",
+                    placeholder="e.g., 3.0, 3.0",
+                )
+        with colB:
+            weights_mode = st.selectbox(
+                "Scalarized weights",
+                ["Auto (Dirichlet k=8)", "Uniform", "Custom"],
+                index=0,
+            )
+            weights_custom = None
+            if weights_mode == "Custom":
+                weights_custom = st.text_area(
+                    "Custom weight vectors (one line per vector; comma/space separated)",
+                    placeholder="e.g.\n0.5, 0.5\n0.2, 0.8\n0.8, 0.2",
+                    height=120,
+                )
+
+        st.markdown("#### Optional pass/fail bounds (leave blank to skip)")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            bounds_hv = st.text_input("Max HV regret (≤)", value="")
+        with col2:
+            bounds_scalar = st.text_input("Max scalarized regret (≤)", value="")
+        with col3:
+            bounds_eps = st.text_input("Max ε-regret (≤)", value="")
+        # ---------------------------------------------------------------
+
         description = st.text_area("Optional: Project description")
         submitted = st.form_submit_button("Run Grid Search")
 
@@ -262,6 +387,14 @@ if uploaded_file:
             pca_method=pca_method,
             pca_threshold=pca_threshold,
             n_components=int(n_components) if (use_pca and pca_method == "Manual") else None,
+            hv_ref_mode=hv_ref_mode,
+            hv_margin_pct=hv_margin_pct,
+            hv_ref_custom=hv_ref_custom,
+            weights_mode=weights_mode,
+            weights_custom=weights_custom,
+            bounds_hv=bounds_hv,
+            bounds_scalar=bounds_scalar,
+            bounds_eps=bounds_eps,
         )
 
         # compute
@@ -301,7 +434,9 @@ if uploaded_file:
                 threshold=pca_threshold if pca_method == "Explained variance threshold" else None,
             )
             pca_explained_variance = preview_pca.explained_variance_ratio_.tolist()
-            kaiser_rule_suggestion = f"Kaiser rule suggests **{kaiser_k}** components (eigenvalues > 1)."
+            kaiser_rule_suggestion = (
+                f"Kaiser rule suggests **{kaiser_k}** components (eigenvalues > 1)."
+            )
             used_feature_names = feature_names_pca
 
         model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
@@ -335,20 +470,50 @@ if uploaded_file:
             }
         metrics_df = pd.DataFrame(metrics).T
 
-        # Regret
+        # ---------------- Regret compute with user settings ----------------
         Y_true = y_test
         Y_pred = best_pred
         m = Y_true.shape[1]
+
+        # Reference point for HV
+        reference_point = None
+        if hv_ref_mode.startswith("Auto"):
+            margin = 10.0 if hv_margin_pct is None else float(hv_margin_pct)
+            reference_point = _auto_reference_point(Y_true, Y_pred, margin_pct=margin)
+        else:
+            try:
+                ref_vals = _parse_csv_floats(hv_ref_custom or "")
+                if len(ref_vals) != m:
+                    raise ValueError
+                reference_point = np.asarray(ref_vals, dtype=float)
+            except Exception:
+                st.warning("Invalid custom reference point; falling back to auto 10%.")
+                reference_point = _auto_reference_point(Y_true, Y_pred, margin_pct=10.0)
+
+        # Weights for scalarized regret
         if m == 1:
             W = 1.0
-        elif m == 2:
-            W = np.array([[0.5, 0.5], [0.2, 0.8], [0.8, 0.2]])
         else:
-            rng = np.random.default_rng(7)
-            W = rng.dirichlet(alpha=np.ones(m), size=8)
-        r_hv = hypervolume_regret(Y_true, Y_pred)
+            if weights_mode == "Uniform":
+                W = np.ones((1, m), dtype=float) / m
+            elif weights_mode == "Custom":
+                W = _parse_weight_matrix(weights_custom or "", m)
+                if W is None:
+                    st.warning("Invalid custom weights; falling back to uniform.")
+                    W = np.ones((1, m), dtype=float) / m
+            else:  # Auto (Dirichlet k=8)
+                rng = np.random.default_rng(7)
+                W = rng.dirichlet(alpha=np.ones(m), size=8)
+
+        r_hv = hypervolume_regret(Y_true, Y_pred, reference_point=reference_point)
         r_sc = scalarized_regret(Y_true, Y_pred, weights=W, reduce="mean")
         r_eps = epsilon_regret(Y_true, Y_pred)
+
+        # Parse optional bounds
+        bhv = _parse_optional_float(bounds_hv)
+        bsc = _parse_optional_float(bounds_scalar)
+        beps = _parse_optional_float(bounds_eps)
+        # -------------------------------------------------------------------
 
         # SHAP plot
         shap_img = safe_plot_b64(
@@ -390,20 +555,38 @@ if uploaded_file:
         # Serialize model bytes
         model_bytes = _serialize_model(model)
 
-        # Stash in session state (so reruns show buttons/results)
-        st.session_state.artifacts.update({
-            "last_run_id": run_id,
-            "model_bytes": model_bytes,
-            "html_report": html,
-            "metrics_df": metrics_df,
-            "best_combo": best_combo,
-            "y_test": y_test,
-            "best_pred": best_pred,
-            "best_std": best_std,
-            "used_feature_names": used_feature_names,
-            "output_cols": list(output_cols),
-            "regret": {"hv": r_hv, "scalar": float(r_sc), "eps": r_eps},
-        })
+        # Stash artifacts + settings
+        st.session_state.artifacts.update(
+            {
+                "last_run_id": run_id,
+                "model_bytes": model_bytes,
+                "html_report": html,
+                "metrics_df": metrics_df,
+                "best_combo": best_combo,
+                "y_test": y_test,
+                "best_pred": best_pred,
+                "best_std": best_std,
+                "used_feature_names": used_feature_names,
+                "output_cols": list(output_cols),
+                "regret": {
+                    "hv": r_hv,
+                    "scalar": float(r_sc),
+                    "eps": r_eps,
+                    "bounds": {"hv": bhv, "scalar": bsc, "eps": beps},
+                },
+                "settings": {
+                    "hv_ref_mode": hv_ref_mode,
+                    "hv_margin_pct": hv_margin_pct,
+                    "reference_point": reference_point.tolist()
+                    if reference_point is not None
+                    else None,
+                    "weights_mode": weights_mode,
+                    "weights_shape": None
+                    if isinstance(W, float)
+                    else list(np.asarray(W).shape),
+                },
+            }
+        )
 
     # ---------- RESULTS + DOWNLOADS (shown whenever artifacts exist) ----------
     arts = st.session_state.artifacts
@@ -415,9 +598,39 @@ if uploaded_file:
         st.dataframe(arts["metrics_df"])
 
         st.subheader("Multi-Objective Regret")
-        st.write(f"Hypervolume regret: {arts['regret']['hv']:.4g}")
-        st.write(f"Scalarized regret (mean): {arts['regret']['scalar']:.4g}")
-        st.write(f"Epsilon regret: {arts['regret']['eps']:.4g}")
+
+        def _status_line(label: str, value, bound):
+            # Gracefully handle missing or None values/bounds
+            if value is None:
+                st.write(f"{label}: (not computed)")
+                return
+            try:
+                v = float(value)
+            except Exception:
+                st.write(f"{label}: (not numeric)")
+                return
+            if bound is None:
+                st.write(f"{label}: {v:.4g}")
+            else:
+                try:
+                    b = float(bound)
+                    ok = v <= b
+                    icon = "✅" if ok else "❌"
+                    st.write(f"{icon} {label}: {v:.4g} (bound ≤ {b:g})")
+                except Exception:
+                    st.write(f"{label}: {v:.4g} (bound not numeric)")
+
+        # Backward-compatible access
+        regret = arts.get("regret") or {}
+        bounds = regret.get("bounds") or {}
+
+        _status_line("Hypervolume regret", regret.get("hv"), bounds.get("hv"))
+        _status_line("Scalarized regret (mean)", regret.get("scalar"), bounds.get("scalar"))
+        _status_line("Epsilon regret", regret.get("eps"), bounds.get("eps"))
+
+        # Settings summary (collapsed)
+        with st.expander("Regret settings summary", expanded=False):
+            st.json(arts.get("settings") or {})
 
         # Download buttons OUTSIDE the submit block so they persist across reruns
         st.download_button(
