@@ -2,279 +2,319 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{{ project_title or "Multi-Fidelity, Multi-Output Surrogate Modeling Report" }}</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 30px; }
-        h1, h2, h3 { color: #2d4059; }
-        .section { margin-bottom: 2em; }
-        .plot { max-width: 800px; margin: 1em 0; }
-        table { border-collapse: collapse; margin: 1em 0; }
-        th, td { border: 1px solid #ddd; padding: 8px; }
-        th { background: #f4f4f4; }
-        .errormsg { color: #d7263d; font-size: 1.1em; text-align: center; }
-    </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ project_title or "Surrogate Modeling Report" }}</title>
+  <style>
+    :root {
+      --fg: #111;
+      --muted: #666;
+      --border: #e5e5e5;
+      --bg: #fff;
+      --card: #fafafa;
+      --accent: #0b7;
+      --warn: #d33;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: var(--fg);
+      background: var(--bg);
+      line-height: 1.45;
+    }
+    h1, h2, h3 { margin: 0.6em 0 0.4em; }
+    p { margin: 0.3em 0 0.8em; }
+    .muted { color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 8px 0 16px;
+      font-size: 14px;
+    }
+    .table th, .table td {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .kpi {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: #fff;
+      font-size: 13px;
+      margin-right: 6px;
+    }
+    .good { color: var(--accent); }
+    .bad { color: var(--warn); }
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      display: block;
+    }
+    .section { margin: 28px 0; }
+    .code { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    details { background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+    details > summary { cursor: pointer; font-weight: 600; }
+  </style>
 </head>
 <body>
-    <h1>{{ project_title or "Multi-Fidelity, Multi-Output Surrogate Modeling Report" }}</h1>
-    <div class="section">
-        <h2>Overview</h2>
-        <p>
-            <i>
-                This report summarizes the construction, evaluation, and interpretation of a multi-fidelity, multi-output surrogate model. 
-                The report includes predictive performance, uncertainty quantification, and interpretability analyses for all model outputs and fidelities.
-            </i>
-        </p>
-        <p>
-            <b>Model type:</b> {{ model_type }}<br>
-            <b>Fidelity levels:</b> {{ fidelity_levels|join(", ") if fidelity_levels else "N/A" }}<br>
-            <b>Outputs:</b> {{ output_names|join(", ") if output_names else "N/A" }}<br>
-            <b>Description:</b> {{ description or "No description provided." }}
-        </p>
-    </div>
-    <div class="section">
-        <h2>Regression Metrics</h2>
-        <p>
-            <i>
-                The following table shows regression metrics (such as $R^2$, RMSE, MAE) for each output variable, quantifying model accuracy on the test data.
-            </i>
-        </p>
-        <table>
-            <tr>
-                <th>Output</th>
-                <th>R²</th>
-                <th>RMSE</th>
-                <th>MAE</th>
-                <th>Other</th>
-            </tr>
-            {% for name in output_names %}
-            <tr>
-                <td>{{ name }}</td>
-                <td>{{ metrics[name]['r2']|round(3) }}</td>
-                <td>{{ metrics[name]['rmse']|round(3) }}</td>
-                <td>{{ metrics[name]['mae']|round(3) }}</td>
-                <td>
-                    {% for k,v in metrics[name].items() %}
-                        {% if k not in ['r2','rmse','mae'] %}
-                            <b>{{ k }}:</b> {{ v|round(3) }}<br>
-                        {% endif %}
-                    {% endfor %}
-                </td>
-            </tr>
-            {% endfor %}
-        </table>
-    </div>
-    <div class="section">
-        <h2>Uncertainty Metrics</h2>
-        <p>
-            <i>
-                These metrics assess how well the model's predictive uncertainties reflect the actual errors. Lower NLL, sharpness, and miscoverage indicate better calibrated uncertainty estimates.
-            </i>
-        </p>
-        <table>
-            <tr>
-                <th>Metric</th>
-                <th>Value</th>
-            </tr>
-            {% for k, v in uncertainty_metrics.items() %}
-            <tr>
-                <td>{{ k }}</td>
-                <td>{{ v|round(3) }}</td>
-            </tr>
-            {% endfor %}
-        </table>
-        <h3>Uncertainty Toolbox Plots</h3>
-        <p>
-            <i>
-                These plots visualize calibration, sharpness, and other aspects of model uncertainty quantification.
-            </i>
-        </p>
-        {% for p in uncertainty_plots %}
-        <div class="plot">
-            {% if p.img_b64 %}
-                <img src="data:image/png;base64,{{ p.img_b64 }}" alt="{{ p.title }}" style="width: 100%; max-width: 800px;">
-            {% else %}
-                <div class="errormsg">{{ p.errormsg or "Plot unavailable." }}</div>
-            {% endif %}
-            <div><b>{{ p.title }}</b></div>
-            <div>{{ p.caption }}</div>
-        </div>
-        {% endfor %}
-    </div>
-    <!-- <div class="section">
-        <h2>Predictions vs. True Values (per output)</h2>
-        <p>
-            <i>
-                Each scatter plot below compares predicted vs. actual values for each output. Error bars (if shown) reflect predictive uncertainty.
-            </i>
-        </p>
-        {% for name in output_names %}
-        <h3>{{ name }}</h3>
-        <div class="plot">
-            {% if prediction_plots[name] %}
-                <img src="data:image/png;base64,{{ prediction_plots[name] }}" alt="Pred vs True for {{ name }}">
-            {% else %}
-                <div class="errormsg">Prediction plot for {{ name }} is unavailable.</div>
-            {% endif %}
-        </div>
-        {% endfor %}
-    </div> -->
-<div class="section">
-        <h2>Predictions vs. True Values (per output)</h2>
-        <p>
-            <i>
-                Each scatter plot below compares predicted vs. actual values for each output. Error bars (if shown) reflect predictive uncertainty.
-            </i>
-        </p>
-        {% for name in (prediction_plots.keys()) %}
-        <div class="plot">
-            {% if prediction_plots[name] %}
-                <img src="data:image/png;base64,{{ prediction_plots[name] }}" alt="Pred vs True for {{ name }}">
-            {% else %}
-                <div class="errormsg">Prediction plot for {{ name }} is unavailable.</div>
-            {% endif %}
-        </div>
-        {% endfor %}
-    </div>
 
-    <div class="section">
-        <h2>SHAP Explanations</h2>
-        <p>
-            <i>
-                SHAP values show how each input feature influences model predictions for each output, helping identify key drivers of model behavior.
-            </i>
-        </p>
-        {% for name, img in shap_plots.items() %}
-        <h3>{{ name }}</h3>
-        <div class="plot">
-            {% if img %}
-                <img src="data:image/png;base64,{{ img }}" alt="SHAP for {{ name }}">
-            {% else %}
-                <div class="errormsg">SHAP plot for {{ name }} is unavailable.</div>
-            {% endif %}
-        </div>
-        {% endfor %}
-    </div>
-    <div class="section">
-        <h2>Partial Dependence Plots (PDP)</h2>
-        <p>
-            <i>
-                PDPs illustrate how varying each feature affects model predictions for each output, providing insights into model sensitivity.
-            </i>
-        </p>
-        {% for name in output_names %}
-        <h3>{{ name }}</h3>
-        <div class="plot">
-            {% if pdp_plots[name] %}
-                <img src="data:image/png;base64,{{ pdp_plots[name] }}" alt="PDP for {{ name }}">
-            {% else %}
-                <div class="errormsg">PDP plot for {{ name }} is unavailable.</div>
-            {% endif %}
-        </div>
-        {% endfor %}
-    </div>
-    {% if pca_explained_variance %}
-    <div class="section">
-        <h2>PCA Explained Variance</h2>
-        <p>
-            <i>
-                The following plot and table summarize the variance captured by each principal component.
-            </i>
-        </p>
-        {% if kaiser_rule_suggestion %}
-        <p>
-            <i>
-                {{ kaiser_rule_suggestion }}
-            </i>
-        </p>
-        {% endif %}
-        {% if pca_n_components %}
-        <p>
-            <i>
-                Components retained: {{ pca_n_components }}{% if pca_method %} (method: {{ pca_method }}{% if pca_threshold %}, threshold {{ pca_threshold|round(2) }}{% endif %}){% endif %}.
-            </i>
-        </p>
-        {% endif %}
-        <div class="plot">
-            {% if pca_variance_plot %}
-                <img src="data:image/png;base64,{{ pca_variance_plot }}" alt="PCA Variance">
-            {% endif %}
-        </div>
-        <table>
-            <tr><th>Component</th><th>Explained Variance Ratio</th></tr>
-            {% for var in pca_explained_variance %}
-            <tr><td>PC{{ loop.index }}</td><td>{{ var|round(3) }}</td></tr>
+  <header class="section">
+    <h1>{{ project_title or "Auto-Detected Multi-Fidelity Surrogate Modeling Report" }}</h1>
+    {% if description %}<p>{{ description }}</p>{% endif %}
+    <p class="muted">
+      Model: <span class="code">{{ model_type }}</span> ·
+      Train: {{ n_train }} · Test: {{ n_test }} ·
+      CV: {{ cross_validation }} · Seed: {{ seed }}
+    </p>
+  </header>
+
+  <section class="section">
+    <h2>Metrics</h2>
+    {% if metrics %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Target</th>
+          {% set first = (metrics|first)[1] if metrics is mapping else (metrics|list)[0] %}
+          {% if first %}
+            {% for k in (first.keys() if first is mapping else []) %}
+              <th>{{ k }}</th>
             {% endfor %}
-        </table>
-    </div>
+          {% else %}
+            <th>r2</th><th>rmse</th><th>mae</th><th>mean_predicted_std</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for name, row in metrics.items() %}
+          <tr>
+            <td class="code">{{ name }}</td>
+            {% for k,v in row.items() %}
+              <td>{{ "%.4g"|format(v) }}</td>
+            {% endfor %}
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p class="muted">No metrics available.</p>
     {% endif %}
-    <div class="section">
-        <h2>Sampling & Input Space Visualization</h2>
-        <p>
-            <i>
-                This section visualizes the distribution of the sampled input space and attempts to infer the sampling strategy used (e.g., LHS, random, grid).
-            </i>
-        </p>
-        <div>
-            <h3>Sampling Technique Inference</h3>
-            <div class="plot">
-                {% if sampling_umap_plot %}
-                    <img src="data:image/png;base64,{{ sampling_umap_plot }}" alt="UMAP Sampling Plot">
-                {% else %}
-                    <div class="errormsg">Sampling UMAP plot is unavailable.</div>
-                {% endif %}
+  </section>
+
+  {% if pca_explained_variance or pca_method or pca_variance_plot %}
+  <section class="section">
+    <h2>PCA</h2>
+    <div class="card">
+      <p>
+        {% if pca_method %}Method: <span class="code">{{ pca_method }}</span>{% endif %}
+        {% if pca_threshold %} · Threshold: <span class="code">{{ "%.3g"|format(pca_threshold) }}</span>{% endif %}
+        {% if pca_n_components %} · Components: <span class="code">{{ pca_n_components }}</span>{% endif %}
+        {% if kaiser_rule_suggestion %} · {{ kaiser_rule_suggestion|safe }}{% endif %}
+      </p>
+      {% if pca_variance_plot %}
+        <img alt="PCA Scree Plot" src="data:image/png;base64,{{ pca_variance_plot }}">
+      {% endif %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="section">
+    <h2>Prediction Plots</h2>
+    {% if prediction_plots %}
+      {% if prediction_plots.get("all_in_one") %}
+        <div class="card"><img alt="All-in-one prediction plot"
+            src="data:image/png;base64,{{ prediction_plots['all_in_one'] }}"></div>
+      {% endif %}
+      <div class="grid">
+      {% for name, img in prediction_plots.items() if name != "all_in_one" %}
+        <div class="card">
+          <h3>{{ name }}</h3>
+          <img alt="Prediction plot {{ name }}" src="data:image/png;base64,{{ img }}">
+        </div>
+      {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">No prediction plots.</p>
+    {% endif %}
+  </section>
+
+  <section class="section">
+    <h2>Uncertainty</h2>
+    {% if uncertainty_plots %}
+      <div class="grid">
+        {% for p in uncertainty_plots %}
+          <div class="card">
+            <h3>{{ p.title or "Uncertainty Plot" }}</h3>
+            <img alt="{{ p.caption or '' }}" src="data:image/png;base64,{{ p.img_b64 }}">
+            {% if p.caption %}<p class="muted">{{ p.caption }}</p>{% endif %}
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">No uncertainty plots.</p>
+    {% endif %}
+  </section>
+
+  <section class="section">
+    <h2>SHAP</h2>
+    {% if shap_plots %}
+      <div class="grid">
+        {% for name, img in shap_plots.items() %}
+          <div class="card">
+            <h3>{{ name }}</h3>
+            <img alt="SHAP {{ name }}" src="data:image/png;base64,{{ img }}">
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="muted">No SHAP plots.</p>
+    {% endif %}
+  </section>
+
+  <section class="section">
+    <h2>Partial Dependence (PDP)</h2>
+    {% if pdp_plots %}
+      <div class="grid">
+        {% if pdp_plots is mapping %}
+          {% for name, img in pdp_plots.items() %}
+            <div class="card">
+              <h3>{{ name }}</h3>
+              <img alt="PDP {{ name }}" src="data:image/png;base64,{{ img }}">
             </div>
-            <div>{{ sampling_method_explanation }}</div>
-        </div>
-        {% if sampling_other_plots %}
-        {% for p in sampling_other_plots %}
-        <div class="plot">
-            {% if p.img_b64 %}
-                <img src="data:image/png;base64,{{ p.img_b64 }}" alt="{{ p.title }}">
-            {% else %}
-                <div class="errormsg">{{ p.errormsg or "Sampling plot unavailable." }}</div>
-            {% endif %}
-            <div><b>{{ p.title }}</b></div>
-        </div>
-        {% endfor %}
+          {% endfor %}
+        {% else %}
+          {% for p in pdp_plots %}
+            <div class="card">
+              <h3>{{ p.title or "PDP" }}</h3>
+              <img alt="{{ p.caption or '' }}" src="data:image/png;base64,{{ p.img_b64 or p.img or p.image }}">
+              {% if p.caption %}<p class="muted">{{ p.caption }}</p>{% endif %}
+            </div>
+          {% endfor %}
         {% endif %}
-    </div>
-    <div class="section">
-        <h2>Additional Diagnostics</h2>
-        <p>
-            <i>
-                Other plots to support model diagnostics, including error histograms or domain-specific visualizations, are shown below.
-            </i>
-        </p>
-        {% for p in other_plots %}
-        <div class="plot">
-            {% if p.img_b64 %}
-                <img src="data:image/png;base64,{{ p.img_b64 }}" alt="{{ p.title }}">
-            {% else %}
-                <div class="errormsg">{{ p.errormsg or "Diagnostic plot unavailable." }}</div>
-            {% endif %}
-            <div><b>{{ p.title }}</b></div>
-            <div>{{ p.caption }}</div>
+      </div>
+    {% else %}
+      <p class="muted">No PDP plots.</p>
+    {% endif %}
+  </section>
+
+  {% if sampling_umap_plot or sampling_other_plots %}
+  <section class="section">
+    <h2>Sampling & Embeddings</h2>
+    <div class="grid">
+      {% if sampling_umap_plot %}
+      <div class="card">
+        <h3>UMAP</h3>
+        <img alt="UMAP sampling" src="data:image/png;base64,{{ sampling_umap_plot }}">
+        {% if sampling_method_explanation %}
+          <p class="muted">{{ sampling_method_explanation }}</p>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      {% if sampling_other_plots %}
+        {% for p in sampling_other_plots %}
+        <div class="card">
+          <h3>{{ p.title or "Plot" }}</h3>
+          <img alt="{{ p.caption or '' }}" src="data:image/png;base64,{{ p.img_b64 }}">
+          {% if p.caption %}<p class="muted">{{ p.caption }}</p>{% endif %}
         </div>
         {% endfor %}
+      {% endif %}
     </div>
-    <div class="section">
-        <h2>Appendix: Methodology & Notes</h2>
-        <p>
-            <i>
-                Summary of modeling methodology, dataset sizes, and miscellaneous notes.
-            </i>
-        </p>
-        <p>
-            <b>Training data size:</b> {{ n_train }}<br>
-            <b>Test data size:</b> {{ n_test }}<br>
-            <b>Cross-validation:</b> {{ cross_validation }}<br>
-            <b>Random seed:</b> {{ seed }}
-        </p>
-        <p>
-            <b>Notes:</b><br>
-            {{ notes|replace('\n','<br>') }}
-        </p>
+  </section>
+  {% endif %}
+
+  {% if other_plots %}
+  <section class="section">
+    <h2>Diagnostics</h2>
+    <div class="grid">
+      {% for p in other_plots %}
+        <div class="card">
+          <h3>{{ p.title or "Plot" }}</h3>
+          <img alt="{{ p.caption or '' }}" src="data:image/png;base64,{{ p.img_b64 }}">
+          {% if p.caption %}<p class="muted">{{ p.caption }}</p>{% endif %}
+        </div>
+      {% endfor %}
     </div>
+  </section>
+  {% endif %}
+
+  <!-- === NEW: Multi-Objective Regret === -->
+  {% if regret_metrics %}
+  <section class="section">
+    <h2>Multi-Objective Regret</h2>
+    <table class="table">
+      <thead>
+        <tr><th>Metric</th><th>Value</th><th>Max Allowed</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% set b = regret_bounds or {} %}
+        {% set hv = regret_metrics.get('hv') %}
+        {% set sc = regret_metrics.get('scalar') %}
+        {% set eps = regret_metrics.get('eps') %}
+        {% macro fmt(x) -%}
+          {%- if x is not none -%}{{ "%.4g"|format(x) }}{%- else -%}—{%- endif -%}
+        {%- endmacro %}
+        {% macro badge(val, bound) -%}
+          {%- if val is not none and bound is not none -%}
+            {%- if val <= bound -%}<span class="kpi good">OK</span>{%- else -%}<span class="kpi bad">FAIL</span>{%- endif -%}
+          {%- else -%}—{%- endif -%}
+        {%- endmacro %}
+        <tr>
+          <td>Hypervolume regret</td>
+          <td>{{ fmt(hv) }}</td>
+          <td>{{ fmt(b.get('hv')) }}</td>
+          <td>{{ badge(hv, b.get('hv')) }}</td>
+        </tr>
+        <tr>
+          <td>Scalarized regret (mean)</td>
+          <td>{{ fmt(sc) }}</td>
+          <td>{{ fmt(b.get('scalar')) }}</td>
+          <td>{{ badge(sc, b.get('scalar')) }}</td>
+        </tr>
+        <tr>
+          <td>ε-regret</td>
+          <td>{{ fmt(eps) }}</td>
+          <td>{{ fmt(b.get('eps')) }}</td>
+          <td>{{ badge(eps, b.get('eps')) }}</td>
+        </tr>
+      </tbody>
+    </table>
+    {% if regret_settings %}
+    <details>
+      <summary>Regret settings</summary>
+      <div class="muted">
+        <div>HV reference mode: <span class="code">{{ regret_settings.get("hv_ref_mode") or "—" }}</span></div>
+        <div>HV margin (%): <span class="code">{{ regret_settings.get("hv_margin_pct") if regret_settings.get("hv_margin_pct") is not none else "—" }}</span></div>
+        <div>Reference point: <span class="code">{{ regret_settings.get("reference_point") or "auto" }}</span></div>
+        <div>Weights mode: <span class="code">{{ regret_settings.get("weights_mode") or "—" }}</span></div>
+        <div>Weights shape: <span class="code">{{ regret_settings.get("weights_shape") or "—" }}</span></div>
+      </div>
+    </details>
+    {% endif %}
+  </section>
+  {% endif %}
+
+  <footer class="section muted">
+    <p>Generated by {{ model_type }} — {{ project_title }}</p>
+  </footer>
 </body>
 </html>

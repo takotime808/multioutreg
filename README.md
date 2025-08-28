@@ -3,6 +3,9 @@
 
 Multi-Output Multi-Fidelity Surrogate Modeling with Uncertainty Quantification.
 
+Regret branch:
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://multioutreg-regret.streamlit.app/)
+
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://multioutreg-sample.streamlit.app/)
 [![Docs](https://img.shields.io/badge/docs-online-blue.svg)](https://takotime808.github.io/multioutreg/)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
@@ -27,6 +30,7 @@ for a short demonstration.
 
 - 🧠 Auto-detect best multi-output regressors with uncertainty support.
 - 📉 Per-target metrics, SHAP plots, UMAP projections, PDPs, residuals.
+- 🎯 Multi-objective regret metrics (hypervolume, scalarized, ε-indicator).
 - 📊 Exportable HTML reports and Streamlit dashboards.
 - 📁 Sphinx documentation with autodoc, tutorials, and CLI docs.
 - 🧪 Fully tested with `pytest` and integrated CI.

@@ -3,6 +3,9 @@
 """Streamlit script performing a grid search over several surrogate models."""
 
 import os
+import io
+import re
+import hashlib
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -11,18 +14,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.decomposition import PCA
 from jinja2 import Template
-
-
-# from multioutreg.gui.report_plotting_utils import (
-#     # plot_to_b64,
-#     generate_prediction_plot,
-#     generate_shap_plot,
-#     generate_pdp_plot,
-#     generate_uncertainty_plots,
-#     generate_umap_plot,
-#     generate_error_histogram
-#     generate_pca_variance_plot,
-# )
+import joblib
 
 from multioutreg.figures.error_histograms import generate_error_histogram
 from multioutreg.figures.shap_multioutput import (
@@ -34,17 +26,135 @@ from multioutreg.figures.pdp_plots import generate_pdp_plot
 from multioutreg.utils.figure_utils import safe_plot_b64
 from multioutreg.figures.umap_plot_classify import generate_umap_plot
 from multioutreg.figures.prediction_plots import plot_predictions_with_error_bars
-# from multioutreg.figures.shap_multioutput import plot_multioutput_shap_bar_subplots
 from multioutreg.figures.coverage_plots import plot_coverage
 from multioutreg.figures.residuals import plot_residuals_multioutput_with_regplot
-# from multioutreg.figures.prediction_plots import plot_predictions
 from multioutreg.figures.confidence_intervals import plot_intervals_ordered_multi
 from multioutreg.model_selection import AutoDetectMultiOutputRegressor
 
-# # NOTE: NOT used...yet.
-# from multioutreg.figures.doe_plots import make_doe_plot
-# from multioutreg.figures.model_comparison import plot_surrogate_model_summary
+# Multi-objective regret imports
+from multioutreg.metrics import hypervolume_regret, scalarized_regret, epsilon_regret
 
+
+# ---------- session state init ----------
+if "artifacts" not in st.session_state:
+    st.session_state.artifacts = {
+        "last_run_id": None,
+        "model_bytes": None,
+        "html_report": None,
+        "metrics_df": None,
+        "best_combo": None,
+        "y_test": None,
+        "best_pred": None,
+        "best_std": None,
+        "used_feature_names": None,
+        "output_cols": None,
+        "settings": None,
+        "regret": {
+            "hv": None,
+            "scalar": None,
+            "eps": None,
+            "bounds": {"hv": None, "scalar": None, "eps": None},
+        },
+    }
+
+
+# ---------- helpers ----------
+def _serialize_model(model: Any) -> bytes:
+    buf = io.BytesIO()
+    joblib.dump(model, buf)
+    buf.seek(0)
+    return buf.getvalue()
+
+
+def _config_hash(
+    file_bytes: bytes,
+    input_cols: List[str],
+    output_cols: List[str],
+    use_pca: bool,
+    pca_method: Optional[str],
+    pca_threshold: Optional[float],
+    n_components: Optional[int],
+    hv_ref_mode: str,
+    hv_margin_pct: Optional[float],
+    hv_ref_custom: Optional[str],
+    weights_mode: str,
+    weights_custom: Optional[str],
+    bounds_hv: Optional[str],
+    bounds_scalar: Optional[str],
+    bounds_eps: Optional[str],
+    test_size: float = 0.25,
+    random_state: int = 0,
+) -> str:
+    h = hashlib.sha1()
+    h.update(file_bytes)
+    h.update(("|".join(input_cols)).encode("utf-8"))
+    h.update(("|".join(output_cols)).encode("utf-8"))
+    for v in [
+        use_pca,
+        pca_method,
+        pca_threshold,
+        n_components,
+        hv_ref_mode,
+        hv_margin_pct,
+        hv_ref_custom,
+        weights_mode,
+        weights_custom,
+        bounds_hv,
+        bounds_scalar,
+        bounds_eps,
+        test_size,
+        random_state,
+    ]:
+        h.update(str(v).encode() if v is not None else b"")
+    return h.hexdigest()
+
+
+def _parse_optional_float(txt: Optional[str]) -> Optional[float]:
+    if not txt:
+        return None
+    try:
+        return float(txt.strip())
+    except Exception:
+        return None
+
+
+def _parse_csv_floats(txt: str) -> List[float]:
+    return [float(x) for x in re.split(r"[,\s]+", txt.strip()) if x]
+
+
+def _parse_weight_matrix(txt: str, m: int) -> Optional[np.ndarray]:
+    """
+    Each line = one weight vector (comma/space separated). Returns (k,m) or None if invalid.
+    """
+    if not txt:
+        return None
+    rows = []
+    for line in txt.strip().splitlines():
+        if not line.strip():
+            continue
+        vals = _parse_csv_floats(line)
+        if len(vals) != m:
+            return None
+        rows.append(vals)
+    if not rows:
+        return None
+    W = np.asarray(rows, dtype=float)
+    # Normalize rows to simplex robustly
+    W = np.clip(W, 0.0, np.inf)
+    sums = W.sum(axis=1, keepdims=True)
+    sums[sums == 0] = 1.0
+    return W / sums
+
+
+def _auto_reference_point(Y_true: np.ndarray, Y_pred: np.ndarray, margin_pct: float) -> np.ndarray:
+    """
+    Compute a safe minimization reference point:
+    worst + margin_pct% * span, with a 1.0 fallback when span==0.
+    """
+    allY = np.vstack([Y_true, Y_pred])
+    worst = np.max(allY, axis=0)
+    span = np.ptp(allY, axis=0)
+    return worst + np.where(span > 0, (margin_pct / 100.0) * span, 1.0)
 
 
 # ----- HTML Report Generation Wrapper -----
@@ -73,107 +183,31 @@ def generate_html_report(
     pca_threshold: float | None = None,
     pca_n_components: int | None = None,
     kaiser_rule_suggestion: str | None = None,
-    template_path: Optional[Union[str, os.PathLike]] = None, # For unit tests
+    template_path: Optional[Union[str, os.PathLike]] = None,  # For unit tests / overrides
     shap_plot: str | None = None,
+    # NEW: pass regret info to the Jinja template so the built-in section renders
+    regret_metrics: Optional[Dict[str, float]] = None,
+    regret_bounds: Optional[Dict[str, Optional[float]]] = None,
+    regret_settings: Optional[Dict[str, Any]] = None,
 ) -> str:
     """
-    Generate an HTML report summarizing surrogate model results, including performance metrics,
-    uncertainty plots, SHAP values, PDPs, PCA visualizations, and residual analysis.
-
-    This function wraps model output and diagnostics into a styled report by rendering a Jinja2
-    HTML template. It supports optional PCA annotations, sampling visualizations, and error histograms.
-    Designed to be used interactively or programmatically within the Streamlit grid search app.
-
-    Parameters
-    ----------
-    model_type : str
-        Type of surrogate model used (e.g., "AutoDetectMultiOutputRegressor").
-    fidelity_levels : List[str]
-        List of fidelity levels (e.g., ["Low", "High"]) if multi-fidelity data is involved.
-    output_names : List[str]
-        Names of output variables for multi-output regression.
-    description : str
-        Optional project description to embed in the report.
-    metrics : Dict[str, Dict[str, float]]
-        Dictionary containing performance metrics (r2, rmse, mae, etc.) for each output.
-    uncertainty_metrics : Dict[str, float]
-        Global uncertainty metrics across all outputs.
-    y_test : np.ndarray
-        Ground truth test targets.
-    best_pred : np.ndarray
-        Model predictions on test data.
-    best_std : np.ndarray
-        Predicted standard deviation (uncertainty) per test prediction.
-    best_model : Any
-        Trained surrogate model object.
-    X_train : np.ndarray
-        Training feature matrix.
-    n_train : int
-        Number of training samples.
-    n_test : int
-        Number of test samples.
-    cross_validation : str
-        Text description of the cross-validation strategy used.
-    seed : int
-        Random seed used during data splitting or model training.
-    notes : str
-        Additional notes to be included in the report.
-    feature_names : List[str] | None, optional
-        Names of original input features (used in PDP plots).
-    feature_names_pca : List[str] | None, optional
-        Names of PCA components (used for visualization if PCA was applied).
-    pca_explained_variance : List[float] | None, optional
-        Explained variance ratios from PCA analysis.
-    pca_variance_plot : str | None, optional
-        Base64-encoded PNG string of the scree plot (PCA variance).
-    pca_method : str | None, optional
-        Method used to select the number of PCA components ("Manual", "Kaiser rule", etc.).
-    pca_threshold : float | None, optional
-        Explained variance threshold used, if applicable.
-    pca_n_components : int | None, optional
-        Number of PCA components retained.
-    kaiser_rule_suggestion : str | None, optional
-        Human-readable explanation of the Kaiser rule component count.
-    template_path : str | None, optional
-        Path to the HTML Jinja2 template. Used for unit testing or template overrides.
-        If not provided, falls back to the default report template or env variable "MOR_TEMPLATE_PATH".
-    shap_plot: str | None,
-        Generate multioupyt shap plots as subplots on one figure.
-
-    Returns
-    -------
-    str
-        Fully rendered HTML report as a string, ready to be saved or displayed.
+    Render the HTML report using the on-disk template:
+    multioutreg/report/template.html (or MOR_TEMPLATE_PATH if set).
     """
     DEFAULT_TEMPLATE_PATH = os.path.join(
         os.path.dirname(__file__),
-        "../../report/template.html"
+        "../../report/template.html",
     )
-    
-    # For unit tests
     if template_path is None:
         template_path = os.getenv("MOR_TEMPLATE_PATH", DEFAULT_TEMPLATE_PATH)
-
-    # Check that the template exists
     if not os.path.isfile(template_path):
         raise FileNotFoundError(f"Template file not found: {template_path}")
 
-    # prediction_plots = generate_prediction_plot(y_test, best_pred, best_std, output_names)
-    # # pdp_plots = generate_pdp_plot(output_names)
-    # pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=input_cols)
-    # uncertainty_plots = generate_uncertainty_plots()
-
+    # Prediction, SHAP, uncertainty, PDP, etc.
     prediction_plots = {}
     prediction_plots["all_in_one"] = safe_plot_b64(
-        plot_intervals_ordered_multi,
-        best_pred,
-        best_std,
-        y_test,
-        # max_cols=3,
-        target_list=output_names,
+        plot_intervals_ordered_multi, best_pred, best_std, y_test, target_list=output_names
     )
-    # # PREDICTION PLOTS OPTION 2
-    # prediction_plots = {}
     for i, name in enumerate(output_names):
         prediction_plots[name] = safe_plot_b64(
             plot_predictions_with_error_bars,
@@ -181,7 +215,7 @@ def generate_html_report(
             best_pred[:, [i]],
             best_std[:, [i]],
             output_names=[name],
-            n_cols=3
+            n_cols=3,
         )
 
     if feature_names is None:
@@ -197,17 +231,9 @@ def generate_html_report(
         )
     shap_plots = {"SHAP Summary": shap_plot}
 
-    # shap_img = safe_plot_b64(
-    #     plot_multioutput_shap_bar_subplots,
-    #     best_model, X_train,
-    #     feature_names=input_cols, output_names=output_names
-    # )
-    # shap_plots = {name: shap_img for name in output_names}
-
     unc_img = safe_plot_b64(
         plot_coverage, y_test, best_pred, best_std, output_names=output_names
     )
-    # uncertainty_plots = [{"img_b64": unc_img, "title": "Coverage Plot", "caption": "Nominal vs empirical coverage."}]
     uncertainty_plots = [
         {
             "img_b64": unc_img,
@@ -217,14 +243,10 @@ def generate_html_report(
     ]
 
     pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=feature_names)
-    
     sampling_umap_plot, sampling_method_explanation = generate_umap_plot(X_train)
-    # other_plots = generate_error_histogram(y_test, best_pred, output_names)
+
     other_img = safe_plot_b64(
-        plot_residuals_multioutput_with_regplot,
-        best_pred,
-        y_test,
-        target_list=output_names,
+        plot_residuals_multioutput_with_regplot, best_pred, y_test, target_list=output_names
     )
     sampling_other_plots = [
         {
@@ -235,14 +257,9 @@ def generate_html_report(
     ]
 
     other_plots = generate_error_histogram(y_test, best_pred, output_names)
-    
-    # template_path = os.path.join(os.path.dirname(__file__), "../../report/template.html")
-    # with open(template_path, "r", encoding="utf-8") as f:
-    #     template_text = f.read()
 
-    with open(DEFAULT_TEMPLATE_PATH, "r", encoding="utf-8") as f:
+    with open(template_path, "r", encoding="utf-8") as f:
         template_text = f.read()
-
     template = Template(template_text)
 
     rendered = template.render(
@@ -273,6 +290,10 @@ def generate_html_report(
         pca_threshold=pca_threshold,
         pca_n_components=pca_n_components,
         kaiser_rule_suggestion=kaiser_rule_suggestion,
+        # NEW: regret info for the template's built-in "Multi-Objective Regret" section
+        regret_metrics=regret_metrics,
+        regret_bounds=regret_bounds,
+        regret_settings=regret_settings,
     )
     return rendered
 
@@ -282,14 +303,14 @@ st.title("Auto-Detected Multi-Output Surrogate Model Grid Search & Report Genera
 
 uploaded_file = st.file_uploader(
     "Upload CSV file. Example files can be found in the repo: `multioutreg/docs/_static/example_datasets/`.",
-    type=["csv"]
+    type=["csv"],
 )
 
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
     st.write("## Preview of Data:", df.head())
 
-    with st.form("column_selection"):
+    with st.form("column_selection", clear_on_submit=False):
         input_cols = st.multiselect("Select input features", options=df.columns)
         output_cols = st.multiselect("Select output targets", options=df.columns)
         use_pca = st.checkbox("Apply PCA to input features")
@@ -297,15 +318,6 @@ if uploaded_file:
         pca_method = None
         pca_threshold = None
         if use_pca:
-            # # max_comp = max(1, len(input_cols)) if input_cols else len(df.columns)
-            # max_comp = len(df.columns)
-            # n_components = st.number_input(
-            #     "Number of PCA components",
-            #     min_value=1,
-            #     max_value=max_comp,
-            #     value=min(2, max_comp),
-            #     step=1,
-            # )
             max_comp = len(df.columns)
             pca_method = st.selectbox(
                 "PCA component selection method",
@@ -328,28 +340,88 @@ if uploaded_file:
                     step=0.01,
                 )
 
+        # ------------------- Regret settings & bounds -------------------
+        st.markdown("### Regret settings & bounds")
+        colA, colB = st.columns(2)
+        with colA:
+            hv_ref_mode = st.selectbox(
+                "Hypervolume reference point",
+                ["Auto (10% beyond worst)", "Auto with margin (%)", "Custom"],
+                index=0,
+            )
+            hv_margin_pct = None
+            hv_ref_custom = None
+            if hv_ref_mode == "Auto with margin (%)":
+                hv_margin_pct = st.number_input(
+                    "Reference margin (%)", 0.0, 100.0, value=10.0, step=0.5
+                )
+            elif hv_ref_mode == "Auto (10% beyond worst)":
+                hv_margin_pct = 10.0
+            else:
+                hv_ref_custom = st.text_input(
+                    "Custom reference point (comma/space separated; one value per objective)",
+                    placeholder="e.g., 3.0, 3.0",
+                )
+        with colB:
+            weights_mode = st.selectbox(
+                "Scalarized weights",
+                ["Auto (Dirichlet k=8)", "Uniform", "Custom"],
+                index=0,
+            )
+            weights_custom = None
+            if weights_mode == "Custom":
+                weights_custom = st.text_area(
+                    "Custom weight vectors (one line per vector; comma/space separated)",
+                    placeholder="e.g.\n0.5, 0.5\n0.2, 0.8\n0.8, 0.2",
+                    height=120,
+                )
+
+        st.markdown("#### Optional pass/fail bounds (leave blank to skip)")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            bounds_hv = st.text_input("Max HV regret (≤)", value="")
+        with col2:
+            bounds_scalar = st.text_input("Max scalarized regret (≤)", value="")
+        with col3:
+            bounds_eps = st.text_input("Max ε-regret (≤)", value="")
+        # ---------------------------------------------------------------
+
         description = st.text_area("Optional: Project description")
         submitted = st.form_submit_button("Run Grid Search")
 
+    # ---------- recompute only on submit ----------
     if submitted and input_cols and output_cols:
+        file_bytes = uploaded_file.getbuffer()
+        run_id = _config_hash(
+            file_bytes=file_bytes,
+            input_cols=list(input_cols),
+            output_cols=list(output_cols),
+            use_pca=use_pca,
+            pca_method=pca_method,
+            pca_threshold=pca_threshold,
+            n_components=int(n_components) if (use_pca and pca_method == "Manual") else None,
+            hv_ref_mode=hv_ref_mode,
+            hv_margin_pct=hv_margin_pct,
+            hv_ref_custom=hv_ref_custom,
+            weights_mode=weights_mode,
+            weights_custom=weights_custom,
+            bounds_hv=bounds_hv,
+            bounds_scalar=bounds_scalar,
+            bounds_eps=bounds_eps,
+        )
+
+        # compute
         X = df[input_cols].values
         y = df[output_cols].values
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
+        if y.ndim == 1:
+            y = y.reshape(-1, 1)
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.25, random_state=0
+        )
         feature_names = list(input_cols)
         used_feature_names = feature_names
 
-        # # Show seaborn PairGrid plot with KDE in lower triangle
-        # if df.shape[1] >= 2:
-        #     st.write("### PairGrid Visualization (KDE Lower Triangle)")
-
-        #     numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
-        #     if len(numeric_cols) >= 2:
-        #         g = make_doe_plot(df=df, numeric_cols=numeric_cols)
-        #         st.pyplot(g.fig)
-        #     else:
-        #         st.info("Not enough numeric columns for pairwise plot.")
-
-        # PCA.
         pca_variance_plot = None
         pca_explained_variance = None
         pca_n_components = None
@@ -375,74 +447,97 @@ if uploaded_file:
                 threshold=pca_threshold if pca_method == "Explained variance threshold" else None,
             )
             pca_explained_variance = preview_pca.explained_variance_ratio_.tolist()
-            kaiser_rule_suggestion = f"Kaiser rule suggests **{kaiser_k}** components (eigenvalues > 1)."
-            st.markdown(kaiser_rule_suggestion)
-            st.image(
-                f"data:image/png;base64,{pca_variance_plot}",
-                caption="Scree Plot",
-                use_column_width=True,
+            kaiser_rule_suggestion = (
+                f"Kaiser rule suggests **{kaiser_k}** components (eigenvalues > 1)."
             )
             used_feature_names = feature_names_pca
 
         model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
         model.fit(X_train, y_train)
         best_pred, best_std = model.predict(X_test, return_std=True)
-        best_model = model
+
+        # Ensure 2-D
+        if isinstance(best_pred, list):
+            best_pred = np.asarray(best_pred)
+        if isinstance(best_std, list):
+            best_std = np.asarray(best_std)
+        if best_pred.ndim == 1:
+            best_pred = best_pred.reshape(-1, 1)
+        if best_std.ndim == 1:
+            best_std = best_std.reshape(-1, 1)
+        if y_test.ndim == 1:
+            y_test = y_test.reshape(-1, 1)
+
         best_combo = [m.__class__.__name__ for m in model.models_]
 
-        # # Show seaborn PairGrid plot with KDE in lower triangle
-        # if df.shape[1] >= 2:
-        #     st.write("### PairGrid Visualization (KDE Lower Triangle)")
-
-        #     numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
-        #     if len(numeric_cols) >= 2:
-        #         g = make_doe_plot(df=df, numeric_cols=numeric_cols)
-        #         st.pyplot(g.fig)
-        #         del g
-        #         grid_plot = plot_surrogate_model_summary(
-        #                 X_train=X_train,
-        #                 X_test=X_test,
-        #                 Y_train=y_train,
-        #                 Y_test=y_test,
-        #                 model=best_model,
-        #                 savefig=False,
-        #         )
-        #         st.pyplot(grid_plot)
-        #         del grid_plot
-        #     else:
-        #         st.info("Not enough numeric columns for pairwise plot.")
-
-        st.write("### Selected Surrogates")
-        st.json(best_combo)
-
-        st.write("### Metrics Table")
+        # Metrics table
         metrics = {}
         for i, name in enumerate(output_cols):
-            y_true = y_test[:, i]
-            y_pred = best_pred[:, i]
+            y_true_i = y_test[:, i]
+            y_pred_i = best_pred[:, i]
             metrics[name] = {
-                "r2": r2_score(y_true, y_pred),
-                "rmse": mean_squared_error(y_true, y_pred, squared=False),
-                "mae": mean_absolute_error(y_true, y_pred),
+                "r2": r2_score(y_true_i, y_pred_i),
+                "rmse": mean_squared_error(y_true_i, y_pred_i, squared=False),
+                "mae": mean_absolute_error(y_true_i, y_pred_i),
                 "mean_predicted_std": float(np.mean(best_std[:, i])),
             }
-        st.dataframe(pd.DataFrame(metrics).T)
+        metrics_df = pd.DataFrame(metrics).T
 
-        # Shap plots
+        # ---------------- Regret compute with user settings ----------------
+        Y_true = y_test
+        Y_pred = best_pred
+        m = Y_true.shape[1]
+
+        # Reference point for HV
+        reference_point = None
+        if hv_ref_mode.startswith("Auto"):
+            margin = 10.0 if hv_margin_pct is None else float(hv_margin_pct)
+            reference_point = _auto_reference_point(Y_true, Y_pred, margin_pct=margin)
+        else:
+            try:
+                ref_vals = _parse_csv_floats(hv_ref_custom or "")
+                if len(ref_vals) != m:
+                    raise ValueError
+                reference_point = np.asarray(ref_vals, dtype=float)
+            except Exception:
+                st.warning("Invalid custom reference point; falling back to auto 10%.")
+                reference_point = _auto_reference_point(Y_true, Y_pred, margin_pct=10.0)
+
+        # Weights for scalarized regret
+        if m == 1:
+            W = 1.0
+        else:
+            if weights_mode == "Uniform":
+                W = np.ones((1, m), dtype=float) / m
+            elif weights_mode == "Custom":
+                W = _parse_weight_matrix(weights_custom or "", m)
+                if W is None:
+                    st.warning("Invalid custom weights; falling back to uniform.")
+                    W = np.ones((1, m), dtype=float) / m
+            else:  # Auto (Dirichlet k=8)
+                rng = np.random.default_rng(7)
+                W = rng.dirichlet(alpha=np.ones(m), size=8)
+
+        r_hv = hypervolume_regret(Y_true, Y_pred, reference_point=reference_point)
+        r_sc = scalarized_regret(Y_true, Y_pred, weights=W, reduce="mean")
+        r_eps = epsilon_regret(Y_true, Y_pred)
+
+        # Parse optional bounds
+        bhv = _parse_optional_float(bounds_hv)
+        bsc = _parse_optional_float(bounds_scalar)
+        beps = _parse_optional_float(bounds_eps)
+        # -------------------------------------------------------------------
+
+        # SHAP plot
         shap_img = safe_plot_b64(
             plot_multioutput_shap_bar_subplots,
-            best_model,
+            model,
             X_train,
             feature_names=used_feature_names,
             output_names=output_cols,
         )
-        st.write("### SHAP Summary Plot")
-        st.image(
-            f"data:image/png;base64,{shap_img}",
-            caption="Mean(|SHAP value|) for each feature and output",
-            use_column_width=True,
-        )
 
+        # HTML (now using your provided template.html, with regret data)
         html = generate_html_report(
             model_type="AutoDetectMultiOutputRegressor",
             fidelity_levels=[],
@@ -453,7 +548,7 @@ if uploaded_file:
             y_test=y_test,
             best_pred=best_pred,
             best_std=best_std,
-            best_model=best_model,
+            best_model=model,
             X_train=X_train,
             n_train=X_train.shape[0],
             n_test=X_test.shape[0],
@@ -468,6 +563,113 @@ if uploaded_file:
             pca_n_components=pca_n_components,
             kaiser_rule_suggestion=kaiser_rule_suggestion,
             shap_plot=shap_img,
+            regret_metrics={"hv": r_hv, "scalar": float(r_sc), "eps": r_eps},
+            regret_bounds={"hv": bhv, "scalar": bsc, "eps": beps},
+            regret_settings={
+                "hv_ref_mode": hv_ref_mode,
+                "hv_margin_pct": hv_margin_pct,
+                "reference_point": reference_point.tolist() if reference_point is not None else None,
+                "weights_mode": weights_mode,
+                "weights_shape": None if isinstance(W, float) else list(np.asarray(W).shape),
+            },
+            # You can optionally override the template path at runtime by setting MOR_TEMPLATE_PATH
+            # in your environment. Otherwise it uses multioutreg/report/template.html by default.
         )
 
-        st.download_button("Download HTML Report", html, file_name="model_report_auto.html", mime="text/html")
+        # Serialize model bytes
+        model_bytes = _serialize_model(model)
+
+        # Stash artifacts + settings
+        st.session_state.artifacts.update(
+            {
+                "last_run_id": run_id,
+                "model_bytes": model_bytes,
+                "html_report": html,
+                "metrics_df": metrics_df,
+                "best_combo": best_combo,
+                "y_test": y_test,
+                "best_pred": best_pred,
+                "best_std": best_std,
+                "used_feature_names": used_feature_names,
+                "output_cols": list(output_cols),
+                "regret": {
+                    "hv": r_hv,
+                    "scalar": float(r_sc),
+                    "eps": r_eps,
+                    "bounds": {"hv": bhv, "scalar": bsc, "eps": beps},
+                },
+                "settings": {
+                    "hv_ref_mode": hv_ref_mode,
+                    "hv_margin_pct": hv_margin_pct,
+                    "reference_point": reference_point.tolist()
+                    if reference_point is not None
+                    else None,
+                    "weights_mode": weights_mode,
+                    "weights_shape": None
+                    if isinstance(W, float)
+                    else list(np.asarray(W).shape),
+                },
+            }
+        )
+
+    # ---------- RESULTS + DOWNLOADS (shown whenever artifacts exist) ----------
+    arts = st.session_state.artifacts
+    if arts["model_bytes"] is not None and arts["html_report"] is not None:
+        st.write("### Selected Surrogates")
+        st.json(arts["best_combo"])
+
+        st.write("### Metrics Table")
+        st.dataframe(arts["metrics_df"])
+
+        st.subheader("Multi-Objective Regret")
+
+        def _status_line(label: str, value, bound):
+            # Gracefully handle missing or None values/bounds
+            if value is None:
+                st.write(f"{label}: (not computed)")
+                return
+            try:
+                v = float(value)
+            except Exception:
+                st.write(f"{label}: (not numeric)")
+                return
+            if bound is None:
+                st.write(f"{label}: {v:.4g}")
+            else:
+                try:
+                    b = float(bound)
+                    ok = v <= b
+                    icon = "✅" if ok else "❌"
+                    st.write(f"{icon} {label}: {v:.4g} (bound ≤ {b:g})")
+                except Exception:
+                    st.write(f"{label}: {v:.4g} (bound not numeric)")
+
+        # Backward-compatible access
+        regret = arts.get("regret") or {}
+        bounds = regret.get("bounds") or {}
+
+        _status_line("Hypervolume regret", regret.get("hv"), bounds.get("hv"))
+        _status_line("Scalarized regret (mean)", regret.get("scalar"), bounds.get("scalar"))
+        _status_line("Epsilon regret", regret.get("eps"), bounds.get("eps"))
+
+        # Settings summary (collapsed)
+        with st.expander("Regret settings summary", expanded=False):
+            st.json(arts.get("settings") or {})
+
+        # Download buttons OUTSIDE the submit block so they persist across reruns
+        st.download_button(
+            "Download HTML Report",
+            data=arts["html_report"],
+            file_name="model_report_auto.html",
+            mime="text/html",
+            use_container_width=True,
+            key="download_html_report",
+        )
+        st.download_button(
+            "Download Trained Model (.joblib)",
+            data=arts["model_bytes"],
+            file_name="multioutreg_best_model.joblib",
+            mime="application/octet-stream",
+            use_container_width=True,
+            key="download_model",
+        )
