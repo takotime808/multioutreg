@@ -183,9 +183,17 @@ def generate_html_report(
     pca_threshold: float | None = None,
     pca_n_components: int | None = None,
     kaiser_rule_suggestion: str | None = None,
-    template_path: Optional[Union[str, os.PathLike]] = None,  # For unit tests
+    template_path: Optional[Union[str, os.PathLike]] = None,  # For unit tests / overrides
     shap_plot: str | None = None,
+    # NEW: pass regret info to the Jinja template so the built-in section renders
+    regret_metrics: Optional[Dict[str, float]] = None,
+    regret_bounds: Optional[Dict[str, Optional[float]]] = None,
+    regret_settings: Optional[Dict[str, Any]] = None,
 ) -> str:
+    """
+    Render the HTML report using the on-disk template:
+    multioutreg/report/template.html (or MOR_TEMPLATE_PATH if set).
+    """
     DEFAULT_TEMPLATE_PATH = os.path.join(
         os.path.dirname(__file__),
         "../../report/template.html",
@@ -195,6 +203,7 @@ def generate_html_report(
     if not os.path.isfile(template_path):
         raise FileNotFoundError(f"Template file not found: {template_path}")
 
+    # Prediction, SHAP, uncertainty, PDP, etc.
     prediction_plots = {}
     prediction_plots["all_in_one"] = safe_plot_b64(
         plot_intervals_ordered_multi, best_pred, best_std, y_test, target_list=output_names
@@ -249,7 +258,7 @@ def generate_html_report(
 
     other_plots = generate_error_histogram(y_test, best_pred, output_names)
 
-    with open(DEFAULT_TEMPLATE_PATH, "r", encoding="utf-8") as f:
+    with open(template_path, "r", encoding="utf-8") as f:
         template_text = f.read()
     template = Template(template_text)
 
@@ -281,6 +290,10 @@ def generate_html_report(
         pca_threshold=pca_threshold,
         pca_n_components=pca_n_components,
         kaiser_rule_suggestion=kaiser_rule_suggestion,
+        # NEW: regret info for the template's built-in "Multi-Objective Regret" section
+        regret_metrics=regret_metrics,
+        regret_bounds=regret_bounds,
+        regret_settings=regret_settings,
     )
     return rendered
 
@@ -524,7 +537,7 @@ if uploaded_file:
             output_names=output_cols,
         )
 
-        # HTML
+        # HTML (now using your provided template.html, with regret data)
         html = generate_html_report(
             model_type="AutoDetectMultiOutputRegressor",
             fidelity_levels=[],
@@ -550,6 +563,17 @@ if uploaded_file:
             pca_n_components=pca_n_components,
             kaiser_rule_suggestion=kaiser_rule_suggestion,
             shap_plot=shap_img,
+            regret_metrics={"hv": r_hv, "scalar": float(r_sc), "eps": r_eps},
+            regret_bounds={"hv": bhv, "scalar": bsc, "eps": beps},
+            regret_settings={
+                "hv_ref_mode": hv_ref_mode,
+                "hv_margin_pct": hv_margin_pct,
+                "reference_point": reference_point.tolist() if reference_point is not None else None,
+                "weights_mode": weights_mode,
+                "weights_shape": None if isinstance(W, float) else list(np.asarray(W).shape),
+            },
+            # You can optionally override the template path at runtime by setting MOR_TEMPLATE_PATH
+            # in your environment. Otherwise it uses multioutreg/report/template.html by default.
         )
 
         # Serialize model bytes
