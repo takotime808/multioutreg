@@ -3,7 +3,7 @@ name = "multioutreg"
 version = "0.0.1"
 description = "Multi-Output Regressors"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10,<4" # ">=3.12,<4"
 # authors = [
 #     {name = "takotime808", email = "takotime808"},
 # ]
