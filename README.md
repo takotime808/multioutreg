@@ -30,6 +30,7 @@ for a short demonstration.
 
 - 🧠 Auto-detect best multi-output regressors with uncertainty support.
 - 📉 Per-target metrics, SHAP plots, UMAP projections, PDPs, residuals.
+- 🎯 Multi-objective regret metrics (hypervolume, scalarized, ε-indicator).
 - 📊 Exportable HTML reports and Streamlit dashboards.
 - 📁 Sphinx documentation with autodoc, tutorials, and CLI docs.
 - 🧪 Fully tested with `pytest` and integrated CI.
