@@ -1,4 +1,4 @@
-# Copyright (c) 2025 takotime808
+# Copyright (c) 2026 takotime808
 
 """CV+ (cross-validation+) conformal prediction (Barber et al., 2021)."""
 
