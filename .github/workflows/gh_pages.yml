@@ -4,7 +4,7 @@ name: Documentation
 
 on:
   push:
-    branches: [main, master, unit-tests-cicd]
+    branches: [main, master]
 
 permissions:
   contents: write
