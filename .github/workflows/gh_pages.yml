@@ -4,7 +4,7 @@ name: Documentation
 
 on:
   push:
-    branches: [main, master, surrogate_vendor]
+    branches: [main, master, conformal-preds-integration]
 
 permissions:
   contents: write

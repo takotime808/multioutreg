@@ -1,7 +1,7 @@
 # Copyright (c) 2025 takotime808
 
-import numpy as np
 import pytest
+import numpy as np
 
 from multioutreg.time_series.metrics import (
     smape,
@@ -11,7 +11,12 @@ from multioutreg.time_series.metrics import (
 
 try:
     from multioutreg.time_series.chronos_adapter import ChronosForecaster
-    _CHRONOS = True
+    try:  # attempt lightweight instantiation to confirm model availability
+        ChronosForecaster("amazon/chronos-bolt-tiny")
+    except Exception:
+        _CHRONOS = False
+    else:
+        _CHRONOS = True
 except Exception:
     _CHRONOS = False
 

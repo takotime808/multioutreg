@@ -19,6 +19,9 @@ from multioutreg.figures.uncertainty_toolbox_extension import (
 )
 from multioutreg.figures.performance_metric_figures import plot_uq_metrics_bar
 from multioutreg.utils.surrogate_utils import predict_with_std
+from multioutreg.conformal import SplitConformalPredictor
+from multioutreg.conformal.metrics import conformal_summary
+from multioutreg.figures.conformal_plots import plot_conformal_intervals_ordered
 
 def make_data(random_state=42):
     rng = np.random.RandomState(random_state)
@@ -69,12 +72,24 @@ def make_plots(model, X_test, Y_test, out_dir="."):
     plt.savefig(met_path)
     plt.close(ax.figure)
 
+    # Conformal prediction intervals
+    cp = SplitConformalPredictor(model, calibration_size=0.3, random_state=0)
+    cp.fit(np.vstack([X_test, X_test]), np.vstack([Y_test, Y_test]))  # re-fit on available data
+    _, y_lower, y_upper = cp.predict(X_test, alpha=0.1)
+    plot_conformal_intervals_ordered(
+        Y_test, y_lower, y_upper, y_pred=preds, alpha=0.1,
+    )
+    conf_path = os.path.join(out_dir, "conformal_intervals.png")
+    plt.savefig(conf_path)
+    plt.close()
+
     return preds, std, metrics_df, {
         "preds": pred_path,
         "residuals": res_path,
         "coverage": cov_path,
         "intervals": int_path,
         "metrics": met_path,
+        "conformal": conf_path,
     }
 
 

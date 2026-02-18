@@ -176,3 +176,79 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             instance.fidelity_levels = list(fidelity_levels)
 
         return instance
+
+    def calibrate_conformal(
+        self,
+        X_cal: np.ndarray,
+        y_cal: np.ndarray,
+        **kwargs,
+    ) -> "AutoDetectMultiOutputRegressor":
+        """Calibrate conformal prediction intervals using held-out data.
+
+        Computes absolute residuals on the calibration set using the
+        already-fitted model. These residuals are used at prediction time
+        to construct distribution-free intervals with coverage guarantees.
+
+        Parameters
+        ----------
+        X_cal : np.ndarray
+            Calibration features (must NOT overlap with training data).
+        y_cal : np.ndarray
+            Calibration targets.
+
+        Returns
+        -------
+        self
+        """
+        from multioutreg.conformal.base import BaseConformalPredictor
+
+        if not hasattr(self, "models_"):
+            raise AttributeError("Estimator not fitted. Call fit() first.")
+
+        y_cal = np.asarray(y_cal)
+        if y_cal.ndim == 1:
+            y_cal = y_cal.reshape(-1, 1)
+
+        y_cal_pred = self.predict(X_cal)
+        if y_cal_pred.ndim == 1:
+            y_cal_pred = y_cal_pred.reshape(-1, 1)
+
+        self._conformal_residuals = np.abs(y_cal - y_cal_pred)
+        self._conformal_n_outputs = y_cal.shape[1]
+        return self
+
+    def predict_interval(
+        self, X: np.ndarray, alpha: float = 0.1
+    ) -> tuple:
+        """Return conformal prediction intervals.
+
+        Parameters
+        ----------
+        X : np.ndarray
+        alpha : float
+            Miscoverage level. Intervals target 1-alpha coverage.
+
+        Returns
+        -------
+        y_lower, y_upper : np.ndarray
+        """
+        if not hasattr(self, "_conformal_residuals"):
+            raise AttributeError(
+                "No conformal predictor calibrated. Call calibrate_conformal() first."
+            )
+        from multioutreg.conformal.base import BaseConformalPredictor
+
+        y_pred = self.predict(X)
+        if y_pred.ndim == 1:
+            y_pred = y_pred.reshape(-1, 1)
+
+        q = np.array([
+            BaseConformalPredictor._conformal_quantile(
+                self._conformal_residuals[:, j], alpha
+            )
+            for j in range(self._conformal_n_outputs)
+        ])
+
+        y_lower = y_pred - q[np.newaxis, :]
+        y_upper = y_pred + q[np.newaxis, :]
+        return y_lower, y_upper

@@ -105,10 +105,11 @@ exclude_patterns = [
     "**.ipynb_checkpoints",
 ]
 
-# source_suffix = [".rst", ".md", ".ipynb"]
-source_suffix = {'.rst': 'restructuredtext', '.md': 'restructuredtext', '.ipynb': 'restructuredtext'}
+# # source_suffix = [".rst", ".md", ".ipynb"]
+# source_suffix = {'.rst': 'restructuredtext', '.md': 'restructuredtext', '.ipynb': 'restructuredtext'}
 
-source_suffix = [".rst", ".md", ".ipynb"]
+# commented out when notebooks failed to build/show after `make html` command
+# source_suffix = [".rst", ".md", ".ipynb"]
 # source_suffix = {'.rst': 'restructuredtext', '.md': ['jupytext.reads', {'fmt': 'md'}], '.ipynb': 'restructuredtext'}
 # Support for notebook formats other than .ipynb
 # nbsphinx_custom_formats = {
