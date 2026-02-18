@@ -15,6 +15,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
+from sklearn.neural_network import MLPRegressor
 
 from multioutreg.surrogates import (
     LinearRegressionSurrogate,
@@ -24,6 +25,7 @@ from multioutreg.surrogates import (
     SVRSurrogate,
     KNeighborsSurrogate,
     DecisionTreeRegressorSurrogate,
+    ConformalPredictionNetworkSurrogate,
     MultiFidelitySurrogate,
 )
 
@@ -134,6 +136,7 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             SVR(),
             KNeighborsRegressor(),
             DecisionTreeRegressor(),
+            MLPRegressor(max_iter=500),
         ]
 
         param_spaces = [
@@ -144,6 +147,7 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             {"C": [1.0, 10.0], "gamma": ["scale", "auto"]},
             {"n_neighbors": [3, 5, 7]},
             {"max_depth": [1, None]},
+            {"hidden_layer_sizes": [(64,), (128,)], "alpha": [1e-4, 1e-3]},
         ]
 
         instance = cls(estimators, param_spaces, cv=cv, scoring=scoring)
@@ -157,6 +161,7 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
                 SVRSurrogate,
                 KNeighborsSurrogate,
                 DecisionTreeRegressorSurrogate,
+                ConformalPredictionNetworkSurrogate,
             ]
         else:
             def wrap(cls_sur):
@@ -172,6 +177,7 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
                 wrap(SVRSurrogate),
                 wrap(KNeighborsSurrogate),
                 wrap(DecisionTreeRegressorSurrogate),
+                wrap(ConformalPredictionNetworkSurrogate),
             ]
             instance.fidelity_levels = list(fidelity_levels)
 

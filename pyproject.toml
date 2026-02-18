@@ -19,7 +19,7 @@ dependencies = [
   # "pandas>=1.5,<2.2",
   "matplotlib>=3.5,<4.0",
   "scikit-learn>=1.2,<1.5",
-  "seaborn>=0.11.2,<=0.13.2",
+  "seaborn>=0.13.0,<=0.13.2",
   "uncertainty-toolbox",#>=0.1.4,<0.1.7",
   "shap>=0.48.0",
   # "jinja2>=3.0",
@@ -32,7 +32,6 @@ dependencies = [
   "streamlit",
   # ----- Below this line are duplicates from [ts] below...this is necessary for the 
   "chronos-forecasting>=1.5.0",
-  "torch>=2.1",
   "torch>=2.1",
   "pandas>=2.0",
   "numpy>=1.26"  
