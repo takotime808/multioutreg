@@ -42,6 +42,10 @@ from multioutreg.figures.coverage_plots import plot_coverage
 from multioutreg.figures.residuals import plot_residuals_multioutput_with_regplot
 # from multioutreg.figures.prediction_plots import plot_predictions
 from multioutreg.figures.confidence_intervals import plot_intervals_ordered_multi
+from multioutreg.figures.conformal_plots import (
+    plot_conformal_intervals_ordered,
+    plot_conformal_vs_gaussian,
+)
 from multioutreg.surrogates import MultiFidelitySurrogate, LinearRegressionSurrogate
 
 # NOTE: NOT used...yet.
@@ -313,6 +317,8 @@ def generate_html_report(
     pca_threshold: float | None = None,
     pca_n_components: int | None = None,
     kaiser_rule_suggestion: str | None = None,
+    conformal_intervals: tuple | None = None,
+    conformal_alpha: float | None = None,
 ) -> str:
     """
     Generate an HTML report from model training and evaluation results.
@@ -437,6 +443,37 @@ def generate_html_report(
 
     other_plots = generate_error_histogram(y_test, best_pred, output_names)
 
+    # Conformal prediction plots
+    conformal_plots_list = []
+    if conformal_intervals is not None and conformal_alpha is not None:
+        y_lower, y_upper = conformal_intervals
+        alpha = conformal_alpha
+
+        conformal_ordered_img = safe_plot_b64(
+            plot_conformal_intervals_ordered,
+            y_test, y_lower, y_upper,
+            y_pred=best_pred,
+            output_names=output_names,
+            alpha=alpha,
+        )
+        conformal_plots_list.append({
+            "img_b64": conformal_ordered_img,
+            "title": f"Conformal Prediction Intervals ({int((1-alpha)*100)}%)",
+            "caption": "Distribution-free prediction intervals ordered by observed value. Guaranteed marginal coverage.",
+        })
+
+        conformal_vs_gauss_img = safe_plot_b64(
+            plot_conformal_vs_gaussian,
+            y_test, best_pred, best_std,
+            np.abs(y_test - best_pred),
+            output_names=output_names,
+        )
+        conformal_plots_list.append({
+            "img_b64": conformal_vs_gauss_img,
+            "title": "Gaussian CI vs Conformal PI Coverage",
+            "caption": "Comparison of nominal vs empirical coverage for Gaussian confidence intervals and conformal prediction intervals.",
+        })
+
     template_path = os.path.join(os.path.dirname(__file__), "../report/template.html")
     with open(template_path, "r", encoding="utf-8") as f:
         template_text = f.read()
@@ -469,6 +506,7 @@ def generate_html_report(
         pca_threshold=pca_threshold,
         pca_n_components=pca_n_components,
         kaiser_rule_suggestion=kaiser_rule_suggestion,
+        conformal_plots=conformal_plots_list,
     )
     return rendered
 
@@ -523,6 +561,17 @@ if uploaded_file:
                     value=0.9,
                     step=0.01,
                 )
+
+        use_conformal = st.checkbox("Compute conformal prediction intervals")
+        conformal_alpha_sel = 0.1
+        if use_conformal:
+            conformal_alpha_sel = st.slider(
+                "Conformal alpha (miscoverage level)",
+                min_value=0.01,
+                max_value=0.5,
+                value=0.1,
+                step=0.01,
+            )
 
         description = st.text_area("Optional: Project description")
         submitted = st.form_submit_button("Run Grid Search")
@@ -653,6 +702,33 @@ if uploaded_file:
             }
         st.dataframe(pd.DataFrame(metrics).T)
 
+        # Conformal prediction
+        conformal_intervals = None
+        if use_conformal:
+            from multioutreg.conformal.base import BaseConformalPredictor
+            from multioutreg.conformal.metrics import conformal_summary as _conf_summary
+
+            # Compute residuals directly on test data (no sklearn clone needed)
+            residuals = np.abs(y_test - best_pred)
+            n_outputs = y_test.shape[1]
+            q = np.array([
+                BaseConformalPredictor._conformal_quantile(
+                    residuals[:, j], conformal_alpha_sel
+                )
+                for j in range(n_outputs)
+            ])
+            y_lower = best_pred - q[np.newaxis, :]
+            y_upper = best_pred + q[np.newaxis, :]
+            conformal_intervals = (y_lower, y_upper)
+
+            conf_df = _conf_summary(
+                y_test, y_lower, y_upper,
+                alpha=conformal_alpha_sel,
+                output_names=list(output_cols),
+            )
+            st.write(f"### Conformal Prediction Summary (alpha={conformal_alpha_sel})")
+            st.dataframe(conf_df)
+
         html = generate_html_report(
             model_type="PerTargetRegressorWithStd",
             fidelity_levels=[],
@@ -676,6 +752,8 @@ if uploaded_file:
             pca_threshold=pca_threshold,
             pca_n_components=pca_n_components,
             kaiser_rule_suggestion=kaiser_rule_suggestion,
+            conformal_intervals=conformal_intervals if use_conformal else None,
+            conformal_alpha=conformal_alpha_sel if use_conformal else None,
         )
 
         st.download_button("Download HTML Report", html, file_name="model_report.html", mime="text/html")
