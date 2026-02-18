@@ -191,7 +191,7 @@ import re
 
 def _patch_readme_for_docs():
     docs_src = Path(__file__).parent
-    project_root = docs_src.parent.parent  # adjust if your layout differs
+    project_root = docs_src.parent  # repo root is one level above docs/
     src_readme = project_root / "README.md"
     dst_readme = docs_src / "_README_docs.md"
 
