@@ -20,13 +20,15 @@ class ConformalPredictionNetworkSurrogate(BaseSurrogate):
         calibration_fraction=0.2,
         conformal_quantile=0.9,
         random_state=None,
-        **kwargs,
     ):
         if not 0.0 < calibration_fraction < 1.0:
             raise ValueError("calibration_fraction must be in (0, 1)")
         if not 0.0 < conformal_quantile < 1.0:
             raise ValueError("conformal_quantile must be in (0, 1)")
 
+        self.hidden_layer_sizes = hidden_layer_sizes
+        self.alpha = alpha
+        self.max_iter = max_iter
         self.calibration_fraction = calibration_fraction
         self.conformal_quantile = conformal_quantile
         self.random_state = random_state
@@ -37,7 +39,33 @@ class ConformalPredictionNetworkSurrogate(BaseSurrogate):
                 alpha=alpha,
                 max_iter=max_iter,
                 random_state=random_state,
-                **kwargs,
+            )
+        )
+
+    def get_params(self, deep=True):
+        return {
+            "hidden_layer_sizes": self.hidden_layer_sizes,
+            "alpha": self.alpha,
+            "max_iter": self.max_iter,
+            "calibration_fraction": self.calibration_fraction,
+            "conformal_quantile": self.conformal_quantile,
+            "random_state": self.random_state,
+        }
+
+    def set_params(self, **params):
+        for key, value in params.items():
+            setattr(self, key, value)
+        self.model = self._make_model()
+        return self
+
+    def _make_model(self):
+        from sklearn.multioutput import MultiOutputRegressor
+        return MultiOutputRegressor(
+            MLPRegressor(
+                hidden_layer_sizes=self.hidden_layer_sizes,
+                alpha=self.alpha,
+                max_iter=self.max_iter,
+                random_state=self.random_state,
             )
         )
 

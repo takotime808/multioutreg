@@ -15,6 +15,8 @@ from sklearn.decomposition import PCA
 from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import LinearRegression
+from sklearn.svm import SVR
+from sklearn.tree import DecisionTreeRegressor
 from sklearn.base import BaseEstimator, RegressorMixin, clone
 from jinja2 import Template
 
@@ -47,6 +49,7 @@ from multioutreg.figures.conformal_plots import (
     plot_conformal_vs_gaussian,
 )
 from multioutreg.surrogates import MultiFidelitySurrogate, LinearRegressionSurrogate
+from multioutreg.surrogates.conformal_network_sklearn import ConformalPredictionNetworkSurrogate
 
 # NOTE: NOT used...yet.
 from multioutreg.figures.doe_plots import make_doe_plot
@@ -633,6 +636,9 @@ if uploaded_file:
             ("gb", GradientBoostingWithUncertainty, {"alpha": [0.95], "n_estimators": [50]}),
             ("knn", KNeighborsRegressorWithUncertainty, {"n_neighbors": [3]}),
             ("blr", BootstrapLinearRegression, {"n_bootstraps": [20]}),
+            ("svr", SVR, {"C": [1.0, 10.0], "gamma": ["scale", "auto"]}),
+            ("dt", DecisionTreeRegressor, {"max_depth": [1, None]}),
+            ("cpn", ConformalPredictionNetworkSurrogate, {"hidden_layer_sizes": [(64,), (128,)], "max_iter": [500]}),
             (
                 "mfs_lr",
                 lambda: MultiFidelitySurrogate(LinearRegressionSurrogate, ["default"]),
