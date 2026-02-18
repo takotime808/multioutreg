@@ -116,9 +116,15 @@ class ChronosForecaster:
         batch = self._left_pad(self._contexts)
 
         if self._is_bolt:
-            # direct quantile output: [B, Q, H]
-            out = self._pipe.predict(context=batch, prediction_length=int(prediction_length), quantiles=q_levels)
+            # Bolt returns fixed quantiles [0.1, 0.2, ..., 0.9]: shape [B, 9, H]
+            bolt_q_levels = tuple(round(i * 0.1, 1) for i in range(1, 10))
+            out = self._pipe.predict(context=batch, prediction_length=int(prediction_length))
             q = out.detach().cpu().numpy()
+            # select only the requested quantile levels
+            indices = [bolt_q_levels.index(round(ql, 1)) for ql in q_levels if round(ql, 1) in bolt_q_levels]
+            if indices:
+                q = q[:, indices, :]
+                q_levels = tuple(bolt_q_levels[i] for i in indices)
             return ForecastResult(quantiles=q, q_levels=q_levels, ids=self._series_ids)
 
         # original Chronos: sample trajectories then take quantiles
