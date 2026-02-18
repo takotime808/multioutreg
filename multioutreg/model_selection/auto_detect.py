@@ -176,3 +176,59 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             instance.fidelity_levels = list(fidelity_levels)
 
         return instance
+
+    def calibrate_conformal(
+        self,
+        X_cal: np.ndarray,
+        y_cal: np.ndarray,
+        method: str = "split",
+        **kwargs,
+    ) -> "AutoDetectMultiOutputRegressor":
+        """Calibrate conformal prediction intervals using held-out data.
+
+        Parameters
+        ----------
+        X_cal : np.ndarray
+            Calibration features (must NOT overlap with training data).
+        y_cal : np.ndarray
+            Calibration targets.
+        method : str
+            "split" for SplitConformalPredictor or "cv+" for CVPlusConformalPredictor.
+        **kwargs
+            Additional arguments passed to the conformal predictor constructor.
+
+        Returns
+        -------
+        self
+        """
+        from multioutreg.conformal import SplitConformalPredictor, CVPlusConformalPredictor
+
+        if method == "split":
+            self._conformal = SplitConformalPredictor(self, **kwargs)
+        elif method == "cv+":
+            self._conformal = CVPlusConformalPredictor(self, **kwargs)
+        else:
+            raise ValueError(f"Unknown method: {method!r}. Use 'split' or 'cv+'.")
+        self._conformal.fit(X_cal, y_cal)
+        return self
+
+    def predict_interval(
+        self, X: np.ndarray, alpha: float = 0.1
+    ) -> tuple:
+        """Return conformal prediction intervals.
+
+        Parameters
+        ----------
+        X : np.ndarray
+        alpha : float
+            Miscoverage level. Intervals target 1-alpha coverage.
+
+        Returns
+        -------
+        y_lower, y_upper : np.ndarray
+        """
+        if not hasattr(self, "_conformal"):
+            raise AttributeError(
+                "No conformal predictor calibrated. Call calibrate_conformal() first."
+            )
+        return self._conformal.predict_interval(X, alpha)
