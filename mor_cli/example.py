@@ -8,7 +8,13 @@ from typing_extensions import Annotated
 
 from multioutreg.utils.aux_funcs import execute_command, parse_out_response
 
-typer.rich_utils.STYLE_METAVAR = "bold"
+try:
+    from typer import rich_utils as _rich_utils
+except Exception:
+    _rich_utils = None
+
+if _rich_utils is not None:
+    _rich_utils.STYLE_METAVAR = "bold"
 required_color = "light_red"
 optional_color = "light_green"
 

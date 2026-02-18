@@ -4,7 +4,7 @@ name: Documentation
 
 on:
   push:
-    branches: [main, master, update-docs-and-unit-tests]
+    branches: [main, master, unit-tests-cicd]
 
 permissions:
   contents: write
@@ -55,6 +55,7 @@ jobs:
       uses: peaceiris/actions-gh-pages@v4
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./docs/_build/html
+        # publish_dir: ./docs/_build/html
+        publish_dir: ./docs/build/html
         force_orphan: true
         full_commit_message: ${{ github.event.head_commit.message }}
