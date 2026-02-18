@@ -3,7 +3,7 @@ name: Pytest Suite
 
 on:
   push:
-    branches: [main, surrogate_vendor]
+    branches: [main, unit-tests-cicd]
   pull_request:
     branches: [main]
 
