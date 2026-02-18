@@ -181,10 +181,13 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
         self,
         X_cal: np.ndarray,
         y_cal: np.ndarray,
-        method: str = "split",
         **kwargs,
     ) -> "AutoDetectMultiOutputRegressor":
         """Calibrate conformal prediction intervals using held-out data.
+
+        Computes absolute residuals on the calibration set using the
+        already-fitted model. These residuals are used at prediction time
+        to construct distribution-free intervals with coverage guarantees.
 
         Parameters
         ----------
@@ -192,24 +195,26 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             Calibration features (must NOT overlap with training data).
         y_cal : np.ndarray
             Calibration targets.
-        method : str
-            "split" for SplitConformalPredictor or "cv+" for CVPlusConformalPredictor.
-        **kwargs
-            Additional arguments passed to the conformal predictor constructor.
 
         Returns
         -------
         self
         """
-        from multioutreg.conformal import SplitConformalPredictor, CVPlusConformalPredictor
+        from multioutreg.conformal.base import BaseConformalPredictor
 
-        if method == "split":
-            self._conformal = SplitConformalPredictor(self, **kwargs)
-        elif method == "cv+":
-            self._conformal = CVPlusConformalPredictor(self, **kwargs)
-        else:
-            raise ValueError(f"Unknown method: {method!r}. Use 'split' or 'cv+'.")
-        self._conformal.fit(X_cal, y_cal)
+        if not hasattr(self, "models_"):
+            raise AttributeError("Estimator not fitted. Call fit() first.")
+
+        y_cal = np.asarray(y_cal)
+        if y_cal.ndim == 1:
+            y_cal = y_cal.reshape(-1, 1)
+
+        y_cal_pred = self.predict(X_cal)
+        if y_cal_pred.ndim == 1:
+            y_cal_pred = y_cal_pred.reshape(-1, 1)
+
+        self._conformal_residuals = np.abs(y_cal - y_cal_pred)
+        self._conformal_n_outputs = y_cal.shape[1]
         return self
 
     def predict_interval(
@@ -227,8 +232,23 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
         -------
         y_lower, y_upper : np.ndarray
         """
-        if not hasattr(self, "_conformal"):
+        if not hasattr(self, "_conformal_residuals"):
             raise AttributeError(
                 "No conformal predictor calibrated. Call calibrate_conformal() first."
             )
-        return self._conformal.predict_interval(X, alpha)
+        from multioutreg.conformal.base import BaseConformalPredictor
+
+        y_pred = self.predict(X)
+        if y_pred.ndim == 1:
+            y_pred = y_pred.reshape(-1, 1)
+
+        q = np.array([
+            BaseConformalPredictor._conformal_quantile(
+                self._conformal_residuals[:, j], alpha
+            )
+            for j in range(self._conformal_n_outputs)
+        ])
+
+        y_lower = y_pred - q[np.newaxis, :]
+        y_upper = y_pred + q[np.newaxis, :]
+        return y_lower, y_upper

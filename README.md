@@ -3,7 +3,7 @@
 
 Multi-Output Multi-Fidelity Surrogate Modeling with Uncertainty Quantification.
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://multioutreg-sample.streamlit.app/)
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://multioutreg.streamlit.app/)
 [![Docs](https://img.shields.io/badge/docs-online-blue.svg)](https://takotime808.github.io/multioutreg/)
 [![Python](https://img.shields.io/badge/python-3.9%2B-blue.svg)](https://www.python.org/)
 <!-- [![PyPI](https://img.shields.io/pypi/v/multioutreg.svg)](https://pypi.org/project/multioutreg/) -->

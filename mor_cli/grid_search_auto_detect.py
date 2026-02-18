@@ -34,6 +34,8 @@ def grid_search_auto_detect(
     pca_method: Optional[str] = typer.Option(None, help="PCA selection method"),
     n_components: Optional[int] = typer.Option(None, help="Number of PCA components"),
     pca_threshold: Optional[float] = typer.Option(None, help="Explained variance threshold"),
+    conformal: bool = typer.Option(False, help="Compute conformal prediction intervals"),
+    conformal_alpha: float = typer.Option(0.1, help="Conformal miscoverage level (e.g. 0.1 for 90%% intervals)"),
     description: str = typer.Option("", help="Project description"),
     out_html: str = typer.Option("model_report_auto.html", help="Output HTML file"),
 ) -> None:
@@ -78,6 +80,20 @@ def grid_search_auto_detect(
     best_pred, best_std = model.predict(X_test, return_std=True)
     best_model = model
 
+    # Conformal prediction intervals
+    conformal_summary_df = None
+    conformal_intervals = None
+    if conformal:
+        model.calibrate_conformal(X_test, y_test)
+        y_lower, y_upper = model.predict_interval(X_test, alpha=conformal_alpha)
+        conformal_intervals = (y_lower, y_upper)
+        from multioutreg.conformal.metrics import conformal_summary as _conformal_summary
+        conformal_summary_df = _conformal_summary(
+            y_test, y_lower, y_upper, alpha=conformal_alpha, output_names=out_cols
+        )
+        typer.echo(f"\nConformal Prediction Summary (alpha={conformal_alpha}):")
+        typer.echo(conformal_summary_df.to_string(index=False))
+
     metrics = {}
     for i, name in enumerate(out_cols):
         y_true = y_test[:, i]
@@ -88,6 +104,11 @@ def grid_search_auto_detect(
             "mae": mean_absolute_error(y_true, y_pred),
             "mean_predicted_std": float(np.mean(best_std[:, i])),
         }
+        if conformal and conformal_intervals is not None:
+            row = conformal_summary_df[conformal_summary_df["output"] == name]
+            if not row.empty:
+                metrics[name]["conformal_coverage"] = float(row["coverage"].iloc[0])
+                metrics[name]["conformal_interval_width"] = float(row["mean_width"].iloc[0])
 
     html = use_auto_detect.generate_html_report(
         model_type="AutoDetectMultiOutputRegressor",
@@ -112,6 +133,8 @@ def grid_search_auto_detect(
         pca_threshold=pca_threshold,
         pca_n_components=pca_n_components,
         kaiser_rule_suggestion=kaiser_rule_suggestion,
+        conformal_intervals=conformal_intervals if conformal else None,
+        conformal_alpha=conformal_alpha if conformal else None,
     )
 
     with open(out_html, "w", encoding="utf-8") as fh:
