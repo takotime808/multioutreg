@@ -7,8 +7,10 @@ from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 
 from multioutreg.model_selection import AutoDetectMultiOutputRegressor
-from multioutreg.surrogates import MultiFidelitySurrogate
-
+from multioutreg.surrogates import (
+    MultiFidelitySurrogate,
+    ConformalPredictionNetworkSurrogate,
+)
 
 def test_auto_detect_multi_output_regressor_selects_best():
     rng = np.random.RandomState(0)
@@ -41,6 +43,11 @@ def test_with_vendored_surrogates_runs():
     preds = model.predict(X)
 
     assert preds.shape == Y.shape
+
+
+def test_with_vendored_surrogates_includes_conformal_network():
+    model = AutoDetectMultiOutputRegressor.with_vendored_surrogates(cv=2)
+    assert ConformalPredictionNetworkSurrogate in model._surrogate_constructors
 
 
 @pytest.fixture

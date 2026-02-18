@@ -4,7 +4,7 @@ name: Documentation
 
 on:
   push:
-    branches: [main, master, conformal-preds-integration]
+    branches: [main, master, update-docs-and-unit-tests]
 
 permissions:
   contents: write
