@@ -10,7 +10,7 @@ requires-python = ">=3.10"
 license = {file = "LICENSE"}
 
 dependencies = [
-  "typer-cli", # 0.12.0
+  "typer-cli", # ==0.12.0, 0.16.0
   "wasabi",
   "termcolor",
   "pyfiglet",
@@ -33,8 +33,8 @@ dependencies = [
   # ----- Below this line are duplicates from [ts] below...this is necessary for the 
   "chronos-forecasting>=1.5.0",
   "torch>=2.1",
-  "pandas>=2.0",
-  "numpy>=1.26"  
+  "pandas>=2.0,<2.2", #==2.1.4
+  "numpy>=1.26,<2.0" # ==1.26.4
 ]
 
 [project.optional-dependencies]
