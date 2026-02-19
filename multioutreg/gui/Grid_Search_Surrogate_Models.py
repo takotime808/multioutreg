@@ -603,6 +603,15 @@ if uploaded_file:
         ),
     )
 
+    skip_expensive = st.checkbox(
+        "Skip computationally expensive models",
+        help=(
+            "Excludes Gaussian Process (O(N³)), NGBoost, and the Conformal "
+            "Prediction Network from the grid search. Recommended for large "
+            "datasets or quick exploratory runs."
+        ),
+    )
+
     with st.form("column_selection"):
         input_cols = st.multiselect("Select input features", options=df.columns)
         output_cols = st.multiselect("Select output targets", options=df.columns)
@@ -715,6 +724,14 @@ if uploaded_file:
                     f"Pre-screening skipped {len(skipped)} model(s): "
                     + ", ".join(skipped)
                 )
+
+        _EXPENSIVE_MODELS = {"gpr", "ngb", "cpn"}
+        if skip_expensive:
+            surrogate_defs = [d for d in surrogate_defs if d[0] not in _EXPENSIVE_MODELS]
+            st.info(
+                "Skipping expensive models: Gaussian Process, NGBoost, "
+                "Conformal Prediction Network."
+            )
 
         configs = [(name, Est, params) for name, Est, grid in surrogate_defs for params in ParameterGrid(grid)]
 
