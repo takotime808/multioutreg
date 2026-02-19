@@ -377,6 +377,18 @@ if uploaded_file:
                 step=0.01,
             )
 
+        try:
+            import torch as _torch
+            _torch_available = True
+        except ImportError:
+            _torch_available = False
+        use_bnn = st.checkbox(
+            "Include BNN (Bayesian Neural Network) as a joint multi-output candidate",
+            value=False,
+            disabled=not _torch_available,
+            help="Requires PyTorch. Trains a Bayesian Neural Network with MC Dropout uncertainty and competes against per-output models.",
+        )
+
         description = st.text_area("Optional: Project description")
         submitted = st.form_submit_button("Run Grid Search")
 
@@ -434,6 +446,11 @@ if uploaded_file:
             used_feature_names = feature_names_pca
 
         model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
+        if use_bnn and _torch_available:
+            from multioutreg.surrogates.bnn_pytorch import BNNSurrogate
+            model.register_multi_output_candidates([
+                BNNSurrogate(hidden_layer_sizes=(128, 64), max_epochs=300, random_state=0)
+            ])
         model.fit(X_train, y_train)
         best_pred, best_std = model.predict(X_test, return_std=True)
         best_model = model
