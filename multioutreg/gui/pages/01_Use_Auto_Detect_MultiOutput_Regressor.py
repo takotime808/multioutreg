@@ -8,10 +8,14 @@ import pandas as pd
 import streamlit as st
 from typing import Any, Dict, List, Optional, Union
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
 from sklearn.decomposition import PCA
 from jinja2 import Template
-
+try:
+    import torch as _torch
+    _torch_available = True
+except ImportError:
+    _torch_available = False
 
 # from multioutreg.gui.report_plotting_utils import (
 #     # plot_to_b64,
@@ -327,72 +331,81 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file)
     st.write("## Preview of Data:", df.head())
 
+    # Move checkbox options outside of the streamlit form, so hparams appear before pressing run grid search button
+    use_pca = st.checkbox("Apply PCA to input features", key="use_pca")
+    n_components = None
+    pca_method = None
+    pca_threshold = None
+    if use_pca:
+        # # max_comp = max(1, len(input_cols)) if input_cols else len(df.columns)
+        # max_comp = len(df.columns)
+        # n_components = st.number_input(
+        #     "Number of PCA components",
+        #     min_value=1,
+        #     max_value=max_comp,
+        #     value=min(2, max_comp),
+        #     step=1,
+        # )
+        max_comp = len(df.columns)
+        pca_method = st.selectbox(
+            "PCA component selection method",
+            ["Manual", "Explained variance threshold", "Kaiser rule"],
+            key="pca_method",
+        )
+        if pca_method == "Manual":
+            n_components = st.number_input(
+                "Number of PCA components",
+                min_value=1,
+                max_value=max_comp,
+                value=min(2, max_comp),
+                step=1,
+                key="pca_n_components",
+            )
+        elif pca_method == "Explained variance threshold":
+            pca_threshold = st.slider(
+                "Explained variance threshold",
+                min_value=0.5,
+                max_value=0.99,
+                value=0.9,
+                step=0.01,
+                key="pca_threshold",
+            )
+
+    use_conformal = st.checkbox("Compute conformal prediction intervals", key="use_conformal")
+    conformal_alpha_sel = st.slider(
+        "Conformal alpha (miscoverage level)",
+        min_value=0.01,
+        max_value=0.5,
+        value=0.1,
+        step=0.01,
+        disabled=not use_conformal,
+        key="conformal_alpha",
+    )
+
+    use_bnn = st.checkbox(
+        "Include BNN (Bayesian Neural Network) as a joint multi-output candidate",
+        value=False,
+        disabled=not _torch_available,
+        help="Requires PyTorch. Trains a Bayesian Neural Network with MC Dropout uncertainty and competes against per-output models.",
+        key="use_bnn",
+    )
+
     with st.form("column_selection"):
         input_cols = st.multiselect("Select input features", options=df.columns)
         output_cols = st.multiselect("Select output targets", options=df.columns)
-        use_pca = st.checkbox("Apply PCA to input features")
-        n_components = None
-        pca_method = None
-        pca_threshold = None
-        if use_pca:
-            # # max_comp = max(1, len(input_cols)) if input_cols else len(df.columns)
-            # max_comp = len(df.columns)
-            # n_components = st.number_input(
-            #     "Number of PCA components",
-            #     min_value=1,
-            #     max_value=max_comp,
-            #     value=min(2, max_comp),
-            #     step=1,
-            # )
-            max_comp = len(df.columns)
-            pca_method = st.selectbox(
-                "PCA component selection method",
-                ["Manual", "Explained variance threshold", "Kaiser rule"],
-            )
-            if pca_method == "Manual":
-                n_components = st.number_input(
-                    "Number of PCA components",
-                    min_value=1,
-                    max_value=max_comp,
-                    value=min(2, max_comp),
-                    step=1,
-                )
-            elif pca_method == "Explained variance threshold":
-                pca_threshold = st.slider(
-                    "Explained variance threshold",
-                    min_value=0.5,
-                    max_value=0.99,
-                    value=0.9,
-                    step=0.01,
-                )
-
-        use_conformal = st.checkbox("Compute conformal prediction intervals")
-        conformal_alpha_sel = 0.1
-        if use_conformal:
-            conformal_alpha_sel = st.slider(
-                "Conformal alpha (miscoverage level)",
-                min_value=0.01,
-                max_value=0.5,
-                value=0.1,
-                step=0.01,
-            )
-
-        try:
-            import torch as _torch
-            _torch_available = True
-        except ImportError:
-            _torch_available = False
-        use_bnn = st.checkbox(
-            "Include BNN (Bayesian Neural Network) as a joint multi-output candidate",
-            value=False,
-            disabled=not _torch_available,
-            help="Requires PyTorch. Trains a Bayesian Neural Network with MC Dropout uncertainty and competes against per-output models.",
-        )
 
         description = st.text_area("Optional: Project description")
         submitted = st.form_submit_button("Run Grid Search")
 
     if submitted and input_cols and output_cols:
+        use_pca = st.session_state.use_pca
+        pca_method = st.session_state.get("pca_method")
+        n_components = st.session_state.get("pca_n_components")
+        pca_threshold = st.session_state.get("pca_threshold")
+        use_conformal = st.session_state.use_conformal
+        conformal_alpha_sel = st.session_state.conformal_alpha
+        use_bnn = st.session_state.use_bnn
+
         X = df[input_cols].values
         y = df[output_cols].values
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
@@ -504,7 +517,7 @@ if uploaded_file:
             y_pred = best_pred[:, i]
             metrics[name] = {
                 "r2": r2_score(y_true, y_pred),
-                "rmse": mean_squared_error(y_true, y_pred, squared=False),
+                "rmse": root_mean_squared_error(y_true, y_pred),
                 "mae": mean_absolute_error(y_true, y_pred),
                 "mean_predicted_std": float(np.mean(best_std[:, i])),
             }

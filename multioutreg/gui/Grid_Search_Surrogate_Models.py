@@ -8,7 +8,7 @@ import numpy as np
 import os
 from typing import Dict, List, Tuple, Union, Any
 from sklearn.model_selection import train_test_split, ParameterGrid
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, root_mean_squared_error
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, Matern
 from sklearn.decomposition import PCA
@@ -547,71 +547,81 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file)
     st.write("## Preview of Data:", df.head())
 
+    # Move PCA outside the streamlit form, so options appear before pressing run grid search button
+    use_pca = st.checkbox("Apply PCA to input features", key="use_pca")
+    pca_method = None
+    n_components = None
+    pca_threshold = None
+    if use_pca:
+        pca_method = st.selectbox(
+            "PCA component selection method",
+            ["Manual", "Explained variance threshold", "Kaiser rule"],
+            key="pca_method",
+        )
+        if pca_method == "Manual":
+            n_components = st.number_input(
+                "Number of PCA components",
+                min_value=1,
+                max_value=len(df.columns),
+                value=min(2, len(df.columns)),
+                step=1,
+                key="pca_n_components",
+            )
+        elif pca_method == "Explained variance threshold":
+            pca_threshold = st.slider(
+                "Explained variance threshold",
+                min_value=0.5,
+                max_value=0.99,
+                value=0.9,
+                step=0.01,
+                key="pca_threshold",
+            )
+
+    # Move conformal prediction option out of streamlit form so slider appears before pressing button to run grid search
+    use_conformal = st.checkbox("Compute conformal prediction intervals", key="use_conformal")
+    conformal_alpha_sel = 0.1
+    if use_conformal:
+        conformal_alpha_sel = st.slider(
+            "Conformal alpha (miscoverage level)",
+            min_value=0.01,
+            max_value=0.5,
+            value=0.1,
+            step=0.01,
+            disabled=not use_conformal,
+            key="conformal_alpha",
+        )
+
+    # Move checkbox outside of streamlit form, for consistency with previous two checkboxes
+    use_screening = st.checkbox(
+        "Pre-screen models (skip expensive/unsuitable models)",
+        help=(
+            "Runs Breusch-Pagan (heteroscedasticity), Ramsey RESET (linearity), "
+            "Shapiro-Wilk (normality), and RF–LR R² gain (non-linearity) tests "
+            "before training.  Computationally heavy models (GP, quantile GB, "
+            "heteroscedastic ensembles) are only included when the data "
+            "characteristics justify them."
+        ),
+    )
+
     with st.form("column_selection"):
         input_cols = st.multiselect("Select input features", options=df.columns)
         output_cols = st.multiselect("Select output targets", options=df.columns)
-        use_pca = st.checkbox("Apply PCA to input features")
-        n_components = None
-        pca_method = None
-        pca_threshold = None
-        if use_pca:
-            # # max_comp = max(1, len(input_cols)) if input_cols else len(df.columns)
-            # max_comp = len(df.columns)
-            # n_components = st.number_input(
-            #     "Number of PCA components",
-            #     min_value=1,
-            #     max_value=max_comp,
-            #     value=min(2, max_comp),
-            #     step=1,
-            # )
-            max_comp = len(df.columns)
-            pca_method = st.selectbox(
-                "PCA component selection method",
-                ["Manual", "Explained variance threshold", "Kaiser rule"],
-            )
-            if pca_method == "Manual":
-                n_components = st.number_input(
-                    "Number of PCA components",
-                    min_value=1,
-                    max_value=max_comp,
-                    value=min(2, max_comp),
-                    step=1,
-                )
-            elif pca_method == "Explained variance threshold":
-                pca_threshold = st.slider(
-                    "Explained variance threshold",
-                    min_value=0.5,
-                    max_value=0.99,
-                    value=0.9,
-                    step=0.01,
-                )
-
-        use_screening = st.checkbox(
-            "Pre-screen models (skip expensive/unsuitable models)",
-            help=(
-                "Runs Breusch-Pagan (heteroscedasticity), Ramsey RESET (linearity), "
-                "Shapiro-Wilk (normality), and RF–LR R² gain (non-linearity) tests "
-                "before training.  Computationally heavy models (GP, quantile GB, "
-                "heteroscedastic ensembles) are only included when the data "
-                "characteristics justify them."
-            ),
-        )
-
-        use_conformal = st.checkbox("Compute conformal prediction intervals")
-        conformal_alpha_sel = 0.1
-        if use_conformal:
-            conformal_alpha_sel = st.slider(
-                "Conformal alpha (miscoverage level)",
-                min_value=0.01,
-                max_value=0.5,
-                value=0.1,
-                step=0.01,
-            )
 
         description = st.text_area("Optional: Project description")
         submitted = st.form_submit_button("Run Grid Search")
 
+    # if submitted:
+    #     use_pca = st.session_state.use_pca
+    #     pca_method = st.session_state.get("pca_method")
+    #     n_components = st.session_state.get("pca_n_components")
+    #     pca_threshold = st.session_state.get("pca_threshold")
+
     if submitted and input_cols and output_cols:
+        use_pca = st.session_state.use_pca
+        pca_method = st.session_state.get("pca_method")
+        n_components = st.session_state.get("pca_n_components")
+        pca_threshold = st.session_state.get("pca_threshold")
+
         X = df[input_cols].values
         y = df[output_cols].values
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
@@ -762,7 +772,7 @@ if uploaded_file:
             y_pred = best_pred[:, i]
             metrics[name] = {
                 "r2": r2_score(y_true, y_pred),
-                "rmse": mean_squared_error(y_true, y_pred, squared=False),
+                "rmse": root_mean_squared_error(y_true, y_pred),
                 "mae": mean_absolute_error(y_true, y_pred),
                 "mean_predicted_std": float(np.mean(best_std[:, i])),
             }

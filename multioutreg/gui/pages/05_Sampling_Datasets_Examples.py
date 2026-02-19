@@ -296,7 +296,7 @@ datasets = [
 
 
 # Loop through all datasets
-for name, df in datasets:
+for i, (name, df) in enumerate(datasets):
     st.subheader(f"📊 {name}")
     col1, col2 = st.columns([3, 2])  # Data | Visual
 
@@ -304,7 +304,13 @@ for name, df in datasets:
         st.dataframe(df.head(), use_container_width=True)
         csv_bytes = df.to_csv(index=False).encode("utf-8")
         filename = name.lower().replace(" ", "_").replace("-", "_") + ".csv"
-        st.download_button("⬇️ Download CSV", data=csv_bytes, file_name=filename, mime="text/csv")
+        st.download_button(
+            "⬇️ Download CSV",
+            data=csv_bytes,
+            file_name=filename,
+            mime="text/csv",
+            key=f"download_{i}",
+        )
 
     with col2:
         numeric_cols = df.select_dtypes(include="number").columns.tolist()
@@ -340,4 +346,3 @@ for name, df in datasets:
             st.warning("Not enough numeric columns for UMAP analysis.")
 
     st.markdown("---")
-
