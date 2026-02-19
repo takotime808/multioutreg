@@ -1,0 +1,9 @@
+                            TO DO
+Done: 
+
+- Load saved models and provide inference examples 
+- Prediction interval calculations
+- Added 'keep-file' logic to aws pulling (based on name)
+- Add feature column runs as an example
+- Make final adjustments to readme (match architecture to current)
+
