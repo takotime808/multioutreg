@@ -390,6 +390,15 @@ if uploaded_file:
         key="use_bnn",
     )
 
+    skip_expensive = st.checkbox(
+        "Skip computationally expensive models",
+        help=(
+            "Excludes Gaussian Process (O(N³)), Neural Network/MLP, and NGBoost "
+            "from the grid search. Recommended for large datasets or quick exploratory runs."
+        ),
+        key="skip_expensive",
+    )
+
     with st.form("column_selection"):
         input_cols = st.multiselect("Select input features", options=df.columns)
         output_cols = st.multiselect("Select output targets", options=df.columns)
@@ -405,6 +414,7 @@ if uploaded_file:
         use_conformal = st.session_state.use_conformal
         conformal_alpha_sel = st.session_state.conformal_alpha
         use_bnn = st.session_state.use_bnn
+        skip_expensive = st.session_state.skip_expensive
 
         X = df[input_cols].values
         y = df[output_cols].values
@@ -464,6 +474,26 @@ if uploaded_file:
             model.register_multi_output_candidates([
                 BNNSurrogate(hidden_layer_sizes=(128, 64), max_epochs=300, random_state=0)
             ])
+
+        _EXPENSIVE_MODEL_NAMES = {"gp", "mlp", "ngboost"}
+        _EXPENSIVE_DISPLAY_NAMES = {
+            "gp": "Gaussian Process",
+            "mlp": "Neural Network (MLP)",
+            "ngboost": "NGBoost",
+        }
+        if skip_expensive:
+            _keep = [i for i, n in enumerate(model._model_names) if n not in _EXPENSIVE_MODEL_NAMES]
+            _skipped = [model._model_names[i] for i in range(len(model._model_names)) if model._model_names[i] in _EXPENSIVE_MODEL_NAMES]
+            model.estimators = [model.estimators[i] for i in _keep]
+            model.param_spaces = [model.param_spaces[i] for i in _keep]
+            model._surrogate_constructors = [model._surrogate_constructors[i] for i in _keep]
+            model._model_names = [model._model_names[i] for i in _keep]
+            if _skipped:
+                st.info(
+                    f"Skipping {len(_skipped)} expensive model(s): "
+                    + ", ".join(_EXPENSIVE_DISPLAY_NAMES.get(n, n) for n in _skipped)
+                )
+
         model.fit(X_train, y_train)
         best_pred, best_std = model.predict(X_test, return_std=True)
         best_model = model

@@ -726,12 +726,19 @@ if uploaded_file:
                 )
 
         _EXPENSIVE_MODELS = {"gpr", "ngb", "cpn"}
+        _EXPENSIVE_DISPLAY_NAMES = {
+            "gpr": "Gaussian Process",
+            "ngb": "NGBoost",
+            "cpn": "Conformal Prediction Network",
+        }
         if skip_expensive:
+            _skipped = [d[0] for d in surrogate_defs if d[0] in _EXPENSIVE_MODELS]
             surrogate_defs = [d for d in surrogate_defs if d[0] not in _EXPENSIVE_MODELS]
-            st.info(
-                "Skipping expensive models: Gaussian Process, NGBoost, "
-                "Conformal Prediction Network."
-            )
+            if _skipped:
+                st.info(
+                    f"Skipping {len(_skipped)} expensive model(s): "
+                    + ", ".join(_EXPENSIVE_DISPLAY_NAMES.get(k, k) for k in _skipped)
+                )
 
         configs = [(name, Est, params) for name, Est, grid in surrogate_defs for params in ParameterGrid(grid)]
 
