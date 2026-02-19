@@ -18,7 +18,7 @@ dependencies = [
   # "numpy>=1.22,<2.0",
   # "pandas>=1.5,<2.2",
   "matplotlib>=3.5,<4.0",
-  "scikit-learn>=1.2,<1.5",
+  "scikit-learn>=1.2",
   "seaborn>=0.13.0,<=0.13.2",
   "uncertainty-toolbox",#>=0.1.4,<0.1.7",
   "shap>=0.48.0",
@@ -30,7 +30,7 @@ dependencies = [
   # "hyperopt>=0.2",
   # "textual",
   "streamlit",
-  # ----- Below this line are duplicates from [ts] below...this is necessary for the 
+  # ----- Below this line are duplicates from [ts] below...this is necessary for the
   "chronos-forecasting>=1.5.0",
   "torch>=2.1",
   "pandas>=2.0,<2.2", #==2.1.4
@@ -45,6 +45,11 @@ ts = [
   # These may clash with normal dependencies.
   "pandas>=2.0,<2.2",
   "numpy>=1.26,<2.0"
+]
+ngboost = [
+  "ngboost",
+  # ngboost 0.5.8 requires sklearn>=1.6 (uses ensure_all_finite added in 1.6)
+  "scikit-learn>=1.6",
 ]
 test = [
     "pytest",
