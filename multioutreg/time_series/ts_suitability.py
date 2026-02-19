@@ -1,4 +1,4 @@
-# Copyright (c) 2025 takotime808
+# Copyright (c) 2026 takotime808
 
 """Statistical tests to determine whether uploaded data is suitable for time series modeling."""
 

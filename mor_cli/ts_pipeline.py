@@ -1,4 +1,4 @@
-# Copyright (c) 2025 takotime808
+# Copyright (c) 2026 takotime808
 """CLI for training ARIMA / SARIMA / LSTM time series models via the ts_dynamic_fit pipeline."""
 
 from __future__ import annotations

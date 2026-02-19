@@ -74,7 +74,7 @@ Time series forecasting — two commands are available depending on what you nee
 | `ts-forecast` | Zero-shot (Chronos foundation model) | No training data required; fast probabilistic quantile forecasts from a pre-trained model |
 | `ts-pipeline` | Trained statistical + deep models (ARIMA, SARIMA, LSTM) | You want to fit models on your own data, rank them by RMSE/MAE/MAPE, and save the best one |
 
-**`ts-forecast`** — zero-shot probabilistic forecast via a Chronos foundation model:
+**`ts-forecast`** — CLI for zero-shot forecasting with Chronos / Chronos-Bolt:
 ```sh
 multioutreg ts-forecast data.csv \
   --time-col "Date" \
@@ -84,7 +84,7 @@ multioutreg ts-forecast data.csv \
   --out forecast.csv
 ```
 
-**`ts-pipeline`** — fit and compare ARIMA, SARIMA, and LSTM on your data:
+**`ts-pipeline`** — CLI for training ARIMA / SARIMA / LSTM time series models via the ts_dynamic_fit pipeline:
 ```sh
 multioutreg ts-pipeline data.csv \
   --target-col "revenue" \
