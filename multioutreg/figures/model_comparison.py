@@ -3,7 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.metrics import mean_squared_error
+from sklearn.metrics import root_mean_squared_error
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.base import RegressorMixin, BaseEstimator
@@ -58,11 +58,11 @@ def plot_surrogate_model_summary(
         Y_train_noisy = Y_train + np.random.normal(0, 10, size=Y_train.shape)
         noise_model.fit(X_train, Y_train_noisy)
         Y_pred_noise = noise_model.predict(X_test)
-        rmse_noise = np.sqrt(mean_squared_error(Y_test, Y_pred_noise, multioutput='raw_values'))
+        rmse_noise = root_mean_squared_error(Y_test, Y_pred_noise, multioutput='raw_values')
     else:
         rmse_noise = None
 
-    rmse_clean = np.sqrt(mean_squared_error(Y_test, Y_pred, multioutput='raw_values'))
+    rmse_clean = root_mean_squared_error(Y_test, Y_pred, multioutput='raw_values')
 
     # === Grid layout ===
     n_cols = min(n_targets, 3)
