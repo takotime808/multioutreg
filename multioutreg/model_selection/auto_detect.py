@@ -9,7 +9,7 @@ from typing import Sequence
 import numpy as np
 from sklearn.base import BaseEstimator, RegressorMixin, clone
 from sklearn.model_selection import GridSearchCV
-from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
+from sklearn.ensemble import ExtraTreesRegressor, GradientBoostingRegressor, RandomForestRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.neighbors import KNeighborsRegressor
@@ -26,32 +26,96 @@ from multioutreg.surrogates import (
     KNeighborsSurrogate,
     DecisionTreeRegressorSurrogate,
     ConformalPredictionNetworkSurrogate,
+    ExtraTreesRegressorSurrogate,
+    NGBoostSurrogate,
     MultiFidelitySurrogate,
 )
 
-class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
-    """Fit a separate estimator per output choosing the best via grid search."""
+try:
+    from ngboost import NGBRegressor as _NGBRegressor
+    _NGBOOST_AVAILABLE = True
+except ImportError:
+    _NGBOOST_AVAILABLE = False
 
-    def __init__(self, estimators: Sequence[BaseEstimator], param_spaces: Sequence[dict], cv: int = 3, scoring: str = "neg_mean_squared_error") -> None:
+class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
+    """Fit a separate estimator per output choosing the best via grid search.
+
+    Parameters
+    ----------
+    estimators : sequence of BaseEstimator
+        Candidate sklearn estimators to evaluate.
+    param_spaces : sequence of dict
+        Parameter grids corresponding to each estimator.
+    cv : int
+        Number of cross-validation folds used in grid search.
+    scoring : str
+        Sklearn scoring metric for GridSearchCV.
+    pre_screen : bool, default False
+        When True, run statistical pre-screening tests before fitting each
+        output and skip models that are either computationally expensive
+        without justification or unlikely to improve on a linear baseline.
+        See :class:`~multioutreg.model_selection.screening.ModelScreener`.
+    """
+
+    def __init__(
+        self,
+        estimators: Sequence[BaseEstimator],
+        param_spaces: Sequence[dict],
+        cv: int = 3,
+        scoring: str = "neg_mean_squared_error",
+        pre_screen: bool = False,
+    ) -> None:
         if len(estimators) != len(param_spaces):
             raise ValueError("Each estimator must have a corresponding param space")
         self.estimators = list(estimators)
         self.param_spaces = list(param_spaces)
         self.cv = cv
         self.scoring = scoring
+        self.pre_screen = pre_screen
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> "AutoDetectMultiOutputRegressor":
         y = np.asarray(y)
         if y.ndim == 1:
             y = y.reshape(-1, 1)
 
+        # Run statistical pre-screening once across all outputs
+        _screener = None
+        if self.pre_screen and hasattr(self, "_model_names"):
+            from multioutreg.model_selection.screening import ModelScreener
+            _screener = ModelScreener().fit(X, y)
+
+        # Pre-evaluate joint multi-output surrogate candidates (models with
+        # _multi_output = True that cannot be wrapped in MultiOutputRegressor).
+        # These are scored per output so they can compete in the per-output loop.
+        _mo_scores: list[tuple] = []  # (per_output_scores, fitted_surrogate)
+        for mo_surrogate in getattr(self, "_multi_output_candidates", []):
+            mo_surrogate.fit(X, y)
+            mo_preds = np.asarray(mo_surrogate.predict(X))
+            if mo_preds.ndim == 1:
+                mo_preds = mo_preds.reshape(-1, 1)
+            # Use neg-MSE to match GridSearchCV default scoring
+            per_output_mse = [
+                -np.mean((y[:, j] - mo_preds[:, j]) ** 2)
+                for j in range(y.shape[1])
+            ]
+            _mo_scores.append((per_output_mse, mo_surrogate))
+
         self.models_ = []
         for i in range(y.shape[1]):
+            # Determine which estimator indices to evaluate for this output
+            if _screener is not None:
+                eligible = set(_screener.eligible_indices_for_output(
+                    i, self._model_names))
+            else:
+                eligible = set(range(len(self.estimators)))
+
             best_score = -np.inf
             best_est = None
             best_idx = None
             best_params = None
             for idx, (est, params) in enumerate(zip(self.estimators, self.param_spaces)):
+                if idx not in eligible:
+                    continue
                 gs = GridSearchCV(est, params, cv=self.cv, scoring=self.scoring)
                 gs.fit(X, y[:, i])
                 if gs.best_score_ > best_score:
@@ -59,10 +123,20 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
                     best_est = clone(gs.best_estimator_)
                     best_idx = idx
                     best_params = gs.best_params_
-            if best_est is None:
-                raise RuntimeError("No valid estimator found")
 
-            if hasattr(self, "_surrogate_constructors") and best_idx is not None:
+            # Check if any joint multi-output surrogate beats the single-output winner
+            best_mo_surrogate = None
+            for per_output_scores, mo_surrogate in _mo_scores:
+                if per_output_scores[i] > best_score:
+                    best_score = per_output_scores[i]
+                    best_mo_surrogate = mo_surrogate
+                    best_est = None  # signal that multi-output model won
+
+            if best_mo_surrogate is not None:
+                self.models_.append(best_mo_surrogate)
+            elif best_est is None:
+                raise RuntimeError("No valid estimator found")
+            elif hasattr(self, "_surrogate_constructors") and best_idx is not None:
                 surrogate = self._surrogate_constructors[best_idx](**best_params)
                 if isinstance(surrogate, MultiFidelitySurrogate):
                     surrogate.fit((X, y[:, [i]]))
@@ -84,6 +158,29 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             else:
                 self.estimators_.append(model)
 
+        return self
+
+    def register_multi_output_candidates(
+        self, surrogates: list
+    ) -> "AutoDetectMultiOutputRegressor":
+        """Register joint multi-output surrogate candidates.
+
+        These surrogates predict all outputs simultaneously (i.e. they set
+        ``_multi_output = True``). They are evaluated once on the full Y matrix
+        during ``fit()`` and each output's score is compared against the
+        per-output GridSearchCV winners.
+
+        Parameters
+        ----------
+        surrogates : list
+            Fitted or unfitted surrogate instances with ``fit(X, Y)`` and
+            ``predict(X)`` that return an ``(n_samples, n_outputs)`` array.
+
+        Returns
+        -------
+        self
+        """
+        self._multi_output_candidates = list(surrogates)
         return self
 
     def predict(self, X: np.ndarray, return_std: bool = False) -> np.ndarray:
@@ -125,13 +222,24 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
         cv: int = 3,
         scoring: str = "neg_mean_squared_error",
         fidelity_levels: Sequence[str] | None = None,
+        pre_screen: bool = False,
     ) -> "AutoDetectMultiOutputRegressor":
-        """Return instance configured to search all vendored surrogates."""
+        """Return instance configured to search all vendored surrogates.
+
+        Parameters
+        ----------
+        pre_screen : bool, default False
+            When True, statistical tests are run at the start of ``fit()``
+            to skip expensive models that are unlikely to help on this data.
+            Computationally heavy models (GP, SVR, MLP, heteroscedastic
+            ensembles) are only run when the data characteristics justify them.
+        """
 
         estimators = [
             LinearRegression(),
             GaussianProcessRegressor(),
             RandomForestRegressor(),
+            ExtraTreesRegressor(),
             GradientBoostingRegressor(),
             SVR(),
             KNeighborsRegressor(),
@@ -143,6 +251,7 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             {},
             {"alpha": [1e-10, 1e-2]},
             {"n_estimators": [50, 100], "max_depth": [3, 5, None]},
+            {"n_estimators": [50, 100], "max_depth": [3, 5, None]},
             {"n_estimators": [50, 100], "max_depth": [3, 5]},
             {"C": [1.0, 10.0], "gamma": ["scale", "auto"]},
             {"n_neighbors": [3, 5, 7]},
@@ -150,35 +259,39 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             {"hidden_layer_sizes": [(64,), (128,)], "alpha": [1e-4, 1e-3]},
         ]
 
-        instance = cls(estimators, param_spaces, cv=cv, scoring=scoring)
+        model_names = ["linear", "gp", "rf", "et", "gb", "svr", "knn", "dt", "mlp"]
+        surrogate_constructors = [
+            LinearRegressionSurrogate,
+            GaussianProcessSurrogate,
+            RandomForestSurrogate,
+            ExtraTreesRegressorSurrogate,
+            GradientBoostingSurrogate,
+            SVRSurrogate,
+            KNeighborsSurrogate,
+            DecisionTreeRegressorSurrogate,
+            ConformalPredictionNetworkSurrogate,
+        ]
+
+        if _NGBOOST_AVAILABLE:
+            estimators.append(_NGBRegressor(n_estimators=200, verbose=False))
+            param_spaces.append({"n_estimators": [100, 200], "learning_rate": [0.01, 0.05]})
+            model_names.append("ngboost")
+            surrogate_constructors.append(NGBoostSurrogate)
+
+        instance = cls(estimators, param_spaces, cv=cv, scoring=scoring,
+                       pre_screen=pre_screen)
+        # Short names used by ModelScreener.eligible_indices_for_output()
+        instance._model_names = model_names
 
         if fidelity_levels is None:
-            instance._surrogate_constructors = [
-                LinearRegressionSurrogate,
-                GaussianProcessSurrogate,
-                RandomForestSurrogate,
-                GradientBoostingSurrogate,
-                SVRSurrogate,
-                KNeighborsSurrogate,
-                DecisionTreeRegressorSurrogate,
-                ConformalPredictionNetworkSurrogate,
-            ]
+            instance._surrogate_constructors = surrogate_constructors
         else:
             def wrap(cls_sur):
                 return lambda **p: MultiFidelitySurrogate(
                     lambda: cls_sur(**p), fidelity_levels
                 )
 
-            instance._surrogate_constructors = [
-                wrap(LinearRegressionSurrogate),
-                wrap(GaussianProcessSurrogate),
-                wrap(RandomForestSurrogate),
-                wrap(GradientBoostingSurrogate),
-                wrap(SVRSurrogate),
-                wrap(KNeighborsSurrogate),
-                wrap(DecisionTreeRegressorSurrogate),
-                wrap(ConformalPredictionNetworkSurrogate),
-            ]
+            instance._surrogate_constructors = [wrap(c) for c in surrogate_constructors]
             instance.fidelity_levels = list(fidelity_levels)
 
         return instance

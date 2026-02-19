@@ -12,7 +12,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, Matern
 from sklearn.decomposition import PCA
-from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
+from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor, GradientBoostingRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import LinearRegression
 from sklearn.svm import SVR
@@ -50,6 +50,13 @@ from multioutreg.figures.conformal_plots import (
 )
 from multioutreg.surrogates import MultiFidelitySurrogate, LinearRegressionSurrogate
 from multioutreg.surrogates.conformal_network_sklearn import ConformalPredictionNetworkSurrogate
+from multioutreg.model_selection.screening import ModelScreener
+
+try:
+    from ngboost import NGBRegressor as _NGBRegressor
+    _NGBOOST_AVAILABLE = True
+except ImportError:
+    _NGBOOST_AVAILABLE = False
 
 # NOTE: NOT used...yet.
 from multioutreg.figures.doe_plots import make_doe_plot
@@ -78,6 +85,20 @@ class RandomForestWithUncertainty(RandomForestRegressor):
         np.ndarray or Tuple[np.ndarray, np.ndarray]
             Mean predictions or (mean, std) tuple.
         """
+        mean = super().predict(X)
+        if not return_std:
+            return mean
+        all_preds = np.stack([tree.predict(X) for tree in self.estimators_], axis=0)
+        std = all_preds.std(axis=0)
+        return mean, std
+
+
+class ExtraTreesWithUncertainty(ExtraTreesRegressor):
+    def predict(
+        self,
+        X: np.ndarray,
+        return_std: bool = False,
+    ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
         mean = super().predict(X)
         if not return_std:
             return mean
@@ -565,6 +586,17 @@ if uploaded_file:
                     step=0.01,
                 )
 
+        use_screening = st.checkbox(
+            "Pre-screen models (skip expensive/unsuitable models)",
+            help=(
+                "Runs Breusch-Pagan (heteroscedasticity), Ramsey RESET (linearity), "
+                "Shapiro-Wilk (normality), and RF–LR R² gain (non-linearity) tests "
+                "before training.  Computationally heavy models (GP, quantile GB, "
+                "heteroscedastic ensembles) are only included when the data "
+                "characteristics justify them."
+            ),
+        )
+
         use_conformal = st.checkbox("Compute conformal prediction intervals")
         conformal_alpha_sel = 0.1
         if use_conformal:
@@ -633,6 +665,7 @@ if uploaded_file:
         surrogate_defs = [
             ("gpr", GaussianProcessRegressor, {"alpha": [1e-4], "kernel": [RBF(), Matern(nu=1.5)]}),
             ("rf", RandomForestWithUncertainty, {"n_estimators": [50], "max_depth": [3, None]}),
+            ("et", ExtraTreesWithUncertainty, {"n_estimators": [50], "max_depth": [3, None]}),
             ("gb", GradientBoostingWithUncertainty, {"alpha": [0.95], "n_estimators": [50]}),
             ("knn", KNeighborsRegressorWithUncertainty, {"n_neighbors": [3]}),
             ("blr", BootstrapLinearRegression, {"n_bootstraps": [20]}),
@@ -645,6 +678,33 @@ if uploaded_file:
                 {},
             ),
         ]
+        if _NGBOOST_AVAILABLE:
+            surrogate_defs.append(
+                ("ngb", _NGBRegressor, {"n_estimators": [100, 200], "verbose": [False]})
+            )
+
+        if use_screening:
+            _screener = ModelScreener().fit(X_train, y_train)
+            _eligible = _screener.screen_per_output(list(output_cols))
+            # Keep a surrogate_def if not screened or if it passes for at least one output
+            surrogate_defs = [
+                d for d in surrogate_defs
+                if d[0] not in _eligible.index or _eligible.loc[d[0]].any()
+            ]
+            skipped = [
+                d[0] for d in [
+                    ("gpr", None, None), ("rf", None, None), ("et", None, None),
+                    ("gb", None, None), ("knn", None, None), ("blr", None, None),
+                    ("svr", None, None), ("dt", None, None), ("cpn", None, None),
+                    ("mfs_lr", None, None), ("ngb", None, None),
+                ]
+                if d[0] in _eligible.index and not _eligible.loc[d[0]].any()
+            ]
+            if skipped:
+                st.info(
+                    f"Pre-screening skipped {len(skipped)} model(s): "
+                    + ", ".join(skipped)
+                )
 
         configs = [(name, Est, params) for name, Est, grid in surrogate_defs for params in ParameterGrid(grid)]
 
