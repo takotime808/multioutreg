@@ -1,3 +1,4 @@
+# Copyright (c) 2025 takotime808
 import pandas as pd
 import numpy as np
 import warnings
@@ -206,3 +207,4 @@ class DataProcessor:
         if self.verbose:
             self.log_to_file(f"Features engineered. Shape: {df.shape}")
         return df
+

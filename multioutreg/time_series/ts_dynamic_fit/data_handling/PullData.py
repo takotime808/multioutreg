@@ -1,3 +1,4 @@
+# Copyright (c) 2025 takotime808
 from dotenv import load_dotenv
 import os
 import boto3
@@ -131,3 +132,4 @@ def pull_data() -> None:
 if __name__ == "__main__":
     print('running')
     pull_data()
+

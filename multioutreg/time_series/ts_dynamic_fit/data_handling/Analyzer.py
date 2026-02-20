@@ -1,3 +1,4 @@
+# Copyright (c) 2025 takotime808
 import pandas as pd
 
 class DataHolder:
@@ -59,3 +60,4 @@ class Analyzer:
     def combine_relevant_data(self) -> pd.DataFrame:
         combined = self.servers_per_day().join(self.customers_per_day())
         return combined
+

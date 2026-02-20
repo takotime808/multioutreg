@@ -1,3 +1,4 @@
+# Copyright (c) 2025 takotime808
 from statsmodels.tsa.stattools import adfuller, acf, pacf
 import pandas as pd 
 import numpy as np
@@ -198,3 +199,4 @@ class ARIMA:
         
 
             
+

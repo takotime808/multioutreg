@@ -1,3 +1,4 @@
+# Copyright (c) 2025 takotime808
 from pathlib import Path
 import pandas as pd
 from typing import Optional
@@ -107,3 +108,4 @@ def read_time_entries(directory: str) -> pd.DataFrame:
         return timeentries
     else:
         return pd.DataFrame()
+

@@ -1,3 +1,4 @@
+# Copyright (c) 2025 takotime808
 import json
 from algs.arima import *
 from algs.sarima import *
@@ -137,3 +138,4 @@ def plot_inference(processed_data: pd.DataFrame, future_preds: np.ndarray) -> No
     plt.legend()
     plt.tight_layout()
     plt.show()
+

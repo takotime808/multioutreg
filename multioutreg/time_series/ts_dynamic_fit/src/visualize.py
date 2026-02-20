@@ -1,3 +1,4 @@
+# Copyright (c) 2025 takotime808
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
@@ -177,3 +178,4 @@ def visualize_model(
     forecaster = ForecastAutoIntervals(model)
     forecast_df = forecaster.forecast(steps=forecast_steps)
     forecaster.plot_forecast(forecast_df, history=df)
+

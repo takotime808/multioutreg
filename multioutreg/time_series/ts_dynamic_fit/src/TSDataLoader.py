@@ -1,3 +1,4 @@
+# Copyright (c) 2025 takotime808
 from pathlib import Path
 import pandas as pd
 from pandas import DataFrame
@@ -53,3 +54,4 @@ class TSDataLoader:
         tsdata = tsdata.reset_index() 
 
         return tsdata
+

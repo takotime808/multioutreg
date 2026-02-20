@@ -1,3 +1,4 @@
+# Copyright (c) 2025 takotime808
 from sklearn.metrics import mean_absolute_error as mae
 from statsmodels.tsa.stattools import adfuller, acf, pacf
 import pandas as pd 
@@ -220,3 +221,4 @@ class SARIMA:
         
 
             
+

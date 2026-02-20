@@ -1,3 +1,4 @@
+# Copyright (c) 2025 takotime808
 from typing import Any, Optional, Union
 import numpy as np
 import pandas as pd

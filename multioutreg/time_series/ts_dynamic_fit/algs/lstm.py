@@ -1,3 +1,4 @@
+# Copyright (c) 2025 takotime808
 from keras.models import Sequential
 from keras.layers import Dense, LSTM as KerasLSTM
 from sklearn.preprocessing import MinMaxScaler
@@ -282,3 +283,4 @@ class LSTM:
             }
         }
         return metadata, self.orig_data, model
+

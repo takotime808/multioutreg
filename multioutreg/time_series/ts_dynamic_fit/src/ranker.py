@@ -1,3 +1,4 @@
+# Copyright (c) 2025 takotime808
 import pandas as pd
 import numpy as np
 import logging
@@ -57,3 +58,4 @@ class Ranker:
             logging.info("\n%s", df[['Model'] + self.metrics + [f'{m}_Rank' for m in self.metrics] + ['Avg_Rank']].to_string())
             logging.info("\nBest model: %s", best_model)
         return best_model
+
