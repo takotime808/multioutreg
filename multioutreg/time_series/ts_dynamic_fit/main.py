@@ -1,3 +1,5 @@
+# Copyright (c) 2025 takotime808
+
 from src.TSDataLoader import *
 from algs.arima import *
 from algs.sarima import *
@@ -120,3 +122,4 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     main(args)
+

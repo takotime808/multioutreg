@@ -11,7 +11,7 @@ class TSDataLoader:
     sp_hourly_sales, and TimeEntries.
     """
 
-    def __init__(self, data_dir: str = 'files/data'):
+    def __init__(self, data_dir: str = 'examples/example_data_ts/data'):
         """
         Initializes loader with target data directory.
 
