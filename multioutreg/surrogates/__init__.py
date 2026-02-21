@@ -19,6 +19,11 @@ from multioutreg.surrogates.multi_fidelity import MultiFidelitySurrogate
 from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
 from multioutreg.surrogates.bayesian_ridge_sklearn import BayesianRidgeSurrogate
 from multioutreg.surrogates.rfgp_sklearn import RFFGPSurrogate
+from multioutreg.surrogates.polynomial_bayesian_ridge_sklearn import PolynomialBayesianRidgeSurrogate
+from multioutreg.surrogates.nystroem_gp_sklearn import NystroemGPSurrogate
+from multioutreg.surrogates.gpx_smt import GPXSurrogate
+from multioutreg.surrogates.kpls_smt import KPLSSurrogate
+from multioutreg.surrogates.ard_gp_sklearn import ARDGPSurrogate
 
 __all__ = [
     "ConformalMixin",
@@ -38,5 +43,10 @@ __all__ = [
     "MixtureOfExpertsSurrogate",
     "BayesianRidgeSurrogate",
     "RFFGPSurrogate",
+    "PolynomialBayesianRidgeSurrogate",
+    "NystroemGPSurrogate",
+    "GPXSurrogate",
+    "KPLSSurrogate",
+    "ARDGPSurrogate",
 ]
 

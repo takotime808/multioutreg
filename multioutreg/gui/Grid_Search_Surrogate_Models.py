@@ -51,6 +51,9 @@ from multioutreg.figures.conformal_plots import (
 from multioutreg.surrogates import MultiFidelitySurrogate, LinearRegressionSurrogate
 from multioutreg.surrogates.conformal_network_sklearn import ConformalPredictionNetworkSurrogate
 from multioutreg.surrogates.rfgp_sklearn import _RFFEstimator
+from multioutreg.surrogates.polynomial_bayesian_ridge_sklearn import _PBREstimator
+from multioutreg.surrogates.nystroem_gp_sklearn import _NystroemEstimator
+from multioutreg.surrogates.ard_gp_sklearn import _ARDGPEstimator
 from multioutreg.model_selection.screening import ModelScreener
 
 try:
@@ -58,6 +61,9 @@ try:
     _NGBOOST_AVAILABLE = True
 except ImportError:
     _NGBOOST_AVAILABLE = False
+
+from multioutreg.surrogates.gpx_smt import _GPXEstimator, _GPX_AVAILABLE
+from multioutreg.surrogates.kpls_smt import _KPLSEstimator, _KPLS_AVAILABLE
 
 # NOTE: NOT used...yet.
 from multioutreg.figures.doe_plots import make_doe_plot
@@ -718,11 +724,22 @@ if uploaded_file:
                 {},
             ),
             ("bayesian_ridge", BayesianRidge, {}),
-            ("rfgp", _RFFEstimator, {"n_components": [100, 500], "length_scale": [0.1, 1.0, 10.0]}),
+            ("rfgp", _RFFEstimator, {"n_components": [100, 500], "length_scale": [0.1, 1.0, 10.0], "kernel": ["rbf", "matern52"]}),
+            ("pbr", _PBREstimator, {"degree": [2, 3], "interaction_only": [False, True]}),
+            ("sgp", _NystroemEstimator, {"n_components": [50, 200], "gamma": [None, 0.1, 1.0]}),
+            ("ard_gp", _ARDGPEstimator, {"alpha": [1e-6, 1e-2]}),
         ]
         if _NGBOOST_AVAILABLE:
             surrogate_defs.append(
                 ("ngb", _NGBRegressor, {"n_estimators": [100, 200], "verbose": [False]})
+            )
+        if _GPX_AVAILABLE:
+            surrogate_defs.append(
+                ("gpx", _GPXEstimator, {"corr": ["squar_exp", "matern52"], "poly": ["constant", "linear"]})
+            )
+        if _KPLS_AVAILABLE:
+            surrogate_defs.append(
+                ("kpls", _KPLSEstimator, {"n_comp": [2, 4], "corr": ["squar_exp", "matern52"]})
             )
 
         if use_screening:
@@ -740,6 +757,8 @@ if uploaded_file:
                     ("svr", None, None), ("dt", None, None), ("cpn", None, None),
                     ("mfs_lr", None, None), ("ngb", None, None),
                     ("bayesian_ridge", None, None), ("rfgp", None, None),
+                    ("pbr", None, None), ("sgp", None, None), ("gpx", None, None),
+                    ("ard_gp", None, None), ("kpls", None, None),
                 ]
                 if d[0] in _eligible.index and not _eligible.loc[d[0]].any()
             ]
@@ -749,11 +768,14 @@ if uploaded_file:
                     + ", ".join(skipped)
                 )
 
-        _EXPENSIVE_MODELS = {"gpr", "ngb", "cpn"}
+        _EXPENSIVE_MODELS = {"gpr", "ngb", "cpn", "ard_gp", "gpx", "kpls"}
         _EXPENSIVE_DISPLAY_NAMES = {
             "gpr": "Gaussian Process",
             "ngb": "NGBoost",
             "cpn": "Conformal Prediction Network",
+            "ard_gp": "ARD Gaussian Process",
+            "gpx": "GPX (Rust GP)",
+            "kpls": "KPLS (Kriging+PLS)",
         }
         if skip_expensive:
             _skipped = [d[0] for d in surrogate_defs if d[0] in _EXPENSIVE_MODELS]

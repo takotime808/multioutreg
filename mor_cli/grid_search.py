@@ -15,6 +15,12 @@ from sklearn.linear_model import BayesianRidge
 
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
 from multioutreg.surrogates.rfgp_sklearn import _RFFEstimator
+from multioutreg.surrogates.polynomial_bayesian_ridge_sklearn import _PBREstimator
+from multioutreg.surrogates.nystroem_gp_sklearn import _NystroemEstimator
+from multioutreg.surrogates.ard_gp_sklearn import _ARDGPEstimator
+
+from multioutreg.surrogates.gpx_smt import _GPXEstimator, _GPX_AVAILABLE
+from multioutreg.surrogates.kpls_smt import _KPLSEstimator, _KPLS_AVAILABLE
 from multioutreg.gui.Grid_Search_Surrogate_Models import (
     RandomForestWithUncertainty,
     GradientBoostingWithUncertainty,
@@ -85,8 +91,19 @@ def grid_search(
         ("knn", KNeighborsRegressorWithUncertainty, {"n_neighbors": [3]}),
         ("blr", BootstrapLinearRegression, {"n_bootstraps": [20]}),
         ("bayesian_ridge", BayesianRidge, {}),
-        ("rfgp", _RFFEstimator, {"n_components": [100, 500], "length_scale": [0.1, 1.0, 10.0]}),
+        ("rfgp", _RFFEstimator, {"n_components": [100, 500], "length_scale": [0.1, 1.0, 10.0], "kernel": ["rbf", "matern52"]}),
+        ("pbr", _PBREstimator, {"degree": [2, 3], "interaction_only": [False, True]}),
+        ("sgp", _NystroemEstimator, {"n_components": [50, 200], "gamma": [None, 0.1, 1.0]}),
+        ("ard_gp", _ARDGPEstimator, {"alpha": [1e-6, 1e-2]}),
     ]
+    if _GPX_AVAILABLE:
+        surrogate_defs.append(
+            ("gpx", _GPXEstimator, {"corr": ["squar_exp", "matern52"], "poly": ["constant", "linear"]})
+        )
+    if _KPLS_AVAILABLE:
+        surrogate_defs.append(
+            ("kpls", _KPLSEstimator, {"n_comp": [2, 4], "corr": ["squar_exp", "matern52"]})
+        )
 
     configs = [(name, Est, params) for name, Est, grid in surrogate_defs for params in ParameterGrid(grid)]
 

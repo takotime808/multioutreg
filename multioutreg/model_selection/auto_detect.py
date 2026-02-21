@@ -31,14 +31,25 @@ from multioutreg.surrogates import (
     MultiFidelitySurrogate,
     BayesianRidgeSurrogate,
     RFFGPSurrogate,
+    PolynomialBayesianRidgeSurrogate,
+    NystroemGPSurrogate,
+    GPXSurrogate,
+    KPLSSurrogate,
+    ARDGPSurrogate,
 )
 from multioutreg.surrogates.rfgp_sklearn import _RFFEstimator
+from multioutreg.surrogates.polynomial_bayesian_ridge_sklearn import _PBREstimator
+from multioutreg.surrogates.nystroem_gp_sklearn import _NystroemEstimator
+from multioutreg.surrogates.ard_gp_sklearn import _ARDGPEstimator
 
 try:
     from ngboost import NGBRegressor as _NGBRegressor
     _NGBOOST_AVAILABLE = True
 except ImportError:
     _NGBOOST_AVAILABLE = False
+
+from multioutreg.surrogates.gpx_smt import _GPXEstimator, _GPX_AVAILABLE
+from multioutreg.surrogates.kpls_smt import _KPLSEstimator, _KPLS_AVAILABLE
 
 class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
     """Fit a separate estimator per output choosing the best via grid search.
@@ -272,6 +283,9 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             MLPRegressor(max_iter=500),
             BayesianRidge(),
             _RFFEstimator(n_components=500, length_scale=1.0),
+            _PBREstimator(degree=2),
+            _NystroemEstimator(n_components=100),
+            _ARDGPEstimator(),
         ]
 
         param_spaces = [
@@ -285,11 +299,14 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             {"max_depth": [1, None]},
             {"hidden_layer_sizes": [(64,), (128,)], "alpha": [1e-4, 1e-3]},
             {},
-            {"n_components": [100, 500], "length_scale": [0.1, 1.0, 10.0]},
+            {"n_components": [100, 500], "length_scale": [0.1, 1.0, 10.0], "kernel": ["rbf", "matern52"]},
+            {"degree": [2, 3], "interaction_only": [False, True]},
+            {"n_components": [50, 200], "gamma": [None, 0.1, 1.0]},
+            {"alpha": [1e-6, 1e-2]},
         ]
 
         model_names = ["linear", "gp", "rf", "et", "gb", "svr", "knn", "dt", "mlp",
-                       "bayesian_ridge", "rfgp"]
+                       "bayesian_ridge", "rfgp", "pbr", "sgp", "ard_gp"]
         surrogate_constructors = [
             LinearRegressionSurrogate,
             GaussianProcessSurrogate,
@@ -302,6 +319,9 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             ConformalPredictionNetworkSurrogate,
             BayesianRidgeSurrogate,
             RFFGPSurrogate,
+            PolynomialBayesianRidgeSurrogate,
+            NystroemGPSurrogate,
+            ARDGPSurrogate,
         ]
 
         if _NGBOOST_AVAILABLE:
@@ -309,6 +329,18 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             param_spaces.append({"n_estimators": [100, 200], "learning_rate": [0.01, 0.05]})
             model_names.append("ngboost")
             surrogate_constructors.append(NGBoostSurrogate)
+
+        if _GPX_AVAILABLE:
+            estimators.append(_GPXEstimator())
+            param_spaces.append({"corr": ["squar_exp", "matern52"], "poly": ["constant", "linear"]})
+            model_names.append("gpx")
+            surrogate_constructors.append(GPXSurrogate)
+
+        if _KPLS_AVAILABLE:
+            estimators.append(_KPLSEstimator())
+            param_spaces.append({"n_comp": [2, 4], "corr": ["squar_exp", "matern52"]})
+            model_names.append("kpls")
+            surrogate_constructors.append(KPLSSurrogate)
 
         instance = cls(estimators, param_spaces, cv=cv, scoring=scoring,
                        pre_screen=pre_screen)

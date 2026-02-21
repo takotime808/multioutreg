@@ -66,6 +66,7 @@ def test_sample_size(X: np.ndarray) -> Dict[str, TestResult]:
     - ``mlp_feasible``      — N > 100  (MLP needs sufficient data)
     - ``bootstrap_needed``  — N < 500  (bootstrap LR adds value on small N)
     - ``knn_ratio_ok``      — N/p > 10 (KNN degrades in high dimensions)
+    - ``pbr_feasible``      — p < 20   (degree-2 expansion of 20+ features is expensive)
     """
     n, p = X.shape[0], X.shape[1]
     return {
@@ -84,6 +85,9 @@ def test_sample_size(X: np.ndarray) -> Dict[str, TestResult]:
         "knn_ratio_ok": TestResult(
             "KNN ratio ok (N/p>10)", n / p > 10, float(n / p), None,
             f"N/p={n/p:.1f}; KNN degrades in high dimensions"),
+        "pbr_feasible": TestResult(
+            "PBR feasible (p<20)", p < 20, float(p), None,
+            f"p={p}; degree-2 PBR creates C(p+2,2)={int((p+2)*(p+1)//2)} features"),
     }
 
 
@@ -474,6 +478,16 @@ def _eligible_for_output_j(
         # Cheap analytic-posterior models -- always eligible
         "bayesian_ridge": True,
         "rfgp":           True,
+        "sgp":            True,
+        # PBR: polynomial feature explosion becomes expensive for many inputs
+        "pbr":            size["pbr_feasible"].passed,
+        # GPX: Rust-accelerated but still O(n³) -- same gate as GP
+        "gpx":            size["gp_feasible"].passed,
+        # ARD GP: per-feature length scales, same O(n³) cost as GP
+        "ard_gp":         size["gp_feasible"].passed,
+        # KPLS: Kriging + PLS dim reduction, same O(n³) Kriging cost but
+        # designed for high-dimensional inputs (p >> n)
+        "kpls":           size["gp_feasible"].passed,
     }
 
 
