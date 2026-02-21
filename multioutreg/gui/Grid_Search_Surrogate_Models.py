@@ -14,7 +14,7 @@ from sklearn.gaussian_process.kernels import RBF, Matern
 from sklearn.decomposition import PCA
 from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor, GradientBoostingRegressor
 from sklearn.neighbors import KNeighborsRegressor
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, BayesianRidge
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.base import BaseEstimator, RegressorMixin, clone
@@ -50,6 +50,7 @@ from multioutreg.figures.conformal_plots import (
 )
 from multioutreg.surrogates import MultiFidelitySurrogate, LinearRegressionSurrogate
 from multioutreg.surrogates.conformal_network_sklearn import ConformalPredictionNetworkSurrogate
+from multioutreg.surrogates.rfgp_sklearn import _RFFEstimator
 from multioutreg.model_selection.screening import ModelScreener
 
 try:
@@ -716,6 +717,8 @@ if uploaded_file:
                 lambda: MultiFidelitySurrogate(LinearRegressionSurrogate, ["default"]),
                 {},
             ),
+            ("bayesian_ridge", BayesianRidge, {}),
+            ("rfgp", _RFFEstimator, {"n_components": [100, 500], "length_scale": [0.1, 1.0, 10.0]}),
         ]
         if _NGBOOST_AVAILABLE:
             surrogate_defs.append(
@@ -736,6 +739,7 @@ if uploaded_file:
                     ("gb", None, None), ("knn", None, None), ("blr", None, None),
                     ("svr", None, None), ("dt", None, None), ("cpn", None, None),
                     ("mfs_lr", None, None), ("ngb", None, None),
+                    ("bayesian_ridge", None, None), ("rfgp", None, None),
                 ]
                 if d[0] in _eligible.index and not _eligible.loc[d[0]].any()
             ]

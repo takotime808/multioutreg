@@ -11,8 +11,10 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, r
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, Matern
 from sklearn.decomposition import PCA
+from sklearn.linear_model import BayesianRidge
 
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
+from multioutreg.surrogates.rfgp_sklearn import _RFFEstimator
 from multioutreg.gui.Grid_Search_Surrogate_Models import (
     RandomForestWithUncertainty,
     GradientBoostingWithUncertainty,
@@ -82,6 +84,8 @@ def grid_search(
         ("gb", GradientBoostingWithUncertainty, {"alpha": [0.95], "n_estimators": [50]}),
         ("knn", KNeighborsRegressorWithUncertainty, {"n_neighbors": [3]}),
         ("blr", BootstrapLinearRegression, {"n_bootstraps": [20]}),
+        ("bayesian_ridge", BayesianRidge, {}),
+        ("rfgp", _RFFEstimator, {"n_components": [100, 500], "length_scale": [0.1, 1.0, 10.0]}),
     ]
 
     configs = [(name, Est, params) for name, Est, grid in surrogate_defs for params in ParameterGrid(grid)]

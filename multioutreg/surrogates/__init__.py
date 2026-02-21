@@ -17,6 +17,8 @@ from multioutreg.surrogates.ngboost_sklearn import NGBoostSurrogate
 from multioutreg.surrogates.bnn_pytorch import BNNSurrogate
 from multioutreg.surrogates.multi_fidelity import MultiFidelitySurrogate
 from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
+from multioutreg.surrogates.bayesian_ridge_sklearn import BayesianRidgeSurrogate
+from multioutreg.surrogates.rfgp_sklearn import RFFGPSurrogate
 
 __all__ = [
     "ConformalMixin",
@@ -34,5 +36,7 @@ __all__ = [
     "BNNSurrogate",
     "MultiFidelitySurrogate",
     "MixtureOfExpertsSurrogate",
+    "BayesianRidgeSurrogate",
+    "RFFGPSurrogate",
 ]
 

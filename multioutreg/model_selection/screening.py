@@ -460,17 +460,20 @@ def _eligible_for_output_j(
         "GradientBoosting_Quantile": hetero,
         "EnsembleHeteroscedastic":   hetero,
         # generic fallback for any unrecognised name
-        "linear":    True,
-        "gp":        size["gp_feasible"].passed,
-        "rf":        needs_nonlin,
-        "gb":        needs_nonlin,
-        "svr":       size["svr_feasible"].passed,
-        "knn":       size["knn_ratio_ok"].passed,
-        "dt":        True,
-        "mlp":       needs_nonlin and size["mlp_feasible"].passed,
-        "blr":       size["bootstrap_needed"].passed,
-        "cpn":       needs_nonlin and size["mlp_feasible"].passed,
-        "mfs_lr":    True,
+        "linear":         True,
+        "gp":             size["gp_feasible"].passed,
+        "rf":             needs_nonlin,
+        "gb":             needs_nonlin,
+        "svr":            size["svr_feasible"].passed,
+        "knn":            size["knn_ratio_ok"].passed,
+        "dt":             True,
+        "mlp":            needs_nonlin and size["mlp_feasible"].passed,
+        "blr":            size["bootstrap_needed"].passed,
+        "cpn":            needs_nonlin and size["mlp_feasible"].passed,
+        "mfs_lr":         True,
+        # Cheap analytic-posterior models -- always eligible
+        "bayesian_ridge": True,
+        "rfgp":           True,
     }
 
 

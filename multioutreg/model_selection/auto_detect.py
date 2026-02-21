@@ -11,7 +11,7 @@ from sklearn.base import BaseEstimator, RegressorMixin, clone
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import ExtraTreesRegressor, GradientBoostingRegressor, RandomForestRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, BayesianRidge
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
@@ -29,7 +29,10 @@ from multioutreg.surrogates import (
     ExtraTreesRegressorSurrogate,
     NGBoostSurrogate,
     MultiFidelitySurrogate,
+    BayesianRidgeSurrogate,
+    RFFGPSurrogate,
 )
+from multioutreg.surrogates.rfgp_sklearn import _RFFEstimator
 
 try:
     from ngboost import NGBRegressor as _NGBRegressor
@@ -267,6 +270,8 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             KNeighborsRegressor(),
             DecisionTreeRegressor(),
             MLPRegressor(max_iter=500),
+            BayesianRidge(),
+            _RFFEstimator(n_components=500, length_scale=1.0),
         ]
 
         param_spaces = [
@@ -279,9 +284,12 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             {"n_neighbors": [3, 5, 7]},
             {"max_depth": [1, None]},
             {"hidden_layer_sizes": [(64,), (128,)], "alpha": [1e-4, 1e-3]},
+            {},
+            {"n_components": [100, 500], "length_scale": [0.1, 1.0, 10.0]},
         ]
 
-        model_names = ["linear", "gp", "rf", "et", "gb", "svr", "knn", "dt", "mlp"]
+        model_names = ["linear", "gp", "rf", "et", "gb", "svr", "knn", "dt", "mlp",
+                       "bayesian_ridge", "rfgp"]
         surrogate_constructors = [
             LinearRegressionSurrogate,
             GaussianProcessSurrogate,
@@ -292,6 +300,8 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             KNeighborsSurrogate,
             DecisionTreeRegressorSurrogate,
             ConformalPredictionNetworkSurrogate,
+            BayesianRidgeSurrogate,
+            RFFGPSurrogate,
         ]
 
         if _NGBOOST_AVAILABLE:
