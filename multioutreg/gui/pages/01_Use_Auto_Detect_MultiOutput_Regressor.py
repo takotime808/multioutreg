@@ -390,6 +390,29 @@ if uploaded_file:
         key="use_bnn",
     )
 
+    use_moe = st.checkbox(
+        "Include MoE (Mixture of Experts) as a joint multi-output candidate",
+        value=False,
+        help="Trains K expert regressors specialised to different input regions via a learned gating network.",
+        key="use_moe",
+    )
+    moe_n_experts = 4
+    moe_gating_type = "linear"
+    if use_moe:
+        moe_n_experts = st.slider(
+            "MoE: Number of experts",
+            min_value=2,
+            max_value=8,
+            value=4,
+            step=1,
+            key="moe_n_experts",
+        )
+        moe_gating_type = st.selectbox(
+            "MoE: Gating type",
+            ["linear", "mlp"],
+            key="moe_gating_type",
+        )
+
     skip_expensive = st.checkbox(
         "Skip computationally expensive models",
         help=(
@@ -414,6 +437,9 @@ if uploaded_file:
         use_conformal = st.session_state.use_conformal
         conformal_alpha_sel = st.session_state.conformal_alpha
         use_bnn = st.session_state.use_bnn
+        use_moe = st.session_state.use_moe
+        moe_n_experts = st.session_state.get("moe_n_experts", 4)
+        moe_gating_type = st.session_state.get("moe_gating_type", "linear")
         skip_expensive = st.session_state.skip_expensive
 
         X = df[input_cols].values
@@ -469,11 +495,23 @@ if uploaded_file:
             used_feature_names = feature_names_pca
 
         model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
+        _mo_candidates = []
         if use_bnn and _torch_available:
             from multioutreg.surrogates.bnn_pytorch import BNNSurrogate
-            model.register_multi_output_candidates([
+            _mo_candidates.append(
                 BNNSurrogate(hidden_layer_sizes=(128, 64), max_epochs=300, random_state=0)
-            ])
+            )
+        if use_moe:
+            from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
+            _mo_candidates.append(
+                MixtureOfExpertsSurrogate(
+                    n_experts=moe_n_experts,
+                    gating_type=moe_gating_type,
+                    random_state=0,
+                )
+            )
+        if _mo_candidates:
+            model.register_multi_output_candidates(_mo_candidates)
 
         _EXPENSIVE_MODEL_NAMES = {"gp", "mlp", "ngboost"}
         _EXPENSIVE_DISPLAY_NAMES = {
