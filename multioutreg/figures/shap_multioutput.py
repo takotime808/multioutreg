@@ -58,12 +58,20 @@ def plot_multioutput_shap_bar_subplots(
         output_names = [f"Output {i}" for i in range(n_outputs)]
 
     for i, estimator in enumerate(model.estimators_):
+        # Build a scalar predict function: if the slot-estimator is multi-output
+        # (e.g. MoE stored in estimators_), slice the correct column.
+        _test = np.asarray(estimator.predict(X[:1]))
+        if _test.ndim == 2 and _test.shape[1] > 1:
+            _predict_fn = lambda X_, _est=estimator, _i=i: np.asarray(_est.predict(X_))[:, _i]
+        else:
+            _predict_fn = estimator.predict
+
         # Try a fast TreeExplainer; fall back to the model-agnostic Explainer
         try:
             explainer = shap.TreeExplainer(estimator)
             shap_values = explainer.shap_values(X)
         except Exception:
-            explainer = shap.Explainer(estimator.predict, X)
+            explainer = shap.Explainer(_predict_fn, X)
             shap_values = explainer(X)
             # ``shap_values`` can be either an Explanation or ndarray
             shap_values = getattr(shap_values, "values", shap_values)
@@ -107,7 +115,8 @@ def generate_shap_plot(
     Parameters
     ----------
     model : Any
-        Multi-output model with `estimators_` attribute.
+        Multi-output model.  May expose ``estimators_`` (one per output) or
+        may be a joint multi-output model (e.g. MixtureOfExpertsSurrogate).
     X : np.ndarray
         Input features used to compute SHAP values.
     output_names : List[str]
@@ -120,17 +129,35 @@ def generate_shap_plot(
     """
     plots = {}
     for i, name in enumerate(output_names):
-        def plot_fn():
+        # Build a 1-D predict function for output i, capturing i and name by value.
+        if hasattr(model, "estimators_") and i < len(model.estimators_):
             est = model.estimators_[i]
+            # Guard: if the slot-estimator is itself multi-output (e.g. MoE stored
+            # in estimators_), slice the correct column so SHAP receives 1-D output.
+            _test = np.asarray(est.predict(X[:1]))
+            if _test.ndim == 2 and _test.shape[1] > 1:
+                predict_fn = lambda X_, _est=est, _i=i: np.asarray(_est.predict(X_))[:, _i]
+            else:
+                predict_fn = est.predict
+        else:
+            # Joint multi-output model without per-output estimators_ (e.g. raw MoE).
+            predict_fn = lambda X_, _i=i: np.asarray(model.predict(X_)).reshape(len(X_), -1)[:, _i]
+
+        def plot_fn(_pfn=predict_fn, _name=name):
             try:
-                explainer = shap.Explainer(est.predict, X)  # safer, functional interface
+                explainer = shap.Explainer(_pfn, X)
                 shap_values = explainer(X)
                 shap.summary_plot(shap_values, X, show=False)
-                plt.title(f"SHAP for {name}")
-            except Exception as e:
+                plt.title(f"SHAP for {_name}")
+            except Exception:
                 plt.figure()
-                plt.text(0.5, 0.5, f"SHAP not supported for {type(est).__name__}", ha="center")
+                plt.text(
+                    0.5, 0.5,
+                    f"SHAP not supported for {type(model).__name__}",
+                    ha="center",
+                )
                 plt.axis("off")
+
         plots[name] = plot_to_b64(plot_fn)
     return plots
 

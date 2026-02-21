@@ -101,6 +101,10 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             _mo_scores.append((per_output_mse, mo_surrogate))
 
         self.models_ = []
+        # _model_output_col[i] = which column of models_[i].predict(X) gives output i.
+        # Multi-output models store the full (n_samples, n_outputs) matrix and we
+        # slice a single column per slot; single-output models always return column 0.
+        self._model_output_col: list[int] = []
         for i in range(y.shape[1]):
             # Determine which estimator indices to evaluate for this output
             if _screener is not None:
@@ -134,6 +138,7 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
 
             if best_mo_surrogate is not None:
                 self.models_.append(best_mo_surrogate)
+                self._model_output_col.append(i)  # column i of the joint prediction
             elif best_est is None:
                 raise RuntimeError("No valid estimator found")
             elif hasattr(self, "_surrogate_constructors") and best_idx is not None:
@@ -143,9 +148,11 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
                 else:
                     surrogate.fit(X, y[:, [i]])
                 self.models_.append(surrogate)
+                self._model_output_col.append(0)  # single-output, always column 0
             else:
                 best_est.fit(X, y[:, i])
                 self.models_.append(best_est)
+                self._model_output_col.append(0)  # single-output, always column 0
 
         # expose base estimators for compatibility with plotting utilities
         self.estimators_ = []
@@ -188,27 +195,42 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             raise AttributeError("Estimator not fitted")
         preds = []
         stds = []
-        for model in self.models_:
-            if return_std:
-                try:
-                    pred, std = model.predict(X, return_std=True)
-                except TypeError:
+        # Cache full prediction matrices keyed by model id so that multi-output
+        # models shared across several output slots are only called once.
+        # _model_output_col[i] stores which column of models_[i]'s prediction
+        # corresponds to output i (set during fit()).
+        _cache: dict[int, tuple] = {}  # id(model) -> (pred_2d, std_2d_or_None)
+        _model_cols = getattr(self, "_model_output_col", [0] * len(self.models_))
+        for model, col in zip(self.models_, _model_cols):
+            mid = id(model)
+            if mid not in _cache:
+                if return_std:
+                    try:
+                        pred, std = model.predict(X, return_std=True)
+                    except TypeError:
+                        pred = model.predict(X)
+                        std = np.zeros_like(pred)
+                else:
                     pred = model.predict(X)
-                    std = np.zeros_like(pred)
-            else:
-                pred = model.predict(X)
-                std = None
+                    std = None
 
-            pred = np.asarray(pred)
-            if pred.ndim == 1:
-                pred = pred.reshape(-1, 1)
-            preds.append(pred)
+                pred = np.asarray(pred)
+                if pred.ndim == 1:
+                    pred = pred.reshape(-1, 1)
+                if return_std and std is not None:
+                    std = np.asarray(std)
+                    if std.ndim == 1:
+                        std = std.reshape(-1, 1)
+                _cache[mid] = (pred, std)
 
+            full_pred, full_std = _cache[mid]
+            preds.append(full_pred[:, col : col + 1])
             if return_std:
-                std = np.asarray(std)
-                if std.ndim == 1:
-                    std = std.reshape(-1, 1)
-                stds.append(std)
+                stds.append(
+                    full_std[:, col : col + 1]
+                    if full_std is not None
+                    else np.zeros((X.shape[0], 1))
+                )
 
         pred_mat = np.column_stack(preds)
         if return_std:

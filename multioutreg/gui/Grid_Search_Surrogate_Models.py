@@ -612,6 +612,26 @@ if uploaded_file:
         ),
     )
 
+    use_moe = st.checkbox(
+        "Include MoE (Mixture of Experts) as a joint multi-output candidate",
+        value=False,
+        help="Trains K expert regressors specialised to different input regions via a learned gating network. Evaluated alongside per-target models.",
+    )
+    moe_n_experts = 4
+    moe_gating_type = "linear"
+    if use_moe:
+        moe_n_experts = st.slider(
+            "MoE: Number of experts",
+            min_value=2,
+            max_value=8,
+            value=4,
+            step=1,
+        )
+        moe_gating_type = st.selectbox(
+            "MoE: Gating type",
+            ["linear", "mlp"],
+        )
+
     with st.form("column_selection"):
         input_cols = st.multiselect("Select input features", options=df.columns)
         output_cols = st.multiselect("Select output targets", options=df.columns)
@@ -763,6 +783,32 @@ if uploaded_file:
                     best_model = model
             except Exception:
                 continue
+
+        # Evaluate MoE as a joint multi-output candidate and replace best model if it wins
+        if use_moe:
+            from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
+            try:
+                moe = MixtureOfExpertsSurrogate(
+                    n_experts=moe_n_experts,
+                    gating_type=moe_gating_type,
+                    random_state=0,
+                )
+                moe.fit(X_train, y_train)
+                moe_pred, moe_std = moe.predict(X_test, return_std=True)
+                moe_score = mean_squared_error(y_test, moe_pred)
+                if moe_score < best_score:
+                    best_score = moe_score
+                    best_pred = moe_pred
+                    best_std = moe_std
+                    best_model = moe
+                    best_combo = [{
+                        "model": "MixtureOfExpertsSurrogate",
+                        "n_experts": moe_n_experts,
+                        "gating_type": moe_gating_type,
+                    }]
+                    st.info("MoE outperformed all per-target models and was selected.")
+            except Exception as exc:
+                st.warning(f"MoE evaluation failed: {exc}")
 
         # # Show seaborn PairGrid plot with KDE in lower triangle
         # if df.shape[1] >= 2:

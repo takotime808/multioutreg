@@ -34,6 +34,9 @@ def grid_search(
     pca_method: Optional[str] = typer.Option(None, help="PCA selection method: Manual, Explained variance threshold, Kaiser rule"),
     n_components: Optional[int] = typer.Option(None, help="Number of PCA components when manual"),
     pca_threshold: Optional[float] = typer.Option(None, help="Explained variance threshold"),
+    use_moe: bool = typer.Option(False, help="Include MoE (Mixture of Experts) as a joint multi-output candidate"),
+    moe_n_experts: int = typer.Option(4, help="Number of MoE experts"),
+    moe_gating_type: str = typer.Option("linear", help="MoE gating type: linear or mlp"),
     description: str = typer.Option("", help="Project description"),
     out_html: str = typer.Option("model_report.html", help="Output HTML file"),
 ) -> None:
@@ -104,6 +107,31 @@ def grid_search(
                 best_model = model
         except Exception:
             continue
+
+    if use_moe:
+        from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
+        try:
+            moe = MixtureOfExpertsSurrogate(
+                n_experts=moe_n_experts,
+                gating_type=moe_gating_type,
+                random_state=0,
+            )
+            moe.fit(X_train, y_train)
+            moe_pred, moe_std = moe.predict(X_test, return_std=True)
+            moe_score = mean_squared_error(y_test, moe_pred)
+            if moe_score < best_score:
+                best_score = moe_score
+                best_pred = moe_pred
+                best_std = moe_std
+                best_model = moe
+                best_combo = [{
+                    "model": "MixtureOfExpertsSurrogate",
+                    "n_experts": moe_n_experts,
+                    "gating_type": moe_gating_type,
+                }]
+                typer.echo("MoE outperformed all per-target models and was selected.")
+        except Exception as exc:
+            typer.echo(f"Warning: MoE evaluation failed: {exc}", err=True)
 
     metrics = {}
     for i, name in enumerate(out_cols):

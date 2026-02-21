@@ -16,6 +16,7 @@ from multioutreg.surrogates.extra_trees_sklearn import ExtraTreesRegressorSurrog
 from multioutreg.surrogates.ngboost_sklearn import NGBoostSurrogate
 from multioutreg.surrogates.bnn_pytorch import BNNSurrogate
 from multioutreg.surrogates.multi_fidelity import MultiFidelitySurrogate
+from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
 
 __all__ = [
     "ConformalMixin",
@@ -32,5 +33,6 @@ __all__ = [
     "NGBoostSurrogate",
     "BNNSurrogate",
     "MultiFidelitySurrogate",
+    "MixtureOfExpertsSurrogate",
 ]
 

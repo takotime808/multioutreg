@@ -36,6 +36,9 @@ def grid_search_auto_detect(
     pca_threshold: Optional[float] = typer.Option(None, help="Explained variance threshold"),
     conformal: bool = typer.Option(False, help="Compute conformal prediction intervals"),
     conformal_alpha: float = typer.Option(0.1, help="Conformal miscoverage level (e.g. 0.1 for 90%% intervals)"),
+    use_moe: bool = typer.Option(False, help="Include MoE (Mixture of Experts) as a joint multi-output candidate"),
+    moe_n_experts: int = typer.Option(4, help="Number of MoE experts"),
+    moe_gating_type: str = typer.Option("linear", help="MoE gating type: linear or mlp"),
     description: str = typer.Option("", help="Project description"),
     out_html: str = typer.Option("model_report_auto.html", help="Output HTML file"),
 ) -> None:
@@ -76,6 +79,15 @@ def grid_search_auto_detect(
         kaiser_rule_suggestion = f"Kaiser rule suggests **{kaiser_k}** components (eigenvalues > 1)."
 
     model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
+    if use_moe:
+        from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
+        model.register_multi_output_candidates([
+            MixtureOfExpertsSurrogate(
+                n_experts=moe_n_experts,
+                gating_type=moe_gating_type,
+                random_state=0,
+            )
+        ])
     model.fit(X_train, y_train)
     best_pred, best_std = model.predict(X_test, return_std=True)
     best_model = model
