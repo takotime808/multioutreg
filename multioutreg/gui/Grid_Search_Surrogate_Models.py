@@ -68,6 +68,7 @@ from multioutreg.surrogates.kpls_smt import _KPLSEstimator, _KPLS_AVAILABLE
 # NOTE: NOT used...yet.
 from multioutreg.figures.doe_plots import make_doe_plot
 from multioutreg.figures.model_comparison import plot_surrogate_model_summary
+from multioutreg.utils.imputation import detect_missing, apply_imputation
 
 
 # ----- Surrogate Models with Uncertainty -----
@@ -350,6 +351,7 @@ def generate_html_report(
     kaiser_rule_suggestion: str | None = None,
     conformal_intervals: tuple | None = None,
     conformal_alpha: float | None = None,
+    imputation_summary: dict | None = None,
 ) -> str:
     """
     Generate an HTML report from model training and evaluation results.
@@ -538,6 +540,7 @@ def generate_html_report(
         pca_n_components=pca_n_components,
         kaiser_rule_suggestion=kaiser_rule_suggestion,
         conformal_plots=conformal_plots_list,
+        imputation_summary=imputation_summary,
     )
     return rendered
 
@@ -553,6 +556,23 @@ uploaded_file = st.file_uploader(
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
     st.write("## Preview of Data:", df.head())
+
+    # Missing value detection and per-column imputation choices
+    _missing_summary = detect_missing(df)
+    _impute_choices: Dict[str, str] = {}
+    if not _missing_summary.empty:
+        st.warning(
+            f"{int(_missing_summary['missing_count'].sum())} missing value(s) detected "
+            f"across {len(_missing_summary)} column(s)."
+        )
+        st.dataframe(_missing_summary)
+        st.write("**Choose how to handle missing values per column:**")
+        for _col in _missing_summary.index:
+            _impute_choices[_col] = st.selectbox(
+                f"`{_col}`",
+                ["Impute (KNN)", "Drop rows"],
+                key=f"imp_{_col}",
+            )
 
     # Move PCA outside the streamlit form, so options appear before pressing run grid search button
     use_pca = st.checkbox("Apply PCA to input features", key="use_pca")
@@ -657,6 +677,45 @@ if uploaded_file:
         pca_method = st.session_state.get("pca_method")
         n_components = st.session_state.get("pca_n_components")
         pca_threshold = st.session_state.get("pca_threshold")
+
+        # Apply imputation / row-dropping for the selected columns before training
+        _all_selected_cols = list(input_cols) + list(output_cols)
+        _cols_to_impute = [
+            c for c in _all_selected_cols
+            if st.session_state.get(f"imp_{c}") == "Impute (KNN)"
+        ]
+        _cols_to_drop = [
+            c for c in _all_selected_cols
+            if st.session_state.get(f"imp_{c}") == "Drop rows"
+        ]
+        _rows_before = len(df)
+        if _cols_to_impute or _cols_to_drop:
+            df = apply_imputation(df, _cols_to_impute, _cols_to_drop)
+        _rows_after = len(df)
+        _imputation_summary = None
+        if _cols_to_impute or _cols_to_drop:
+            _summary_cols = []
+            for _c in _cols_to_impute:
+                if _c in _missing_summary.index:
+                    _summary_cols.append({
+                        "name": _c,
+                        "action": "Imputed (KNN)",
+                        "missing_count": int(_missing_summary.loc[_c, "missing_count"]),
+                        "missing_pct": float(_missing_summary.loc[_c, "missing_pct"]),
+                    })
+            for _c in _cols_to_drop:
+                if _c in _missing_summary.index:
+                    _summary_cols.append({
+                        "name": _c,
+                        "action": "Rows dropped",
+                        "missing_count": int(_missing_summary.loc[_c, "missing_count"]),
+                        "missing_pct": float(_missing_summary.loc[_c, "missing_pct"]),
+                    })
+            _imputation_summary = {
+                "rows_before": _rows_before,
+                "rows_after": _rows_after,
+                "columns": _summary_cols,
+            }
 
         X = df[input_cols].values
         y = df[output_cols].values
@@ -926,6 +985,7 @@ if uploaded_file:
             kaiser_rule_suggestion=kaiser_rule_suggestion,
             conformal_intervals=conformal_intervals if use_conformal else None,
             conformal_alpha=conformal_alpha_sel if use_conformal else None,
+            imputation_summary=_imputation_summary,
         )
 
         st.download_button("Download HTML Report", html, file_name="model_report.html", mime="text/html")
