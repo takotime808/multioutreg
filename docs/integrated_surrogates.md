@@ -42,7 +42,9 @@ expose a `predict(X, return_std=True)` interface and are compatible with
 | **ConformalPredictionNetworkSurrogate** | scikit-learn `MLPRegressor` + split-conformal calibration | Per-output (MultiOutputRegressor) | `MultiOutputRegressor` | ✗ | `MultiFidelitySurrogate` wrapper | ✓ | ✗ | ✓ | ✓ | O(n·layers·epochs) | — | `mlp`/`cpn` — N > 100, nonlinear | Neural network with distribution-free coverage guarantees; preferred when interval coverage matters more than Bayesian calibration | AD, GS |
 | **BNNSurrogate** | PyTorch fully-connected network + MC Dropout | Joint (`_multi_output = True`) | Native joint architecture | ✗ | `MultiFidelitySurrogate` wrapper | ✗ | ✗ | ✗ | ✗ | O(n·epochs·layers) | `pip install torch` | _(not screened)_ | Deep nonlinear model; joint output prediction captures inter-output correlations; best for n > 500 and complex response surfaces | N/A (opt-in) |
 | **MixtureOfExpertsSurrogate** | Custom hard-EM gating network + K expert surrogates | Joint (`_multi_output = True`) | Native joint architecture | ✗ | `MultiFidelitySurrogate` wrapper | ✗ | ✓ (via `--use-moe`) | ✗ | ✓ (via checkbox) | O(K × expert\_cost) | — | _(not screened)_ | Heterogeneous response surfaces where different input regions are governed by qualitatively different model families | N/A (opt-in) |
-| **MultiFidelitySurrogate** | Composes around any `BaseSurrogate` | Wrapper (per wrapped surrogate) | Delegates to wrapped surrogate | ✓ | Native (is the wrapper) | ✗ | ✗ | ✗ | ✓ (as `mfs_lr`) | _(wrapped surrogate)_ | _(wrapped surrogate)_ | _(not screened)_ | Multi-fidelity datasets (e.g. coarse + fine simulation); maintains one surrogate instance per fidelity level | N/A (wrapper) |
+| **MultiFidelitySurrogate** | Composes around any `BaseSurrogate` | Wrapper (per wrapped surrogate) | Delegates to wrapped surrogate | ✓ | Native (is the wrapper) | ✗ | ✗ | ✗ | ✓ (as `mfs_lr`) | _(wrapped surrogate)_ | _(wrapped surrogate)_ | _(not screened)_ | Multi-fidelity datasets (e.g. coarse + fine simulation); maintains one surrogate instance per fidelity level — **no cross-fidelity coupling** | N/A (wrapper) |
+| **StackedVFMSurrogate** | Composes around any surrogate(s) (default: `RandomForestSurrogate`) | Joint (`_multi_output = True`) | Delegates to per-level surrogates; level k input = `[X_k \| f₀(X_k) \| f₁(...)]` | ✓ | Native (recursive feature augmentation) | ✗ | ✗ | ✗ | ✗ | _(sum of per-level surrogate costs)_ | — | _(not screened)_ | Nonlinear multi-fidelity with N ≥ 2 levels; each level corrects the previous via augmented features; any surrogate mix per level; `augment_with_std=True` pipes uncertainty as features (Perdikaris et al. 2017) | N/A (opt-in) |
+| **AdditiveCorrectionVFM** | Composes around any two surrogates (default: `RandomForestSurrogate` lo, `GaussianProcessSurrogate` delta) | Joint (`_multi_output = True`) | Two-surrogate composition: `f_hi = f_lo + δ` | ✓ | Native (additive correction) | ✗ | ✗ | ✗ | ✗ | _(lo cost + delta cost)_ | — | _(not screened)_ | Two-level additive correction (Kennedy–O'Hagan AR1); learns residual `δ = Y_hi − f_lo(X_hi)`; uncertainty combined in quadrature `σ_hi = √(σ_lo² + σ_δ²)`; `predict_components()` for diagnostics | N/A (opt-in) |
 
 ## Notes
 
@@ -59,8 +61,9 @@ and manually stack per-column predictions. Functionally equivalent to `MultiOutp
 necessary when the underlying API (e.g. SMT) does not conform to the sklearn estimator interface,
 or when per-output hyperparameters (e.g. per-output random seeds) are required.
 
-**Joint (`_multi_output = True`)** — `BNNSurrogate` and `MixtureOfExpertsSurrogate` predict all
-outputs simultaneously from a shared architecture. Inter-output correlations can be captured.
+**Joint (`_multi_output = True`)** — `BNNSurrogate`, `MixtureOfExpertsSurrogate`,
+`StackedVFMSurrogate`, and `AdditiveCorrectionVFM` predict all outputs simultaneously from a
+shared architecture (or composition). Inter-output correlations can be captured.
 These cannot be wrapped in `MultiOutputRegressor` and are not included in the standard AutoDetect
 grid search (they require a separate evaluation path).
 

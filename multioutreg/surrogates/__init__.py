@@ -16,6 +16,7 @@ from multioutreg.surrogates.extra_trees_sklearn import ExtraTreesRegressorSurrog
 from multioutreg.surrogates.ngboost_sklearn import NGBoostSurrogate
 from multioutreg.surrogates.bnn_pytorch import BNNSurrogate
 from multioutreg.surrogates.multi_fidelity import MultiFidelitySurrogate
+from multioutreg.surrogates.stacked_vfm import StackedVFMSurrogate, AdditiveCorrectionVFM
 from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
 from multioutreg.surrogates.bayesian_ridge_sklearn import BayesianRidgeSurrogate
 from multioutreg.surrogates.rfgp_sklearn import RFFGPSurrogate
@@ -40,6 +41,8 @@ __all__ = [
     "NGBoostSurrogate",
     "BNNSurrogate",
     "MultiFidelitySurrogate",
+    "StackedVFMSurrogate",
+    "AdditiveCorrectionVFM",
     "MixtureOfExpertsSurrogate",
     "BayesianRidgeSurrogate",
     "RFFGPSurrogate",
