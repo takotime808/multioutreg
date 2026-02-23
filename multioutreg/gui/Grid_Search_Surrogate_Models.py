@@ -12,7 +12,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, r
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, Matern
 from sklearn.decomposition import PCA
-from sklearn.ensemble import ExtraTreesRegressor, RandomForestRegressor, GradientBoostingRegressor
+from sklearn.ensemble import ExtraTreesRegressor, HistGradientBoostingRegressor, RandomForestRegressor, GradientBoostingRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import LinearRegression, BayesianRidge
 from sklearn.svm import SVR
@@ -64,6 +64,8 @@ except ImportError:
 
 from multioutreg.surrogates.gpx_smt import _GPXEstimator, _GPX_AVAILABLE
 from multioutreg.surrogates.kpls_smt import _KPLSEstimator, _KPLS_AVAILABLE
+from multioutreg.surrogates.lightgbm_sklearn import _LIGHTGBM_AVAILABLE, _LGBMRegressor
+from multioutreg.surrogates.xgboost_sklearn import _XGBOOST_AVAILABLE, _XGBRegressor
 
 # NOTE: NOT used...yet.
 from multioutreg.figures.doe_plots import make_doe_plot
@@ -574,90 +576,92 @@ if uploaded_file:
                 key=f"imp_{_col}",
             )
 
-    # Move PCA outside the streamlit form, so options appear before pressing run grid search button
-    use_pca = st.checkbox("Apply PCA to input features", key="use_pca")
-    pca_method = None
-    n_components = None
-    pca_threshold = None
-    if use_pca:
-        pca_method = st.selectbox(
-            "PCA component selection method",
-            ["Manual", "Explained variance threshold", "Kaiser rule"],
-            key="pca_method",
-        )
-        if pca_method == "Manual":
-            n_components = st.number_input(
-                "Number of PCA components",
-                min_value=1,
-                max_value=len(df.columns),
-                value=min(2, len(df.columns)),
-                step=1,
-                key="pca_n_components",
+    with st.expander("⚙️ Advanced Settings", expanded=False):
+        # PCA
+        use_pca = st.checkbox("Apply PCA to input features", key="use_pca")
+        pca_method = None
+        n_components = None
+        pca_threshold = None
+        if use_pca:
+            pca_method = st.selectbox(
+                "PCA component selection method",
+                ["Manual", "Explained variance threshold", "Kaiser rule"],
+                key="pca_method",
             )
-        elif pca_method == "Explained variance threshold":
-            pca_threshold = st.slider(
-                "Explained variance threshold",
-                min_value=0.5,
-                max_value=0.99,
-                value=0.9,
+            if pca_method == "Manual":
+                n_components = st.number_input(
+                    "Number of PCA components",
+                    min_value=1,
+                    max_value=len(df.columns),
+                    value=min(2, len(df.columns)),
+                    step=1,
+                    key="pca_n_components",
+                )
+            elif pca_method == "Explained variance threshold":
+                pca_threshold = st.slider(
+                    "Explained variance threshold",
+                    min_value=0.5,
+                    max_value=0.99,
+                    value=0.9,
+                    step=0.01,
+                    key="pca_threshold",
+                )
+
+        # Conformal prediction
+        use_conformal = st.checkbox("Compute conformal prediction intervals", key="use_conformal")
+        conformal_alpha_sel = 0.1
+        if use_conformal:
+            conformal_alpha_sel = st.slider(
+                "Conformal alpha (miscoverage level)",
+                min_value=0.01,
+                max_value=0.5,
+                value=0.1,
                 step=0.01,
-                key="pca_threshold",
+                disabled=not use_conformal,
+                key="conformal_alpha",
             )
 
-    # Move conformal prediction option out of streamlit form so slider appears before pressing button to run grid search
-    use_conformal = st.checkbox("Compute conformal prediction intervals", key="use_conformal")
-    conformal_alpha_sel = 0.1
-    if use_conformal:
-        conformal_alpha_sel = st.slider(
-            "Conformal alpha (miscoverage level)",
-            min_value=0.01,
-            max_value=0.5,
-            value=0.1,
-            step=0.01,
-            disabled=not use_conformal,
-            key="conformal_alpha",
+        # Model screening
+        use_screening = st.checkbox(
+            "Pre-screen models (skip expensive/unsuitable models)",
+            help=(
+                "Runs Breusch-Pagan (heteroscedasticity), Ramsey RESET (linearity), "
+                "Shapiro-Wilk (normality), and RF–LR R² gain (non-linearity) tests "
+                "before training.  Computationally heavy models (GP, quantile GB, "
+                "heteroscedastic ensembles) are only included when the data "
+                "characteristics justify them."
+            ),
         )
 
-    # Move checkbox outside of streamlit form, for consistency with previous two checkboxes
-    use_screening = st.checkbox(
-        "Pre-screen models (skip expensive/unsuitable models)",
-        help=(
-            "Runs Breusch-Pagan (heteroscedasticity), Ramsey RESET (linearity), "
-            "Shapiro-Wilk (normality), and RF–LR R² gain (non-linearity) tests "
-            "before training.  Computationally heavy models (GP, quantile GB, "
-            "heteroscedastic ensembles) are only included when the data "
-            "characteristics justify them."
-        ),
-    )
-
-    skip_expensive = st.checkbox(
-        "Skip computationally expensive models",
-        help=(
-            "Excludes Gaussian Process (O(N³)), NGBoost, and the Conformal "
-            "Prediction Network from the grid search. Recommended for large "
-            "datasets or quick exploratory runs."
-        ),
-    )
-
-    use_moe = st.checkbox(
-        "Include MoE (Mixture of Experts) as a joint multi-output candidate",
-        value=False,
-        help="Trains K expert regressors specialised to different input regions via a learned gating network. Evaluated alongside per-target models.",
-    )
-    moe_n_experts = 4
-    moe_gating_type = "linear"
-    if use_moe:
-        moe_n_experts = st.slider(
-            "MoE: Number of experts",
-            min_value=2,
-            max_value=8,
-            value=4,
-            step=1,
+        skip_expensive = st.checkbox(
+            "Skip computationally expensive models",
+            help=(
+                "Excludes Gaussian Process (O(N³)), NGBoost, and the Conformal "
+                "Prediction Network from the grid search. Recommended for large "
+                "datasets or quick exploratory runs."
+            ),
         )
-        moe_gating_type = st.selectbox(
-            "MoE: Gating type",
-            ["linear", "mlp"],
+
+        # Mixture of Experts
+        use_moe = st.checkbox(
+            "Include MoE (Mixture of Experts) as a joint multi-output candidate",
+            value=False,
+            help="Trains K expert regressors specialised to different input regions via a learned gating network. Evaluated alongside per-target models.",
         )
+        moe_n_experts = 4
+        moe_gating_type = "linear"
+        if use_moe:
+            moe_n_experts = st.slider(
+                "MoE: Number of experts",
+                min_value=2,
+                max_value=8,
+                value=4,
+                step=1,
+            )
+            moe_gating_type = st.selectbox(
+                "MoE: Gating type",
+                ["linear", "mlp"],
+            )
 
     with st.form("column_selection"):
         input_cols = st.multiselect("Select input features", options=df.columns)
@@ -772,6 +776,7 @@ if uploaded_file:
             ("rf", RandomForestWithUncertainty, {"n_estimators": [50], "max_depth": [3, None]}),
             ("et", ExtraTreesWithUncertainty, {"n_estimators": [50], "max_depth": [3, None]}),
             ("gb", GradientBoostingWithUncertainty, {"alpha": [0.95], "n_estimators": [50]}),
+            ("hgb", HistGradientBoostingRegressor, {"max_iter": [100, 200], "learning_rate": [0.05, 0.1]}),
             ("knn", KNeighborsRegressorWithUncertainty, {"n_neighbors": [3]}),
             ("blr", BootstrapLinearRegression, {"n_bootstraps": [20]}),
             ("svr", SVR, {"C": [1.0, 10.0], "gamma": ["scale", "auto"]}),
@@ -800,6 +805,14 @@ if uploaded_file:
             surrogate_defs.append(
                 ("kpls", _KPLSEstimator, {"n_comp": [2, 4], "corr": ["squar_exp", "matern52"]})
             )
+        if _LIGHTGBM_AVAILABLE:
+            surrogate_defs.append(
+                ("lgbm", _LGBMRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "num_leaves": [31, 63]})
+            )
+        if _XGBOOST_AVAILABLE:
+            surrogate_defs.append(
+                ("xgb", _XGBRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "max_depth": [4, 6]})
+            )
 
         if use_screening:
             _screener = ModelScreener().fit(X_train, y_train)
@@ -818,6 +831,7 @@ if uploaded_file:
                     ("bayesian_ridge", None, None), ("rfgp", None, None),
                     ("pbr", None, None), ("sgp", None, None), ("gpx", None, None),
                     ("ard_gp", None, None), ("kpls", None, None),
+                    ("hgb", None, None), ("lgbm", None, None), ("xgb", None, None),
                 ]
                 if d[0] in _eligible.index and not _eligible.loc[d[0]].any()
             ]

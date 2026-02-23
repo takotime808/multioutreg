@@ -3,7 +3,8 @@
 """Streamlit page for multi-fidelity surrogate modeling.
 
 Accepts a single CSV with a fidelity level column, splits data per level,
-and fits one of three multi-fidelity surrogates:
+and grid-searches over combinations of multi-fidelity surrogate types and
+base surrogate classes:
 
 * StackedVFMSurrogate  — nonlinear recursive feature augmentation (N levels)
 * AdditiveCorrectionVFM — two-level additive correction (Kennedy-O'Hagan)
@@ -47,28 +48,6 @@ from multioutreg.surrogates.lightgbm_sklearn import _LIGHTGBM_AVAILABLE, LightGB
 from multioutreg.surrogates.xgboost_sklearn import _XGBOOST_AVAILABLE, XGBoostSurrogate
 from multioutreg.utils.figure_utils import safe_plot_b64
 from multioutreg.utils.imputation import apply_imputation, detect_missing
-
-
-# ---------------------------------------------------------------------------
-# Surrogate options exposed in the UI
-# ---------------------------------------------------------------------------
-
-_SURROGATE_OPTIONS: Dict[str, type] = {
-    "Random Forest (default)": RandomForestSurrogate,
-    "Gaussian Process": GaussianProcessSurrogate,
-    "Linear Regression": LinearRegressionSurrogate,
-    "Hist Gradient Boosting": HistGradientBoostingSurrogate,
-}
-if _LIGHTGBM_AVAILABLE:
-    _SURROGATE_OPTIONS["LightGBM"] = LightGBMSurrogate
-if _XGBOOST_AVAILABLE:
-    _SURROGATE_OPTIONS["XGBoost"] = XGBoostSurrogate
-
-_MODEL_CHOICES = [
-    "StackedVFMSurrogate — nonlinear, N levels (recommended)",
-    "AdditiveCorrectionVFM — 2-level additive correction",
-    "MultiFidelitySurrogate — independent per level (no coupling)",
-]
 
 
 # ---------------------------------------------------------------------------
@@ -266,6 +245,96 @@ def _compute_metrics(
 
 
 # ---------------------------------------------------------------------------
+# Grid search helpers
+# ---------------------------------------------------------------------------
+
+def _build_candidates(level_names: List[str], skip_expensive: bool) -> List[dict]:
+    """Return a list of candidate configs for the grid search.
+
+    Each config is a dict with keys:
+        name            display name for the results table
+        mf_type         "stacked" | "additive" | "independent"
+        surrogate_cls   base surrogate class
+        augment_with_std  bool (StackedVFM only)
+    """
+    surrogates: List[tuple] = [
+        ("RF", RandomForestSurrogate),
+        ("HGB", HistGradientBoostingSurrogate),
+        ("Linear", LinearRegressionSurrogate),
+    ]
+    if not skip_expensive:
+        surrogates.append(("GP", GaussianProcessSurrogate))
+    if _LIGHTGBM_AVAILABLE:
+        surrogates.append(("LightGBM", LightGBMSurrogate))
+    if _XGBOOST_AVAILABLE:
+        surrogates.append(("XGBoost", XGBoostSurrogate))
+
+    candidates: List[dict] = []
+    for sur_name, sur_cls in surrogates:
+        # StackedVFM — without and with std augmentation
+        candidates.append({
+            "name": f"StackedVFM+{sur_name}",
+            "mf_type": "stacked",
+            "surrogate_cls": sur_cls,
+            "augment_with_std": False,
+        })
+        candidates.append({
+            "name": f"StackedVFM+{sur_name}+augStd",
+            "mf_type": "stacked",
+            "surrogate_cls": sur_cls,
+            "augment_with_std": True,
+        })
+        # MultiFidelitySurrogate (independent per level, no coupling)
+        candidates.append({
+            "name": f"MultiFidelity+{sur_name}",
+            "mf_type": "independent",
+            "surrogate_cls": sur_cls,
+            "augment_with_std": False,
+        })
+        # AdditiveCorrectionVFM — 2-level only
+        if len(level_names) == 2:
+            candidates.append({
+                "name": f"AdditiveVFM+{sur_name}",
+                "mf_type": "additive",
+                "surrogate_cls": sur_cls,
+                "augment_with_std": False,
+            })
+
+    return candidates
+
+
+def _fit_candidate(
+    cand: dict,
+    train_data: Dict[str, tuple],
+    level_names: List[str],
+) -> Any:
+    """Fit and return the model described by *cand*."""
+    sur_cls = cand["surrogate_cls"]
+
+    if cand["mf_type"] == "stacked":
+        model = StackedVFMSurrogate(
+            fidelity_levels=level_names,
+            surrogate_cls=sur_cls,
+            augment_with_std=cand["augment_with_std"],
+        )
+        model.fit(train_data)
+
+    elif cand["mf_type"] == "additive":
+        lo_name, hi_name = level_names[0], level_names[1]
+        model = AdditiveCorrectionVFM(
+            lo_surrogate_cls=sur_cls,
+            hi_surrogate_cls=sur_cls,
+        )
+        model.fit({"lo": train_data[lo_name], "hi": train_data[hi_name]})
+
+    else:  # independent
+        model = MultiFidelitySurrogate(sur_cls, level_names)
+        model.fit(train_data)
+
+    return model
+
+
+# ---------------------------------------------------------------------------
 # Streamlit App
 # ---------------------------------------------------------------------------
 
@@ -274,6 +343,9 @@ st.info(
     "Upload a single CSV that contains a **fidelity level column** alongside your input "
     "features and output targets.  Each unique value in that column defines one fidelity "
     "level (e.g. 0 = low, 1 = medium, 2 = high).  \n\n"
+    "The page will **grid-search** over all combinations of multi-fidelity model type "
+    "and base surrogate class, scoring each on the highest-fidelity test set MSE, and "
+    "generate a report for the best configuration.\n\n"
     "Example data can be downloaded from the **Other Dataset Examples** page."
 )
 
@@ -306,24 +378,6 @@ if uploaded_file:
             )
 
     # ------------------------------------------------------------------
-    # Conformal prediction (outside form so slider appears immediately)
-    # ------------------------------------------------------------------
-    use_conformal = st.checkbox(
-        "Compute conformal prediction intervals",
-        key="use_conformal_mf",
-    )
-    conformal_alpha_sel = 0.1
-    if use_conformal:
-        conformal_alpha_sel = st.slider(
-            "Conformal alpha (miscoverage level)",
-            min_value=0.01,
-            max_value=0.5,
-            value=0.1,
-            step=0.01,
-            key="conformal_alpha_mf",
-        )
-
-    # ------------------------------------------------------------------
     # Fidelity column selector — outside the form so changing it
     # immediately recomputes `remaining` and the level options.
     # ------------------------------------------------------------------
@@ -338,14 +392,13 @@ if uploaded_file:
     _detected = sorted(df[fidelity_col].dropna().unique().tolist(), key=str)
 
     # ------------------------------------------------------------------
-    # Column selection + model config form
+    # Column selection + grid search options form
     # ------------------------------------------------------------------
     with st.form("mf_column_selection"):
         input_cols = st.multiselect("Input feature columns", options=remaining)
         output_cols = st.multiselect("Output target columns", options=remaining)
 
         st.subheader("Fidelity Level Ordering")
-        # Pre-populated with sorted unique values; user can reorder via multiselect
         ordered_levels = st.multiselect(
             "Fidelity levels — ordered lowest → highest",
             options=_detected,
@@ -356,33 +409,34 @@ if uploaded_file:
             ),
         )
 
-        st.subheader("Model Selection")
-        model_choice_label = st.selectbox("Multi-fidelity model", _MODEL_CHOICES)
-
-        surrogate_label = st.selectbox(
-            "Surrogate class (used for all levels)",
-            options=list(_SURROGATE_OPTIONS.keys()),
+        st.subheader("Grid Search Options")
+        skip_expensive = st.checkbox(
+            "Skip computationally expensive models (Gaussian Process)",
+            value=True,
             help=(
-                "For StackedVFMSurrogate and MultiFidelitySurrogate, the same class "
-                "is used for every fidelity level.  "
-                "For AdditiveCorrectionVFM the same class is used for both f_lo and δ."
+                "Gaussian Process has O(n³) training cost and becomes very slow for "
+                "n > ~300.  Uncheck to include GP-based candidates in the grid search."
             ),
         )
-
-        augment_with_std = st.checkbox(
-            "Augment features with lower-level uncertainty (std)",
+        use_conformal = st.checkbox(
+            "Compute conformal prediction intervals",
             value=False,
-            help=(
-                "StackedVFMSurrogate only.  Appends the predicted std from each level "
-                "as additional input features for the next level (Perdikaris et al. 2017)."
-            ),
+            help="Calibrate split-conformal intervals on the highest-fidelity test set after fitting.",
+        )
+        conformal_alpha_sel = st.slider(
+            "Conformal alpha (miscoverage level)",
+            min_value=0.01,
+            max_value=0.5,
+            value=0.1,
+            step=0.01,
+            help="Target miscoverage rate α; intervals achieve ≥ 1−α marginal coverage.",
         )
 
         description = st.text_area("Optional: project description")
-        submitted = st.form_submit_button("Fit Multi-Fidelity Model")
+        submitted = st.form_submit_button("Run Grid Search")
 
     # ------------------------------------------------------------------
-    # Validation and fitting
+    # Validation
     # ------------------------------------------------------------------
     if submitted:
         if not input_cols:
@@ -393,14 +447,6 @@ if uploaded_file:
             st.stop()
         if len(ordered_levels) < 2:
             st.error("Please select at least 2 fidelity levels.")
-            st.stop()
-        if "AdditiveCorrectionVFM" in model_choice_label and len(ordered_levels) != 2:
-            st.error(
-                "AdditiveCorrectionVFM requires exactly **2** fidelity levels "
-                f"(got {len(ordered_levels)}).  "
-                "Please select only the lowest and highest levels, or choose "
-                "StackedVFMSurrogate instead."
-            )
             st.stop()
 
         # Apply imputation
@@ -469,55 +515,80 @@ if uploaded_file:
 
         X_test, y_test = test_data[level_names[-1]]
         X_train_hi, _ = train_data[level_names[-1]]  # used for SHAP / plots
-
-        surrogate_cls = _SURROGATE_OPTIONS[surrogate_label]
-
-        # Fit model
-        try:
-            with st.spinner("Fitting multi-fidelity model…"):
-                if "StackedVFMSurrogate" in model_choice_label:
-                    model = StackedVFMSurrogate(
-                        fidelity_levels=level_names,
-                        surrogate_cls=surrogate_cls,
-                        augment_with_std=augment_with_std,
-                    )
-                    model.fit(train_data)
-
-                elif "AdditiveCorrectionVFM" in model_choice_label:
-                    lo_name, hi_name = level_names[0], level_names[1]
-                    model = AdditiveCorrectionVFM(
-                        lo_surrogate_cls=surrogate_cls,
-                        hi_surrogate_cls=surrogate_cls,
-                    )
-                    model.fit({"lo": train_data[lo_name], "hi": train_data[hi_name]})
-
-                else:  # MultiFidelitySurrogate
-                    model = MultiFidelitySurrogate(surrogate_cls, level_names)
-                    model.fit(train_data)
-
-        except Exception as exc:
-            st.error(f"Model fitting failed: {exc}")
-            st.stop()
-
-        # Predict on highest-fidelity test set
-        try:
-            y_pred_raw, y_std_raw = model.predict(X_test, return_std=True)
-        except Exception as exc:
-            st.error(f"Prediction failed: {exc}")
-            st.stop()
-
-        y_pred = np.asarray(y_pred_raw, dtype=np.float64)
-        y_std = np.asarray(y_std_raw, dtype=np.float64)
-        if y_pred.ndim == 1:
-            y_pred = y_pred.reshape(-1, 1)
-        if y_std.ndim == 1:
-            y_std = y_std.reshape(-1, 1)
-
-        # Metrics
         output_names = list(output_cols)
-        metrics = _compute_metrics(y_test, y_pred, y_std, output_names)
 
-        st.write("### Metrics (evaluated on highest-fidelity test set)")
+        # ------------------------------------------------------------------
+        # Grid search
+        # ------------------------------------------------------------------
+        candidates = _build_candidates(level_names, skip_expensive)
+        gs_results: List[dict] = []
+        best_mse = np.inf
+        best_model = None
+        best_pred: np.ndarray | None = None
+        best_std: np.ndarray | None = None
+        best_name: str | None = None
+
+        prog = st.progress(0, text="Running grid search…")
+        for _i, _cand in enumerate(candidates):
+            prog.progress(
+                (_i + 1) / len(candidates),
+                text=f"Fitting {_cand['name']} ({_i + 1}/{len(candidates)})…",
+            )
+            try:
+                _m = _fit_candidate(_cand, train_data, level_names)
+                _yp_raw, _ys_raw = _m.predict(X_test, return_std=True)
+                _yp = np.asarray(_yp_raw, dtype=np.float64)
+                _ys = np.asarray(_ys_raw, dtype=np.float64)
+                if _yp.ndim == 1:
+                    _yp = _yp.reshape(-1, 1)
+                if _ys.ndim == 1:
+                    _ys = _ys.reshape(-1, 1)
+                _mse = float(np.mean((y_test - _yp) ** 2))
+                _r2 = float(r2_score(y_test.ravel(), _yp.ravel()))
+                _rmse = float(np.sqrt(_mse))
+                gs_results.append({
+                    "Model": _cand["name"],
+                    "MSE": round(_mse, 6),
+                    "RMSE": round(_rmse, 6),
+                    "R²": round(_r2, 4),
+                    "Status": "OK",
+                })
+                if _mse < best_mse:
+                    best_mse = _mse
+                    best_model = _m
+                    best_pred = _yp
+                    best_std = _ys
+                    best_name = _cand["name"]
+            except Exception as _exc:
+                gs_results.append({
+                    "Model": _cand["name"],
+                    "MSE": None,
+                    "RMSE": None,
+                    "R²": None,
+                    "Status": f"Error: {_exc}",
+                })
+
+        prog.empty()
+
+        if best_model is None:
+            st.error(
+                "All model candidates failed. "
+                "Check the error messages in the results table below."
+            )
+            st.dataframe(pd.DataFrame(gs_results))
+            st.stop()
+
+        st.write(f"### Grid Search Results — best: **{best_name}**")
+        _gs_df = (
+            pd.DataFrame(gs_results)
+            .sort_values("MSE", na_position="last")
+            .reset_index(drop=True)
+        )
+        st.dataframe(_gs_df, use_container_width=True)
+
+        # Per-output metrics for the best model
+        metrics = _compute_metrics(y_test, best_pred, best_std, output_names)
+        st.write("### Best Model Metrics (highest-fidelity test set)")
         st.dataframe(pd.DataFrame(metrics).T)
 
         # Conformal prediction
@@ -526,7 +597,7 @@ if uploaded_file:
             from multioutreg.conformal.base import BaseConformalPredictor
             from multioutreg.conformal.metrics import conformal_summary as _conf_summary
 
-            residuals = np.abs(y_test - y_pred)
+            residuals = np.abs(y_test - best_pred)
             n_outputs = y_test.shape[1]
             q = np.array([
                 BaseConformalPredictor._conformal_quantile(
@@ -534,8 +605,8 @@ if uploaded_file:
                 )
                 for j in range(n_outputs)
             ])
-            y_lower = y_pred - q[np.newaxis, :]
-            y_upper = y_pred + q[np.newaxis, :]
+            y_lower = best_pred - q[np.newaxis, :]
+            y_upper = best_pred + q[np.newaxis, :]
             conformal_intervals = (y_lower, y_upper)
 
             conf_df = _conf_summary(
@@ -550,16 +621,16 @@ if uploaded_file:
         try:
             with st.spinner("Generating HTML report…"):
                 html = generate_html_report(
-                    model_type=model.__class__.__name__,
+                    model_type=best_model.__class__.__name__,
                     fidelity_levels=level_names,
                     output_names=output_names,
                     description=description,
                     metrics=metrics,
                     uncertainty_metrics={"dummy_metric": 0.0},
                     y_test=y_test,
-                    best_pred=y_pred,
-                    best_std=y_std,
-                    best_model=model,
+                    best_pred=best_pred,
+                    best_std=best_std,
+                    best_model=best_model,
                     X_train=X_train_hi,
                     n_train=X_train_hi.shape[0],
                     n_test=X_test.shape[0],

@@ -22,6 +22,9 @@ from multioutreg.surrogates.ard_gp_sklearn import _ARDGPEstimator
 
 from multioutreg.surrogates.gpx_smt import _GPXEstimator, _GPX_AVAILABLE
 from multioutreg.surrogates.kpls_smt import _KPLSEstimator, _KPLS_AVAILABLE
+from multioutreg.surrogates.lightgbm_sklearn import _LIGHTGBM_AVAILABLE, _LGBMRegressor
+from multioutreg.surrogates.xgboost_sklearn import _XGBOOST_AVAILABLE, _XGBRegressor
+from sklearn.ensemble import HistGradientBoostingRegressor
 from multioutreg.gui.Grid_Search_Surrogate_Models import (
     RandomForestWithUncertainty,
     GradientBoostingWithUncertainty,
@@ -110,6 +113,7 @@ def grid_search(
         ("gpr", GaussianProcessRegressor, {"alpha": [1e-4], "kernel": [RBF(), Matern(nu=1.5)]}),
         ("rf", RandomForestWithUncertainty, {"n_estimators": [50], "max_depth": [3, None]}),
         ("gb", GradientBoostingWithUncertainty, {"alpha": [0.95], "n_estimators": [50]}),
+        ("hgb", HistGradientBoostingRegressor, {"max_iter": [100, 200], "learning_rate": [0.05, 0.1]}),
         ("knn", KNeighborsRegressorWithUncertainty, {"n_neighbors": [3]}),
         ("blr", BootstrapLinearRegression, {"n_bootstraps": [20]}),
         ("bayesian_ridge", BayesianRidge, {}),
@@ -125,6 +129,14 @@ def grid_search(
     if _KPLS_AVAILABLE:
         surrogate_defs.append(
             ("kpls", _KPLSEstimator, {"n_comp": [2, 4], "corr": ["squar_exp", "matern52"]})
+        )
+    if _LIGHTGBM_AVAILABLE:
+        surrogate_defs.append(
+            ("lgbm", _LGBMRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "num_leaves": [31, 63]})
+        )
+    if _XGBOOST_AVAILABLE:
+        surrogate_defs.append(
+            ("xgb", _XGBRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "max_depth": [4, 6]})
         )
 
     configs = [(name, Est, params) for name, Est, grid in surrogate_defs for params in ParameterGrid(grid)]

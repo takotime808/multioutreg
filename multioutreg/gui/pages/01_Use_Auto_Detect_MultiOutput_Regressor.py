@@ -351,96 +351,91 @@ if uploaded_file:
                 key=f"imp_{_col}",
             )
 
-    # Move checkbox options outside of the streamlit form, so hparams appear before pressing run grid search button
-    use_pca = st.checkbox("Apply PCA to input features", key="use_pca")
-    n_components = None
-    pca_method = None
-    pca_threshold = None
-    if use_pca:
-        # # max_comp = max(1, len(input_cols)) if input_cols else len(df.columns)
-        # max_comp = len(df.columns)
-        # n_components = st.number_input(
-        #     "Number of PCA components",
-        #     min_value=1,
-        #     max_value=max_comp,
-        #     value=min(2, max_comp),
-        #     step=1,
-        # )
-        max_comp = len(df.columns)
-        pca_method = st.selectbox(
-            "PCA component selection method",
-            ["Manual", "Explained variance threshold", "Kaiser rule"],
-            key="pca_method",
+    with st.expander("⚙️ Advanced Settings", expanded=False):
+        # PCA
+        use_pca = st.checkbox("Apply PCA to input features", key="use_pca")
+        n_components = None
+        pca_method = None
+        pca_threshold = None
+        if use_pca:
+            max_comp = len(df.columns)
+            pca_method = st.selectbox(
+                "PCA component selection method",
+                ["Manual", "Explained variance threshold", "Kaiser rule"],
+                key="pca_method",
+            )
+            if pca_method == "Manual":
+                n_components = st.number_input(
+                    "Number of PCA components",
+                    min_value=1,
+                    max_value=max_comp,
+                    value=min(2, max_comp),
+                    step=1,
+                    key="pca_n_components",
+                )
+            elif pca_method == "Explained variance threshold":
+                pca_threshold = st.slider(
+                    "Explained variance threshold",
+                    min_value=0.5,
+                    max_value=0.99,
+                    value=0.9,
+                    step=0.01,
+                    key="pca_threshold",
+                )
+
+        # Conformal prediction
+        use_conformal = st.checkbox("Compute conformal prediction intervals", key="use_conformal")
+        conformal_alpha_sel = st.slider(
+            "Conformal alpha (miscoverage level)",
+            min_value=0.01,
+            max_value=0.5,
+            value=0.1,
+            step=0.01,
+            disabled=not use_conformal,
+            key="conformal_alpha",
         )
-        if pca_method == "Manual":
-            n_components = st.number_input(
-                "Number of PCA components",
-                min_value=1,
-                max_value=max_comp,
-                value=min(2, max_comp),
+
+        # Bayesian Neural Network
+        use_bnn = st.checkbox(
+            "Include BNN (Bayesian Neural Network) as a joint multi-output candidate",
+            value=False,
+            disabled=not _torch_available,
+            help="Requires PyTorch. Trains a Bayesian Neural Network with MC Dropout uncertainty and competes against per-output models.",
+            key="use_bnn",
+        )
+
+        # Mixture of Experts
+        use_moe = st.checkbox(
+            "Include MoE (Mixture of Experts) as a joint multi-output candidate",
+            value=False,
+            help="Trains K expert regressors specialised to different input regions via a learned gating network.",
+            key="use_moe",
+        )
+        moe_n_experts = 4
+        moe_gating_type = "linear"
+        if use_moe:
+            moe_n_experts = st.slider(
+                "MoE: Number of experts",
+                min_value=2,
+                max_value=8,
+                value=4,
                 step=1,
-                key="pca_n_components",
+                key="moe_n_experts",
             )
-        elif pca_method == "Explained variance threshold":
-            pca_threshold = st.slider(
-                "Explained variance threshold",
-                min_value=0.5,
-                max_value=0.99,
-                value=0.9,
-                step=0.01,
-                key="pca_threshold",
+            moe_gating_type = st.selectbox(
+                "MoE: Gating type",
+                ["linear", "mlp"],
+                key="moe_gating_type",
             )
 
-    use_conformal = st.checkbox("Compute conformal prediction intervals", key="use_conformal")
-    conformal_alpha_sel = st.slider(
-        "Conformal alpha (miscoverage level)",
-        min_value=0.01,
-        max_value=0.5,
-        value=0.1,
-        step=0.01,
-        disabled=not use_conformal,
-        key="conformal_alpha",
-    )
-
-    use_bnn = st.checkbox(
-        "Include BNN (Bayesian Neural Network) as a joint multi-output candidate",
-        value=False,
-        disabled=not _torch_available,
-        help="Requires PyTorch. Trains a Bayesian Neural Network with MC Dropout uncertainty and competes against per-output models.",
-        key="use_bnn",
-    )
-
-    use_moe = st.checkbox(
-        "Include MoE (Mixture of Experts) as a joint multi-output candidate",
-        value=False,
-        help="Trains K expert regressors specialised to different input regions via a learned gating network.",
-        key="use_moe",
-    )
-    moe_n_experts = 4
-    moe_gating_type = "linear"
-    if use_moe:
-        moe_n_experts = st.slider(
-            "MoE: Number of experts",
-            min_value=2,
-            max_value=8,
-            value=4,
-            step=1,
-            key="moe_n_experts",
+        skip_expensive = st.checkbox(
+            "Skip computationally expensive models",
+            help=(
+                "Excludes Gaussian Process (O(N³)), Neural Network/MLP, and NGBoost "
+                "from the grid search. Recommended for large datasets or quick exploratory runs."
+            ),
+            key="skip_expensive",
         )
-        moe_gating_type = st.selectbox(
-            "MoE: Gating type",
-            ["linear", "mlp"],
-            key="moe_gating_type",
-        )
-
-    skip_expensive = st.checkbox(
-        "Skip computationally expensive models",
-        help=(
-            "Excludes Gaussian Process (O(N³)), Neural Network/MLP, and NGBoost "
-            "from the grid search. Recommended for large datasets or quick exploratory runs."
-        ),
-        key="skip_expensive",
-    )
 
     with st.form("column_selection"):
         input_cols = st.multiselect("Select input features", options=df.columns)
