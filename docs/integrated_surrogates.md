@@ -36,6 +36,9 @@ expose a `predict(X, return_std=True)` interface and are compatible with
 | **ExtraTreesRegressorSurrogate** | scikit-learn `ExtraTreesRegressor` | Per-output (MultiOutputRegressor) | `MultiOutputRegressor` | ✗ | `MultiFidelitySurrogate` wrapper | ✓ | ✗ | ✓ | ✓ | O(n·p·T) | — | `et` — nonlinear data | Faster than RF via random split thresholds; lower variance than single DT; good when RF overfits | — |
 | **GradientBoostingSurrogate** | scikit-learn `GradientBoostingRegressor` | Per-output (MultiOutputRegressor) | `MultiOutputRegressor` | ✗ | `MultiFidelitySurrogate` wrapper | ✓ | ✓ | ✓ | ✓ | O(n·p·T) | — | `gb` — nonlinear data | Strong sequential error-correction; often top performer on tabular engineering data | — |
 | **NGBoostSurrogate** | ngboost `NGBRegressor` | Per-output (MultiOutputRegressor) | `MultiOutputRegressor` | ✗ | `MultiFidelitySurrogate` wrapper | ~ | ✗ | ~ | ~ | O(n·p·T) | `pip install ngboost` | `ngboost` — nonlinear data | Native probabilistic boosting; returns full predictive distribution without bootstrap tricks | AD, GS |
+| **HistGradientBoostingSurrogate** | scikit-learn `HistGradientBoostingRegressor` | Per-output (MultiOutputRegressor) | `MultiOutputRegressor` | ✗ | `MultiFidelitySurrogate` wrapper | ✓ | ✓ | ✓ | ✓ | O(n·bins·T) | — | `hgb` — nonlinear data | 5–10× faster than GradientBoostingSurrogate via histogram binning; preferred for n > 5 000; no extra dependencies | — |
+| **LightGBMSurrogate** | `lightgbm.LGBMRegressor` | Per-output (MultiOutputRegressor) | `MultiOutputRegressor` | ✗ | `MultiFidelitySurrogate` wrapper | ~ | ~ | ~ | ~ | O(n·T·leaves) | `pip install lightgbm` | `lgbm` — nonlinear data | 10–20× faster than sklearn GradientBoosting; leaf-wise growth; GPU support via `device="gpu"` | — |
+| **XGBoostSurrogate** | `xgboost.XGBRegressor` | Per-output (MultiOutputRegressor) | `MultiOutputRegressor` | ✗ | `MultiFidelitySurrogate` wrapper | ~ | ~ | ~ | ~ | O(n·T·depth) | `pip install xgboost` | `xgb` — nonlinear data | Engineering competition standard; native missing-value handling; GPU support via `device="cuda"` | — |
 | **SVRSurrogate** | scikit-learn `SVR` | Per-output (MultiOutputRegressor) | `MultiOutputRegressor` | ✗ | `MultiFidelitySurrogate` wrapper | ✓ | ✗ | ✓ | ✓ | O(n²p) | — | `svr` — N < 2000 | Robust kernel regression with support vector margin; smooth response surfaces for n < 2000 | — |
 | **KNeighborsSurrogate** | scikit-learn `KNeighborsRegressor` | Per-output (MultiOutputRegressor) | `MultiOutputRegressor` | ✗ | `MultiFidelitySurrogate` wrapper | ✓ | ✓ | ✓ | ✓ | O(1) train / O(np) predict | — | `knn` — N/p > 10 | Zero-training-cost instance-based fallback; interpretable neighborhood averages | — |
 | **DecisionTreeRegressorSurrogate** | scikit-learn `DecisionTreeRegressor` | Per-output (MultiOutputRegressor) | `MultiOutputRegressor` | ✗ | `MultiFidelitySurrogate` wrapper | ✓ | ✗ | ✓ | ✓ | O(n·p·log n) | — | `dt` — always | Interpretable piecewise-constant model; cheap nonlinear baseline; useful for rule extraction | — |
@@ -92,7 +95,7 @@ unlikely-to-help models per output column:
 | `mlp_feasible` | N > 100 | `mlp`, `cpn` |
 | `pbr_feasible` | p < 20 | `pbr` |
 | `knn_ratio_ok` | N/p > 10 | `knn` |
-| Nonlinear detected | Ramsey RESET or RF–LR R² gain > 0.05 | `rf`, `et`, `gb`, `mlp` |
+| Nonlinear detected | Ramsey RESET or RF–LR R² gain > 0.05 | `rf`, `et`, `gb`, `mlp`, `hgb`, `lgbm`, `xgb` |
 | Always eligible | — | `linear`, `dt`, `bayesian_ridge`, `rfgp`, `sgp` |
 
 ### Optional Dependencies
@@ -103,5 +106,7 @@ unlikely-to-help models per output column:
 | `ngboost` | `NGBoostSurrogate` | `pip install ngboost` |
 | `smt[gpx]` | `GPXSurrogate` | `pip install smt[gpx]` |
 | `smt` | `KPLSSurrogate` | `pip install smt` |
+| `lightgbm` | `LightGBMSurrogate` | `pip install lightgbm` |
+| `xgboost` | `XGBoostSurrogate` | `pip install xgboost` |
 
-All other surrogates depend only on `numpy` and `scikit-learn`.
+All other surrogates (including `HistGradientBoostingSurrogate`) depend only on `numpy` and `scikit-learn`.

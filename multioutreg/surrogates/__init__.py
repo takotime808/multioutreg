@@ -25,6 +25,9 @@ from multioutreg.surrogates.nystroem_gp_sklearn import NystroemGPSurrogate
 from multioutreg.surrogates.gpx_smt import GPXSurrogate
 from multioutreg.surrogates.kpls_smt import KPLSSurrogate
 from multioutreg.surrogates.ard_gp_sklearn import ARDGPSurrogate
+from multioutreg.surrogates.hist_gradient_boosting_sklearn import HistGradientBoostingSurrogate
+from multioutreg.surrogates.lightgbm_sklearn import LightGBMSurrogate
+from multioutreg.surrogates.xgboost_sklearn import XGBoostSurrogate
 
 __all__ = [
     "ConformalMixin",
@@ -51,5 +54,8 @@ __all__ = [
     "GPXSurrogate",
     "KPLSSurrogate",
     "ARDGPSurrogate",
+    "HistGradientBoostingSurrogate",
+    "LightGBMSurrogate",
+    "XGBoostSurrogate",
 ]
 

@@ -488,6 +488,11 @@ def _eligible_for_output_j(
         # KPLS: Kriging + PLS dim reduction, same O(n³) Kriging cost but
         # designed for high-dimensional inputs (p >> n)
         "kpls":           size["gp_feasible"].passed,
+        # Histogram-based GB: fast nonlinear booster, no extra deps
+        "hgb":            needs_nonlin,
+        # LightGBM / XGBoost: fast gradient boosting, optional deps
+        "lgbm":           needs_nonlin,
+        "xgb":            needs_nonlin,
     }
 
 

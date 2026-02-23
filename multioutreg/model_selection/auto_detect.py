@@ -9,7 +9,7 @@ from typing import Sequence
 import numpy as np
 from sklearn.base import BaseEstimator, RegressorMixin, clone
 from sklearn.model_selection import GridSearchCV
-from sklearn.ensemble import ExtraTreesRegressor, GradientBoostingRegressor, RandomForestRegressor
+from sklearn.ensemble import ExtraTreesRegressor, GradientBoostingRegressor, HistGradientBoostingRegressor, RandomForestRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.linear_model import LinearRegression, BayesianRidge
 from sklearn.neighbors import KNeighborsRegressor
@@ -36,6 +36,9 @@ from multioutreg.surrogates import (
     GPXSurrogate,
     KPLSSurrogate,
     ARDGPSurrogate,
+    HistGradientBoostingSurrogate,
+    LightGBMSurrogate,
+    XGBoostSurrogate,
 )
 from multioutreg.surrogates.rfgp_sklearn import _RFFEstimator
 from multioutreg.surrogates.polynomial_bayesian_ridge_sklearn import _PBREstimator
@@ -50,6 +53,8 @@ except ImportError:
 
 from multioutreg.surrogates.gpx_smt import _GPXEstimator, _GPX_AVAILABLE
 from multioutreg.surrogates.kpls_smt import _KPLSEstimator, _KPLS_AVAILABLE
+from multioutreg.surrogates.lightgbm_sklearn import _LIGHTGBM_AVAILABLE, _LGBMRegressor
+from multioutreg.surrogates.xgboost_sklearn import _XGBOOST_AVAILABLE, _XGBRegressor
 
 class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
     """Fit a separate estimator per output choosing the best via grid search.
@@ -286,6 +291,7 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             _PBREstimator(degree=2),
             _NystroemEstimator(n_components=100),
             _ARDGPEstimator(),
+            HistGradientBoostingRegressor(),
         ]
 
         param_spaces = [
@@ -303,10 +309,11 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             {"degree": [2, 3], "interaction_only": [False, True]},
             {"n_components": [50, 200], "gamma": [None, 0.1, 1.0]},
             {"alpha": [1e-6, 1e-2]},
+            {"max_iter": [100, 200], "learning_rate": [0.05, 0.1]},
         ]
 
         model_names = ["linear", "gp", "rf", "et", "gb", "svr", "knn", "dt", "mlp",
-                       "bayesian_ridge", "rfgp", "pbr", "sgp", "ard_gp"]
+                       "bayesian_ridge", "rfgp", "pbr", "sgp", "ard_gp", "hgb"]
         surrogate_constructors = [
             LinearRegressionSurrogate,
             GaussianProcessSurrogate,
@@ -322,6 +329,7 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             PolynomialBayesianRidgeSurrogate,
             NystroemGPSurrogate,
             ARDGPSurrogate,
+            HistGradientBoostingSurrogate,
         ]
 
         if _NGBOOST_AVAILABLE:
@@ -341,6 +349,18 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             param_spaces.append({"n_comp": [2, 4], "corr": ["squar_exp", "matern52"]})
             model_names.append("kpls")
             surrogate_constructors.append(KPLSSurrogate)
+
+        if _LIGHTGBM_AVAILABLE:
+            estimators.append(_LGBMRegressor(n_estimators=200, verbose=-1))
+            param_spaces.append({"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "num_leaves": [31, 63]})
+            model_names.append("lgbm")
+            surrogate_constructors.append(LightGBMSurrogate)
+
+        if _XGBOOST_AVAILABLE:
+            estimators.append(_XGBRegressor(n_estimators=200, verbosity=0))
+            param_spaces.append({"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "max_depth": [4, 6]})
+            model_names.append("xgb")
+            surrogate_constructors.append(XGBoostSurrogate)
 
         instance = cls(estimators, param_spaces, cv=cv, scoring=scoring,
                        pre_screen=pre_screen)
