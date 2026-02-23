@@ -4,7 +4,7 @@ name: Documentation
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, expand-surrogates-bnn-conformalmixin-etreg]
 
 permissions:
   contents: write

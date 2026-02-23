@@ -21,8 +21,9 @@ Notes about project.
 
 .. toctree::
    :maxdepth: 3
-   :caption: Tutorials
+   :caption: Resources and Tutorials
 
+   integrated_surrogates
    tutorials/forecasting_with_chronos
 
 .. toctree::
