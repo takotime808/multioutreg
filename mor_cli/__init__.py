@@ -17,6 +17,7 @@ def main():
     from mor_cli.use_ks_for_sample_bias import compare_sample_methods
     # from .generate_report import generate_report
     from mor_cli.ts_forecast import ts_forecast
+    from mor_cli.ts_pipeline import ts_pipeline
 
     commands = {
         "run_example": example,
@@ -28,6 +29,7 @@ def main():
         "compare_sample_methods": compare_sample_methods,
         # "generate_report": generate_report,
         "ts-forecast": ts_forecast,
+        "ts-pipeline": ts_pipeline,
     }
     if len(sys.argv) == 1:
         msg.info("Available commands", ", ".join(commands), exits=1)
