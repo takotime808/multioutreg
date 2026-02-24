@@ -67,6 +67,44 @@ Help menu for any command can be called with flag:
 multioutreg grid_search --help
 ```
 
+Time series forecasting — two commands are available depending on what you need:
+
+| Command | Approach | When to use |
+|---|---|---|
+| `ts-forecast` | Zero-shot (Chronos foundation model) | No training data required; fast probabilistic quantile forecasts from a pre-trained model |
+| `ts-pipeline` | Trained statistical + deep models (ARIMA, SARIMA, LSTM) | You want to fit models on your own data, rank them by RMSE/MAE/MAPE, and save the best one |
+
+**`ts-forecast`** — CLI for zero-shot forecasting with Chronos / Chronos-Bolt:
+```sh
+multioutreg ts-forecast data.csv \
+  --time-col "Date" \
+  --value-cols "revenue" \
+  --horizon 30 \
+  --model amazon/chronos-bolt-base \
+  --out forecast.csv
+```
+
+**`ts-pipeline`** — CLI for training ARIMA / SARIMA / LSTM time series models via the ts_dynamic_fit pipeline:
+```sh
+multioutreg ts-pipeline data.csv \
+  --target-col "revenue" \
+  --datetime-col "Date" \
+  --freq 1D \
+  --out-dir ts_pipeline_output/
+```
+
+Key differences:
+- `ts-forecast` requires no training; `ts-pipeline` trains models on the provided CSV and saves the best to `--out-dir`.
+- `ts-forecast` outputs quantile forecasts (e.g. p10/p50/p90); `ts-pipeline` outputs a ranked comparison table and serialized model.
+- `ts-pipeline` automatically aggregates row-level data (e.g. one row per order) to the target frequency, and converts percentage-formatted columns to numeric.
+- `ts-pipeline` also accepts `--agg` (default `sum`) to control how duplicate timestamps are collapsed.
+
+Full option reference:
+```sh
+multioutreg ts-forecast --help
+multioutreg ts-pipeline --help
+```
+
 ----
 ### ☁️ Deployments ###
 

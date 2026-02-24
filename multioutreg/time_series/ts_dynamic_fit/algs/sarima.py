@@ -178,6 +178,11 @@ class SARIMA:
         
         s = self.detect_seasonal_period(self.data)
         best_order, best_model = self.grid_search_sarima(s_value=s)
+        if best_model is None:
+            raise RuntimeError(
+                "SARIMA grid search found no valid model. All (p,q,P,Q) combinations failed to converge. "
+                "Try a different frequency, more data, or check for constant/degenerate series."
+            )
         if self.verbose:
             self.log_to_file(str(best_model.summary())) # Uncomment this if you want to see the best model summary
 

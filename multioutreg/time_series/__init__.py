@@ -9,6 +9,7 @@ from multioutreg.time_series.financial import (
     load_financial_csv,
     forecast_with_chronos,
 )
+from multioutreg.time_series.ts_suitability import check_ts_suitability
 
 __all__ = [
     "ChronosForecaster",
@@ -16,4 +17,5 @@ __all__ = [
     "metrics",
     "load_financial_csv",
     "forecast_with_chronos",
+    "check_ts_suitability",
 ]

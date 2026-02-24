@@ -50,6 +50,7 @@ from multioutreg.figures.conformal_plots import (
 )
 from multioutreg.surrogates import MultiFidelitySurrogate, LinearRegressionSurrogate
 from multioutreg.surrogates.conformal_network_sklearn import ConformalPredictionNetworkSurrogate
+from multioutreg.time_series.ts_suitability import check_ts_suitability
 
 # NOTE: NOT used...yet.
 from multioutreg.figures.doe_plots import make_doe_plot
@@ -525,6 +526,52 @@ uploaded_file = st.file_uploader(
 if uploaded_file:
     df = pd.read_csv(uploaded_file)
     st.write("## Preview of Data:", df.head())
+
+    # ── Time Series Suitability Check ──────────────────────────────
+    with st.expander("Auto-detect time series structure (optional)", expanded=False):
+        st.caption(
+            "Run statistical tests (ADF, Ljung-Box) to determine whether your data "
+            "has temporal autocorrelation and would benefit from time series models."
+        )
+        _numeric_gss = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c])]
+        _gc1, _gc2 = st.columns(2)
+        with _gc1:
+            _ts_dt_gss = st.selectbox(
+                "Datetime column (optional)",
+                ["<none>"] + list(df.columns),
+                key="ts_dt_gss",
+            )
+        with _gc2:
+            _ts_tgt_gss = st.selectbox(
+                "Target column to test",
+                ["<select>"] + _numeric_gss,
+                key="ts_tgt_gss",
+            )
+        if st.button("Check time series suitability", key="ts_check_gss"):
+            if _ts_tgt_gss == "<select>":
+                st.info("Select a target column to run the check.")
+            else:
+                _dt_arg_gss = None if _ts_dt_gss == "<none>" else _ts_dt_gss
+                with st.spinner("Running statistical tests..."):
+                    _ts_result_gss = check_ts_suitability(df, _ts_tgt_gss, datetime_col=_dt_arg_gss)
+                _gc1r, _gc2r, _gc3r = st.columns(3)
+                _gc1r.metric("ADF p-value", f"{_ts_result_gss.get('adf_pvalue', 'N/A')}")
+                _gc2r.metric("Ljung-Box p-value", f"{_ts_result_gss.get('ljungbox_pvalue', 'N/A')}")
+                _gc3r.metric("Detected period", _ts_result_gss.get("seasonal_period") or "None")
+                if _ts_result_gss.get("suitable"):
+                    st.success(_ts_result_gss["recommendation"])
+                    try:
+                        st.page_link(
+                            "pages/05_Time_Series_Forecasting.py",
+                            label="Go to Time Series Forecasting page",
+                        )
+                    except Exception:
+                        st.info("Navigate to page 05 — Time Series Forecasting to use the pipeline.")
+                else:
+                    st.warning(_ts_result_gss["recommendation"])
+                with st.expander("Full suitability report"):
+                    st.json(_ts_result_gss)
+    # ───────────────────────────────────────────────────────────────
 
     with st.form("column_selection"):
         input_cols = st.multiselect("Select input features", options=df.columns)

@@ -1,6 +1,9 @@
 # Copyright (c) 2025 takotime808
-from keras.models import Sequential
-from keras.layers import Dense, LSTM as KerasLSTM
+try:
+    from keras.models import Sequential
+    from keras.layers import Dense, LSTM as KerasLSTM
+except ImportError:
+    pass  # keras/tensorflow not required — LSTM class uses PyTorch
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 import torch
