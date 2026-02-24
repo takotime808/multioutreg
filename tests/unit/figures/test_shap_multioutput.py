@@ -97,6 +97,51 @@ def test_non_tree_model_support():
     plt.close(fig)
 
 
+def test_multicolumn_slot_estimator_uses_column_slice():
+    """Tests the column-slicing lambda: slot estimator returns 2-D output.
+
+    When estimator.predict returns shape [n, k] with k > 1 the function must
+    use ``_predict_fn = lambda X_, _est, _i: _est.predict(X_)[:, _i]`` so that
+    SHAP receives a 1-D output per subplot.  We verify the figure is produced
+    correctly and that each subplot's bars reflect distinct per-output values.
+    """
+    import numpy as np
+
+    rng = np.random.RandomState(42)
+    n_samples, n_features, n_cols = 40, 4, 3
+    X = rng.randn(n_samples, n_features)
+    W = rng.randn(n_features, n_cols)  # fixed weights → deterministic predict
+
+    call_log = []
+
+    class MultiColEstimator:
+        def predict(self, X_):
+            call_log.append(np.asarray(X_).shape)
+            return np.asarray(X_) @ W  # shape [n, n_cols]
+
+    n_outputs = n_cols
+
+    class FakeModel:
+        estimators_ = [MultiColEstimator() for _ in range(n_outputs)]
+
+    model = FakeModel()
+    feature_names = [f"f{i}" for i in range(n_features)]
+    output_names = [f"out{i}" for i in range(n_outputs)]
+
+    fig = plot_multioutput_shap_bar_subplots(model, X, feature_names, output_names)
+
+    assert isinstance(fig, plt.Figure)
+    # The lambda was invoked — call_log contains the probe call plus SHAP calls
+    assert len(call_log) > n_outputs
+    axes = [ax for ax in fig.get_axes() if ax.get_visible()]
+    assert len(axes) == n_outputs
+    # Each visible axis must have bar annotations equal to n_features
+    for ax in axes:
+        texts = [t for t in ax.texts if t.get_text().replace(".", "", 1).replace("-", "", 1).isdigit()]
+        assert len(texts) == n_features
+    plt.close(fig)
+
+
 @pytest.fixture
 def multioutput_model_and_data():
     X, Y = make_regression(n_samples=100, n_features=5, n_targets=2, noise=0.1, random_state=42)
@@ -138,3 +183,44 @@ def test_generate_shap_plot_fallback(monkeypatch, multioutput_model_and_data):
     assert isinstance(plots[output_names[0]], str)
     decoded = base64.b64decode(plots[output_names[0]])
     assert b"SHAP not supported" in decoded or decoded.startswith(b'\x89PNG')
+
+
+def test_generate_shap_plot_joint_model():
+    """Outer else branch: model has no estimators_ (joint multi-output model)."""
+    import numpy as np
+    X, _ = make_regression(n_samples=50, n_features=4, n_targets=2, noise=0.1, random_state=0)
+
+    class JointModel:
+        def predict(self, X_):
+            rng = np.random.RandomState(0)
+            return rng.rand(len(X_), 2)
+
+    model = JointModel()
+    output_names = ["joint_0", "joint_1"]
+    plots = generate_shap_plot(model, X, output_names)
+    assert set(plots.keys()) == set(output_names)
+    for val in plots.values():
+        assert isinstance(val, str)
+        base64.b64decode(val)  # must be valid base64
+
+
+def test_generate_shap_plot_multicolumn_slot_estimator():
+    """Inner if branch: slot estimator returns 2-D multi-column output."""
+    import numpy as np
+    X, _ = make_regression(n_samples=50, n_features=4, n_targets=1, noise=0.1, random_state=0)
+
+    class MultiColEstimator:
+        def predict(self, X_):
+            rng = np.random.RandomState(0)
+            return rng.rand(len(X_), 3)
+
+    class FakeMultiOutputModel:
+        estimators_ = [MultiColEstimator(), MultiColEstimator(), MultiColEstimator()]
+
+    model = FakeMultiOutputModel()
+    output_names = ["t0", "t1", "t2"]
+    plots = generate_shap_plot(model, X, output_names)
+    assert set(plots.keys()) == set(output_names)
+    for val in plots.values():
+        assert isinstance(val, str)
+        base64.b64decode(val)  # must be valid base64

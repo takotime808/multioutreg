@@ -134,10 +134,13 @@ def generate_shap_plot(
             est = model.estimators_[i]
             # Guard: if the slot-estimator is itself multi-output (e.g. MoE stored
             # in estimators_), slice the correct column so SHAP receives 1-D output.
-            _test = np.asarray(est.predict(X[:1]))
-            if _test.ndim == 2 and _test.shape[1] > 1:
-                predict_fn = lambda X_, _est=est, _i=i: np.asarray(_est.predict(X_))[:, _i]
-            else:
+            try:
+                _test = np.asarray(est.predict(X[:1]))
+                if _test.ndim == 2 and _test.shape[1] > 1:
+                    predict_fn = lambda X_, _est=est, _i=i: np.asarray(_est.predict(X_))[:, _i]
+                else:
+                    predict_fn = est.predict
+            except Exception:
                 predict_fn = est.predict
         else:
             # Joint multi-output model without per-output estimators_ (e.g. raw MoE).
