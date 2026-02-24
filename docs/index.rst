@@ -24,11 +24,13 @@ Notes about project.
    :caption: Tutorials
 
    tutorials/forecasting_with_chronos
+   tutorials/multi_fidelity_surrogates
 
 .. toctree::
    :maxdepth: 2
-   :caption: References
+   :caption: Resources
 
+   integrated_surrogates
    references
 
 .. toctree::

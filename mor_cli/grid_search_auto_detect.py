@@ -10,10 +10,11 @@ matplotlib.use('Agg')
 from typing import Optional
 from sklearn.model_selection import train_test_split
 from sklearn.decomposition import PCA
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, root_mean_squared_error
 
 from multioutreg.model_selection import AutoDetectMultiOutputRegressor
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
+from multioutreg.utils.imputation import apply_imputation, detect_missing
 
 # # NOTE: Module starts with numeric values, so it cannot be directly imported
 # from multioutreg.gui.pages.Use_Auto_Detect_MultiOutput_Regressor import generate_html_report
@@ -36,6 +37,10 @@ def grid_search_auto_detect(
     pca_threshold: Optional[float] = typer.Option(None, help="Explained variance threshold"),
     conformal: bool = typer.Option(False, help="Compute conformal prediction intervals"),
     conformal_alpha: float = typer.Option(0.1, help="Conformal miscoverage level (e.g. 0.1 for 90%% intervals)"),
+    use_moe: bool = typer.Option(False, help="Include MoE (Mixture of Experts) as a joint multi-output candidate"),
+    moe_n_experts: int = typer.Option(4, help="Number of MoE experts"),
+    moe_gating_type: str = typer.Option("linear", help="MoE gating type: linear or mlp"),
+    use_imputation: bool = typer.Option(False, help="Apply KNN imputation to fill missing values in selected columns before training"),
     description: str = typer.Option("", help="Project description"),
     out_html: str = typer.Option("model_report_auto.html", help="Output HTML file"),
 ) -> None:
@@ -43,6 +48,26 @@ def grid_search_auto_detect(
     df = pd.read_csv(data_path)
     in_cols = [c.strip() for c in input_cols.split(',')]
     out_cols = [c.strip() for c in output_cols.split(',')]
+    _imputation_summary = None
+    if use_imputation:
+        _impute_cols = in_cols + out_cols
+        _before_missing = detect_missing(df[_impute_cols])
+        _rows_before = len(df)
+        df = apply_imputation(df, cols_to_impute=_impute_cols, cols_to_drop_rows=[])
+        _rows_after = len(df)
+        _imputation_summary = {
+            "rows_before": _rows_before,
+            "rows_after": _rows_after,
+            "columns": [
+                {
+                    "name": c,
+                    "action": "Imputed (KNN)",
+                    "missing_count": int(_before_missing.loc[c, "missing_count"]),
+                    "missing_pct": float(_before_missing.loc[c, "missing_pct"]),
+                }
+                for c in _before_missing.index
+            ],
+        }
     X = df[in_cols].values
     y = df[out_cols].values
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
@@ -76,6 +101,15 @@ def grid_search_auto_detect(
         kaiser_rule_suggestion = f"Kaiser rule suggests **{kaiser_k}** components (eigenvalues > 1)."
 
     model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
+    if use_moe:
+        from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
+        model.register_multi_output_candidates([
+            MixtureOfExpertsSurrogate(
+                n_experts=moe_n_experts,
+                gating_type=moe_gating_type,
+                random_state=0,
+            )
+        ])
     model.fit(X_train, y_train)
     best_pred, best_std = model.predict(X_test, return_std=True)
     best_model = model
@@ -100,7 +134,7 @@ def grid_search_auto_detect(
         y_pred = best_pred[:, i]
         metrics[name] = {
             "r2": r2_score(y_true, y_pred),
-            "rmse": mean_squared_error(y_true, y_pred, squared=False),
+            "rmse": root_mean_squared_error(y_true, y_pred),
             "mae": mean_absolute_error(y_true, y_pred),
             "mean_predicted_std": float(np.mean(best_std[:, i])),
         }
@@ -135,6 +169,7 @@ def grid_search_auto_detect(
         kaiser_rule_suggestion=kaiser_rule_suggestion,
         conformal_intervals=conformal_intervals if conformal else None,
         conformal_alpha=conformal_alpha if conformal else None,
+        imputation_summary=_imputation_summary,
     )
 
     with open(out_html, "w", encoding="utf-8") as fh:

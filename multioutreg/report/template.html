@@ -32,6 +32,41 @@
             <b>Description:</b> {{ description or "No description provided." }}
         </p>
     </div>
+    {% if imputation_summary %}
+    <div class="section">
+        <h2>Data Imputation</h2>
+        <p>
+            <i>
+                Missing values were detected and handled before model training.
+                KNN imputation fills missing entries using values from the nearest neighbours in the same column group.
+                Rows may alternatively be dropped when the user selects that option per column.
+            </i>
+        </p>
+        <p>
+            <b>Rows before cleaning:</b> {{ imputation_summary.rows_before }}<br>
+            <b>Rows after cleaning:</b> {{ imputation_summary.rows_after }}
+            {% if imputation_summary.rows_before != imputation_summary.rows_after %}
+            &nbsp;<span style="color:#d7263d;">({{ imputation_summary.rows_before - imputation_summary.rows_after }} row(s) removed)</span>
+            {% endif %}
+        </p>
+        <table>
+            <tr>
+                <th>Column</th>
+                <th>Action</th>
+                <th>Missing Values</th>
+                <th>Missing %</th>
+            </tr>
+            {% for col in imputation_summary.columns %}
+            <tr>
+                <td>{{ col.name }}</td>
+                <td>{{ col.action }}</td>
+                <td>{{ col.missing_count }}</td>
+                <td>{{ col.missing_pct }}%</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
     <div class="section">
         <h2>Regression Metrics</h2>
         <p>

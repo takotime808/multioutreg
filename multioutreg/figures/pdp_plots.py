@@ -38,16 +38,34 @@ def generate_pdp_plot(
     """
     plots = {}
     for i, name in enumerate(output_names):
-        def plot_fn():
+        # Resolve per-output estimator outside the closure to avoid the
+        # closure-in-loop bug and to guard against models without estimators_
+        # (e.g. MixtureOfExpertsSurrogate, BNNSurrogate).
+        if hasattr(model, "estimators_") and i < len(model.estimators_):
+            est = model.estimators_[i]
+        else:
+            est = None
+
+        def plot_fn(_name=name, _est=est):
             plt.figure()
-            plt.title(f"{name}")
+            plt.title(f"{_name}")
+            if _est is None:
+                plt.text(0.5, 0.5,
+                         f"PDP not supported for {type(model).__name__}",
+                         ha='center')
+                plt.axis('off')
+                return
             try:
                 PartialDependenceDisplay.from_estimator(
-                    model.estimators_[i], X, range(X.shape[1]), feature_names=feature_names, ax=plt.gca()
+                    _est, X, range(X.shape[1]),
+                    feature_names=feature_names, ax=plt.gca()
                 )
-            except Exception as e:
-                plt.text(0.5, 0.5, f"PDP not supported for {type(model.estimators_[i]).__name__}", ha='center')
+            except Exception:
+                plt.text(0.5, 0.5,
+                         f"PDP not supported for {type(_est).__name__}",
+                         ha='center')
                 plt.axis('off')
+
         plots[name] = plot_to_b64(plot_fn)
     return plots
 

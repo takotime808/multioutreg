@@ -7,12 +7,24 @@ import matplotlib
 matplotlib.use('Agg')
 from typing import Optional
 from sklearn.model_selection import train_test_split, ParameterGrid
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, root_mean_squared_error
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, Matern
 from sklearn.decomposition import PCA
+from sklearn.linear_model import BayesianRidge
 
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
+from multioutreg.utils.imputation import apply_imputation, detect_missing
+from multioutreg.surrogates.rfgp_sklearn import _RFFEstimator
+from multioutreg.surrogates.polynomial_bayesian_ridge_sklearn import _PBREstimator
+from multioutreg.surrogates.nystroem_gp_sklearn import _NystroemEstimator
+from multioutreg.surrogates.ard_gp_sklearn import _ARDGPEstimator
+
+from multioutreg.surrogates.gpx_smt import _GPXEstimator, _GPX_AVAILABLE
+from multioutreg.surrogates.kpls_smt import _KPLSEstimator, _KPLS_AVAILABLE
+from multioutreg.surrogates.lightgbm_sklearn import _LIGHTGBM_AVAILABLE, _LGBMRegressor
+from multioutreg.surrogates.xgboost_sklearn import _XGBOOST_AVAILABLE, _XGBRegressor
+from sklearn.ensemble import HistGradientBoostingRegressor
 from multioutreg.gui.Grid_Search_Surrogate_Models import (
     RandomForestWithUncertainty,
     GradientBoostingWithUncertainty,
@@ -34,6 +46,10 @@ def grid_search(
     pca_method: Optional[str] = typer.Option(None, help="PCA selection method: Manual, Explained variance threshold, Kaiser rule"),
     n_components: Optional[int] = typer.Option(None, help="Number of PCA components when manual"),
     pca_threshold: Optional[float] = typer.Option(None, help="Explained variance threshold"),
+    use_moe: bool = typer.Option(False, help="Include MoE (Mixture of Experts) as a joint multi-output candidate"),
+    moe_n_experts: int = typer.Option(4, help="Number of MoE experts"),
+    moe_gating_type: str = typer.Option("linear", help="MoE gating type: linear or mlp"),
+    use_imputation: bool = typer.Option(False, help="Apply KNN imputation to fill missing values in selected columns before training"),
     description: str = typer.Option("", help="Project description"),
     out_html: str = typer.Option("model_report.html", help="Output HTML file"),
 ) -> None:
@@ -41,6 +57,26 @@ def grid_search(
     df = pd.read_csv(data_path)
     in_cols = [c.strip() for c in input_cols.split(',')]
     out_cols = [c.strip() for c in output_cols.split(',')]
+    _imputation_summary = None
+    if use_imputation:
+        _impute_cols = in_cols + out_cols
+        _before_missing = detect_missing(df[_impute_cols])
+        _rows_before = len(df)
+        df = apply_imputation(df, cols_to_impute=_impute_cols, cols_to_drop_rows=[])
+        _rows_after = len(df)
+        _imputation_summary = {
+            "rows_before": _rows_before,
+            "rows_after": _rows_after,
+            "columns": [
+                {
+                    "name": c,
+                    "action": "Imputed (KNN)",
+                    "missing_count": int(_before_missing.loc[c, "missing_count"]),
+                    "missing_pct": float(_before_missing.loc[c, "missing_pct"]),
+                }
+                for c in _before_missing.index
+            ],
+        }
     X = df[in_cols].values
     y = df[out_cols].values
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
@@ -77,9 +113,31 @@ def grid_search(
         ("gpr", GaussianProcessRegressor, {"alpha": [1e-4], "kernel": [RBF(), Matern(nu=1.5)]}),
         ("rf", RandomForestWithUncertainty, {"n_estimators": [50], "max_depth": [3, None]}),
         ("gb", GradientBoostingWithUncertainty, {"alpha": [0.95], "n_estimators": [50]}),
+        ("hgb", HistGradientBoostingRegressor, {"max_iter": [100, 200], "learning_rate": [0.05, 0.1]}),
         ("knn", KNeighborsRegressorWithUncertainty, {"n_neighbors": [3]}),
         ("blr", BootstrapLinearRegression, {"n_bootstraps": [20]}),
+        ("bayesian_ridge", BayesianRidge, {}),
+        ("rfgp", _RFFEstimator, {"n_components": [100, 500], "length_scale": [0.1, 1.0, 10.0], "kernel": ["rbf", "matern52"]}),
+        ("pbr", _PBREstimator, {"degree": [2, 3], "interaction_only": [False, True]}),
+        ("sgp", _NystroemEstimator, {"n_components": [50, 200], "gamma": [None, 0.1, 1.0]}),
+        ("ard_gp", _ARDGPEstimator, {"alpha": [1e-6, 1e-2]}),
     ]
+    if _GPX_AVAILABLE:
+        surrogate_defs.append(
+            ("gpx", _GPXEstimator, {"corr": ["squar_exp", "matern52"], "poly": ["constant", "linear"]})
+        )
+    if _KPLS_AVAILABLE:
+        surrogate_defs.append(
+            ("kpls", _KPLSEstimator, {"n_comp": [2, 4], "corr": ["squar_exp", "matern52"]})
+        )
+    if _LIGHTGBM_AVAILABLE:
+        surrogate_defs.append(
+            ("lgbm", _LGBMRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "num_leaves": [31, 63]})
+        )
+    if _XGBOOST_AVAILABLE:
+        surrogate_defs.append(
+            ("xgb", _XGBRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "max_depth": [4, 6]})
+        )
 
     configs = [(name, Est, params) for name, Est, grid in surrogate_defs for params in ParameterGrid(grid)]
 
@@ -105,13 +163,38 @@ def grid_search(
         except Exception:
             continue
 
+    if use_moe:
+        from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
+        try:
+            moe = MixtureOfExpertsSurrogate(
+                n_experts=moe_n_experts,
+                gating_type=moe_gating_type,
+                random_state=0,
+            )
+            moe.fit(X_train, y_train)
+            moe_pred, moe_std = moe.predict(X_test, return_std=True)
+            moe_score = mean_squared_error(y_test, moe_pred)
+            if moe_score < best_score:
+                best_score = moe_score
+                best_pred = moe_pred
+                best_std = moe_std
+                best_model = moe
+                best_combo = [{
+                    "model": "MixtureOfExpertsSurrogate",
+                    "n_experts": moe_n_experts,
+                    "gating_type": moe_gating_type,
+                }]
+                typer.echo("MoE outperformed all per-target models and was selected.")
+        except Exception as exc:
+            typer.echo(f"Warning: MoE evaluation failed: {exc}", err=True)
+
     metrics = {}
     for i, name in enumerate(out_cols):
         y_true = y_test[:, i]
         y_pred = best_pred[:, i]
         metrics[name] = {
             "r2": r2_score(y_true, y_pred),
-            "rmse": mean_squared_error(y_true, y_pred, squared=False),
+            "rmse": root_mean_squared_error(y_true, y_pred),
             "mae": mean_absolute_error(y_true, y_pred),
             "mean_predicted_std": float(np.mean(best_std[:, i])),
         }
@@ -139,6 +222,7 @@ def grid_search(
         pca_threshold=pca_threshold,
         pca_n_components=pca_n_components,
         kaiser_rule_suggestion=kaiser_rule_suggestion,
+        imputation_summary=_imputation_summary,
     )
 
     with open(out_html, "w", encoding="utf-8") as fh:

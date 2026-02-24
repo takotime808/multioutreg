@@ -118,7 +118,7 @@ class ChronosForecaster:
         if self._is_bolt:
             # Bolt returns fixed quantiles [0.1, 0.2, ..., 0.9]: shape [B, 9, H]
             bolt_q_levels = tuple(round(i * 0.1, 1) for i in range(1, 10))
-            out = self._pipe.predict(context=batch, prediction_length=int(prediction_length))
+            out = self._pipe.predict(batch, prediction_length=int(prediction_length))
             q = out.detach().cpu().numpy()
             # select only the requested quantile levels
             indices = [bolt_q_levels.index(round(ql, 1)) for ql in q_levels if round(ql, 1) in bolt_q_levels]
@@ -132,7 +132,7 @@ class ChronosForecaster:
             self.model_name, device_map=self.device, torch_dtype=self.torch_dtype
         )
         samples = pipe.predict(  # [B, S, H]
-            context=batch, prediction_length=int(prediction_length), num_samples=int(num_samples)
+            batch, prediction_length=int(prediction_length), num_samples=int(num_samples)
         )
         samples = samples.detach().cpu().numpy()
         q = np.quantile(samples, q_levels, axis=1)  # [Q, B, H]

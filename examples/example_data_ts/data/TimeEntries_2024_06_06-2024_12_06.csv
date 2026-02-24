@@ -1,0 +1,1776 @@
+Employee,Job Title,In Date,Out Date,Total Hours,Unpaid Break Time,Paid Break Time,Payable Hours
+"Castillo, Pedro ",Chef,6/6/24 10:54 AM,6/6/24 10:40 PM,11.77,0.00,0.00,11.77
+"Mattson, Daniel",Chef,6/6/24 11:34 AM,6/6/24 10:10 PM,10.61,0.00,0.00,10.61
+"Foutch, Christopher",Chef,6/6/24 12:57 PM,6/6/24 9:52 PM,8.91,0.00,0.00,8.91
+"Jacob, Jonathan",Server,6/6/24 3:05 PM,6/6/24 10:21 PM,7.26,0.00,0.00,7.26
+"Goodin, Wesley",Server,6/6/24 4:24 PM,6/6/24 10:11 PM,5.79,0.00,0.00,5.79
+"Underwood, Todd",Server,6/6/24 4:31 PM,6/6/24 10:13 PM,5.70,0.00,0.00,5.70
+"Smith, Chilton",Bartender,6/6/24 4:54 PM,6/6/24 10:30 PM,5.60,0.00,0.00,5.60
+"Bar, Bar",Bartender,6/6/24 5:25 PM,6/7/24 4:00 AM,10.58,0.00,0.00,10.58
+"Foutch, Christopher",Chef,6/7/24 10:57 AM,6/7/24 7:36 PM,8.65,0.00,0.00,8.65
+"Klatch, Uriel",Chef,6/7/24 11:07 AM,6/7/24 10:27 PM,11.33,0.00,0.00,11.33
+"Mattson, Daniel",Chef,6/7/24 11:33 AM,6/7/24 10:27 PM,10.91,0.00,0.00,10.91
+"Mitcham, Mark ",Chef,6/7/24 11:57 AM,6/7/24 11:18 PM,11.34,0.00,0.00,11.34
+"Haddock, Holden",Bartender,6/7/24 1:54 PM,6/7/24 10:27 PM,8.55,0.00,0.00,8.55
+"Jacob, Jonathan",Server,6/7/24 3:05 PM,6/7/24 9:38 PM,6.55,0.00,0.00,6.55
+"Bar, Bar",Bartender,6/7/24 3:12 PM,6/7/24 10:27 PM,7.24,0.00,0.00,7.24
+"Goodin, Wesley",Server,6/7/24 4:25 PM,6/7/24 10:48 PM,6.39,0.00,0.00,6.39
+"Fitzgerald , Alexandra ",Server,6/7/24 4:30 PM,6/7/24 10:12 PM,5.69,0.00,0.00,5.69
+"Page, Madeleine",Server,6/7/24 4:31 PM,6/7/24 9:55 PM,5.40,0.00,0.00,5.40
+"Underwood, Todd",Server,6/7/24 4:39 PM,6/7/24 9:36 PM,4.95,0.00,0.00,4.95
+"Mattson, Daniel",Chef,6/8/24 10:19 AM,6/8/24 4:51 PM,6.53,0.00,0.00,6.53
+"Whiting, Kai ",Chef,6/8/24 11:02 AM,6/8/24 10:20 PM,11.30,0.00,0.00,11.30
+"Soliday, Matthew ",Chef,6/8/24 11:05 AM,6/8/24 10:19 PM,11.24,0.00,0.00,11.24
+"Klatch, Uriel",Chef,6/8/24 11:11 AM,6/8/24 10:28 PM,11.29,0.00,0.00,11.29
+"Mitcham, Mark ",Chef,6/8/24 12:09 PM,6/8/24 11:18 PM,11.16,0.00,0.00,11.16
+"Smith, Chilton",Bartender,6/8/24 1:52 PM,6/8/24 7:52 PM,6.00,0.00,0.00,6.00
+"Bar, Bar",Bartender,6/8/24 2:17 PM,6/8/24 10:14 PM,7.95,0.00,0.00,7.95
+"Jacob, Jonathan",Server,6/8/24 3:01 PM,6/8/24 10:26 PM,7.42,0.00,0.00,7.42
+"Fitzgerald , Alexandra ",Server,6/8/24 4:26 PM,6/8/24 10:19 PM,5.89,0.00,0.00,5.89
+"Goodin, Wesley",Server,6/8/24 4:28 PM,6/8/24 10:18 PM,5.84,0.00,0.00,5.84
+"Freni, Joseph",Server,6/8/24 4:31 PM,6/8/24 9:45 PM,5.22,0.00,0.00,5.22
+"Haddock, Holden",Bartender,6/8/24 5:48 PM,6/8/24 10:01 PM,4.21,0.00,0.00,4.21
+"Whiting, Kai ",Chef,6/8/24 10:25 PM,6/8/24 10:25 PM,0.00,0.00,0.00,0.00
+"Soliday, Matthew ",Chef,6/9/24 10:53 AM,6/9/24 9:52 PM,11.00,0.00,0.00,11.00
+"Foutch, Christopher",Chef,6/9/24 10:53 AM,6/9/24 9:54 PM,11.02,0.00,0.00,11.02
+"Mitcham, Mark ",Chef,6/9/24 12:07 PM,6/9/24 10:56 PM,10.82,0.00,0.00,10.82
+"Haddock, Holden",Bartender,6/9/24 1:46 PM,6/9/24 9:02 PM,7.27,0.00,0.00,7.27
+"Underwood, Todd",Server,6/9/24 2:46 PM,6/9/24 10:12 PM,7.43,0.00,0.00,7.43
+"Smith, Chilton",Bartender,6/9/24 2:49 PM,6/9/24 10:30 PM,7.68,0.00,0.00,7.68
+"Fitzgerald , Alexandra ",Server,6/9/24 2:56 PM,6/9/24 10:00 PM,7.08,0.00,0.00,7.08
+"Freni, Joseph",Server,6/9/24 2:57 PM,6/9/24 10:27 PM,7.49,0.00,0.00,7.49
+"Goodin, Wesley",Server,6/9/24 3:07 PM,6/9/24 10:05 PM,6.97,0.00,0.00,6.97
+"Carrera, Chris",Server,6/9/24 4:02 PM,6/9/24 9:45 PM,5.71,0.00,0.00,5.71
+"Bar, Bar",Bartender,6/9/24 6:03 PM,6/9/24 10:19 PM,4.25,0.00,0.00,4.25
+"Soliday, Matthew ",Chef,6/10/24 9:55 AM,6/10/24 3:46 PM,5.84,0.00,0.00,5.84
+"Castillo, Pedro ",Chef,6/10/24 9:58 AM,6/10/24 3:50 PM,5.86,0.00,0.00,5.86
+"Castillo, Pedro ",Chef,6/11/24 11:55 AM,6/11/24 10:17 PM,10.37,0.00,0.00,10.37
+"Whiting, Kai ",Chef,6/11/24 10:58 AM,6/11/24 9:58 PM,11.01,0.00,0.00,11.01
+"Foutch, Christopher",Chef,6/11/24 10:54 AM,6/11/24 10:02 PM,11.12,0.00,0.00,11.12
+"Bar, Bar",Bartender,6/11/24 12:42 PM,6/11/24 9:44 PM,9.03,0.00,0.00,9.03
+"Haddock, Holden",Bartender,6/11/24 12:58 PM,6/11/24 9:51 PM,8.89,0.00,0.00,8.89
+"Fitzgerald , Alexandra ",Server,6/11/24 3:04 PM,6/11/24 7:34 PM,4.51,0.00,0.00,4.51
+"Goodin, Wesley",Server,6/11/24 4:00 PM,6/11/24 10:00 PM,6.00,0.00,0.00,6.00
+"Page, Madeleine",Server,6/11/24 4:36 PM,6/11/24 9:45 PM,5.15,0.00,0.00,5.15
+"Carrera, Chris",Server,6/11/24 5:01 PM,6/11/24 9:18 PM,4.30,0.00,0.00,4.30
+"LaBarge, Miles",Chef,6/12/24 8:51 AM,6/12/24 4:50 PM,7.99,0.00,0.00,7.99
+"Whiting, Kai ",Chef,6/12/24 11:07 AM,6/12/24 9:38 PM,10.52,0.00,0.00,10.52
+"Castillo, Pedro ",Chef,6/12/24 11:25 AM,6/12/24 10:17 PM,10.87,0.00,0.00,10.87
+"Mattson, Daniel",Chef,6/12/24 1:04 PM,6/12/24 9:40 PM,8.59,0.00,0.00,8.59
+"Foutch, Christopher",Chef,6/12/24 1:08 PM,6/12/24 9:32 PM,8.40,0.00,0.00,8.40
+"Smith, Chilton",Bartender,6/12/24 1:48 PM,6/12/24 9:51 PM,8.04,0.00,0.00,8.04
+"Bar, Bar",Bartender,6/12/24 2:28 PM,6/12/24 9:48 PM,7.33,0.00,0.00,7.33
+"Jacob, Jonathan",Server,6/12/24 3:06 PM,6/12/24 9:37 PM,6.52,0.00,0.00,6.52
+"Goodin, Wesley",Server,6/12/24 4:27 PM,6/12/24 9:33 PM,5.10,0.00,0.00,5.10
+"Page, Madeleine",Server,6/12/24 4:31 PM,6/12/24 9:35 PM,5.06,0.00,0.00,5.06
+"Haddock, Holden",Bartender,6/12/24 4:38 PM,6/12/24 9:04 PM,4.44,0.00,0.00,4.44
+"LaBarge, Miles",Chef,6/13/24 9:07 AM,6/13/24 5:40 PM,8.55,0.00,0.00,8.55
+"Castillo, Pedro ",Chef,6/13/24 10:52 AM,6/13/24 10:00 PM,11.15,0.00,0.00,11.15
+"Mattson, Daniel",Chef,6/13/24 10:59 AM,6/13/24 9:16 PM,10.30,0.00,0.00,10.30
+"Mascia, Michaela",Chef,6/13/24 12:53 PM,6/13/24 9:24 PM,8.52,0.00,0.00,8.52
+"Jacob, Jonathan",Server,6/13/24 3:08 PM,6/13/24 9:30 PM,6.38,0.00,0.00,6.38
+"Fitzgerald , Alexandra ",Server,6/13/24 3:55 PM,6/13/24 5:54 PM,1.99,0.00,0.00,1.99
+"Underwood, Todd",Server,6/13/24 4:25 PM,6/13/24 9:24 PM,4.98,0.00,0.00,4.98
+"Freni, Joseph",Server,6/13/24 4:31 PM,6/13/24 9:29 PM,4.96,0.00,0.00,4.96
+"Smith, Chilton",Bartender,6/13/24 4:49 PM,6/13/24 9:15 PM,4.43,0.00,0.00,4.43
+"Bar, Bar",Bartender,6/13/24 6:10 PM,6/14/24 4:00 AM,9.83,0.00,0.00,9.83
+"Soliday, Matthew ",Chef,6/14/24 10:56 AM,6/14/24 10:48 PM,11.87,0.00,0.00,11.87
+"Foutch, Christopher",Chef,6/14/24 11:52 AM,6/14/24 10:32 PM,10.67,0.00,0.00,10.67
+"Mitcham, Mark ",Chef,6/14/24 12:01 PM,6/14/24 11:11 PM,11.17,0.00,0.00,11.17
+"Mattson, Daniel",Chef,6/14/24 12:00 PM,6/14/24 10:51 PM,10.86,0.00,0.00,10.86
+"Haddock, Holden",Bartender,6/14/24 1:58 PM,6/14/24 9:22 PM,7.41,0.00,0.00,7.41
+"Jacob, Jonathan",Server,6/14/24 3:10 PM,6/14/24 9:43 PM,6.54,0.00,0.00,6.54
+"Bar, Bar",Bartender,6/14/24 3:43 PM,6/15/24 4:00 AM,12.28,0.00,0.00,12.28
+"Fitzgerald , Alexandra ",Server,6/14/24 4:24 PM,6/14/24 9:53 PM,5.50,0.00,0.00,5.50
+"Page, Madeleine",Server,6/14/24 4:28 PM,6/14/24 10:01 PM,5.55,0.00,0.00,5.55
+"Freni, Joseph",Server,6/14/24 4:28 PM,6/14/24 10:06 PM,5.63,0.00,0.00,5.63
+"Goodin, Wesley",Server,6/14/24 4:30 PM,6/14/24 10:34 PM,6.08,0.00,0.00,6.08
+"Smith, Chilton",Bartender,6/14/24 4:47 PM,6/14/24 11:05 PM,6.29,0.00,0.00,6.29
+"Soliday, Matthew ",Chef,6/15/24 10:58 AM,6/15/24 11:10 PM,12.19,0.00,0.00,12.19
+"Mascia, Michaela",Chef,6/15/24 11:02 AM,6/15/24 11:10 PM,12.14,0.00,0.00,12.14
+"Whiting, Kai ",Chef,6/15/24 11:04 AM,6/15/24 11:10 PM,12.11,0.00,0.00,12.11
+"Mitcham, Mark ",Chef,6/15/24 12:06 PM,6/15/24 11:55 PM,11.82,0.00,0.00,11.82
+"Mattson, Daniel",Chef,6/15/24 1:09 PM,6/15/24 10:05 PM,8.94,0.00,0.00,8.94
+"Smith, Chilton",Bartender,6/15/24 2:00 PM,6/15/24 9:58 PM,7.97,0.00,0.00,7.97
+"Jacob, Jonathan",Server,6/15/24 3:05 PM,6/15/24 11:06 PM,8.02,0.00,0.00,8.02
+"Bar, Bar",Bartender,6/15/24 3:38 PM,6/15/24 10:45 PM,7.12,0.00,0.00,7.12
+"Goodin, Wesley",Server,6/15/24 4:13 PM,6/15/24 10:00 PM,5.79,0.00,0.00,5.79
+"Page, Madeleine",Server,6/15/24 4:29 PM,6/15/24 10:39 PM,6.15,0.00,0.00,6.15
+"Freni, Joseph",Server,6/15/24 4:31 PM,6/15/24 11:07 PM,6.60,0.00,0.00,6.60
+"Fitzgerald , Alexandra ",Server,6/15/24 4:59 PM,6/15/24 9:09 PM,4.17,0.00,0.00,4.17
+"Haddock, Holden",Bartender,6/15/24 4:55 PM,6/15/24 10:54 PM,6.00,0.00,0.00,6.00
+"Soliday, Matthew ",Chef,6/16/24 10:38 AM,6/16/24 10:39 PM,12.02,0.00,0.00,12.02
+"Foutch, Christopher",Chef,6/16/24 10:52 AM,6/16/24 10:40 PM,11.80,0.00,0.00,11.80
+"Mascia, Michaela",Chef,6/16/24 10:59 AM,6/16/24 10:39 PM,11.68,0.00,0.00,11.68
+"Mitcham, Mark ",Chef,6/16/24 12:06 PM,6/16/24 11:35 PM,11.47,0.00,0.00,11.47
+"Fitzgerald , Alexandra ",Server,6/16/24 1:56 PM,6/16/24 8:31 PM,6.58,0.00,0.00,6.58
+"Goodin, Wesley",Server,6/16/24 2:44 PM,6/16/24 10:44 PM,8.01,0.00,0.00,8.01
+"Freni, Joseph",Server,6/16/24 3:05 PM,6/16/24 10:50 PM,7.74,0.00,0.00,7.74
+"Underwood, Todd",Server,6/16/24 3:18 PM,6/16/24 10:36 PM,7.30,0.00,0.00,7.30
+"Mattson, Daniel",Chef,6/16/24 4:03 PM,6/16/24 10:25 PM,6.37,0.00,0.00,6.37
+"Bar, Bar",Bartender,6/16/24 4:10 PM,6/16/24 10:49 PM,6.66,0.00,0.00,6.66
+"Hogan, Jessi",Bartender,6/16/24 5:34 PM,6/16/24 10:00 PM,4.44,0.00,0.00,4.44
+"Haddock, Holden",Bartender,6/16/24 1:55 PM,6/16/24 11:08 PM,9.23,0.00,0.00,9.23
+"Soliday, Matthew ",Chef,6/17/24 9:58 AM,6/17/24 5:39 PM,7.69,0.00,0.00,7.69
+"Foutch, Christopher",Chef,6/17/24 10:00 AM,6/17/24 5:39 PM,7.66,0.00,0.00,7.66
+"Castillo, Pedro ",Chef,6/17/24 10:10 AM,6/17/24 5:36 PM,7.44,0.00,0.00,7.44
+"Castillo, Pedro ",Chef,6/18/24 10:49 AM,6/18/24 10:30 PM,11.69,0.00,0.00,11.69
+"Soliday, Matthew ",Chef,6/18/24 12:53 PM,6/18/24 9:51 PM,8.97,0.00,0.00,8.97
+"Foutch, Christopher",Chef,6/18/24 1:01 PM,6/18/24 10:00 PM,8.99,0.00,0.00,8.99
+"Smith, Chilton",Bartender,6/18/24 1:04 PM,6/18/24 9:00 PM,7.93,0.00,0.00,7.93
+"Goodin, Wesley",Server,6/18/24 3:00 PM,6/18/24 9:53 PM,6.88,0.00,0.00,6.88
+"Fitzgerald , Alexandra ",Server,6/18/24 3:08 PM,6/18/24 9:54 PM,6.75,0.00,0.00,6.75
+"Bar, Bar",Bartender,6/18/24 3:24 PM,6/18/24 9:59 PM,6.57,0.00,0.00,6.57
+"Haddock, Holden",Bartender,6/18/24 4:57 PM,6/18/24 10:07 PM,5.16,0.00,0.00,5.16
+"Carrera, Chris",Server,6/18/24 5:00 PM,6/18/24 9:39 PM,4.64,0.00,0.00,4.64
+"Somerset, Clara",Server,6/18/24 5:36 PM,6/18/24 9:06 PM,3.50,0.00,0.00,3.50
+"Whiting, Kai ",Chef,6/18/24 10:00 PM,6/18/24 10:00 PM,0.00,0.00,0.00,0.00
+"LaBarge, Miles",Chef,6/19/24 9:00 AM,6/19/24 5:48 PM,8.80,0.00,0.00,8.80
+"Castillo, Pedro ",Chef,6/19/24 10:55 AM,6/19/24 10:28 PM,11.56,0.00,0.00,11.56
+"Whiting, Kai ",Chef,6/19/24 11:05 AM,6/19/24 10:00 PM,10.92,0.00,0.00,10.92
+"Mattson, Daniel",Chef,6/19/24 12:53 PM,6/19/24 10:01 PM,9.13,0.00,0.00,9.13
+"Smith, Chilton",Bartender,6/19/24 1:53 PM,6/19/24 9:59 PM,8.11,0.00,0.00,8.11
+"Jacob, Jonathan",Server,6/19/24 3:04 PM,6/19/24 10:16 PM,7.20,0.00,0.00,7.20
+"Page, Madeleine",Server,6/19/24 4:29 PM,6/19/24 10:17 PM,5.80,0.00,0.00,5.80
+"Bar, Bar",Bartender,6/19/24 4:58 PM,6/20/24 4:00 AM,11.03,0.00,0.00,11.03
+"Whiting, Kai ",Chef,6/18/24 10:00 AM,6/18/24 10:00 PM,12.00,0.00,0.00,12.00
+"LaBarge, Miles",Chef,6/20/24 9:01 AM,6/20/24 5:59 PM,8.96,0.00,0.00,8.96
+"Castillo, Pedro ",Chef,6/20/24 11:13 AM,6/20/24 10:29 PM,11.27,0.00,0.00,11.27
+"Mattson, Daniel",Chef,6/20/24 12:06 PM,6/20/24 9:53 PM,9.79,0.00,0.00,9.79
+"Mascia, Michaela",Chef,6/20/24 12:59 PM,6/20/24 9:52 PM,8.88,0.00,0.00,8.88
+"Smith, Chilton",Bartender,6/20/24 1:48 PM,6/20/24 5:06 PM,3.31,0.00,0.00,3.31
+"Jacob, Jonathan",Server,6/20/24 3:01 PM,6/20/24 9:31 PM,6.49,0.00,0.00,6.49
+"Fitzgerald , Alexandra ",Server,6/20/24 3:57 PM,6/20/24 9:19 PM,5.37,0.00,0.00,5.37
+"Goodin, Wesley",Server,6/20/24 4:02 PM,6/20/24 10:02 PM,6.01,0.00,0.00,6.01
+"Bar, Bar",Bartender,6/20/24 4:04 PM,6/20/24 9:59 PM,5.90,0.00,0.00,5.90
+"Haddock, Holden",Bartender,6/20/24 4:50 PM,6/20/24 10:04 PM,5.24,0.00,0.00,5.24
+"Foutch, Christopher",Chef,6/21/24 10:55 AM,6/21/24 10:31 PM,11.60,0.00,0.00,11.60
+"Mattson, Daniel",Chef,6/21/24 10:58 AM,6/21/24 10:40 PM,11.69,0.00,0.00,11.69
+"Mitcham, Mark ",Chef,6/21/24 11:59 AM,6/21/24 11:20 PM,11.34,0.00,0.00,11.34
+"Jacob, Jonathan",Server,6/21/24 3:05 PM,6/21/24 10:33 PM,7.46,0.00,0.00,7.46
+"Goodin, Wesley",Server,6/21/24 4:11 PM,6/21/24 9:31 PM,5.33,0.00,0.00,5.33
+"Bar, Bar",Bartender,6/21/24 4:21 PM,6/22/24 4:00 AM,11.64,0.00,0.00,11.64
+"Freni, Joseph",Server,6/21/24 4:34 PM,6/21/24 9:25 PM,4.85,0.00,0.00,4.85
+"Smith, Chilton",Bartender,6/21/24 4:49 PM,6/21/24 11:21 PM,6.54,0.00,0.00,6.54
+"Page, Madeleine",Server,6/21/24 4:57 PM,6/21/24 9:17 PM,4.33,0.00,0.00,4.33
+"Fitzgerald , Alexandra ",Server,6/21/24 5:13 PM,6/21/24 10:31 PM,5.30,0.00,0.00,5.30
+"Soliday, Matthew ",Chef,6/22/24 10:53 AM,6/22/24 10:44 PM,11.84,0.00,0.00,11.84
+"Whiting, Kai ",Chef,6/22/24 10:55 AM,6/22/24 10:33 PM,11.63,0.00,0.00,11.63
+"Mascia, Michaela",Chef,6/22/24 11:05 AM,6/22/24 10:34 PM,11.49,0.00,0.00,11.49
+"Mitcham, Mark ",Chef,6/22/24 12:02 PM,6/23/24 4:00 AM,15.95,0.00,0.00,15.95
+"Mattson, Daniel",Chef,6/22/24 1:09 PM,6/22/24 9:26 PM,8.28,0.00,0.00,8.28
+"Bar, Bar",Bartender,6/22/24 1:41 PM,6/23/24 4:00 AM,14.31,0.00,0.00,14.31
+"Jacob, Jonathan",Server,6/22/24 3:04 PM,6/22/24 10:22 PM,7.30,0.00,0.00,7.30
+"Page, Madeleine",Server,6/22/24 4:04 PM,6/22/24 10:26 PM,6.37,0.00,0.00,6.37
+"Freni, Joseph",Server,6/22/24 4:32 PM,6/22/24 10:22 PM,5.83,0.00,0.00,5.83
+"Smith, Chilton",Bartender,6/22/24 4:44 PM,6/22/24 10:49 PM,6.08,0.00,0.00,6.08
+"Foutch, Christopher",Chef,6/23/24 10:55 AM,6/23/24 10:06 PM,11.18,0.00,0.00,11.18
+"Soliday, Matthew ",Chef,6/23/24 10:58 AM,6/23/24 9:57 PM,10.97,0.00,0.00,10.97
+"Mascia, Michaela",Chef,6/23/24 11:02 AM,6/23/24 10:06 PM,11.07,0.00,0.00,11.07
+"Mitcham, Mark ",Chef,6/23/24 11:57 AM,6/23/24 11:10 PM,11.22,0.00,0.00,11.22
+"Fitzgerald , Alexandra ",Server,6/23/24 1:54 PM,6/23/24 10:03 PM,8.14,0.00,0.00,8.14
+"Haddock, Holden",Bartender,6/23/24 2:03 PM,6/23/24 8:16 PM,6.22,0.00,0.00,6.22
+"Somerset, Clara",Server,6/23/24 2:57 PM,6/23/24 8:13 PM,5.27,0.00,0.00,5.27
+"Jacob, Jonathan",Server,6/23/24 3:01 PM,6/23/24 10:34 PM,7.55,0.00,0.00,7.55
+"Freni, Joseph",Server,6/23/24 3:02 PM,6/23/24 10:21 PM,7.31,0.00,0.00,7.31
+"Smith, Chilton",Bartender,6/23/24 3:41 PM,6/23/24 10:11 PM,6.49,0.00,0.00,6.49
+"Carrera, Chris",Server,6/23/24 4:02 PM,6/23/24 9:45 PM,5.72,0.00,0.00,5.72
+"Bar, Bar",Bartender,6/23/24 4:37 PM,6/24/24 4:00 AM,11.37,0.00,0.00,11.37
+"Whiting, Kai ",Chef,6/24/24 10:00 AM,6/24/24 4:44 PM,6.74,0.00,0.00,6.74
+"Mattson, Daniel",Chef,6/24/24 10:00 AM,6/24/24 4:48 PM,6.81,0.00,0.00,6.81
+"Castillo, Pedro ",Chef,6/24/24 10:00 AM,6/24/24 4:34 PM,6.57,0.00,0.00,6.57
+"Castillo, Pedro ",Chef,6/25/24 11:51 AM,6/25/24 10:42 PM,10.86,0.00,0.00,10.86
+"Soliday, Matthew ",Chef,6/25/24 12:06 PM,6/25/24 10:14 PM,10.13,0.00,0.00,10.13
+"Haddock, Holden",Bartender,6/25/24 12:56 PM,6/25/24 10:35 PM,9.65,0.00,0.00,9.65
+"Boyce, Vincent",Server,6/25/24 3:00 PM,6/25/24 10:16 PM,7.27,0.00,0.00,7.27
+"Goodin, Wesley",Server,6/25/24 4:27 PM,6/25/24 10:16 PM,5.81,0.00,0.00,5.81
+"Fitzgerald , Alexandra ",Server,6/25/24 4:28 PM,6/25/24 9:49 PM,5.35,0.00,0.00,5.35
+"Carrera, Chris",Server,6/25/24 4:59 PM,6/25/24 9:25 PM,4.43,0.00,0.00,4.43
+"Bar, Bar",Bartender,6/25/24 5:02 PM,6/25/24 10:33 PM,5.50,0.00,0.00,5.50
+"Foutch, Christopher",Chef,6/25/24 10:12 PM,6/25/24 10:12 PM,0.00,0.00,0.00,0.00
+"LaBarge, Miles",Chef,6/26/24 9:00 AM,6/26/24 6:13 PM,9.22,0.00,0.00,9.22
+"Castillo, Pedro ",Chef,6/26/24 10:44 AM,6/26/24 10:22 PM,11.62,0.00,0.00,11.62
+"Foutch, Christopher",Chef,6/26/24 12:57 PM,6/26/24 9:52 PM,8.90,0.00,0.00,8.90
+"Soliday, Matthew ",Chef,6/26/24 1:00 PM,6/26/24 9:53 PM,8.90,0.00,0.00,8.90
+"Jacob, Jonathan",Server,6/26/24 3:02 PM,6/26/24 10:30 PM,7.47,0.00,0.00,7.47
+"Boyce, Vincent",Server,6/26/24 4:28 PM,6/26/24 10:31 PM,6.05,0.00,0.00,6.05
+"Goodin, Wesley",Server,6/26/24 4:30 PM,6/26/24 8:24 PM,3.90,0.00,0.00,3.90
+"Bar, Bar",Bartender,6/26/24 4:57 PM,6/26/24 10:01 PM,5.06,0.00,0.00,5.06
+"Foutch, Christopher",Chef,6/25/24 1:00 PM,6/25/24 10:00 PM,9.00,0.00,0.00,9.00
+"LaBarge, Miles",Chef,6/27/24 9:11 AM,6/27/24 6:26 PM,9.25,0.00,0.00,9.25
+"Castillo, Pedro ",Chef,6/27/24 11:27 AM,6/27/24 10:47 PM,11.34,0.00,0.00,11.34
+"Whiting, Kai ",Chef,6/27/24 11:29 AM,6/27/24 10:30 PM,11.02,0.00,0.00,11.02
+"Mascia, Michaela",Chef,6/27/24 12:57 PM,6/27/24 10:21 PM,9.40,0.00,0.00,9.40
+"Haddock, Holden",Bartender,6/27/24 1:52 PM,6/27/24 10:30 PM,8.63,0.00,0.00,8.63
+"Jacob, Jonathan",Server,6/27/24 3:00 PM,6/27/24 10:02 PM,7.04,0.00,0.00,7.04
+"Fitzgerald , Alexandra ",Server,6/27/24 4:28 PM,6/27/24 9:56 PM,5.47,0.00,0.00,5.47
+"Freni, Joseph",Server,6/27/24 4:34 PM,6/27/24 10:03 PM,5.49,0.00,0.00,5.49
+"Carrera, Chris",Server,6/27/24 5:04 PM,6/27/24 9:37 PM,4.55,0.00,0.00,4.55
+"Bar, Bar",Bartender,6/27/24 5:22 PM,6/27/24 10:16 PM,4.90,0.00,0.00,4.90
+"Freni, Joseph",Server,6/27/24 10:03 PM,6/27/24 10:04 PM,0.01,0.00,0.00,0.01
+"Foutch, Christopher",Chef,6/28/24 10:57 AM,6/28/24 10:56 PM,11.98,0.00,0.00,11.98
+"Soliday, Matthew ",Chef,6/28/24 10:59 AM,6/28/24 11:00 PM,12.02,0.00,0.00,12.02
+"Mitcham, Mark ",Chef,6/28/24 12:02 PM,6/28/24 11:45 PM,11.72,0.00,0.00,11.72
+"Haddock, Holden",Bartender,6/28/24 1:54 PM,6/28/24 10:55 PM,9.01,0.00,0.00,9.01
+"Jacob, Jonathan",Server,6/28/24 3:07 PM,6/28/24 10:53 PM,7.77,0.00,0.00,7.77
+"Freni, Joseph",Server,6/28/24 4:33 PM,6/28/24 10:49 PM,6.27,0.00,0.00,6.27
+"Page, Madeleine",Server,6/28/24 4:36 PM,6/28/24 10:51 PM,6.25,0.00,0.00,6.25
+"Bar, Bar",Bartender,6/28/24 5:04 PM,6/28/24 10:49 PM,5.75,0.00,0.00,5.75
+"Mascia, Michaela",Chef,6/29/24 11:11 AM,6/29/24 10:51 PM,11.67,0.00,0.00,11.67
+"Mitcham, Mark ",Chef,6/29/24 12:02 PM,6/29/24 11:25 PM,11.38,0.00,0.00,11.38
+"Haddock, Holden",Bartender,6/29/24 2:04 PM,6/29/24 10:19 PM,8.26,0.00,0.00,8.26
+"Jacob, Jonathan",Server,6/29/24 3:15 PM,6/29/24 6:35 PM,3.34,0.00,0.00,3.34
+"Fitzgerald , Alexandra ",Server,6/29/24 4:25 PM,6/29/24 9:45 PM,5.32,0.00,0.00,5.32
+"Goodin, Wesley",Server,6/29/24 4:27 PM,6/29/24 10:20 PM,5.89,0.00,0.00,5.89
+"Page, Madeleine",Server,6/29/24 4:31 PM,6/29/24 10:34 PM,6.07,0.00,0.00,6.07
+"Freni, Joseph",Server,6/29/24 4:33 PM,6/29/24 10:04 PM,5.51,0.00,0.00,5.51
+"Bar, Bar",Bartender,6/29/24 5:21 PM,6/29/24 10:25 PM,5.06,0.00,0.00,5.06
+"Whiting, Kai ",Chef,6/29/24 11:00 AM,6/29/24 10:54 PM,11.90,0.00,0.00,11.90
+"Soliday, Matthew ",Chef,6/30/24 10:52 AM,6/30/24 9:46 PM,10.91,0.00,0.00,10.91
+"Foutch, Christopher",Chef,6/30/24 10:52 AM,6/30/24 9:57 PM,11.08,0.00,0.00,11.08
+"Mascia, Michaela",Chef,6/30/24 11:06 AM,6/30/24 9:56 PM,10.84,0.00,0.00,10.84
+"Mitcham, Mark ",Chef,6/30/24 12:12 PM,6/30/24 10:35 PM,10.39,0.00,0.00,10.39
+"Goodin, Wesley",Server,6/30/24 2:03 PM,6/30/24 9:08 PM,7.08,0.00,0.00,7.08
+"Boyce, Vincent",Server,6/30/24 2:57 PM,6/30/24 10:10 PM,7.22,0.00,0.00,7.22
+"Freni, Joseph",Server,6/30/24 3:02 PM,6/30/24 9:36 PM,6.56,0.00,0.00,6.56
+"Fitzgerald , Alexandra ",Server,6/30/24 1:00 PM,6/30/24 9:05 PM,8.08,0.00,0.00,8.08
+"Haddock, Holden",Bartender,6/30/24 3:34 PM,6/30/24 10:00 PM,6.43,0.00,0.00,6.43
+"Carrera, Chris",Server,6/30/24 3:56 PM,6/30/24 9:13 PM,5.28,0.00,0.00,5.28
+"Bar, Bar",Bartender,6/30/24 4:47 PM,6/30/24 10:24 PM,5.61,0.00,0.00,5.61
+"Somerset, Clara",Server,6/30/24 2:50 PM,6/30/24 9:08 PM,6.30,0.00,0.00,6.30
+"Soliday, Matthew ",Chef,7/1/24 9:58 AM,7/1/24 5:10 PM,7.21,0.00,0.00,7.21
+"Foutch, Christopher",Chef,7/1/24 9:58 AM,7/1/24 5:14 PM,7.26,0.00,0.00,7.26
+"Castillo, Pedro ",Chef,7/1/24 10:02 AM,7/1/24 5:05 PM,7.04,0.00,0.00,7.04
+"Castillo, Pedro ",Chef,7/2/24 10:56 AM,7/2/24 10:30 PM,11.58,0.00,0.00,11.58
+"Mascia, Michaela",Chef,7/2/24 11:01 AM,7/2/24 9:58 PM,10.95,0.00,0.00,10.95
+"Whiting, Kai ",Chef,7/2/24 11:01 AM,7/2/24 10:06 PM,11.08,0.00,0.00,11.08
+"Haddock, Holden",Bartender,7/2/24 12:59 PM,7/2/24 10:19 PM,9.34,0.00,0.00,9.34
+"Bar, Bar",Bartender,7/2/24 12:59 PM,7/2/24 10:05 PM,9.10,0.00,0.00,9.10
+"Fitzgerald , Alexandra ",Server,7/2/24 3:56 PM,7/2/24 9:56 PM,5.99,0.00,0.00,5.99
+"Page, Madeleine",Server,7/2/24 4:28 PM,7/2/24 9:59 PM,5.51,0.00,0.00,5.51
+"LaBarge, Miles",Chef,7/3/24 8:54 AM,7/3/24 6:41 PM,9.78,0.00,0.00,9.78
+"Castillo, Pedro ",Chef,7/3/24 10:47 AM,7/3/24 10:17 PM,11.50,0.00,0.00,11.50
+"Foutch, Christopher",Chef,7/3/24 10:54 AM,7/3/24 9:25 PM,10.51,0.00,0.00,10.51
+"Bar, Bar",Bartender,7/3/24 2:27 PM,7/3/24 9:50 PM,7.38,0.00,0.00,7.38
+"Page, Madeleine",Server,7/3/24 3:34 PM,7/3/24 9:44 PM,6.15,0.00,0.00,6.15
+"Goodin, Wesley",Server,7/3/24 4:29 PM,7/3/24 9:41 PM,5.20,0.00,0.00,5.20
+"Whiting, Kai ",Chef,7/3/24 11:00 AM,7/3/24 9:25 PM,10.42,0.00,0.00,10.42
+"Haddock, Holden",Bartender,7/3/24 5:02 PM,7/3/24 8:39 PM,3.61,0.00,0.00,3.61
+"Soliday, Matthew ",Chef,7/5/24 10:58 AM,7/5/24 10:51 PM,11.88,0.00,0.00,11.88
+"Mitcham, Mark ",Chef,7/5/24 12:04 PM,7/5/24 11:36 PM,11.53,0.00,0.00,11.53
+"Foutch, Christopher",Chef,7/5/24 1:11 PM,7/5/24 10:50 PM,9.65,0.00,0.00,9.65
+"Haddock, Holden",Bartender,7/5/24 1:47 PM,7/5/24 6:43 PM,4.93,0.00,0.00,4.93
+"Bar, Bar",Bartender,7/5/24 1:51 PM,7/5/24 11:05 PM,9.23,0.00,0.00,9.23
+"Fitzgerald , Alexandra ",Server,7/5/24 4:20 PM,7/5/24 7:09 PM,2.82,0.00,0.00,2.82
+"Page, Madeleine",Server,7/5/24 4:27 PM,7/5/24 10:51 PM,6.40,0.00,0.00,6.40
+"Goodin, Wesley",Server,7/5/24 4:28 PM,7/5/24 10:58 PM,6.51,0.00,0.00,6.51
+"Anain, Jenna",Server,7/5/24 4:30 PM,7/5/24 7:09 PM,2.66,0.00,0.00,2.66
+"Whiting, Kai ",Chef,7/6/24 11:24 AM,7/6/24 10:45 PM,11.36,0.00,0.00,11.36
+"Mascia, Michaela",Chef,7/6/24 11:25 AM,7/6/24 10:41 PM,11.28,0.00,0.00,11.28
+"Mitcham, Mark ",Chef,7/6/24 12:04 PM,7/6/24 11:30 PM,11.43,0.00,0.00,11.43
+"Haddock, Holden",Bartender,7/6/24 1:52 PM,7/6/24 4:59 PM,3.12,0.00,0.00,3.12
+"Soliday, Matthew ",Chef,7/6/24 3:02 PM,7/6/24 10:37 PM,7.57,0.00,0.00,7.57
+"Bar, Bar",Bartender,7/6/24 3:57 PM,7/6/24 10:25 PM,6.45,0.00,0.00,6.45
+"Page, Madeleine",Server,7/6/24 4:28 PM,7/6/24 10:41 PM,6.21,0.00,0.00,6.21
+"Fitzgerald , Alexandra ",Server,7/6/24 4:41 PM,7/6/24 8:49 PM,4.13,0.00,0.00,4.13
+"Foutch, Christopher",Chef,7/7/24 10:55 AM,7/7/24 9:51 PM,10.94,0.00,0.00,10.94
+"Mascia, Michaela",Chef,7/7/24 11:02 AM,7/7/24 9:57 PM,10.92,0.00,0.00,10.92
+"Soliday, Matthew ",Chef,7/7/24 11:30 AM,7/7/24 9:42 PM,10.20,0.00,0.00,10.20
+"Mitcham, Mark ",Chef,7/7/24 12:00 PM,7/7/24 10:38 PM,10.63,0.00,0.00,10.63
+"Haddock, Holden",Bartender,7/7/24 2:00 PM,7/7/24 9:47 PM,7.77,0.00,0.00,7.77
+"Goodin, Wesley",Server,7/7/24 3:28 PM,7/7/24 9:58 PM,6.50,0.00,0.00,6.50
+"Boyce, Vincent",Server,7/7/24 3:28 PM,7/7/24 9:46 PM,6.30,0.00,0.00,6.30
+"Fitzgerald , Alexandra ",Server,7/7/24 3:30 PM,7/7/24 9:31 PM,6.03,0.00,0.00,6.03
+"Anain, Jenna",Server,7/7/24 3:30 PM,7/7/24 9:32 PM,6.03,0.00,0.00,6.03
+"Carrera, Chris",Server,7/7/24 4:02 PM,7/7/24 9:32 PM,5.50,0.00,0.00,5.50
+"Bar, Bar",Bartender,7/7/24 4:15 PM,7/7/24 9:46 PM,5.52,0.00,0.00,5.52
+"Maher, Samuel",Owner,7/7/24 8:15 PM,7/7/24 8:15 PM,0.01,0.00,0.00,0.01
+"Castillo, Pedro ",Chef,7/8/24 9:55 AM,7/8/24 4:44 PM,6.81,0.00,0.00,6.81
+"Soliday, Matthew ",Chef,7/8/24 9:58 AM,7/8/24 4:42 PM,6.75,0.00,0.00,6.75
+"Foutch, Christopher",Chef,7/8/24 9:58 AM,7/8/24 4:50 PM,6.86,0.00,0.00,6.86
+"Soliday, Matthew ",Chef,7/8/24 4:43 PM,7/8/24 4:54 PM,0.18,0.00,0.00,0.18
+"Castillo, Pedro ",Chef,7/9/24 10:55 AM,7/9/24 10:18 PM,11.38,0.00,0.00,11.38
+"Whiting, Kai ",Chef,7/9/24 11:03 AM,7/9/24 10:05 PM,11.04,0.00,0.00,11.04
+"Soliday, Matthew ",Chef,7/9/24 12:59 PM,7/9/24 6:00 PM,5.01,0.00,0.00,5.01
+"Haddock, Holden",Bartender,7/9/24 2:13 PM,7/9/24 9:44 PM,7.51,0.00,0.00,7.51
+"Somerset, Clara",Server,7/9/24 4:00 PM,7/9/24 9:26 PM,5.44,0.00,0.00,5.44
+"Bar, Bar",Bartender,7/9/24 4:03 PM,7/9/24 9:34 PM,5.53,0.00,0.00,5.53
+"Page, Madeleine",Server,7/9/24 4:34 PM,7/9/24 9:41 PM,5.12,0.00,0.00,5.12
+"LaBarge, Miles",Chef,7/10/24 8:55 AM,7/10/24 6:23 PM,9.46,0.00,0.00,9.46
+"Castillo, Pedro ",Chef,7/10/24 10:57 AM,7/10/24 10:32 PM,11.58,0.00,0.00,11.58
+"Mascia, Michaela",Chef,7/10/24 1:02 PM,7/10/24 10:00 PM,8.98,0.00,0.00,8.98
+"Whiting, Kai ",Chef,7/10/24 11:01 AM,7/10/24 10:03 PM,11.03,0.00,0.00,11.03
+"Jacob, Jonathan",Server,7/10/24 3:11 PM,7/10/24 10:15 PM,7.06,0.00,0.00,7.06
+"Boyce, Vincent",Server,7/10/24 4:25 PM,7/10/24 10:10 PM,5.76,0.00,0.00,5.76
+"Bar, Bar",Bartender,7/10/24 5:04 PM,7/10/24 10:14 PM,5.17,0.00,0.00,5.17
+"Haddock, Holden",Bartender,7/10/24 5:06 PM,7/10/24 9:07 PM,4.03,0.00,0.00,4.03
+"LaBarge, Miles",Chef,7/11/24 8:57 AM,7/11/24 5:46 PM,8.82,0.00,0.00,8.82
+"Foutch, Christopher",Chef,7/11/24 12:01 PM,7/11/24 9:49 PM,9.80,0.00,0.00,9.80
+"Mascia, Michaela",Chef,7/11/24 1:00 PM,7/11/24 10:01 PM,9.03,0.00,0.00,9.03
+"Soliday, Matthew ",Chef,7/11/24 12:20 PM,7/11/24 10:10 PM,9.84,0.00,0.00,9.84
+"Jacob, Jonathan",Server,7/11/24 3:03 PM,7/11/24 10:07 PM,7.06,0.00,0.00,7.06
+"Fitzgerald , Alexandra ",Server,7/11/24 4:28 PM,7/11/24 10:04 PM,5.60,0.00,0.00,5.60
+"Bar, Bar",Bartender,7/11/24 4:39 PM,7/11/24 10:00 PM,5.36,0.00,0.00,5.36
+"Boyce, Vincent",Server,7/11/24 6:15 PM,7/11/24 7:54 PM,1.65,0.00,0.00,1.65
+"Castillo, Pedro ",Chef,7/11/24 11:00 AM,7/11/24 10:40 PM,11.67,0.00,0.00,11.67
+"Soliday, Matthew ",Chef,7/12/24 11:01 AM,7/12/24 11:05 PM,12.07,0.00,0.00,12.07
+"Mitcham, Mark ",Chef,7/12/24 12:03 PM,7/12/24 11:41 PM,11.65,0.00,0.00,11.65
+"Mascia, Michaela",Chef,7/12/24 1:05 PM,7/12/24 10:15 PM,9.17,0.00,0.00,9.17
+"Haddock, Holden",Bartender,7/12/24 1:48 PM,7/12/24 8:14 PM,6.43,0.00,0.00,6.43
+"Bar, Bar",Bartender,7/12/24 1:48 PM,7/12/24 10:40 PM,8.87,0.00,0.00,8.87
+"Jacob, Jonathan",Server,7/12/24 3:00 PM,7/12/24 10:50 PM,7.84,0.00,0.00,7.84
+"Page, Madeleine",Server,7/12/24 4:20 PM,7/12/24 10:44 PM,6.39,0.00,0.00,6.39
+"Fitzgerald , Alexandra ",Server,7/12/24 4:27 PM,7/12/24 10:44 PM,6.28,0.00,0.00,6.28
+"Soliday, Matthew ",Chef,7/12/24 11:06 PM,7/12/24 11:10 PM,0.08,0.00,0.00,0.08
+"Whiting, Kai ",Chef,7/13/24 10:59 AM,7/13/24 11:19 PM,12.33,0.00,0.00,12.33
+"Mitcham, Mark ",Chef,7/13/24 12:01 PM,7/14/24 12:07 AM,12.09,0.00,0.00,12.09
+"Mascia, Michaela",Chef,7/13/24 12:03 PM,7/13/24 11:20 PM,11.27,0.00,0.00,11.27
+"Haddock, Holden",Bartender,7/13/24 2:03 PM,7/13/24 10:08 PM,8.09,0.00,0.00,8.09
+"Jacob, Jonathan",Server,7/13/24 3:03 PM,7/13/24 10:28 PM,7.41,0.00,0.00,7.41
+"Somerset, Clara",Server,7/13/24 3:58 PM,7/13/24 10:16 PM,6.30,0.00,0.00,6.30
+"Fitzgerald , Alexandra ",Server,7/13/24 4:28 PM,7/13/24 10:43 PM,6.25,0.00,0.00,6.25
+"Page, Madeleine",Server,7/13/24 4:32 PM,7/13/24 10:19 PM,5.79,0.00,0.00,5.79
+"Bar, Bar",Bartender,7/13/24 5:25 PM,7/13/24 9:58 PM,4.56,0.00,0.00,4.56
+"Maher, Samuel",Owner,7/13/24 10:09 PM,7/13/24 10:09 PM,0.01,0.00,0.00,0.01
+"Soliday, Matthew ",Chef,7/14/24 11:00 AM,7/14/24 10:23 PM,11.39,0.00,0.00,11.39
+"Mascia, Michaela",Chef,7/14/24 11:18 AM,7/14/24 10:29 PM,11.18,0.00,0.00,11.18
+"Mitcham, Mark ",Chef,7/14/24 11:54 AM,7/14/24 11:34 PM,11.67,0.00,0.00,11.67
+"Haddock, Holden",Bartender,7/14/24 2:14 PM,7/14/24 10:49 PM,8.58,0.00,0.00,8.58
+"Fitzgerald , Alexandra ",Server,7/14/24 2:27 PM,7/14/24 10:22 PM,7.93,0.00,0.00,7.93
+"Boyce, Vincent",Server,7/14/24 2:57 PM,7/14/24 10:44 PM,7.79,0.00,0.00,7.79
+"Rubingu, Viktoria",Bartender,7/14/24 3:00 PM,7/14/24 6:59 PM,3.99,0.00,0.00,3.99
+"Jacob, Jonathan",Server,7/14/24 3:12 PM,7/14/24 10:48 PM,7.60,0.00,0.00,7.60
+"Page, Madeleine",Server,7/14/24 3:36 PM,7/14/24 10:40 PM,7.05,0.00,0.00,7.05
+"Bar, Bar",Bartender,7/14/24 3:52 PM,7/14/24 10:38 PM,6.77,0.00,0.00,6.77
+"Foutch, Christopher",Chef,7/15/24 9:50 AM,7/15/24 4:34 PM,6.73,0.00,0.00,6.73
+"Castillo, Pedro ",Chef,7/15/24 10:00 AM,7/15/24 4:36 PM,6.59,0.00,0.00,6.59
+"Soliday, Matthew ",Chef,7/15/24 10:02 AM,7/15/24 4:32 PM,6.50,0.00,0.00,6.50
+"Soliday, Matthew ",Chef,7/16/24 10:57 AM,7/16/24 10:23 PM,11.44,0.00,0.00,11.44
+"Castillo, Pedro ",Chef,7/16/24 10:57 AM,7/16/24 10:32 PM,11.59,0.00,0.00,11.59
+"Haddock, Holden",Bartender,7/16/24 12:53 PM,7/16/24 10:04 PM,9.20,0.00,0.00,9.20
+"Whiting, Kai ",Chef,7/16/24 12:57 PM,7/16/24 6:08 PM,5.19,0.00,0.00,5.19
+"Foutch, Christopher",Chef,7/16/24 1:13 PM,7/16/24 10:30 PM,9.28,0.00,0.00,9.28
+"Boyce, Vincent",Server,7/16/24 2:56 PM,7/16/24 10:12 PM,7.26,0.00,0.00,7.26
+"Smedley, Nick",Bartender,7/16/24 1:00 PM,7/16/24 9:58 PM,8.97,0.00,0.00,8.97
+"Fitzgerald , Alexandra ",Server,7/16/24 4:01 PM,7/16/24 10:11 PM,6.17,0.00,0.00,6.17
+"Bar, Bar",Bartender,7/16/24 6:06 PM,7/16/24 9:42 PM,3.60,0.00,0.00,3.60
+"LaBarge, Miles",Chef,7/17/24 9:00 AM,7/17/24 6:12 PM,9.20,0.00,0.00,9.20
+"Soliday, Matthew ",Chef,7/17/24 10:56 AM,7/17/24 10:12 PM,11.27,0.00,0.00,11.27
+"Castillo, Pedro ",Chef,7/17/24 10:59 AM,7/17/24 10:48 PM,11.81,0.00,0.00,11.81
+"Mascia, Michaela",Chef,7/17/24 1:09 PM,7/17/24 10:12 PM,9.06,0.00,0.00,9.06
+"Smedley, Nick",Bartender,7/17/24 1:55 PM,7/17/24 9:52 PM,7.96,0.00,0.00,7.96
+"Fitzgerald , Alexandra ",Server,7/17/24 2:54 PM,7/17/24 10:09 PM,7.24,0.00,0.00,7.24
+"Jacob, Jonathan",Server,7/17/24 3:00 PM,7/17/24 10:28 PM,7.47,0.00,0.00,7.47
+"Anain, Jenna",Server,7/17/24 4:29 PM,7/17/24 9:30 PM,5.02,0.00,0.00,5.02
+"Bar, Bar",Bartender,7/17/24 4:57 PM,7/17/24 9:44 PM,4.79,0.00,0.00,4.79
+"Johnson, Chloe",Server,7/17/24 4:30 PM,7/17/24 9:30 PM,5.00,0.00,0.00,5.00
+"LaBarge, Miles",Chef,7/18/24 8:59 AM,7/18/24 5:39 PM,8.66,0.00,0.00,8.66
+"Castillo, Pedro ",Chef,7/18/24 10:43 AM,7/18/24 10:45 PM,12.03,0.00,0.00,12.03
+"Soliday, Matthew ",Chef,7/18/24 11:03 AM,7/18/24 9:47 PM,10.73,0.00,0.00,10.73
+"Mattson, Daniel",Chef,7/18/24 11:00 AM,7/18/24 9:49 PM,10.82,0.00,0.00,10.82
+"Mascia, Michaela",Chef,7/18/24 1:00 PM,7/18/24 9:47 PM,8.78,0.00,0.00,8.78
+"Jacob, Jonathan",Server,7/18/24 3:06 PM,7/18/24 10:16 PM,7.16,0.00,0.00,7.16
+"Anain, Jenna",Server,7/18/24 4:24 PM,7/18/24 9:30 PM,5.10,0.00,0.00,5.10
+"Casados, Marissa",Server,7/18/24 4:00 PM,7/18/24 9:33 PM,5.55,0.00,0.00,5.55
+"Goodin, Wesley",Server,7/18/24 4:30 PM,7/18/24 10:03 PM,5.56,0.00,0.00,5.56
+"Johnson, Chloe",Server,7/18/24 4:55 PM,7/18/24 9:34 PM,4.65,0.00,0.00,4.65
+"Bar, Bar",Bartender,7/18/24 5:04 PM,7/18/24 10:12 PM,5.13,0.00,0.00,5.13
+"Mitcham, Mark ",Chef,7/19/24 11:57 AM,7/19/24 11:25 PM,11.46,0.00,0.00,11.46
+"Mattson, Daniel",Chef,7/19/24 1:17 PM,7/19/24 10:41 PM,9.40,0.00,0.00,9.40
+"Rubingu, Viktoria",Bartender,7/19/24 2:09 PM,7/19/24 8:03 PM,5.91,0.00,0.00,5.91
+"Bar, Bar",Bartender,7/19/24 2:53 PM,7/19/24 10:28 PM,7.59,0.00,0.00,7.59
+"Page, Madeleine",Server,7/19/24 3:06 PM,7/19/24 10:31 PM,7.41,0.00,0.00,7.41
+"Jacob, Jonathan",Server,7/19/24 3:28 PM,7/19/24 10:32 PM,7.07,0.00,0.00,7.07
+"Smedley, Nick",Bartender,7/19/24 4:26 PM,7/19/24 10:37 PM,6.18,0.00,0.00,6.18
+"Fitzgerald , Alexandra ",Server,7/19/24 4:26 PM,7/19/24 10:33 PM,6.12,0.00,0.00,6.12
+"Anain, Jenna",Server,7/19/24 4:28 PM,7/19/24 10:14 PM,5.77,0.00,0.00,5.77
+"Goodin, Wesley",Server,7/19/24 4:31 PM,7/19/24 10:28 PM,5.96,0.00,0.00,5.96
+"Johnson, Chloe",Server,7/19/24 4:31 PM,7/19/24 10:19 PM,5.80,0.00,0.00,5.80
+"Mattson, Daniel",Chef,7/20/24 7:51 AM,7/20/24 3:06 PM,7.25,0.00,0.00,7.25
+"Whiting, Kai ",Chef,7/20/24 11:01 AM,7/20/24 10:13 PM,11.20,0.00,0.00,11.20
+"Mascia, Michaela",Chef,7/20/24 11:57 AM,7/20/24 10:14 PM,10.29,0.00,0.00,10.29
+"Mitcham, Mark ",Chef,7/20/24 12:04 PM,7/20/24 11:01 PM,10.96,0.00,0.00,10.96
+"Jacob, Jonathan",Server,7/20/24 3:00 PM,7/20/24 10:01 PM,7.02,0.00,0.00,7.02
+"Smedley, Nick",Bartender,7/20/24 4:22 PM,7/20/24 9:57 PM,5.58,0.00,0.00,5.58
+"Fitzgerald , Alexandra ",Server,7/20/24 4:23 PM,7/20/24 9:25 PM,5.03,0.00,0.00,5.03
+"Goodin, Wesley",Server,7/20/24 4:23 PM,7/20/24 9:52 PM,5.49,0.00,0.00,5.49
+"Bar, Bar",Bartender,7/20/24 4:42 PM,7/20/24 9:37 PM,4.92,0.00,0.00,4.92
+"Page, Madeleine",Server,7/20/24 4:35 PM,7/20/24 9:11 PM,4.60,0.00,0.00,4.60
+"Rubingu, Viktoria",Bartender,7/20/24 1:55 PM,7/20/24 7:10 PM,5.27,0.00,0.00,5.27
+"Foutch, Christopher",Chef,7/21/24 10:52 AM,7/21/24 10:00 PM,11.13,0.00,0.00,11.13
+"Whiting, Kai ",Chef,7/21/24 10:56 AM,7/21/24 10:19 PM,11.38,0.00,0.00,11.38
+"Mascia, Michaela",Chef,7/21/24 11:01 AM,7/21/24 10:19 PM,11.30,0.00,0.00,11.30
+"Mattson, Daniel",Chef,7/21/24 11:41 AM,7/21/24 9:59 PM,10.30,0.00,0.00,10.30
+"Mitcham, Mark ",Chef,7/21/24 12:02 PM,7/21/24 11:25 PM,11.39,0.00,0.00,11.39
+"Rubingu, Viktoria",Bartender,7/21/24 1:51 PM,7/21/24 10:26 PM,8.59,0.00,0.00,8.59
+"Smedley, Nick",Bartender,7/21/24 1:54 PM,7/21/24 10:27 PM,8.55,0.00,0.00,8.55
+"Boyce, Vincent",Server,7/21/24 1:59 PM,7/21/24 10:01 PM,8.04,0.00,0.00,8.04
+"Fitzgerald , Alexandra ",Server,7/21/24 2:02 PM,7/21/24 10:31 PM,8.48,0.00,0.00,8.48
+"Anain, Jenna",Server,7/21/24 3:25 PM,7/21/24 10:33 PM,7.14,0.00,0.00,7.14
+"Page, Madeleine",Server,7/21/24 3:26 PM,7/21/24 10:31 PM,7.08,0.00,0.00,7.08
+"Goodin, Wesley",Server,7/21/24 3:26 PM,7/21/24 9:55 PM,6.47,0.00,0.00,6.47
+"Casados, Marissa",Server,7/21/24 3:30 PM,7/21/24 9:12 PM,5.70,0.00,0.00,5.70
+"Somerset, Clara",Server,7/21/24 3:52 PM,7/21/24 10:02 PM,6.17,0.00,0.00,6.17
+"Bar, Bar",Bartender,7/21/24 4:59 PM,7/21/24 10:10 PM,5.17,0.00,0.00,5.17
+"Mattson, Daniel",Chef,7/21/24 10:00 PM,7/21/24 10:27 PM,0.44,0.00,0.00,0.44
+"Page, Madeleine",Server,7/21/24 10:31 PM,7/21/24 10:31 PM,0.01,0.00,0.00,0.01
+"Whiting, Kai ",Chef,7/22/24 10:00 AM,7/22/24 4:59 PM,6.98,0.00,0.00,6.98
+"Soliday, Matthew ",Chef,7/22/24 10:02 AM,7/22/24 4:59 PM,6.94,0.00,0.00,6.94
+"Castillo, Pedro ",Chef,7/22/24 10:09 AM,7/22/24 5:06 PM,6.96,0.00,0.00,6.96
+"Soliday, Matthew ",Chef,7/22/24 4:59 PM,7/22/24 4:59 PM,0.00,0.00,0.00,0.00
+"Castillo, Pedro ",Chef,7/23/24 11:00 AM,7/23/24 10:31 PM,11.52,0.00,0.00,11.52
+"Soliday, Matthew ",Chef,7/23/24 11:01 AM,7/23/24 9:58 PM,10.95,0.00,0.00,10.95
+"Foutch, Christopher",Chef,7/23/24 1:02 PM,7/23/24 9:57 PM,8.92,0.00,0.00,8.92
+"Smedley, Nick",Bartender,7/23/24 1:04 PM,7/23/24 6:40 PM,5.60,0.00,0.00,5.60
+"Boyce, Vincent",Server,7/23/24 3:03 PM,7/23/24 10:11 PM,7.14,0.00,0.00,7.14
+"Page, Madeleine",Server,7/23/24 3:36 PM,7/23/24 10:12 PM,6.60,0.00,0.00,6.60
+"Somerset, Clara",Server,7/23/24 4:53 PM,7/23/24 9:35 PM,4.70,0.00,0.00,4.70
+"Rubingu, Viktoria",Bartender,7/23/24 5:13 PM,7/23/24 9:55 PM,4.70,0.00,0.00,4.70
+"Bar, Bar",Bartender,7/23/24 6:13 PM,7/23/24 9:51 PM,3.64,0.00,0.00,3.64
+"LaBarge, Miles",Chef,7/24/24 8:53 AM,7/24/24 5:41 PM,8.79,0.00,0.00,8.79
+"Castillo, Pedro ",Chef,7/24/24 10:45 AM,7/24/24 10:39 PM,11.90,0.00,0.00,11.90
+"Foutch, Christopher",Chef,7/24/24 11:01 AM,7/24/24 10:14 PM,11.22,0.00,0.00,11.22
+"Mascia, Michaela",Chef,7/24/24 1:04 PM,7/24/24 10:16 PM,9.20,0.00,0.00,9.20
+"Page, Madeleine",Server,7/24/24 3:02 PM,7/24/24 10:54 PM,7.87,0.00,0.00,7.87
+"Jacob, Jonathan",Server,7/24/24 3:52 PM,7/24/24 10:55 PM,7.04,0.00,0.00,7.04
+"Fitzgerald , Alexandra ",Server,7/24/24 4:03 PM,7/24/24 8:31 PM,4.47,0.00,0.00,4.47
+"Johnson, Chloe",Server,7/24/24 4:39 PM,7/24/24 9:45 PM,5.11,0.00,0.00,5.11
+"Bar, Bar",Bartender,7/24/24 7:55 PM,7/24/24 10:20 PM,2.42,0.00,0.00,2.42
+"LaBarge, Miles",Chef,7/25/24 8:52 AM,7/25/24 5:44 PM,8.87,0.00,0.00,8.87
+"Castillo, Pedro ",Chef,7/25/24 10:55 AM,7/25/24 10:42 PM,11.77,0.00,0.00,11.77
+"Whiting, Kai ",Chef,7/25/24 11:05 AM,7/25/24 9:53 PM,10.80,0.00,0.00,10.80
+"Mascia, Michaela",Chef,7/25/24 1:02 PM,7/25/24 9:56 PM,8.89,0.00,0.00,8.89
+"Mattson, Daniel",Chef,7/25/24 1:04 PM,7/25/24 9:55 PM,8.84,0.00,0.00,8.84
+"Jacob, Jonathan",Server,7/25/24 3:03 PM,7/25/24 10:13 PM,7.16,0.00,0.00,7.16
+"Johnson, Chloe",Server,7/25/24 4:21 PM,7/25/24 10:05 PM,5.73,0.00,0.00,5.73
+"Goodin, Wesley",Server,7/25/24 4:30 PM,7/25/24 10:04 PM,5.57,0.00,0.00,5.57
+"Smedley, Nick",Bartender,7/25/24 4:47 PM,7/25/24 10:10 PM,5.38,0.00,0.00,5.38
+"Bar, Bar",Bartender,7/25/24 5:06 PM,7/25/24 10:03 PM,4.96,0.00,0.00,4.96
+"Foutch, Christopher",Chef,7/26/24 9:01 AM,7/26/24 4:59 PM,7.96,0.00,0.00,7.96
+"Soliday, Matthew ",Chef,7/26/24 11:00 AM,7/26/24 10:22 PM,11.36,0.00,0.00,11.36
+"Whiting, Kai ",Chef,7/26/24 11:03 AM,7/26/24 10:24 PM,11.36,0.00,0.00,11.36
+"Mattson, Daniel",Chef,7/26/24 11:22 AM,7/26/24 10:25 PM,11.03,0.00,0.00,11.03
+"Mitcham, Mark ",Chef,7/26/24 12:00 PM,7/26/24 11:39 PM,11.65,0.00,0.00,11.65
+"Smedley, Nick",Bartender,7/26/24 1:45 PM,7/26/24 9:11 PM,7.42,0.00,0.00,7.42
+"Jacob, Jonathan",Server,7/26/24 3:04 PM,7/26/24 10:18 PM,7.23,0.00,0.00,7.23
+"Fitzgerald , Alexandra ",Server,7/26/24 4:24 PM,7/26/24 9:47 PM,5.39,0.00,0.00,5.39
+"Page, Madeleine",Server,7/26/24 4:30 PM,7/26/24 10:50 PM,6.33,0.00,0.00,6.33
+"Goodin, Wesley",Server,7/26/24 4:35 PM,7/26/24 10:40 PM,6.08,0.00,0.00,6.08
+"Johnson, Chloe",Server,7/26/24 4:36 PM,7/26/24 9:33 PM,4.96,0.00,0.00,4.96
+"Rubingu, Viktoria",Bartender,7/26/24 5:02 PM,7/26/24 10:38 PM,5.60,0.00,0.00,5.60
+"Bar, Bar",Bartender,7/26/24 5:25 PM,7/26/24 10:21 PM,4.93,0.00,0.00,4.93
+"Mattson, Daniel",Chef,7/27/24 9:25 AM,7/27/24 4:19 PM,6.90,0.00,0.00,6.90
+"Soliday, Matthew ",Chef,7/27/24 10:58 AM,7/27/24 10:32 PM,11.56,0.00,0.00,11.56
+"Mitcham, Mark ",Chef,7/27/24 12:01 PM,7/27/24 11:20 PM,11.31,0.00,0.00,11.31
+"Mascia, Michaela",Chef,7/27/24 12:03 PM,7/27/24 10:27 PM,10.40,0.00,0.00,10.40
+"Whiting, Kai ",Chef,7/27/24 12:43 PM,7/27/24 10:34 PM,9.85,0.00,0.00,9.85
+"Smedley, Nick",Bartender,7/27/24 1:55 PM,7/27/24 7:55 PM,5.99,0.00,0.00,5.99
+"Jacob, Jonathan",Server,7/27/24 3:00 PM,7/27/24 10:45 PM,7.77,0.00,0.00,7.77
+"Johnson, Chloe",Server,7/27/24 4:19 PM,7/27/24 10:05 PM,5.77,0.00,0.00,5.77
+"Goodin, Wesley",Server,7/27/24 4:25 PM,7/27/24 10:34 PM,6.15,0.00,0.00,6.15
+"Fitzgerald , Alexandra ",Server,7/27/24 4:27 PM,7/27/24 10:25 PM,5.97,0.00,0.00,5.97
+"Page, Madeleine",Server,7/27/24 4:27 PM,7/27/24 10:46 PM,6.32,0.00,0.00,6.32
+"Rubingu, Viktoria",Bartender,7/27/24 4:52 PM,7/27/24 10:44 PM,5.86,0.00,0.00,5.86
+"Bar, Bar",Bartender,7/27/24 7:21 PM,7/28/24 4:00 AM,8.64,0.00,0.00,8.64
+"Whiting, Kai ",Chef,7/28/24 10:57 AM,7/28/24 10:21 PM,11.41,0.00,0.00,11.41
+"Foutch, Christopher",Chef,7/28/24 10:58 AM,7/28/24 10:17 PM,11.31,0.00,0.00,11.31
+"Mascia, Michaela",Chef,7/28/24 11:05 AM,7/28/24 9:22 PM,10.29,0.00,0.00,10.29
+"Mattson, Daniel",Chef,7/28/24 11:05 AM,7/28/24 10:24 PM,11.31,0.00,0.00,11.31
+"Mitcham, Mark ",Chef,7/28/24 11:50 AM,7/28/24 11:22 PM,11.54,0.00,0.00,11.54
+"Smedley, Nick",Bartender,7/28/24 12:42 PM,7/28/24 10:21 PM,9.65,0.00,0.00,9.65
+"Fitzgerald , Alexandra ",Server,7/28/24 2:15 PM,7/28/24 10:26 PM,8.19,0.00,0.00,8.19
+"Somerset, Clara",Server,7/28/24 2:46 PM,7/28/24 9:28 PM,6.70,0.00,0.00,6.70
+"Johnson, Chloe",Server,7/28/24 2:52 PM,7/28/24 10:26 PM,7.57,0.00,0.00,7.57
+"Goodin, Wesley",Server,7/28/24 2:58 PM,7/28/24 10:01 PM,7.06,0.00,0.00,7.06
+"Rubingu, Viktoria",Bartender,7/28/24 3:26 PM,7/28/24 10:16 PM,6.83,0.00,0.00,6.83
+"Casados, Marissa",Server,7/28/24 3:29 PM,7/28/24 9:32 PM,6.04,0.00,0.00,6.04
+"Bar, Bar",Bartender,7/28/24 3:50 PM,7/28/24 10:14 PM,6.40,0.00,0.00,6.40
+"Soliday, Matthew ",Chef,7/29/24 9:52 AM,7/29/24 4:08 PM,6.27,0.00,0.00,6.27
+"Whiting, Kai ",Chef,7/29/24 9:54 AM,7/29/24 4:30 PM,6.60,0.00,0.00,6.60
+"Castillo, Pedro ",Chef,7/29/24 10:11 AM,7/29/24 4:28 PM,6.28,0.00,0.00,6.28
+"Mattson, Daniel",Chef,7/29/24 10:47 AM,7/29/24 4:22 PM,5.59,0.00,0.00,5.59
+"Whiting, Kai ",Chef,7/30/24 10:56 AM,7/30/24 10:00 PM,11.07,0.00,0.00,11.07
+"Castillo, Pedro ",Chef,7/30/24 11:24 AM,7/30/24 10:44 PM,11.35,0.00,0.00,11.35
+"Smedley, Nick",Bartender,7/30/24 12:54 PM,7/30/24 8:56 PM,8.03,0.00,0.00,8.03
+"Page, Madeleine",Server,7/30/24 1:02 PM,7/30/24 10:12 PM,9.17,0.00,0.00,9.17
+"Foutch, Christopher",Chef,7/30/24 1:03 PM,7/30/24 9:52 PM,8.82,0.00,0.00,8.82
+"Goodin, Wesley",Server,7/30/24 4:29 PM,7/30/24 9:38 PM,5.15,0.00,0.00,5.15
+"Casados, Marissa",Server,7/30/24 4:33 PM,7/30/24 9:43 PM,5.16,0.00,0.00,5.16
+"Somerset, Clara",Server,7/30/24 4:58 PM,7/30/24 9:33 PM,4.58,0.00,0.00,4.58
+"Rubingu, Viktoria",Bartender,7/30/24 5:05 PM,7/30/24 10:19 PM,5.24,0.00,0.00,5.24
+"Bar, Bar",Bartender,7/30/24 7:02 PM,7/30/24 10:15 PM,3.21,0.00,0.00,3.21
+"Maher, Samuel",Owner,7/30/24 9:24 PM,7/30/24 9:25 PM,0.02,0.00,0.00,0.02
+"LaBarge, Miles",Chef,7/31/24 8:56 AM,7/31/24 5:45 PM,8.83,0.00,0.00,8.83
+"Castillo, Pedro ",Chef,7/31/24 11:09 AM,7/31/24 10:37 PM,11.47,0.00,0.00,11.47
+"Foutch, Christopher",Chef,7/31/24 11:10 AM,7/31/24 9:54 PM,10.73,0.00,0.00,10.73
+"Mascia, Michaela",Chef,7/31/24 1:11 PM,7/31/24 9:53 PM,8.70,0.00,0.00,8.70
+"Page, Madeleine",Server,7/31/24 1:35 PM,7/31/24 10:20 PM,8.76,0.00,0.00,8.76
+"Jacob, Jonathan",Server,7/31/24 3:27 PM,7/31/24 10:13 PM,6.77,0.00,0.00,6.77
+"Bar, Bar",Bartender,7/31/24 3:59 PM,7/31/24 9:51 PM,5.87,0.00,0.00,5.87
+"Rubingu, Viktoria",Bartender,7/31/24 4:57 PM,7/31/24 10:08 PM,5.18,0.00,0.00,5.18
+"Somerset, Clara",Server,7/31/24 5:01 PM,7/31/24 9:38 PM,4.61,0.00,0.00,4.61
+"LaBarge, Miles",Chef,8/1/24 8:57 AM,8/1/24 6:08 PM,9.19,0.00,0.00,9.19
+"Castillo, Pedro ",Chef,8/1/24 10:46 AM,8/1/24 10:37 PM,11.84,0.00,0.00,11.84
+"Foutch, Christopher",Chef,8/1/24 12:01 PM,8/1/24 10:00 PM,9.98,0.00,0.00,9.98
+"Mascia, Michaela",Chef,8/1/24 1:10 PM,8/1/24 10:02 PM,8.86,0.00,0.00,8.86
+"Smedley, Nick",Bartender,8/1/24 1:38 PM,8/1/24 8:06 PM,6.47,0.00,0.00,6.47
+"Jacob, Jonathan",Server,8/1/24 3:03 PM,8/1/24 10:05 PM,7.02,0.00,0.00,7.02
+"Fitzgerald , Alexandra ",Server,8/1/24 3:44 PM,8/1/24 8:21 PM,4.62,0.00,0.00,4.62
+"Casados, Marissa",Server,8/1/24 3:59 PM,8/1/24 10:02 PM,6.05,0.00,0.00,6.05
+"Johnson, Chloe",Server,8/1/24 4:25 PM,8/1/24 10:01 PM,5.60,0.00,0.00,5.60
+"Bar, Bar",Bartender,8/1/24 5:08 PM,8/1/24 9:51 PM,4.72,0.00,0.00,4.72
+"Soliday, Matthew ",Chef,8/2/24 10:59 AM,8/2/24 10:38 PM,11.65,0.00,0.00,11.65
+"Whiting, Kai ",Chef,8/2/24 11:05 AM,8/2/24 11:07 PM,12.03,0.00,0.00,12.03
+"Klatch, Uriel",Chef,8/2/24 11:08 AM,8/2/24 6:12 PM,7.07,0.00,0.00,7.07
+"Mitcham, Mark ",Chef,8/2/24 11:58 AM,8/2/24 11:56 PM,11.97,0.00,0.00,11.97
+"Rubingu, Viktoria",Bartender,8/2/24 2:05 PM,8/2/24 9:49 PM,7.73,0.00,0.00,7.73
+"Bar, Bar",Bartender,8/2/24 2:58 PM,8/2/24 11:00 PM,8.03,0.00,0.00,8.03
+"Jacob, Jonathan",Server,8/2/24 3:05 PM,8/2/24 10:19 PM,7.23,0.00,0.00,7.23
+"Anain, Jenna",Server,8/2/24 3:56 PM,8/2/24 10:27 PM,6.52,0.00,0.00,6.52
+"Page, Madeleine",Server,8/2/24 3:59 PM,8/2/24 11:07 PM,7.14,0.00,0.00,7.14
+"Fitzgerald , Alexandra ",Server,8/2/24 4:01 PM,8/2/24 11:13 PM,7.21,0.00,0.00,7.21
+"Goodin, Wesley",Server,8/2/24 4:02 PM,8/2/24 10:52 PM,6.83,0.00,0.00,6.83
+"Johnson, Chloe",Server,8/2/24 4:14 PM,8/2/24 10:23 PM,6.15,0.00,0.00,6.15
+"Smedley, Nick",Bartender,8/2/24 4:39 PM,8/2/24 11:13 PM,6.57,0.00,0.00,6.57
+"Whiting, Kai ",Chef,8/3/24 10:54 AM,8/3/24 10:55 PM,12.01,0.00,0.00,12.01
+"Klatch, Uriel",Chef,8/3/24 10:59 AM,8/3/24 5:16 PM,6.28,0.00,0.00,6.28
+"Soliday, Matthew ",Chef,8/3/24 11:09 AM,8/3/24 10:49 PM,11.67,0.00,0.00,11.67
+"Mascia, Michaela",Chef,8/3/24 11:57 AM,8/3/24 10:51 PM,10.89,0.00,0.00,10.89
+"Mitcham, Mark ",Chef,8/3/24 12:01 PM,8/3/24 11:49 PM,11.81,0.00,0.00,11.81
+"Smedley, Nick",Bartender,8/3/24 12:49 PM,8/3/24 11:01 PM,10.20,0.00,0.00,10.20
+"Fitzgerald , Alexandra ",Server,8/3/24 3:04 PM,8/3/24 9:54 PM,6.84,0.00,0.00,6.84
+"Jacob, Jonathan",Server,8/3/24 3:07 PM,8/3/24 11:10 PM,8.04,0.00,0.00,8.04
+"Johnson, Chloe",Server,8/3/24 3:57 PM,8/3/24 10:53 PM,6.93,0.00,0.00,6.93
+"Page, Madeleine",Server,8/3/24 3:57 PM,8/3/24 11:08 PM,7.18,0.00,0.00,7.18
+"Goodin, Wesley",Server,8/3/24 4:01 PM,8/3/24 9:38 PM,5.62,0.00,0.00,5.62
+"Bar, Bar",Bartender,8/3/24 5:03 PM,8/3/24 10:53 PM,5.83,0.00,0.00,5.83
+"Whiting, Kai ",Chef,8/4/24 10:33 AM,8/4/24 10:15 PM,11.70,0.00,0.00,11.70
+"Foutch, Christopher",Chef,8/4/24 10:54 AM,8/4/24 10:06 PM,11.19,0.00,0.00,11.19
+"Soliday, Matthew ",Chef,8/4/24 11:00 AM,8/4/24 10:04 PM,11.06,0.00,0.00,11.06
+"Mascia, Michaela",Chef,8/4/24 11:06 AM,8/4/24 10:14 PM,11.13,0.00,0.00,11.13
+"Mitcham, Mark ",Chef,8/4/24 12:05 PM,8/4/24 11:15 PM,11.15,0.00,0.00,11.15
+"Bar, Bar",Bartender,8/4/24 1:28 PM,8/4/24 9:52 PM,8.40,0.00,0.00,8.40
+"Fitzgerald , Alexandra ",Server,8/4/24 2:00 PM,8/4/24 10:11 PM,8.18,0.00,0.00,8.18
+"Johnson, Chloe",Server,8/4/24 2:52 PM,8/4/24 10:00 PM,7.13,0.00,0.00,7.13
+"Anain, Jenna",Server,8/4/24 2:52 PM,8/4/24 9:59 PM,7.12,0.00,0.00,7.12
+"Goodin, Wesley",Server,8/4/24 3:00 PM,8/4/24 10:01 PM,7.03,0.00,0.00,7.03
+"Casados, Marissa",Server,8/4/24 3:00 PM,8/4/24 10:01 PM,7.01,0.00,0.00,7.01
+"Rubingu, Viktoria",Bartender,8/4/24 3:03 PM,8/4/24 10:09 PM,7.11,0.00,0.00,7.11
+"Boyce, Vincent",Server,8/4/24 3:23 PM,8/4/24 10:01 PM,6.63,0.00,0.00,6.63
+"Castillo, Pedro ",Chef,8/5/24 9:48 AM,8/5/24 5:07 PM,7.31,0.00,0.00,7.31
+"Soliday, Matthew ",Chef,8/5/24 9:58 AM,8/5/24 4:54 PM,6.93,0.00,0.00,6.93
+"Whiting, Kai ",Chef,8/5/24 9:59 AM,8/5/24 4:59 PM,6.99,0.00,0.00,6.99
+"Foutch, Christopher",Chef,8/5/24 10:00 AM,8/5/24 4:59 PM,6.98,0.00,0.00,6.98
+"Soliday, Matthew ",Chef,8/6/24 11:03 AM,8/6/24 10:08 PM,11.08,0.00,0.00,11.08
+"Castillo, Pedro ",Chef,8/6/24 11:12 AM,8/6/24 10:33 PM,11.35,0.00,0.00,11.35
+"Foutch, Christopher",Chef,8/6/24 12:54 PM,8/6/24 6:46 PM,5.87,0.00,0.00,5.87
+"Page, Madeleine",Server,8/6/24 1:02 PM,8/6/24 10:26 PM,9.41,0.00,0.00,9.41
+"Smedley, Nick",Bartender,8/6/24 1:06 PM,8/6/24 10:15 PM,9.15,0.00,0.00,9.15
+"Fitzgerald , Alexandra ",Server,8/6/24 2:54 PM,8/6/24 9:40 PM,6.75,0.00,0.00,6.75
+"Bar, Bar",Bartender,8/6/24 10:09 PM,8/6/24 10:14 PM,0.08,0.00,0.00,0.08
+"LaBarge, Miles",Chef,8/7/24 8:57 AM,8/7/24 5:37 PM,8.66,0.00,0.00,8.66
+"Mascia, Michaela",Chef,8/7/24 10:05 AM,8/7/24 3:35 PM,5.50,0.00,0.00,5.50
+"Castillo, Pedro ",Chef,8/7/24 10:47 AM,8/7/24 10:20 PM,11.55,0.00,0.00,11.55
+"Foutch, Christopher",Chef,8/7/24 12:07 PM,8/7/24 9:52 PM,9.74,0.00,0.00,9.74
+"Mattson, Daniel",Chef,8/7/24 1:02 PM,8/7/24 5:49 PM,4.79,0.00,0.00,4.79
+"Page, Madeleine",Server,8/7/24 1:32 PM,8/7/24 9:41 PM,8.15,0.00,0.00,8.15
+"Bar, Bar",Bartender,8/7/24 2:27 PM,8/7/24 9:40 PM,7.22,0.00,0.00,7.22
+"Anain, Jenna",Server,8/7/24 4:24 PM,8/7/24 9:52 PM,5.48,0.00,0.00,5.48
+"Rubingu, Viktoria",Bartender,8/7/24 5:01 PM,8/7/24 9:50 PM,4.82,0.00,0.00,4.82
+"LaBarge, Miles",Chef,8/8/24 8:57 AM,8/8/24 5:47 PM,8.84,0.00,0.00,8.84
+"Castillo, Pedro ",Chef,8/8/24 11:29 AM,8/8/24 10:23 PM,10.90,0.00,0.00,10.90
+"Mattson, Daniel",Chef,8/8/24 12:00 PM,8/8/24 9:25 PM,9.42,0.00,0.00,9.42
+"Mascia, Michaela",Chef,8/8/24 1:02 PM,8/8/24 9:22 PM,8.33,0.00,0.00,8.33
+"Bar, Bar",Bartender,8/8/24 2:18 PM,8/9/24 4:00 AM,13.69,0.00,0.00,13.69
+"Smedley, Nick",Bartender,8/8/24 2:58 PM,8/8/24 9:36 PM,6.62,0.00,0.00,6.62
+"Jacob, Jonathan",Server,8/8/24 3:12 PM,8/8/24 9:26 PM,6.23,0.00,0.00,6.23
+"Fitzgerald , Alexandra ",Server,8/8/24 3:49 PM,8/8/24 10:05 PM,6.28,0.00,0.00,6.28
+"Goodin, Wesley",Server,8/8/24 3:59 PM,8/8/24 9:34 PM,5.59,0.00,0.00,5.59
+"Johnson, Chloe",Server,8/8/24 4:25 PM,8/8/24 9:40 PM,5.25,0.00,0.00,5.25
+"Soliday, Matthew ",Chef,8/9/24 10:00 AM,8/9/24 5:00 PM,6.99,0.00,0.00,6.99
+"Whiting, Kai ",Chef,8/9/24 11:05 AM,8/9/24 10:25 PM,11.32,0.00,0.00,11.32
+"Mitcham, Mark ",Chef,8/9/24 11:52 AM,8/9/24 11:09 PM,11.28,0.00,0.00,11.28
+"Mattson, Daniel",Chef,8/9/24 12:19 PM,8/9/24 10:29 PM,10.17,0.00,0.00,10.17
+"Smedley, Nick",Bartender,8/9/24 2:02 PM,8/9/24 8:36 PM,6.57,0.00,0.00,6.57
+"Rubingu, Viktoria",Bartender,8/9/24 3:01 PM,8/9/24 10:16 PM,7.24,0.00,0.00,7.24
+"Jacob, Jonathan",Server,8/9/24 3:05 PM,8/9/24 10:34 PM,7.48,0.00,0.00,7.48
+"Fitzgerald , Alexandra ",Server,8/9/24 3:56 PM,8/9/24 9:58 PM,6.02,0.00,0.00,6.02
+"Page, Madeleine",Server,8/9/24 3:57 PM,8/9/24 10:20 PM,6.38,0.00,0.00,6.38
+"Johnson, Chloe",Server,8/9/24 4:00 PM,8/9/24 10:36 PM,6.60,0.00,0.00,6.60
+"Bar, Bar",Bartender,8/9/24 5:11 PM,8/10/24 4:00 AM,10.81,0.00,0.00,10.81
+"Mattson, Daniel",Chef,8/10/24 9:24 AM,8/10/24 5:01 PM,7.62,0.00,0.00,7.62
+"Mascia, Michaela",Chef,8/10/24 11:59 AM,8/10/24 10:27 PM,10.46,0.00,0.00,10.46
+"Mitcham, Mark ",Chef,8/10/24 12:17 PM,8/10/24 11:17 PM,10.99,0.00,0.00,10.99
+"Smedley, Nick",Bartender,8/10/24 1:49 PM,8/10/24 7:54 PM,6.08,0.00,0.00,6.08
+"Fitzgerald , Alexandra ",Server,8/10/24 1:58 PM,8/10/24 9:08 PM,7.16,0.00,0.00,7.16
+"Rubingu, Viktoria",Bartender,8/10/24 3:46 PM,8/10/24 10:45 PM,6.98,0.00,0.00,6.98
+"Goodin, Wesley",Server,8/10/24 3:56 PM,8/10/24 10:32 PM,6.59,0.00,0.00,6.59
+"Page, Madeleine",Server,8/10/24 3:58 PM,8/10/24 9:46 PM,5.80,0.00,0.00,5.80
+"Jacob, Jonathan",Server,8/10/24 4:06 PM,8/10/24 10:41 PM,6.58,0.00,0.00,6.58
+"Bar, Bar",Bartender,8/10/24 5:36 PM,8/10/24 10:45 PM,5.15,0.00,0.00,5.15
+"Johnson, Chloe",Server,8/10/24 4:30 PM,8/10/24 8:07 PM,3.62,0.00,0.00,3.62
+"Foutch, Christopher",Chef,8/11/24 10:57 AM,8/11/24 10:07 PM,11.17,0.00,0.00,11.17
+"Soliday, Matthew ",Chef,8/11/24 10:58 AM,8/11/24 9:55 PM,10.94,0.00,0.00,10.94
+"Mascia, Michaela",Chef,8/11/24 11:11 AM,8/11/24 9:54 PM,10.71,0.00,0.00,10.71
+"Mitcham, Mark ",Chef,8/11/24 11:59 AM,8/11/24 11:15 PM,11.26,0.00,0.00,11.26
+"Smedley, Nick",Bartender,8/11/24 12:46 PM,8/11/24 9:41 PM,8.92,0.00,0.00,8.92
+"Fitzgerald , Alexandra ",Server,8/11/24 2:00 PM,8/11/24 10:49 PM,8.81,0.00,0.00,8.81
+"Anain, Jenna",Server,8/11/24 2:56 PM,8/11/24 10:02 PM,7.10,0.00,0.00,7.10
+"Casados, Marissa",Server,8/11/24 2:58 PM,8/11/24 9:50 PM,6.87,0.00,0.00,6.87
+"Goodin, Wesley",Server,8/11/24 2:58 PM,8/11/24 10:19 PM,7.34,0.00,0.00,7.34
+"Bar, Bar",Bartender,8/11/24 2:59 PM,8/11/24 10:20 PM,7.35,0.00,0.00,7.35
+"Jacob, Jonathan",Server,8/11/24 3:14 PM,8/11/24 9:48 PM,6.57,0.00,0.00,6.57
+"Boyce, Vincent",Server,8/11/24 3:29 PM,8/11/24 9:53 PM,6.40,0.00,0.00,6.40
+"Rubingu, Viktoria",Bartender,8/11/24 3:51 PM,8/11/24 10:28 PM,6.63,0.00,0.00,6.63
+"Castillo, Pedro ",Chef,8/12/24 9:53 AM,8/12/24 4:55 PM,7.03,0.00,0.00,7.03
+"Foutch, Christopher",Chef,8/12/24 9:57 AM,8/12/24 4:54 PM,6.94,0.00,0.00,6.94
+"Soliday, Matthew ",Chef,8/12/24 10:02 AM,8/12/24 4:46 PM,6.74,0.00,0.00,6.74
+"Castillo, Pedro ",Chef,8/13/24 11:21 AM,8/13/24 10:08 PM,10.79,0.00,0.00,10.79
+"Soliday, Matthew ",Chef,8/13/24 11:59 AM,8/13/24 9:41 PM,9.70,0.00,0.00,9.70
+"Rubingu, Viktoria",Bartender,8/13/24 12:56 PM,8/13/24 10:02 PM,9.10,0.00,0.00,9.10
+"Bar, Bar",Bartender,8/13/24 12:56 PM,8/13/24 9:51 PM,8.92,0.00,0.00,8.92
+"Foutch, Christopher",Chef,8/13/24 12:59 PM,8/13/24 9:42 PM,8.72,0.00,0.00,8.72
+"Page, Madeleine",Server,8/13/24 1:15 PM,8/13/24 10:03 PM,8.79,0.00,0.00,8.79
+"Boyce, Vincent",Server,8/13/24 3:56 PM,8/13/24 9:42 PM,5.76,0.00,0.00,5.76
+"Somerset, Clara",Server,8/13/24 4:36 PM,8/13/24 9:35 PM,4.99,0.00,0.00,4.99
+"LaBarge, Miles",Chef,8/14/24 8:54 AM,8/14/24 4:36 PM,7.69,0.00,0.00,7.69
+"Mattson, Daniel",Chef,8/14/24 10:45 AM,8/14/24 9:44 PM,10.99,0.00,0.00,10.99
+"Castillo, Pedro ",Chef,8/14/24 10:51 AM,8/14/24 10:25 PM,11.57,0.00,0.00,11.57
+"Soliday, Matthew ",Chef,8/14/24 10:58 AM,8/14/24 9:42 PM,10.72,0.00,0.00,10.72
+"Klatch, Uriel",Chef,8/14/24 11:03 AM,8/14/24 9:47 PM,10.72,0.00,0.00,10.72
+"Page, Madeleine",Server,8/14/24 1:36 PM,8/14/24 10:27 PM,8.85,0.00,0.00,8.85
+"Smedley, Nick",Bartender,8/14/24 3:23 PM,8/14/24 10:16 PM,6.89,0.00,0.00,6.89
+"Anain, Jenna",Server,8/14/24 4:26 PM,8/14/24 10:16 PM,5.83,0.00,0.00,5.83
+"Somerset, Clara",Server,8/14/24 4:33 PM,8/14/24 10:06 PM,5.55,0.00,0.00,5.55
+"Bar, Bar",Bartender,8/14/24 5:28 PM,8/14/24 9:42 PM,4.24,0.00,0.00,4.24
+"LaBarge, Miles",Chef,8/15/24 8:46 AM,8/15/24 4:32 PM,7.77,0.00,0.00,7.77
+"Mattson, Daniel",Chef,8/15/24 9:49 AM,8/15/24 4:21 PM,6.52,0.00,0.00,6.52
+"Castillo, Pedro ",Chef,8/15/24 10:55 AM,8/15/24 10:18 PM,11.37,0.00,0.00,11.37
+"Soliday, Matthew ",Chef,8/15/24 12:57 PM,8/15/24 9:27 PM,8.51,0.00,0.00,8.51
+"Mascia, Michaela",Chef,8/15/24 1:00 PM,8/15/24 9:30 PM,8.50,0.00,0.00,8.50
+"Smedley, Nick",Bartender,8/15/24 1:58 PM,8/15/24 9:52 PM,7.91,0.00,0.00,7.91
+"Bar, Bar",Bartender,8/15/24 2:45 PM,8/15/24 9:20 PM,6.58,0.00,0.00,6.58
+"Jacob, Jonathan",Server,8/15/24 3:02 PM,8/15/24 9:12 PM,6.17,0.00,0.00,6.17
+"Fitzgerald , Alexandra ",Server,8/15/24 3:59 PM,8/15/24 9:53 PM,5.89,0.00,0.00,5.89
+"Goodin, Wesley",Server,8/15/24 4:06 PM,8/15/24 9:53 PM,5.78,0.00,0.00,5.78
+"Johnson, Chloe",Server,8/15/24 4:32 PM,8/15/24 6:07 PM,1.57,0.00,0.00,1.57
+"Bar, Bar",Bartender,8/15/24 9:47 PM,8/15/24 10:21 PM,0.57,0.00,0.00,0.57
+"Mattson, Daniel",Chef,8/16/24 11:02 AM,8/16/24 10:37 PM,11.58,0.00,0.00,11.58
+"Mitcham, Mark ",Chef,8/16/24 11:58 AM,8/16/24 11:58 PM,12.00,0.00,0.00,12.00
+"Smedley, Nick",Bartender,8/16/24 1:37 PM,8/16/24 10:45 PM,9.14,0.00,0.00,9.14
+"Jacob, Jonathan",Server,8/16/24 3:01 PM,8/16/24 11:09 PM,8.14,0.00,0.00,8.14
+"Page, Madeleine",Server,8/16/24 3:07 PM,8/16/24 10:42 PM,7.57,0.00,0.00,7.57
+"Johnson, Chloe",Server,8/16/24 3:25 PM,8/16/24 10:41 PM,7.26,0.00,0.00,7.26
+"Fitzgerald , Alexandra ",Server,8/16/24 3:33 PM,8/16/24 10:47 PM,7.23,0.00,0.00,7.23
+"Goodin, Wesley",Server,8/16/24 4:04 PM,8/16/24 10:57 PM,6.89,0.00,0.00,6.89
+"Klatch, Uriel",Chef,8/16/24 10:00 AM,8/16/24 4:23 PM,6.40,0.00,0.00,6.40
+"Anain, Jenna",Server,8/16/24 4:27 PM,8/16/24 10:50 PM,6.40,0.00,0.00,6.40
+"Bar, Bar",Bartender,8/16/24 5:05 PM,8/17/24 4:00 AM,10.90,0.00,0.00,10.90
+"Rubingu, Viktoria",Bartender,8/16/24 4:50 PM,8/16/24 10:57 PM,6.12,0.00,0.00,6.12
+"Mattson, Daniel",Chef,8/17/24 9:11 AM,8/17/24 4:46 PM,7.58,0.00,0.00,7.58
+"Foutch, Christopher",Chef,8/17/24 10:52 AM,8/17/24 10:49 PM,11.96,0.00,0.00,11.96
+"Mascia, Michaela",Chef,8/17/24 11:59 AM,8/17/24 10:54 PM,10.92,0.00,0.00,10.92
+"Mitcham, Mark ",Chef,8/17/24 12:05 PM,8/17/24 11:34 PM,11.49,0.00,0.00,11.49
+"Rubingu, Viktoria",Bartender,8/17/24 1:52 PM,8/17/24 8:28 PM,6.59,0.00,0.00,6.59
+"Fitzgerald , Alexandra ",Server,8/17/24 2:02 PM,8/17/24 10:38 PM,8.60,0.00,0.00,8.60
+"Johnson, Chloe",Server,8/17/24 3:00 PM,8/17/24 10:37 PM,7.62,0.00,0.00,7.62
+"Goodin, Wesley",Server,8/17/24 3:59 PM,8/17/24 10:34 PM,6.59,0.00,0.00,6.59
+"Page, Madeleine",Server,8/17/24 4:09 PM,8/17/24 10:05 PM,5.93,0.00,0.00,5.93
+"Smedley, Nick",Bartender,8/17/24 4:15 PM,8/17/24 11:01 PM,6.77,0.00,0.00,6.77
+"Bar, Bar",Bartender,8/17/24 5:03 PM,8/18/24 4:00 AM,10.94,0.00,0.00,10.94
+"Foutch, Christopher",Chef,8/18/24 10:56 AM,8/18/24 10:26 PM,11.51,0.00,0.00,11.51
+"Klatch, Uriel",Chef,8/18/24 11:03 AM,8/18/24 10:27 PM,11.40,0.00,0.00,11.40
+"Mascia, Michaela",Chef,8/18/24 11:04 AM,8/18/24 10:32 PM,11.47,0.00,0.00,11.47
+"Mitcham, Mark ",Chef,8/18/24 12:04 PM,8/18/24 11:17 PM,11.22,0.00,0.00,11.22
+"Smedley, Nick",Bartender,8/18/24 1:17 PM,8/18/24 10:00 PM,8.71,0.00,0.00,8.71
+"Johnson, Chloe",Server,8/18/24 1:57 PM,8/18/24 10:10 PM,8.23,0.00,0.00,8.23
+"Fitzgerald , Alexandra ",Server,8/18/24 2:06 PM,8/18/24 8:55 PM,6.82,0.00,0.00,6.82
+"Anain, Jenna",Server,8/18/24 2:56 PM,8/18/24 10:03 PM,7.11,0.00,0.00,7.11
+"Casados, Marissa",Server,8/18/24 2:58 PM,8/18/24 9:47 PM,6.82,0.00,0.00,6.82
+"Boyce, Vincent",Server,8/18/24 3:29 PM,8/18/24 10:08 PM,6.65,0.00,0.00,6.65
+"Goodin, Wesley",Server,8/18/24 3:30 PM,8/18/24 10:02 PM,6.54,0.00,0.00,6.54
+"Rubingu, Viktoria",Bartender,8/18/24 3:31 PM,8/18/24 10:00 PM,6.48,0.00,0.00,6.48
+"Whiting, Kai ",Chef,8/18/24 3:48 PM,8/18/24 10:35 PM,6.78,0.00,0.00,6.78
+"Somerset, Clara",Server,8/18/24 3:56 PM,8/18/24 9:46 PM,5.83,0.00,0.00,5.83
+"Bar, Bar",Bartender,8/18/24 4:52 PM,8/18/24 9:35 PM,4.71,0.00,0.00,4.71
+"Goodin, Wesley",Server,8/18/24 10:03 PM,8/18/24 10:07 PM,0.07,0.00,0.00,0.07
+"Castillo, Pedro ",Chef,8/19/24 9:46 AM,8/19/24 5:13 PM,7.45,0.00,0.00,7.45
+"Foutch, Christopher",Chef,8/19/24 9:59 AM,8/19/24 5:05 PM,7.11,0.00,0.00,7.11
+"Castillo, Pedro ",Chef,8/20/24 10:46 AM,8/20/24 10:36 PM,11.82,0.00,0.00,11.82
+"Klatch, Uriel",Chef,8/20/24 10:59 AM,8/20/24 8:04 PM,9.08,0.00,0.00,9.08
+"Rubingu, Viktoria",Bartender,8/20/24 1:04 PM,8/20/24 10:15 PM,9.18,0.00,0.00,9.18
+"Bar, Bar",Bartender,8/20/24 1:04 PM,8/20/24 10:11 PM,9.12,0.00,0.00,9.12
+"Page, Madeleine",Server,8/20/24 1:16 PM,8/20/24 10:29 PM,9.21,0.00,0.00,9.21
+"Boyce, Vincent",Server,8/20/24 3:56 PM,8/20/24 10:07 PM,6.18,0.00,0.00,6.18
+"Somerset, Clara",Server,8/20/24 4:41 PM,8/20/24 9:56 PM,5.25,0.00,0.00,5.25
+"Whiting, Kai ",Chef,8/20/24 4:53 PM,8/20/24 10:00 PM,5.13,0.00,0.00,5.13
+"Foutch, Christopher",Chef,8/20/24 1:00 PM,8/20/24 10:02 PM,9.03,0.00,0.00,9.03
+"LaBarge, Miles",Chef,8/21/24 9:01 AM,8/21/24 5:53 PM,8.86,0.00,0.00,8.86
+"Castillo, Pedro ",Chef,8/21/24 10:44 AM,8/21/24 10:38 PM,11.90,0.00,0.00,11.90
+"Soliday, Matthew ",Chef,8/21/24 11:00 AM,8/21/24 9:42 PM,10.70,0.00,0.00,10.70
+"Mattson, Daniel",Chef,8/21/24 11:16 AM,8/21/24 9:42 PM,10.44,0.00,0.00,10.44
+"Mascia, Michaela",Chef,8/21/24 12:58 PM,8/21/24 9:44 PM,8.78,0.00,0.00,8.78
+"Page, Madeleine",Server,8/21/24 1:35 PM,8/21/24 10:38 PM,9.05,0.00,0.00,9.05
+"Smedley, Nick",Bartender,8/21/24 2:08 PM,8/21/24 10:32 PM,8.41,0.00,0.00,8.41
+"Bar, Bar",Bartender,8/21/24 2:28 PM,8/21/24 10:38 PM,8.17,0.00,0.00,8.17
+"Fitzgerald , Alexandra ",Server,8/21/24 3:50 PM,8/21/24 9:56 PM,6.10,0.00,0.00,6.10
+"Anain, Jenna",Server,8/21/24 4:28 PM,8/21/24 10:11 PM,5.71,0.00,0.00,5.71
+"Somerset, Clara",Server,8/21/24 4:35 PM,8/21/24 9:55 PM,5.34,0.00,0.00,5.34
+"LaBarge, Miles",Chef,8/22/24 9:02 AM,8/22/24 5:23 PM,8.36,0.00,0.00,8.36
+"Mattson, Daniel",Chef,8/22/24 9:59 AM,8/22/24 5:09 PM,7.16,0.00,0.00,7.16
+"Castillo, Pedro ",Chef,8/22/24 10:46 AM,8/22/24 10:20 PM,11.56,0.00,0.00,11.56
+"Mascia, Michaela",Chef,8/22/24 1:00 PM,8/22/24 9:47 PM,8.79,0.00,0.00,8.79
+"Smedley, Nick",Bartender,8/22/24 1:38 PM,8/22/24 6:01 PM,4.38,0.00,0.00,4.38
+"Bar, Bar",Bartender,8/22/24 2:50 PM,8/22/24 9:47 PM,6.95,0.00,0.00,6.95
+"Jacob, Jonathan",Server,8/22/24 3:05 PM,8/22/24 9:30 PM,6.42,0.00,0.00,6.42
+"Whiting, Kai ",Chef,8/22/24 3:59 PM,8/22/24 9:29 PM,5.50,0.00,0.00,5.50
+"Fitzgerald , Alexandra ",Server,8/22/24 4:06 PM,8/22/24 9:39 PM,5.56,0.00,0.00,5.56
+"Goodin, Wesley",Server,8/22/24 4:07 PM,8/22/24 9:37 PM,5.51,0.00,0.00,5.51
+"Rubingu, Viktoria",Bartender,8/22/24 4:16 PM,8/22/24 9:47 PM,5.51,0.00,0.00,5.51
+"Bar, Bar",Bartender,8/22/24 9:48 PM,8/23/24 4:00 AM,6.18,0.00,0.00,6.18
+"Klatch, Uriel",Chef,8/23/24 10:56 AM,8/23/24 6:57 PM,8.02,0.00,0.00,8.02
+"Mitcham, Mark ",Chef,8/23/24 12:00 PM,8/23/24 11:22 PM,11.37,0.00,0.00,11.37
+"Mattson, Daniel",Chef,8/23/24 12:43 PM,8/23/24 10:19 PM,9.59,0.00,0.00,9.59
+"Soliday, Matthew ",Chef,8/23/24 1:00 PM,8/23/24 10:15 PM,9.25,0.00,0.00,9.25
+"Rubingu, Viktoria",Bartender,8/23/24 2:05 PM,8/23/24 8:56 PM,6.86,0.00,0.00,6.86
+"Jacob, Jonathan",Server,8/23/24 2:47 PM,8/23/24 10:42 PM,7.91,0.00,0.00,7.91
+"Page, Madeleine",Server,8/23/24 3:33 PM,8/23/24 10:27 PM,6.90,0.00,0.00,6.90
+"Goodin, Wesley",Server,8/23/24 3:41 PM,8/23/24 10:15 PM,6.56,0.00,0.00,6.56
+"Smedley, Nick",Bartender,8/23/24 3:55 PM,8/23/24 10:41 PM,6.75,0.00,0.00,6.75
+"Fitzgerald , Alexandra ",Server,8/23/24 3:57 PM,8/23/24 10:09 PM,6.19,0.00,0.00,6.19
+"Johnson, Chloe",Server,8/23/24 4:28 PM,8/23/24 10:38 PM,6.17,0.00,0.00,6.17
+"Bar, Bar",Bartender,8/23/24 6:19 PM,8/24/24 4:00 AM,9.67,0.00,0.00,9.67
+"Goodin, Wesley",Server,8/23/24 10:19 PM,8/23/24 10:19 PM,0.00,0.00,0.00,0.00
+"Soliday, Matthew ",Chef,8/24/24 11:03 AM,8/24/24 10:18 PM,11.24,0.00,0.00,11.24
+"Mattson, Daniel",Chef,8/24/24 11:31 AM,8/24/24 10:18 PM,10.78,0.00,0.00,10.78
+"Foutch, Christopher",Chef,8/24/24 12:00 PM,8/24/24 8:46 PM,8.78,0.00,0.00,8.78
+"Mitcham, Mark ",Chef,8/24/24 12:01 PM,8/24/24 11:13 PM,11.20,0.00,0.00,11.20
+"Mascia, Michaela",Chef,8/24/24 12:04 PM,8/24/24 10:23 PM,10.31,0.00,0.00,10.31
+"Smedley, Nick",Bartender,8/24/24 1:22 PM,8/24/24 9:45 PM,8.39,0.00,0.00,8.39
+"Fitzgerald , Alexandra ",Server,8/24/24 2:05 PM,8/24/24 10:21 PM,8.26,0.00,0.00,8.26
+"Klatch, Uriel",Chef,8/24/24 2:21 PM,8/24/24 8:47 PM,6.43,0.00,0.00,6.43
+"Goodin, Wesley",Server,8/24/24 3:58 PM,8/24/24 10:21 PM,6.38,0.00,0.00,6.38
+"Jacob, Jonathan",Server,8/24/24 3:59 PM,8/24/24 10:16 PM,6.29,0.00,0.00,6.29
+"Johnson, Chloe",Server,8/24/24 4:26 PM,8/24/24 10:13 PM,5.78,0.00,0.00,5.78
+"Anain, Jenna",Server,8/24/24 4:29 PM,8/24/24 10:11 PM,5.70,0.00,0.00,5.70
+"Rubingu, Viktoria",Bartender,8/24/24 4:34 PM,8/24/24 10:35 PM,6.01,0.00,0.00,6.01
+"Bar, Bar",Bartender,8/24/24 7:13 PM,8/25/24 4:00 AM,8.77,0.00,0.00,8.77
+"Foutch, Christopher",Chef,8/25/24 10:55 AM,8/25/24 10:48 PM,11.88,0.00,0.00,11.88
+"Mascia, Michaela",Chef,8/25/24 11:01 AM,8/25/24 10:47 PM,11.76,0.00,0.00,11.76
+"Soliday, Matthew ",Chef,8/25/24 11:07 AM,8/25/24 8:07 PM,9.00,0.00,0.00,9.00
+"Mitcham, Mark ",Chef,8/25/24 12:10 PM,8/25/24 11:28 PM,11.30,0.00,0.00,11.30
+"Fitzgerald , Alexandra ",Server,8/25/24 2:00 PM,8/25/24 10:31 PM,8.52,0.00,0.00,8.52
+"Smedley, Nick",Bartender,8/25/24 1:00 PM,8/25/24 9:42 PM,8.70,0.00,0.00,8.70
+"Page, Madeleine",Server,8/25/24 3:00 PM,8/25/24 10:35 PM,7.58,0.00,0.00,7.58
+"Anain, Jenna",Server,8/25/24 3:01 PM,8/25/24 10:33 PM,7.53,0.00,0.00,7.53
+"Johnson, Chloe",Server,8/25/24 3:01 PM,8/25/24 10:36 PM,7.59,0.00,0.00,7.59
+"Rubingu, Viktoria",Bartender,8/25/24 3:18 PM,8/25/24 10:43 PM,7.42,0.00,0.00,7.42
+"Goodin, Wesley",Server,8/25/24 3:40 PM,8/25/24 10:35 PM,6.92,0.00,0.00,6.92
+"Bar, Bar",Bartender,8/25/24 4:52 PM,8/25/24 10:41 PM,5.81,0.00,0.00,5.81
+"Whiting, Kai ",Chef,8/25/24 8:07 PM,8/25/24 11:00 PM,2.88,0.00,0.00,2.88
+"Foutch, Christopher",Chef,8/25/24 10:49 PM,8/25/24 10:49 PM,0.00,0.00,0.00,0.00
+"Castillo, Pedro ",Chef,8/26/24 9:49 AM,8/26/24 5:15 PM,7.44,0.00,0.00,7.44
+"Foutch, Christopher",Chef,8/26/24 9:56 AM,8/26/24 4:39 PM,6.71,0.00,0.00,6.71
+"Soliday, Matthew ",Chef,8/26/24 9:59 AM,8/26/24 4:35 PM,6.60,0.00,0.00,6.60
+"Klatch, Uriel",Chef,8/27/24 11:00 AM,8/27/24 5:13 PM,6.23,0.00,0.00,6.23
+"Castillo, Pedro ",Chef,8/27/24 11:45 AM,8/27/24 10:33 PM,10.81,0.00,0.00,10.81
+"Smedley, Nick",Bartender,8/27/24 12:36 PM,8/27/24 9:39 PM,9.05,0.00,0.00,9.05
+"Foutch, Christopher",Chef,8/27/24 12:58 PM,8/27/24 10:14 PM,9.27,0.00,0.00,9.27
+"Page, Madeleine",Server,8/27/24 1:15 PM,8/27/24 10:36 PM,9.35,0.00,0.00,9.35
+"Fitzgerald , Alexandra ",Server,8/27/24 2:02 PM,8/27/24 9:38 PM,7.61,0.00,0.00,7.61
+"Bar, Bar",Bartender,8/27/24 3:18 PM,8/27/24 10:00 PM,6.70,0.00,0.00,6.70
+"Somerset, Clara",Server,8/27/24 4:38 PM,8/27/24 6:34 PM,1.94,0.00,0.00,1.94
+"Whiting, Kai ",Chef,8/27/24 4:50 PM,8/28/24 4:00 AM,11.16,0.00,0.00,11.16
+"LaBarge, Miles",Chef,8/28/24 8:53 AM,8/28/24 5:31 PM,8.64,0.00,0.00,8.64
+"Castillo, Pedro ",Chef,8/28/24 11:02 AM,8/28/24 10:33 PM,11.52,0.00,0.00,11.52
+"Mattson, Daniel",Chef,8/28/24 11:17 AM,8/28/24 10:01 PM,10.73,0.00,0.00,10.73
+"Mascia, Michaela",Chef,8/28/24 12:03 PM,8/28/24 10:01 PM,9.96,0.00,0.00,9.96
+"Page, Madeleine",Server,8/28/24 1:47 PM,8/28/24 10:30 PM,8.72,0.00,0.00,8.72
+"Jacob, Jonathan",Server,8/28/24 3:04 PM,8/28/24 10:15 PM,7.18,0.00,0.00,7.18
+"Smedley, Nick",Bartender,8/28/24 4:22 PM,8/28/24 10:24 PM,6.02,0.00,0.00,6.02
+"Somerset, Clara",Server,8/28/24 4:35 PM,8/28/24 9:55 PM,5.33,0.00,0.00,5.33
+"Bar, Bar",Bartender,8/28/24 5:37 PM,8/29/24 4:00 AM,10.38,0.00,0.00,10.38
+"LaBarge, Miles",Chef,8/29/24 8:55 AM,8/29/24 5:47 PM,8.86,0.00,0.00,8.86
+"Mattson, Daniel",Chef,8/29/24 9:20 AM,8/29/24 4:04 PM,6.74,0.00,0.00,6.74
+"Castillo, Pedro ",Chef,8/29/24 10:47 AM,8/29/24 10:37 PM,11.83,0.00,0.00,11.83
+"Foutch, Christopher",Chef,8/29/24 10:53 AM,8/29/24 9:58 PM,11.08,0.00,0.00,11.08
+"Mascia, Michaela",Chef,8/29/24 12:05 PM,8/29/24 10:00 PM,9.92,0.00,0.00,9.92
+"Jacob, Jonathan",Server,8/29/24 3:00 PM,8/29/24 10:09 PM,7.14,0.00,0.00,7.14
+"Smedley, Nick",Bartender,8/29/24 4:05 PM,8/29/24 10:25 PM,6.33,0.00,0.00,6.33
+"Goodin, Wesley",Server,8/29/24 4:05 PM,8/29/24 10:08 PM,6.06,0.00,0.00,6.06
+"Fitzgerald , Alexandra ",Server,8/29/24 4:05 PM,8/29/24 5:16 PM,1.18,0.00,0.00,1.18
+"Johnson, Chloe",Server,8/29/24 4:23 PM,8/29/24 10:09 PM,5.77,0.00,0.00,5.77
+"Bar, Bar",Bartender,8/29/24 4:59 PM,8/30/24 4:00 AM,11.01,0.00,0.00,11.01
+"Klatch, Uriel",Chef,8/30/24 10:00 AM,8/30/24 4:06 PM,6.11,0.00,0.00,6.11
+"Mitcham, Mark ",Chef,8/30/24 11:48 AM,8/30/24 11:06 PM,11.30,0.00,0.00,11.30
+"Soliday, Matthew ",Chef,8/30/24 12:59 PM,8/30/24 10:16 PM,9.30,0.00,0.00,9.30
+"Mattson, Daniel",Chef,8/30/24 1:04 PM,8/30/24 10:14 PM,9.17,0.00,0.00,9.17
+"Rubingu, Viktoria",Bartender,8/30/24 2:09 PM,8/30/24 9:06 PM,6.95,0.00,0.00,6.95
+"Jacob, Jonathan",Server,8/30/24 3:02 PM,8/30/24 10:14 PM,7.19,0.00,0.00,7.19
+"Goodin, Wesley",Server,8/30/24 4:04 PM,8/30/24 10:17 PM,6.23,0.00,0.00,6.23
+"Page, Madeleine",Server,8/30/24 4:05 PM,8/30/24 11:12 PM,7.12,0.00,0.00,7.12
+"Smedley, Nick",Bartender,8/30/24 4:20 PM,8/30/24 10:50 PM,6.50,0.00,0.00,6.50
+"Klatch, Uriel",Chef,8/30/24 4:21 PM,8/30/24 4:42 PM,0.36,0.00,0.00,0.36
+"Fitzgerald , Alexandra ",Server,8/30/24 5:01 PM,8/30/24 10:33 PM,5.53,0.00,0.00,5.53
+"Bar, Bar",Bartender,8/30/24 5:26 PM,8/31/24 4:00 AM,10.55,0.00,0.00,10.55
+"Mattson, Daniel",Chef,8/31/24 9:22 AM,8/31/24 4:46 PM,7.40,0.00,0.00,7.40
+"Mitcham, Mark ",Chef,8/31/24 11:55 AM,8/31/24 11:30 PM,11.57,0.00,0.00,11.57
+"Soliday, Matthew ",Chef,8/31/24 12:10 PM,8/31/24 10:28 PM,10.29,0.00,0.00,10.29
+"Fitzgerald , Alexandra ",Server,8/31/24 2:00 PM,8/31/24 10:54 PM,8.91,0.00,0.00,8.91
+"Rubingu, Viktoria",Bartender,8/31/24 2:09 PM,8/31/24 7:45 PM,5.60,0.00,0.00,5.60
+"Goodin, Wesley",Server,8/31/24 3:59 PM,8/31/24 10:37 PM,6.63,0.00,0.00,6.63
+"Jacob, Jonathan",Server,8/31/24 4:03 PM,8/31/24 10:39 PM,6.60,0.00,0.00,6.60
+"Johnson, Chloe",Server,8/31/24 4:28 PM,8/31/24 10:41 PM,6.22,0.00,0.00,6.22
+"Smedley, Nick",Bartender,8/31/24 4:35 PM,8/31/24 10:57 PM,6.36,0.00,0.00,6.36
+"Bar, Bar",Bartender,8/31/24 5:40 PM,9/1/24 4:00 AM,10.33,0.00,0.00,10.33
+"Maher, Samuel",Owner,8/31/24 10:18 PM,8/31/24 10:18 PM,0.01,0.00,0.00,0.01
+"Soliday, Matthew ",Chef,9/1/24 11:01 AM,9/1/24 10:16 PM,11.25,0.00,0.00,11.25
+"Foutch, Christopher",Chef,9/1/24 11:01 AM,9/1/24 10:34 PM,11.54,0.00,0.00,11.54
+"Mascia, Michaela",Chef,9/1/24 11:07 AM,9/1/24 10:45 PM,11.63,0.00,0.00,11.63
+"Mitcham, Mark ",Chef,9/1/24 11:58 AM,9/1/24 11:30 PM,11.53,0.00,0.00,11.53
+"Smedley, Nick",Bartender,9/1/24 12:57 PM,9/1/24 10:39 PM,9.70,0.00,0.00,9.70
+"Fitzgerald , Alexandra ",Server,9/1/24 2:09 PM,9/1/24 9:16 PM,7.13,0.00,0.00,7.13
+"Casados, Marissa",Server,9/1/24 2:59 PM,9/1/24 10:29 PM,7.50,0.00,0.00,7.50
+"Johnson, Chloe",Server,9/1/24 3:06 PM,9/1/24 10:41 PM,7.59,0.00,0.00,7.59
+"Page, Madeleine",Server,9/1/24 3:07 PM,9/1/24 10:44 PM,7.62,0.00,0.00,7.62
+"Goodin, Wesley",Server,9/1/24 3:30 PM,9/1/24 9:16 PM,5.77,0.00,0.00,5.77
+"Rubingu, Viktoria",Bartender,9/1/24 3:33 PM,9/1/24 10:45 PM,7.19,0.00,0.00,7.19
+"Somerset, Clara",Server,9/1/24 3:58 PM,9/1/24 10:27 PM,6.48,0.00,0.00,6.48
+"Bar, Bar",Bartender,9/1/24 4:15 PM,9/2/24 4:00 AM,11.74,0.00,0.00,11.74
+"Mattson, Daniel",Chef,9/3/24 10:08 AM,9/3/24 4:15 PM,6.12,0.00,0.00,6.12
+"Klatch, Uriel",Chef,9/3/24 10:09 AM,9/3/24 5:32 PM,7.38,0.00,0.00,7.38
+"Castillo, Pedro ",Chef,9/3/24 11:05 AM,9/3/24 10:00 PM,10.91,0.00,0.00,10.91
+"Foutch, Christopher",Chef,9/3/24 12:56 PM,9/3/24 9:42 PM,8.77,0.00,0.00,8.77
+"Smedley, Nick",Bartender,9/3/24 1:05 PM,9/3/24 9:49 PM,8.74,0.00,0.00,8.74
+"Page, Madeleine",Server,9/3/24 1:17 PM,9/3/24 10:07 PM,8.82,0.00,0.00,8.82
+"Soliday, Matthew ",Chef,9/3/24 2:01 PM,9/3/24 9:42 PM,7.69,0.00,0.00,7.69
+"Fitzgerald , Alexandra ",Server,9/3/24 2:06 PM,9/3/24 9:27 PM,7.35,0.00,0.00,7.35
+"Bar, Bar",Bartender,9/3/24 3:32 PM,9/4/24 4:00 AM,12.46,0.00,0.00,12.46
+"Underwood, Todd",Server,9/3/24 4:16 PM,9/3/24 9:32 PM,5.26,0.00,0.00,5.26
+"Maher, Samuel",Owner,9/3/24 5:43 PM,9/4/24 4:00 AM,10.27,0.00,0.00,10.27
+"LaBarge, Miles",Chef,9/4/24 8:58 AM,9/4/24 5:26 PM,8.46,0.00,0.00,8.46
+"Castillo, Pedro ",Chef,9/4/24 10:44 AM,9/4/24 10:05 PM,11.36,0.00,0.00,11.36
+"Klatch, Uriel",Chef,9/4/24 10:58 AM,9/4/24 10:11 PM,11.21,0.00,0.00,11.21
+"Soliday, Matthew ",Chef,9/4/24 11:04 AM,9/4/24 9:07 PM,10.05,0.00,0.00,10.05
+"Mascia, Michaela",Chef,9/4/24 11:08 AM,9/4/24 9:08 PM,9.99,0.00,0.00,9.99
+"Mattson, Daniel",Chef,9/4/24 1:17 PM,9/4/24 9:16 PM,7.98,0.00,0.00,7.98
+"Page, Madeleine",Server,9/4/24 1:42 PM,9/4/24 10:30 PM,8.80,0.00,0.00,8.80
+"Smedley, Nick",Bartender,9/4/24 2:20 PM,9/4/24 10:02 PM,7.70,0.00,0.00,7.70
+"Jacob, Jonathan",Server,9/4/24 3:00 PM,9/4/24 9:42 PM,6.71,0.00,0.00,6.71
+"Anain, Jenna",Server,9/4/24 4:38 PM,9/4/24 9:43 PM,5.08,0.00,0.00,5.08
+"Strifert, Margo",Server,9/4/24 4:40 PM,9/4/24 9:14 PM,4.56,0.00,0.00,4.56
+"Bar, Bar",Bartender,9/4/24 5:27 PM,9/5/24 4:00 AM,10.54,0.00,0.00,10.54
+"LaBarge, Miles",Chef,9/5/24 9:00 AM,9/5/24 5:23 PM,8.40,0.00,0.00,8.40
+"Mascia, Michaela",Chef,9/5/24 10:06 AM,9/5/24 4:36 PM,6.50,0.00,0.00,6.50
+"Foutch, Christopher",Chef,9/5/24 10:55 AM,9/5/24 9:34 PM,10.64,0.00,0.00,10.64
+"Castillo, Pedro ",Chef,9/5/24 11:09 AM,9/5/24 10:22 PM,11.21,0.00,0.00,11.21
+"Rubingu, Viktoria",Bartender,9/5/24 1:52 PM,9/5/24 9:33 PM,7.68,0.00,0.00,7.68
+"Mattson, Daniel",Chef,9/5/24 2:15 PM,9/5/24 9:38 PM,7.38,0.00,0.00,7.38
+"Jacob, Jonathan",Server,9/5/24 3:05 PM,9/5/24 10:05 PM,7.00,0.00,0.00,7.00
+"Bar, Bar",Bartender,9/5/24 3:45 PM,9/5/24 9:04 PM,5.33,0.00,0.00,5.33
+"Goodin, Wesley",Server,9/5/24 4:04 PM,9/5/24 9:47 PM,5.71,0.00,0.00,5.71
+"Fitzgerald , Alexandra ",Server,9/5/24 4:07 PM,9/5/24 8:23 PM,4.25,0.00,0.00,4.25
+"Bar, Bar",Bartender,9/5/24 10:09 PM,9/5/24 10:11 PM,0.03,0.00,0.00,0.03
+"Klatch, Uriel",Chef,9/6/24 10:08 AM,9/6/24 4:49 PM,6.69,0.00,0.00,6.69
+"Mitcham, Mark ",Chef,9/6/24 12:00 PM,9/6/24 11:30 PM,11.50,0.00,0.00,11.50
+"Soliday, Matthew ",Chef,9/6/24 1:08 PM,9/6/24 10:15 PM,9.12,0.00,0.00,9.12
+"Mattson, Daniel",Chef,9/6/24 1:15 PM,9/6/24 10:20 PM,9.08,0.00,0.00,9.08
+"Rubingu, Viktoria",Bartender,9/6/24 1:52 PM,9/6/24 9:05 PM,7.23,0.00,0.00,7.23
+"Johnson, Chloe",Server,9/6/24 3:00 PM,9/6/24 10:08 PM,7.14,0.00,0.00,7.14
+"Jacob, Jonathan",Server,9/6/24 3:08 PM,9/6/24 10:51 PM,7.71,0.00,0.00,7.71
+"Page, Madeleine",Server,9/6/24 3:45 PM,9/6/24 10:38 PM,6.88,0.00,0.00,6.88
+"Goodin, Wesley",Server,9/6/24 3:48 PM,9/6/24 10:09 PM,6.35,0.00,0.00,6.35
+"Fitzgerald , Alexandra ",Server,9/6/24 3:49 PM,9/6/24 10:03 PM,6.23,0.00,0.00,6.23
+"Smedley, Nick",Bartender,9/6/24 3:52 PM,9/6/24 10:45 PM,6.89,0.00,0.00,6.89
+"Bar, Bar",Bartender,9/6/24 5:03 PM,9/6/24 10:01 PM,4.96,0.00,0.00,4.96
+"Bar, Bar",Bartender,9/6/24 10:01 PM,9/6/24 10:01 PM,0.01,0.00,0.00,0.01
+"Mattson, Daniel",Chef,9/7/24 9:12 AM,9/7/24 4:28 PM,7.28,0.00,0.00,7.28
+"Soliday, Matthew ",Chef,9/7/24 12:07 PM,9/7/24 10:11 PM,10.08,0.00,0.00,10.08
+"Mitcham, Mark ",Chef,9/7/24 12:00 PM,9/7/24 11:12 PM,11.20,0.00,0.00,11.20
+"Fitzgerald , Alexandra ",Server,9/7/24 2:01 PM,9/7/24 9:46 PM,7.75,0.00,0.00,7.75
+"Rubingu, Viktoria",Bartender,9/7/24 3:02 PM,9/7/24 10:28 PM,7.44,0.00,0.00,7.44
+"Smedley, Nick",Bartender,9/7/24 3:25 PM,9/7/24 9:22 PM,5.94,0.00,0.00,5.94
+"Page, Madeleine",Server,9/7/24 4:06 PM,9/7/24 10:16 PM,6.18,0.00,0.00,6.18
+"Goodin, Wesley",Server,9/7/24 4:07 PM,9/7/24 10:12 PM,6.09,0.00,0.00,6.09
+"Johnson, Chloe",Server,9/7/24 4:23 PM,9/7/24 10:21 PM,5.95,0.00,0.00,5.95
+"Jacob, Jonathan",Server,9/7/24 4:30 PM,9/7/24 10:28 PM,5.98,0.00,0.00,5.98
+"Bar, Bar",Bartender,9/7/24 5:25 PM,9/7/24 10:22 PM,4.95,0.00,0.00,4.95
+"Klatch, Uriel",Chef,9/8/24 11:02 AM,9/8/24 10:21 PM,11.31,0.00,0.00,11.31
+"Mascia, Michaela",Chef,9/8/24 11:06 AM,9/8/24 10:22 PM,11.28,0.00,0.00,11.28
+"Mitcham, Mark ",Chef,9/8/24 11:54 AM,9/8/24 11:20 PM,11.43,0.00,0.00,11.43
+"Smedley, Nick",Bartender,9/8/24 1:58 PM,9/8/24 10:19 PM,8.35,0.00,0.00,8.35
+"Fitzgerald , Alexandra ",Server,9/8/24 2:04 PM,9/8/24 10:14 PM,8.17,0.00,0.00,8.17
+"Johnson, Chloe",Server,9/8/24 3:00 PM,9/8/24 9:50 PM,6.83,0.00,0.00,6.83
+"Anain, Jenna",Server,9/8/24 3:26 PM,9/8/24 10:38 PM,7.19,0.00,0.00,7.19
+"Goodin, Wesley",Server,9/8/24 3:28 PM,9/8/24 10:41 PM,7.21,0.00,0.00,7.21
+"Rubingu, Viktoria",Bartender,9/8/24 3:37 PM,9/8/24 10:12 PM,6.59,0.00,0.00,6.59
+"Somerset, Clara",Server,9/8/24 4:01 PM,9/8/24 8:42 PM,4.68,0.00,0.00,4.68
+"Strifert, Margo",Server,9/8/24 4:23 PM,9/8/24 10:01 PM,5.63,0.00,0.00,5.63
+"Bar, Bar",Bartender,9/8/24 5:00 PM,9/8/24 9:59 PM,4.98,0.00,0.00,4.98
+"Bar, Bar",Bartender,9/8/24 9:59 PM,9/9/24 4:00 AM,6.02,0.00,0.00,6.02
+"Foutch, Christopher",Chef,9/8/24 11:00 AM,9/8/24 10:19 PM,11.33,0.00,0.00,11.33
+"Soliday, Matthew ",Chef,9/9/24 10:01 AM,9/9/24 4:56 PM,6.91,0.00,0.00,6.91
+"Castillo, Pedro ",Chef,9/9/24 10:03 AM,9/9/24 5:03 PM,7.00,0.00,0.00,7.00
+"Castillo, Pedro ",Chef,9/10/24 10:49 AM,9/10/24 10:24 PM,11.57,0.00,0.00,11.57
+"Klatch, Uriel",Chef,9/10/24 10:00 AM,9/10/24 4:40 PM,6.67,0.00,0.00,6.67
+"Foutch, Christopher",Chef,9/10/24 12:55 PM,9/10/24 10:03 PM,9.13,0.00,0.00,9.13
+"Rubingu, Viktoria",Bartender,9/10/24 1:06 PM,9/10/24 9:58 PM,8.86,0.00,0.00,8.86
+"Page, Madeleine",Server,9/10/24 1:54 PM,9/10/24 10:40 PM,8.78,0.00,0.00,8.78
+"Soliday, Matthew ",Chef,9/10/24 2:05 PM,9/10/24 9:59 PM,7.90,0.00,0.00,7.90
+"Bar, Bar",Bartender,9/10/24 2:18 PM,9/11/24 4:00 AM,13.69,0.00,0.00,13.69
+"Underwood, Todd",Server,9/10/24 4:22 PM,9/10/24 9:59 PM,5.62,0.00,0.00,5.62
+"Strifert, Margo",Server,9/10/24 4:55 PM,9/10/24 10:01 PM,5.10,0.00,0.00,5.10
+"LaBarge, Miles",Chef,9/11/24 9:02 AM,9/11/24 6:13 PM,9.18,0.00,0.00,9.18
+"Castillo, Pedro ",Chef,9/11/24 10:56 AM,9/11/24 10:11 PM,11.25,0.00,0.00,11.25
+"Mascia, Michaela",Chef,9/11/24 11:03 AM,9/11/24 9:31 PM,10.46,0.00,0.00,10.46
+"Mattson, Daniel",Chef,9/11/24 1:05 PM,9/11/24 9:33 PM,8.46,0.00,0.00,8.46
+"Fitzgerald , Alexandra ",Server,9/11/24 1:56 PM,9/11/24 9:44 PM,7.81,0.00,0.00,7.81
+"Smedley, Nick",Bartender,9/11/24 2:14 PM,9/11/24 9:42 PM,7.46,0.00,0.00,7.46
+"Bar, Bar",Bartender,9/11/24 2:52 PM,9/12/24 4:00 AM,13.12,0.00,0.00,13.12
+"Jacob, Jonathan",Server,9/11/24 3:04 PM,9/11/24 9:49 PM,6.76,0.00,0.00,6.76
+"Page, Madeleine",Server,9/11/24 3:15 PM,9/11/24 10:16 PM,7.02,0.00,0.00,7.02
+"Strifert, Margo",Server,9/11/24 4:45 PM,9/11/24 10:00 PM,5.25,0.00,0.00,5.25
+"LaBarge, Miles",Chef,9/12/24 8:47 AM,9/12/24 6:14 PM,9.44,0.00,0.00,9.44
+"Mascia, Michaela",Chef,9/12/24 10:07 AM,9/12/24 5:04 PM,6.95,0.00,0.00,6.95
+"Castillo, Pedro ",Chef,9/12/24 10:53 AM,9/12/24 10:18 PM,11.42,0.00,0.00,11.42
+"Foutch, Christopher",Chef,9/12/24 11:09 AM,9/12/24 9:30 PM,10.35,0.00,0.00,10.35
+"Smedley, Nick",Bartender,9/12/24 1:30 PM,9/12/24 9:37 PM,8.12,0.00,0.00,8.12
+"Fitzgerald , Alexandra ",Server,9/12/24 2:08 PM,9/12/24 9:43 PM,7.59,0.00,0.00,7.59
+"Mattson, Daniel",Chef,9/12/24 2:13 PM,9/12/24 9:39 PM,7.43,0.00,0.00,7.43
+"Jacob, Jonathan",Server,9/12/24 3:04 PM,9/12/24 9:44 PM,6.67,0.00,0.00,6.67
+"Bar, Bar",Bartender,9/12/24 3:44 PM,9/12/24 8:55 PM,5.17,0.00,0.00,5.17
+"Goodin, Wesley",Server,9/12/24 4:04 PM,9/12/24 9:29 PM,5.42,0.00,0.00,5.42
+"Underwood, Todd",Server,9/12/24 4:28 PM,9/12/24 9:49 PM,5.36,0.00,0.00,5.36
+"Johnson, Chloe",Server,9/12/24 4:32 PM,9/12/24 9:21 PM,4.81,0.00,0.00,4.81
+"Bar, Bar",Bartender,9/12/24 9:28 PM,9/12/24 9:29 PM,0.01,0.00,0.00,0.01
+"Klatch, Uriel",Chef,9/13/24 10:19 AM,9/13/24 4:54 PM,6.59,0.00,0.00,6.59
+"Mitcham, Mark ",Chef,9/13/24 11:58 AM,9/13/24 11:39 PM,11.69,0.00,0.00,11.69
+"Soliday, Matthew ",Chef,9/13/24 11:59 AM,9/13/24 10:28 PM,10.47,0.00,0.00,10.47
+"Mattson, Daniel",Chef,9/13/24 1:01 PM,9/13/24 10:32 PM,9.51,0.00,0.00,9.51
+"Rubingu, Viktoria",Bartender,9/13/24 2:00 PM,9/13/24 9:36 PM,7.61,0.00,0.00,7.61
+"Jacob, Jonathan",Server,9/13/24 3:10 PM,9/13/24 11:13 PM,8.05,0.00,0.00,8.05
+"Smedley, Nick",Bartender,9/13/24 3:14 PM,9/13/24 11:30 PM,8.26,0.00,0.00,8.26
+"Page, Madeleine",Server,9/13/24 3:36 PM,9/13/24 9:46 PM,6.17,0.00,0.00,6.17
+"Johnson, Chloe",Server,9/13/24 3:46 PM,9/13/24 10:47 PM,7.01,0.00,0.00,7.01
+"Goodin, Wesley",Server,9/13/24 4:00 PM,9/13/24 11:12 PM,7.20,0.00,0.00,7.20
+"Bar, Bar",Bartender,9/13/24 5:18 PM,9/14/24 4:00 AM,10.69,0.00,0.00,10.69
+"Foutch, Christopher",Chef,9/14/24 10:01 AM,9/14/24 10:01 AM,0.00,0.00,0.00,0.00
+"Foutch, Christopher",Chef,9/14/24 10:02 AM,9/14/24 6:38 PM,8.61,0.00,0.00,8.61
+"Mattson, Daniel",Chef,9/14/24 11:14 AM,9/14/24 10:47 PM,11.55,0.00,0.00,11.55
+"Mitcham, Mark ",Chef,9/14/24 12:03 PM,9/14/24 11:27 PM,11.41,0.00,0.00,11.41
+"Soliday, Matthew ",Chef,9/14/24 12:03 PM,9/14/24 10:44 PM,10.68,0.00,0.00,10.68
+"Fitzgerald , Alexandra ",Server,9/14/24 2:02 PM,9/14/24 5:40 PM,3.63,0.00,0.00,3.63
+"Bar, Bar",Bartender,9/14/24 2:05 PM,9/14/24 10:07 PM,8.03,0.00,0.00,8.03
+"Rubingu, Viktoria",Bartender,9/14/24 2:13 PM,9/14/24 9:08 PM,6.92,0.00,0.00,6.92
+"Smedley, Nick",Bartender,9/14/24 3:47 PM,9/14/24 11:01 PM,7.23,0.00,0.00,7.23
+"Anain, Jenna",Server,9/14/24 3:58 PM,9/14/24 10:09 PM,6.18,0.00,0.00,6.18
+"Goodin, Wesley",Server,9/14/24 3:59 PM,9/14/24 10:54 PM,6.92,0.00,0.00,6.92
+"Johnson, Chloe",Server,9/14/24 4:17 PM,9/14/24 9:57 PM,5.67,0.00,0.00,5.67
+"Jacob, Jonathan",Server,9/14/24 4:30 PM,9/14/24 10:45 PM,6.24,0.00,0.00,6.24
+"Somerset, Clara",Server,9/14/24 4:44 PM,9/14/24 10:10 PM,5.43,0.00,0.00,5.43
+"Klatch, Uriel",Chef,9/15/24 11:00 AM,9/15/24 10:05 PM,11.08,0.00,0.00,11.08
+"Foutch, Christopher",Chef,9/15/24 11:00 AM,9/15/24 10:09 PM,11.14,0.00,0.00,11.14
+"Mascia, Michaela",Chef,9/15/24 11:06 AM,9/15/24 10:09 PM,11.04,0.00,0.00,11.04
+"Mitcham, Mark ",Chef,9/15/24 12:02 PM,9/15/24 11:16 PM,11.23,0.00,0.00,11.23
+"Rubingu, Viktoria",Bartender,9/15/24 12:41 PM,9/15/24 10:35 PM,9.89,0.00,0.00,9.89
+"Fitzgerald , Alexandra ",Server,9/15/24 2:01 PM,9/15/24 2:04 PM,0.05,0.00,0.00,0.05
+"Johnson, Chloe",Server,9/15/24 2:54 PM,9/15/24 9:55 PM,7.02,0.00,0.00,7.02
+"Smedley, Nick",Bartender,9/15/24 2:57 PM,9/15/24 10:35 PM,7.63,0.00,0.00,7.63
+"Casados, Marissa",Server,9/15/24 3:03 PM,9/15/24 10:12 PM,7.14,0.00,0.00,7.14
+"Bar, Bar",Bartender,9/15/24 3:23 PM,9/16/24 4:00 AM,12.61,0.00,0.00,12.61
+"Whiting, Kai ",Chef,9/15/24 3:23 PM,9/15/24 10:08 PM,6.74,0.00,0.00,6.74
+"Goodin, Wesley",Server,9/15/24 3:30 PM,9/15/24 10:00 PM,6.50,0.00,0.00,6.50
+"Anain, Jenna",Server,9/15/24 3:31 PM,9/15/24 10:25 PM,6.91,0.00,0.00,6.91
+"Somerset, Clara",Server,9/15/24 6:49 PM,9/15/24 9:25 PM,2.61,0.00,0.00,2.61
+"Castillo, Pedro ",Chef,9/16/24 10:06 AM,9/16/24 4:41 PM,6.57,0.00,0.00,6.57
+"Soliday, Matthew ",Chef,9/16/24 10:06 AM,9/16/24 4:39 PM,6.54,0.00,0.00,6.54
+"Castillo, Pedro ",Chef,9/17/24 11:17 AM,9/17/24 10:11 PM,10.90,0.00,0.00,10.90
+"Foutch, Christopher",Chef,9/17/24 12:57 PM,9/17/24 9:29 PM,8.54,0.00,0.00,8.54
+"Mattson, Daniel",Chef,9/17/24 1:19 PM,9/17/24 9:30 PM,8.18,0.00,0.00,8.18
+"Bar, Bar",Bartender,9/17/24 1:30 PM,9/18/24 4:00 AM,14.49,0.00,0.00,14.49
+"Page, Madeleine",Server,9/17/24 1:37 PM,9/17/24 10:12 PM,8.59,0.00,0.00,8.59
+"Rubingu, Viktoria",Bartender,9/17/24 3:53 PM,9/17/24 9:20 PM,5.45,0.00,0.00,5.45
+"Underwood, Todd",Server,9/17/24 4:23 PM,9/17/24 9:12 PM,4.83,0.00,0.00,4.83
+"Strifert, Margo",Server,9/17/24 4:51 PM,9/17/24 9:27 PM,4.59,0.00,0.00,4.59
+"Whiting, Kai ",Chef,9/17/24 5:00 PM,9/17/24 9:35 PM,4.58,0.00,0.00,4.58
+"LaBarge, Miles",Chef,9/18/24 8:45 AM,9/18/24 5:51 PM,9.09,0.00,0.00,9.09
+"Castillo, Pedro ",Chef,9/18/24 10:53 AM,9/18/24 10:42 PM,11.82,0.00,0.00,11.82
+"Mascia, Michaela",Chef,9/18/24 11:02 AM,9/18/24 9:55 PM,10.88,0.00,0.00,10.88
+"Mattson, Daniel",Chef,9/18/24 1:14 PM,9/18/24 9:59 PM,8.75,0.00,0.00,8.75
+"Rubingu, Viktoria",Bartender,9/18/24 2:02 PM,9/18/24 10:18 PM,8.27,0.00,0.00,8.27
+"Jacob, Jonathan",Server,9/18/24 3:04 PM,9/18/24 10:20 PM,7.25,0.00,0.00,7.25
+"Page, Madeleine",Server,9/18/24 1:35 PM,9/18/24 10:47 PM,9.20,0.00,0.00,9.20
+"Strifert, Margo",Server,9/18/24 4:43 PM,9/18/24 10:17 PM,5.57,0.00,0.00,5.57
+"Bar, Bar",Bartender,9/18/24 5:08 PM,9/19/24 4:00 AM,10.85,0.00,0.00,10.85
+"LaBarge, Miles",Chef,9/19/24 8:43 AM,9/19/24 6:09 PM,9.44,0.00,0.00,9.44
+"Mascia, Michaela",Chef,9/19/24 10:08 AM,9/19/24 4:48 PM,6.68,0.00,0.00,6.68
+"Soliday, Matthew ",Chef,9/19/24 11:03 AM,9/19/24 9:55 PM,10.87,0.00,0.00,10.87
+"Castillo, Pedro ",Chef,9/19/24 11:09 AM,9/19/24 10:41 PM,11.53,0.00,0.00,11.53
+"Smedley, Nick",Bartender,9/19/24 1:34 PM,9/19/24 9:42 PM,8.12,0.00,0.00,8.12
+"Foutch, Christopher",Chef,9/19/24 2:01 PM,9/19/24 9:52 PM,7.85,0.00,0.00,7.85
+"Mattson, Daniel",Chef,9/19/24 2:15 PM,9/19/24 9:52 PM,7.62,0.00,0.00,7.62
+"Fitzgerald , Alexandra ",Server,9/19/24 4:02 PM,9/19/24 10:25 PM,6.39,0.00,0.00,6.39
+"Goodin, Wesley",Server,9/19/24 4:05 PM,9/19/24 10:15 PM,6.16,0.00,0.00,6.16
+"Johnson, Chloe",Server,9/19/24 4:26 PM,9/19/24 9:50 PM,5.40,0.00,0.00,5.40
+"Underwood, Todd",Server,9/19/24 4:28 PM,9/19/24 10:20 PM,5.86,0.00,0.00,5.86
+"Bar, Bar",Bartender,9/19/24 6:00 PM,9/19/24 10:21 PM,4.35,0.00,0.00,4.35
+"Maher, Samuel",Owner,9/19/24 10:34 PM,9/19/24 10:36 PM,0.03,0.00,0.00,0.03
+"Mattson, Daniel",Chef,9/20/24 9:13 AM,9/20/24 5:02 PM,7.83,0.00,0.00,7.83
+"Mitcham, Mark ",Chef,9/20/24 12:04 PM,9/20/24 11:28 PM,11.41,0.00,0.00,11.41
+"Foutch, Christopher",Chef,9/20/24 12:54 PM,9/20/24 10:25 PM,9.52,0.00,0.00,9.52
+"Rubingu, Viktoria",Bartender,9/20/24 1:55 PM,9/20/24 8:35 PM,6.67,0.00,0.00,6.67
+"Jacob, Jonathan",Server,9/20/24 3:03 PM,9/20/24 10:48 PM,7.75,0.00,0.00,7.75
+"Page, Madeleine",Server,9/20/24 3:16 PM,9/20/24 10:15 PM,6.99,0.00,0.00,6.99
+"Smedley, Nick",Bartender,9/20/24 3:57 PM,9/20/24 10:16 PM,6.32,0.00,0.00,6.32
+"Goodin, Wesley",Server,9/20/24 4:06 PM,9/20/24 10:47 PM,6.69,0.00,0.00,6.69
+"Strifert, Margo",Server,9/20/24 4:06 PM,9/20/24 9:27 PM,5.35,0.00,0.00,5.35
+"Johnson, Chloe",Server,9/20/24 4:21 PM,9/20/24 10:02 PM,5.68,0.00,0.00,5.68
+"Whiting, Kai ",Chef,9/20/24 4:58 PM,9/20/24 10:38 PM,5.67,0.00,0.00,5.67
+"Bar, Bar",Bartender,9/20/24 5:39 PM,9/21/24 4:00 AM,10.34,0.00,0.00,10.34
+"Soliday, Matthew ",Chef,9/20/24 12:00 PM,9/20/24 10:16 PM,10.27,0.00,0.00,10.27
+"Foutch, Christopher",Chef,9/21/24 10:01 AM,9/21/24 6:26 PM,8.42,0.00,0.00,8.42
+"Soliday, Matthew ",Chef,9/21/24 11:02 AM,9/21/24 10:24 PM,11.37,0.00,0.00,11.37
+"Mitcham, Mark ",Chef,9/21/24 11:57 AM,9/21/24 11:40 PM,11.71,0.00,0.00,11.71
+"Fitzgerald , Alexandra ",Server,9/21/24 2:03 PM,9/21/24 10:40 PM,8.62,0.00,0.00,8.62
+"Smedley, Nick",Bartender,9/21/24 2:05 PM,9/21/24 9:01 PM,6.94,0.00,0.00,6.94
+"Anain, Jenna",Server,9/21/24 3:55 PM,9/21/24 10:44 PM,6.81,0.00,0.00,6.81
+"Goodin, Wesley",Server,9/21/24 3:57 PM,9/21/24 10:39 PM,6.70,0.00,0.00,6.70
+"Rubingu, Viktoria",Bartender,9/21/24 4:02 PM,9/21/24 10:46 PM,6.73,0.00,0.00,6.73
+"Page, Madeleine",Server,9/21/24 4:11 PM,9/21/24 11:43 PM,7.53,0.00,0.00,7.53
+"Johnson, Chloe",Server,9/21/24 4:13 PM,9/21/24 10:42 PM,6.48,0.00,0.00,6.48
+"Whiting, Kai ",Chef,9/21/24 4:39 PM,9/21/24 10:25 PM,5.76,0.00,0.00,5.76
+"Bar, Bar",Bartender,9/21/24 5:18 PM,9/22/24 4:00 AM,10.68,0.00,0.00,10.68
+"Whiting, Kai ",Chef,9/21/24 10:25 PM,9/21/24 10:25 PM,0.01,0.00,0.00,0.01
+"Foutch, Christopher",Chef,9/22/24 10:56 AM,9/22/24 10:18 PM,11.36,0.00,0.00,11.36
+"Mascia, Michaela",Chef,9/22/24 10:59 AM,9/22/24 10:16 PM,11.29,0.00,0.00,11.29
+"Mitcham, Mark ",Chef,9/22/24 11:55 AM,9/22/24 11:25 PM,11.49,0.00,0.00,11.49
+"Smedley, Nick",Bartender,9/22/24 12:50 PM,9/22/24 9:59 PM,9.14,0.00,0.00,9.14
+"Fitzgerald , Alexandra ",Server,9/22/24 2:01 PM,9/22/24 10:21 PM,8.33,0.00,0.00,8.33
+"Johnson, Chloe",Server,9/22/24 3:03 PM,9/22/24 9:51 PM,6.80,0.00,0.00,6.80
+"Casados, Marissa",Server,9/22/24 3:03 PM,9/22/24 10:04 PM,7.02,0.00,0.00,7.02
+"Strifert, Margo",Server,9/22/24 3:07 PM,9/22/24 9:55 PM,6.80,0.00,0.00,6.80
+"Somerset, Clara",Server,9/22/24 3:28 PM,9/22/24 10:04 PM,6.59,0.00,0.00,6.59
+"Goodin, Wesley",Server,9/22/24 3:32 PM,9/22/24 10:29 PM,6.95,0.00,0.00,6.95
+"Rubingu, Viktoria",Bartender,9/22/24 3:36 PM,9/22/24 10:18 PM,6.70,0.00,0.00,6.70
+"Whiting, Kai ",Chef,9/22/24 3:49 PM,9/22/24 10:19 PM,6.50,0.00,0.00,6.50
+"Bar, Bar",Bartender,9/22/24 4:22 PM,9/23/24 4:00 AM,11.62,0.00,0.00,11.62
+"Soliday, Matthew ",Chef,9/23/24 10:02 AM,9/23/24 5:40 PM,7.65,0.00,0.00,7.65
+"Castillo, Pedro ",Chef,9/23/24 10:10 AM,9/23/24 5:40 PM,7.49,0.00,0.00,7.49
+"Castillo, Pedro ",Chef,9/24/24 11:06 AM,9/24/24 10:27 PM,11.34,0.00,0.00,11.34
+"Foutch, Christopher",Chef,9/24/24 1:00 PM,9/24/24 10:04 PM,9.07,0.00,0.00,9.07
+"Soliday, Matthew ",Chef,9/24/24 1:11 PM,9/24/24 9:58 PM,8.79,0.00,0.00,8.79
+"Page, Madeleine",Server,9/24/24 1:32 PM,9/24/24 11:37 PM,10.08,0.00,0.00,10.08
+"Smedley, Nick",Bartender,9/24/24 2:42 PM,9/24/24 10:40 PM,7.96,0.00,0.00,7.96
+"Strifert, Margo",Server,9/24/24 4:04 PM,9/24/24 10:29 PM,6.42,0.00,0.00,6.42
+"Underwood, Todd",Server,9/24/24 4:10 PM,9/24/24 10:28 PM,6.30,0.00,0.00,6.30
+"Bar, Bar",Bartender,9/24/24 6:45 PM,9/25/24 4:00 AM,9.24,0.00,0.00,9.24
+"Soliday, Matthew ",Chef,9/24/24 9:59 PM,9/24/24 10:04 PM,0.09,0.00,0.00,0.09
+"LaBarge, Miles",Chef,9/25/24 8:45 AM,9/25/24 5:41 PM,8.94,0.00,0.00,8.94
+"Castillo, Pedro ",Chef,9/25/24 10:54 AM,9/25/24 10:14 PM,11.33,0.00,0.00,11.33
+"Foutch, Christopher",Chef,9/25/24 12:52 PM,9/25/24 9:36 PM,8.74,0.00,0.00,8.74
+"Soliday, Matthew ",Chef,9/25/24 12:57 PM,9/25/24 9:26 PM,8.49,0.00,0.00,8.49
+"Page, Madeleine",Server,9/25/24 1:39 PM,9/25/24 10:21 PM,8.71,0.00,0.00,8.71
+"Smedley, Nick",Bartender,9/25/24 1:54 PM,9/25/24 7:30 PM,5.60,0.00,0.00,5.60
+"Fitzgerald , Alexandra ",Server,9/25/24 1:58 PM,9/25/24 9:51 PM,7.88,0.00,0.00,7.88
+"Bar, Bar",Bartender,9/25/24 2:36 PM,9/25/24 9:31 PM,6.93,0.00,0.00,6.93
+"Jacob, Jonathan",Server,9/25/24 3:05 PM,9/25/24 10:07 PM,7.04,0.00,0.00,7.04
+"Strifert, Margo",Server,9/25/24 4:08 PM,9/25/24 9:35 PM,5.46,0.00,0.00,5.46
+"LaBarge, Miles",Chef,9/26/24 8:42 AM,9/26/24 5:25 PM,8.71,0.00,0.00,8.71
+"Castillo, Pedro ",Chef,9/26/24 10:50 AM,9/26/24 10:38 PM,11.80,0.00,0.00,11.80
+"Foutch, Christopher",Chef,9/26/24 10:57 AM,9/26/24 10:06 PM,11.14,0.00,0.00,11.14
+"Rubingu, Viktoria",Bartender,9/26/24 2:11 PM,9/26/24 10:10 PM,7.99,0.00,0.00,7.99
+"Jacob, Jonathan",Server,9/26/24 3:02 PM,9/26/24 9:56 PM,6.90,0.00,0.00,6.90
+"Bar, Bar",Bartender,9/26/24 3:59 PM,9/26/24 9:57 PM,5.97,0.00,0.00,5.97
+"Fitzgerald , Alexandra ",Server,9/26/24 4:02 PM,9/26/24 9:34 PM,5.54,0.00,0.00,5.54
+"Goodin, Wesley",Server,9/26/24 4:05 PM,9/26/24 10:36 PM,6.52,0.00,0.00,6.52
+"Underwood, Todd",Server,9/26/24 4:20 PM,9/26/24 9:34 PM,5.23,0.00,0.00,5.23
+"Johnson, Chloe",Server,9/26/24 4:51 PM,9/26/24 9:55 PM,5.07,0.00,0.00,5.07
+"Soliday, Matthew ",Chef,9/27/24 10:56 AM,9/27/24 5:04 PM,6.14,0.00,0.00,6.14
+"Mattson, Daniel",Chef,9/27/24 11:04 AM,9/27/24 10:32 PM,11.46,0.00,0.00,11.46
+"Mitcham, Mark ",Chef,9/27/24 12:10 PM,9/27/24 11:30 PM,11.33,0.00,0.00,11.33
+"Smedley, Nick",Bartender,9/27/24 2:07 PM,9/27/24 10:04 PM,7.94,0.00,0.00,7.94
+"Jacob, Jonathan",Server,9/27/24 3:01 PM,9/27/24 10:17 PM,7.28,0.00,0.00,7.28
+"Fitzgerald , Alexandra ",Server,9/27/24 3:49 PM,9/27/24 10:31 PM,6.70,0.00,0.00,6.70
+"Johnson, Chloe",Server,9/27/24 3:59 PM,9/27/24 10:07 PM,6.13,0.00,0.00,6.13
+"Goodin, Wesley",Server,9/27/24 4:02 PM,9/27/24 10:00 PM,5.98,0.00,0.00,5.98
+"Rubingu, Viktoria",Bartender,9/27/24 4:12 PM,9/27/24 10:41 PM,6.47,0.00,0.00,6.47
+"Bar, Bar",Bartender,9/27/24 5:31 PM,9/27/24 10:29 PM,4.97,0.00,0.00,4.97
+"Maher, Samuel",Owner,9/27/24 10:28 PM,9/27/24 10:28 PM,0.00,0.00,0.00,0.00
+"Maher, Samuel",Owner,9/27/24 10:37 PM,9/27/24 10:38 PM,0.00,0.00,0.00,0.00
+"Soliday, Matthew ",Chef,9/28/24 10:59 AM,9/28/24 10:09 PM,11.16,0.00,0.00,11.16
+"Mattson, Daniel",Chef,9/28/24 11:07 AM,9/28/24 10:25 PM,11.30,0.00,0.00,11.30
+"Mitcham, Mark ",Chef,9/28/24 12:02 PM,9/28/24 11:13 PM,11.18,0.00,0.00,11.18
+"Fitzgerald , Alexandra ",Server,9/28/24 2:02 PM,9/28/24 10:47 PM,8.75,0.00,0.00,8.75
+"Rubingu, Viktoria",Bartender,9/28/24 2:12 PM,9/28/24 9:15 PM,7.03,0.00,0.00,7.03
+"Bar, Bar",Bartender,9/28/24 2:14 PM,9/28/24 10:37 PM,8.38,0.00,0.00,8.38
+"Goodin, Wesley",Server,9/28/24 3:57 PM,9/28/24 10:32 PM,6.57,0.00,0.00,6.57
+"Strifert, Margo",Server,9/28/24 4:00 PM,9/28/24 10:08 PM,6.14,0.00,0.00,6.14
+"Smedley, Nick",Bartender,9/28/24 4:03 PM,9/28/24 10:39 PM,6.59,0.00,0.00,6.59
+"Johnson, Chloe",Server,9/28/24 5:20 PM,9/28/24 10:38 PM,5.31,0.00,0.00,5.31
+"Bar, Bar",Bartender,9/28/24 10:37 PM,9/28/24 10:42 PM,0.09,0.00,0.00,0.09
+"Mattson, Daniel",Chef,9/29/24 11:05 AM,9/29/24 10:13 PM,11.13,0.00,0.00,11.13
+"Foutch, Christopher",Chef,9/29/24 11:06 AM,9/29/24 10:09 PM,11.05,0.00,0.00,11.05
+"Mitcham, Mark ",Chef,9/29/24 12:06 PM,9/29/24 11:19 PM,11.23,0.00,0.00,11.23
+"Smedley, Nick",Bartender,9/29/24 1:08 PM,9/29/24 10:17 PM,9.15,0.00,0.00,9.15
+"Fitzgerald , Alexandra ",Server,9/29/24 2:01 PM,9/29/24 10:36 PM,8.58,0.00,0.00,8.58
+"Johnson, Chloe",Server,9/29/24 2:01 PM,9/29/24 10:08 PM,8.11,0.00,0.00,8.11
+"Strifert, Margo",Server,9/29/24 2:58 PM,9/29/24 10:10 PM,7.20,0.00,0.00,7.20
+"Bar, Bar",Bartender,9/29/24 3:02 PM,9/29/24 9:22 PM,6.33,0.00,0.00,6.33
+"Goodin, Wesley",Server,9/29/24 3:32 PM,9/29/24 10:00 PM,6.46,0.00,0.00,6.46
+"Rubingu, Viktoria",Bartender,9/29/24 3:34 PM,9/29/24 10:05 PM,6.53,0.00,0.00,6.53
+"Whiting, Kai ",Chef,9/29/24 4:05 PM,9/29/24 10:09 PM,6.07,0.00,0.00,6.07
+"Bar, Bar",Bartender,9/29/24 10:13 PM,9/30/24 4:00 AM,5.77,0.00,0.00,5.77
+"Soliday, Matthew ",Chef,9/30/24 9:59 AM,9/30/24 3:52 PM,5.88,0.00,0.00,5.88
+"Castillo, Pedro ",Chef,9/30/24 10:15 AM,9/30/24 4:21 PM,6.10,0.00,0.00,6.10
+"Mattson, Daniel",Chef,9/30/24 10:15 AM,9/30/24 3:58 PM,5.71,0.00,0.00,5.71
+"Castillo, Pedro ",Chef,10/1/24 11:06 AM,10/1/24 10:32 PM,11.45,0.00,0.00,11.45
+"Soliday, Matthew ",Chef,10/1/24 1:03 PM,10/1/24 9:49 PM,8.77,0.00,0.00,8.77
+"Page, Madeleine",Server,10/1/24 1:13 PM,10/1/24 10:34 PM,9.35,0.00,0.00,9.35
+"Rubingu, Viktoria",Bartender,10/1/24 3:19 PM,10/1/24 10:13 PM,6.91,0.00,0.00,6.91
+"Strifert, Margo",Server,10/1/24 3:51 PM,10/1/24 10:11 PM,6.32,0.00,0.00,6.32
+"Underwood, Todd",Server,10/1/24 4:25 PM,10/1/24 10:07 PM,5.70,0.00,0.00,5.70
+"Whiting, Kai ",Chef,10/1/24 4:44 PM,10/1/24 9:59 PM,5.25,0.00,0.00,5.25
+"Bar, Bar",Bartender,10/1/24 5:32 PM,10/1/24 10:07 PM,4.59,0.00,0.00,4.59
+"Foutch, Christopher",Chef,10/1/24 1:00 PM,10/1/24 9:57 PM,8.96,0.00,0.00,8.96
+"LaBarge, Miles",Chef,10/2/24 8:41 AM,10/2/24 5:49 PM,9.13,0.00,0.00,9.13
+"Castillo, Pedro ",Chef,10/2/24 11:05 AM,10/2/24 10:17 PM,11.21,0.00,0.00,11.21
+"Soliday, Matthew ",Chef,10/2/24 12:57 PM,10/2/24 9:42 PM,8.75,0.00,0.00,8.75
+"Foutch, Christopher",Chef,10/2/24 12:57 PM,10/2/24 9:50 PM,8.87,0.00,0.00,8.87
+"Page, Madeleine",Server,10/2/24 1:38 PM,10/2/24 10:23 PM,8.74,0.00,0.00,8.74
+"Smedley, Nick",Bartender,10/2/24 1:43 PM,10/2/24 6:14 PM,4.53,0.00,0.00,4.53
+"Bar, Bar",Bartender,10/2/24 1:49 PM,10/2/24 9:37 PM,7.80,0.00,0.00,7.80
+"Jacob, Jonathan",Server,10/2/24 3:07 PM,10/2/24 9:53 PM,6.76,0.00,0.00,6.76
+"Fitzgerald , Alexandra ",Server,10/2/24 3:24 PM,10/2/24 10:15 PM,6.85,0.00,0.00,6.85
+"Strifert, Margo",Server,10/2/24 3:58 PM,10/2/24 9:52 PM,5.89,0.00,0.00,5.89
+"LaBarge, Miles",Chef,10/3/24 8:53 AM,10/3/24 5:49 PM,8.94,0.00,0.00,8.94
+"Foutch, Christopher",Chef,10/3/24 10:58 AM,10/3/24 9:55 PM,10.95,0.00,0.00,10.95
+"Castillo, Pedro ",Chef,10/3/24 10:59 AM,10/3/24 10:37 PM,11.64,0.00,0.00,11.64
+"Mattson, Daniel",Chef,10/3/24 1:09 PM,10/3/24 9:51 PM,8.70,0.00,0.00,8.70
+"Fitzgerald , Alexandra ",Server,10/3/24 2:12 PM,10/3/24 8:57 PM,6.75,0.00,0.00,6.75
+"Jacob, Jonathan",Server,10/3/24 3:05 PM,10/3/24 9:51 PM,6.76,0.00,0.00,6.76
+"Bar, Bar",Bartender,10/3/24 3:18 PM,10/3/24 10:30 PM,7.19,0.00,0.00,7.19
+"Smedley, Nick",Bartender,10/3/24 3:25 PM,10/3/24 10:30 PM,7.09,0.00,0.00,7.09
+"Goodin, Wesley",Server,10/3/24 4:00 PM,10/3/24 10:06 PM,6.10,0.00,0.00,6.10
+"Johnson, Chloe",Server,10/3/24 4:25 PM,10/3/24 9:28 PM,5.04,0.00,0.00,5.04
+"Underwood, Todd",Server,10/3/24 4:30 PM,10/3/24 10:33 PM,6.05,0.00,0.00,6.05
+"Bar, Bar",Bartender,10/3/24 10:30 PM,10/3/24 10:41 PM,0.19,0.00,0.00,0.19
+"Soliday, Matthew ",Chef,10/4/24 11:03 AM,10/4/24 4:11 PM,5.14,0.00,0.00,5.14
+"Mattson, Daniel",Chef,10/4/24 11:25 AM,10/4/24 10:35 PM,11.17,0.00,0.00,11.17
+"Mitcham, Mark ",Chef,10/4/24 11:45 AM,10/4/24 11:44 PM,11.99,0.00,0.00,11.99
+"Bar, Bar",Bartender,10/4/24 1:33 PM,10/5/24 4:00 AM,14.45,0.00,0.00,14.45
+"Smedley, Nick",Bartender,10/4/24 1:33 PM,10/4/24 11:04 PM,9.51,0.00,0.00,9.51
+"Goodin, Wesley",Server,10/4/24 2:00 PM,10/4/24 10:42 PM,8.71,0.00,0.00,8.71
+"Strifert, Margo",Server,10/4/24 2:01 PM,10/4/24 10:34 PM,8.56,0.00,0.00,8.56
+"Jacob, Jonathan",Server,10/4/24 2:01 PM,10/4/24 10:39 PM,8.64,0.00,0.00,8.64
+"Fitzgerald , Alexandra ",Server,10/4/24 2:02 PM,10/4/24 9:24 PM,7.37,0.00,0.00,7.37
+"Page, Madeleine",Server,10/4/24 12:00 PM,10/4/24 9:23 PM,9.38,0.00,0.00,9.38
+"Green, Jordan",Server,10/4/24 4:09 PM,10/4/24 10:37 PM,6.47,0.00,0.00,6.47
+"Rubingu, Viktoria",Bartender,10/4/24 2:00 PM,10/4/24 9:39 PM,7.65,0.00,0.00,7.65
+"Mitcham, Mark ",Chef,10/5/24 11:48 AM,10/5/24 10:58 PM,11.17,0.00,0.00,11.17
+"Soliday, Matthew ",Chef,10/5/24 12:06 PM,10/5/24 10:07 PM,10.03,0.00,0.00,10.03
+"Foutch, Christopher",Chef,10/5/24 1:53 PM,10/5/24 10:11 PM,8.29,0.00,0.00,8.29
+"Rubingu, Viktoria",Bartender,10/5/24 1:55 PM,10/5/24 6:35 PM,4.65,0.00,0.00,4.65
+"Fitzgerald , Alexandra ",Server,10/5/24 2:02 PM,10/5/24 10:51 PM,8.81,0.00,0.00,8.81
+"Jacob, Jonathan",Server,10/5/24 3:03 PM,10/5/24 10:15 PM,7.21,0.00,0.00,7.21
+"Smedley, Nick",Bartender,10/5/24 3:28 PM,10/5/24 10:29 PM,7.01,0.00,0.00,7.01
+"Bar, Bar",Bartender,10/5/24 3:59 PM,10/6/24 4:00 AM,12.01,0.00,0.00,12.01
+"Page, Madeleine",Server,10/5/24 4:02 PM,10/5/24 11:00 PM,6.97,0.00,0.00,6.97
+"Goodin, Wesley",Server,10/5/24 4:03 PM,10/5/24 9:45 PM,5.71,0.00,0.00,5.71
+"Johnson, Chloe",Server,10/5/24 4:07 PM,10/5/24 10:03 PM,5.93,0.00,0.00,5.93
+"Green, Jordan",Server,10/5/24 4:08 PM,10/5/24 6:14 PM,2.11,0.00,0.00,2.11
+"Mitcham, Mark ",Chef,10/6/24 12:04 PM,10/6/24 10:54 PM,10.84,0.00,0.00,10.84
+"Fitzgerald , Alexandra ",Server,10/6/24 12:43 PM,10/6/24 10:09 PM,9.45,0.00,0.00,9.45
+"Bar, Bar",Bartender,10/6/24 1:37 PM,10/6/24 9:07 PM,7.51,0.00,0.00,7.51
+"Johnson, Chloe",Server,10/6/24 3:00 PM,10/6/24 9:52 PM,6.87,0.00,0.00,6.87
+"Page, Madeleine",Server,10/6/24 3:06 PM,10/6/24 9:54 PM,6.81,0.00,0.00,6.81
+"Goodin, Wesley",Server,10/6/24 3:28 PM,10/6/24 9:46 PM,6.31,0.00,0.00,6.31
+"Somerset, Clara",Server,10/6/24 3:34 PM,10/6/24 9:48 PM,6.22,0.00,0.00,6.22
+"Rubingu, Viktoria",Bartender,10/6/24 3:43 PM,10/6/24 9:46 PM,6.05,0.00,0.00,6.05
+"Maher, Samuel",Owner,10/6/24 5:30 PM,10/6/24 10:28 PM,4.96,0.00,0.00,4.96
+"Smedley, Nick",Bartender,10/6/24 1:00 PM,10/6/24 9:47 PM,8.80,0.00,0.00,8.80
+"Foutch, Christopher",Chef,10/6/24 11:00 AM,10/6/24 10:04 PM,11.07,0.00,0.00,11.07
+"Soliday, Matthew ",Chef,10/7/24 9:58 AM,10/7/24 4:47 PM,6.82,0.00,0.00,6.82
+"Castillo, Pedro ",Chef,10/7/24 10:07 AM,10/7/24 5:07 PM,7.00,0.00,0.00,7.00
+"Pratz Saint-Geours, Amelia",Chef,10/7/24 3:09 PM,10/8/24 1:13 AM,10.08,0.00,0.00,10.08
+"Castillo, Pedro ",Chef,10/8/24 11:09 AM,10/8/24 9:59 PM,10.82,0.00,0.00,10.82
+"Soliday, Matthew ",Chef,10/8/24 11:11 AM,10/8/24 9:06 PM,9.91,0.00,0.00,9.91
+"Foutch, Christopher",Chef,10/8/24 12:55 PM,10/8/24 9:29 PM,8.57,0.00,0.00,8.57
+"Fitzgerald , Alexandra ",Server,10/8/24 1:04 PM,10/8/24 3:43 PM,2.65,0.00,0.00,2.65
+"Page, Madeleine",Server,10/8/24 1:47 PM,10/8/24 10:17 PM,8.50,0.00,0.00,8.50
+"Rubingu, Viktoria",Bartender,10/8/24 3:01 PM,10/8/24 9:18 PM,6.29,0.00,0.00,6.29
+"Green, Jordan",Server,10/8/24 4:00 PM,10/8/24 8:50 PM,4.82,0.00,0.00,4.82
+"Strifert, Margo",Server,10/8/24 4:01 PM,10/8/24 9:19 PM,5.30,0.00,0.00,5.30
+"Underwood, Todd",Server,10/8/24 4:05 PM,10/8/24 9:25 PM,5.32,0.00,0.00,5.32
+"Whiting, Kai ",Chef,10/8/24 4:50 PM,10/8/24 9:17 PM,4.44,0.00,0.00,4.44
+"Bar, Bar",Bartender,10/8/24 6:44 PM,10/8/24 9:17 PM,2.55,0.00,0.00,2.55
+"LaBarge, Miles",Chef,10/9/24 8:41 AM,10/9/24 5:16 PM,8.57,0.00,0.00,8.57
+"Castillo, Pedro ",Chef,10/9/24 11:01 AM,10/9/24 10:25 PM,11.38,0.00,0.00,11.38
+"Foutch, Christopher",Chef,10/9/24 12:58 PM,10/9/24 9:44 PM,8.78,0.00,0.00,8.78
+"Mattson, Daniel",Chef,10/9/24 1:10 PM,10/9/24 9:38 PM,8.47,0.00,0.00,8.47
+"Page, Madeleine",Server,10/9/24 1:44 PM,10/9/24 10:47 PM,9.05,0.00,0.00,9.05
+"Bar, Bar",Bartender,10/9/24 3:11 PM,10/9/24 10:19 PM,7.13,0.00,0.00,7.13
+"Jacob, Jonathan",Server,10/9/24 3:40 PM,10/9/24 10:26 PM,6.78,0.00,0.00,6.78
+"Strifert, Margo",Server,10/9/24 4:04 PM,10/9/24 10:22 PM,6.31,0.00,0.00,6.31
+"Smedley, Nick",Bartender,10/9/24 4:09 PM,10/9/24 10:31 PM,6.37,0.00,0.00,6.37
+"Bar, Bar",Bartender,10/9/24 10:19 PM,10/10/24 4:00 AM,5.68,0.00,0.00,5.68
+"LaBarge, Miles",Chef,10/10/24 8:32 AM,10/10/24 5:18 PM,8.77,0.00,0.00,8.77
+"Castillo, Pedro ",Chef,10/10/24 11:08 AM,10/10/24 10:21 PM,11.21,0.00,0.00,11.21
+"Foutch, Christopher",Chef,10/10/24 12:55 PM,10/10/24 9:41 PM,8.76,0.00,0.00,8.76
+"Mattson, Daniel",Chef,10/10/24 1:19 PM,10/10/24 9:45 PM,8.45,0.00,0.00,8.45
+"Rubingu, Viktoria",Bartender,10/10/24 1:59 PM,10/10/24 10:00 PM,8.02,0.00,0.00,8.02
+"Jacob, Jonathan",Server,10/10/24 3:07 PM,10/10/24 9:09 PM,6.03,0.00,0.00,6.03
+"Green, Jordan",Server,10/10/24 3:45 PM,10/10/24 9:40 PM,5.92,0.00,0.00,5.92
+"Bar, Bar",Bartender,10/10/24 3:54 PM,10/10/24 10:27 PM,6.55,0.00,0.00,6.55
+"Goodin, Wesley",Server,10/10/24 4:00 PM,10/10/24 9:39 PM,5.65,0.00,0.00,5.65
+"Smedley, Nick",Bartender,10/10/24 4:24 PM,10/10/24 6:18 PM,1.90,0.00,0.00,1.90
+"Johnson, Chloe",Server,10/10/24 4:34 PM,10/10/24 9:39 PM,5.08,0.00,0.00,5.08
+"Page, Madeleine",shift supervisor,10/10/24 2:30 PM,10/10/24 3:45 PM,1.25,0.00,0.00,1.25
+"Bar, Bar",Bartender,10/10/24 10:27 PM,10/11/24 4:00 AM,5.55,0.00,0.00,5.55
+"Mattson, Daniel",Chef,10/11/24 9:24 AM,10/11/24 4:12 PM,6.80,0.00,0.00,6.80
+"Mitcham, Mark ",Chef,10/11/24 12:01 PM,10/11/24 11:21 PM,11.34,0.00,0.00,11.34
+"Soliday, Matthew ",Chef,10/11/24 1:02 PM,10/11/24 10:26 PM,9.39,0.00,0.00,9.39
+"Bar, Bar",Bartender,10/11/24 1:45 PM,10/12/24 4:00 AM,14.24,0.00,0.00,14.24
+"Smedley, Nick",Bartender,10/11/24 1:46 PM,10/11/24 9:16 PM,7.50,0.00,0.00,7.50
+"Fitzgerald , Alexandra ",Server,10/11/24 1:49 PM,10/11/24 11:22 PM,9.55,0.00,0.00,9.55
+"Page, Madeleine",shift supervisor,10/11/24 2:38 PM,10/11/24 10:55 PM,8.27,0.00,0.00,8.27
+"Jacob, Jonathan",Server,10/11/24 3:06 PM,10/11/24 10:22 PM,7.27,0.00,0.00,7.27
+"Rubingu, Viktoria",Bartender,10/11/24 3:43 PM,10/11/24 10:23 PM,6.66,0.00,0.00,6.66
+"Goodin, Wesley",Server,10/11/24 3:53 PM,10/11/24 10:18 PM,6.41,0.00,0.00,6.41
+"Strifert, Margo",Server,10/11/24 4:01 PM,10/11/24 10:19 PM,6.30,0.00,0.00,6.30
+"Somerset, Clara",Server,10/11/24 4:52 PM,10/11/24 10:17 PM,5.42,0.00,0.00,5.42
+"Mattson, Daniel",Chef,10/12/24 11:00 AM,10/12/24 10:11 PM,11.18,0.00,0.00,11.18
+"Soliday, Matthew ",Chef,10/12/24 11:06 AM,10/12/24 10:05 PM,10.99,0.00,0.00,10.99
+"Mitcham, Mark ",Chef,10/12/24 12:10 PM,10/12/24 11:07 PM,10.95,0.00,0.00,10.95
+"Fitzgerald , Alexandra ",Server,10/12/24 2:08 PM,10/12/24 11:13 PM,9.07,0.00,0.00,9.07
+"Rubingu, Viktoria",Bartender,10/12/24 2:11 PM,10/12/24 8:51 PM,6.66,0.00,0.00,6.66
+"Smedley, Nick",Bartender,10/12/24 2:49 PM,10/12/24 10:45 PM,7.94,0.00,0.00,7.94
+"Bar, Bar",Bartender,10/12/24 3:30 PM,10/12/24 9:33 PM,6.06,0.00,0.00,6.06
+"Jacob, Jonathan",Server,10/12/24 3:38 PM,10/12/24 10:43 PM,7.09,0.00,0.00,7.09
+"Goodin, Wesley",Server,10/12/24 3:59 PM,10/12/24 10:25 PM,6.42,0.00,0.00,6.42
+"Strifert, Margo",Server,10/12/24 4:06 PM,10/12/24 10:40 PM,6.56,0.00,0.00,6.56
+"Somerset, Clara",Server,10/12/24 4:30 PM,10/12/24 10:15 PM,5.75,0.00,0.00,5.75
+"Bar, Bar",Bartender,10/12/24 9:33 PM,10/12/24 11:13 PM,1.66,0.00,0.00,1.66
+"Foutch, Christopher",Chef,10/13/24 11:03 AM,10/13/24 11:03 AM,0.00,0.00,0.00,0.00
+"Foutch, Christopher",Chef,10/13/24 11:03 AM,10/13/24 10:16 PM,11.22,0.00,0.00,11.22
+"Mitcham, Mark ",Chef,10/13/24 12:12 PM,10/13/24 11:10 PM,10.97,0.00,0.00,10.97
+"Rubingu, Viktoria",Bartender,10/13/24 1:00 PM,10/13/24 10:01 PM,9.03,0.00,0.00,9.03
+"Fitzgerald , Alexandra ",Server,10/13/24 2:06 PM,10/13/24 10:13 PM,8.11,0.00,0.00,8.11
+"Smedley, Nick",Bartender,10/13/24 2:09 PM,10/13/24 10:07 PM,7.97,0.00,0.00,7.97
+"Johnson, Chloe",Server,10/13/24 2:58 PM,10/13/24 9:59 PM,7.02,0.00,0.00,7.02
+"Strifert, Margo",Server,10/13/24 3:00 PM,10/13/24 10:19 PM,7.31,0.00,0.00,7.31
+"Page, Madeleine",shift supervisor,10/13/24 3:08 PM,10/13/24 11:19 PM,8.18,0.00,0.00,8.18
+"Goodin, Wesley",Server,10/13/24 3:30 PM,10/13/24 10:01 PM,6.52,0.00,0.00,6.52
+"Bar, Bar",Bartender,10/13/24 4:20 PM,10/13/24 10:01 PM,5.68,0.00,0.00,5.68
+"Strifert, Margo",Server,10/13/24 10:19 PM,10/13/24 10:25 PM,0.10,0.00,0.00,0.10
+"Soliday, Matthew ",Chef,10/14/24 9:50 AM,10/14/24 4:04 PM,6.23,0.00,0.00,6.23
+"Castillo, Pedro ",Chef,10/14/24 10:00 AM,10/14/24 5:30 PM,7.51,0.00,0.00,7.51
+"Klatch, Uriel",Chef,10/14/24 10:01 AM,10/14/24 4:15 PM,6.24,0.00,0.00,6.24
+"Pratz Saint-Geours, Amelia",Chef,10/14/24 3:37 PM,10/14/24 10:43 PM,7.10,0.00,0.00,7.10
+"Soliday, Matthew ",Chef,10/15/24 11:01 AM,10/15/24 9:11 PM,10.17,0.00,0.00,10.17
+"Castillo, Pedro ",Chef,10/15/24 11:04 AM,10/15/24 10:11 PM,11.12,0.00,0.00,11.12
+"Foutch, Christopher",Chef,10/15/24 12:51 PM,10/15/24 9:20 PM,8.49,0.00,0.00,8.49
+"Page, Madeleine",Server,10/15/24 1:31 PM,10/15/24 10:17 PM,8.76,0.00,0.00,8.76
+"Rubingu, Viktoria",Bartender,10/15/24 2:05 PM,10/15/24 9:35 PM,7.50,0.00,0.00,7.50
+"Klatch, Uriel",Chef,10/15/24 3:05 PM,10/15/24 9:22 PM,6.28,0.00,0.00,6.28
+"Green, Jordan",Server,10/15/24 4:06 PM,10/15/24 9:41 PM,5.58,0.00,0.00,5.58
+"Strifert, Margo",Server,10/15/24 4:21 PM,10/15/24 9:37 PM,5.26,0.00,0.00,5.26
+"Underwood, Todd",Server,10/15/24 4:52 PM,10/15/24 9:33 PM,4.69,0.00,0.00,4.69
+"Whiting, Kai ",Chef,10/15/24 5:05 PM,10/15/24 9:28 PM,4.38,0.00,0.00,4.38
+"Bar, Bar",Bartender,10/15/24 7:44 PM,10/15/24 9:37 PM,1.88,0.00,0.00,1.88
+"LaBarge, Miles",Chef,10/16/24 9:00 AM,10/16/24 5:24 PM,8.40,0.00,0.00,8.40
+"Castillo, Pedro ",Chef,10/16/24 11:04 AM,10/16/24 9:52 PM,10.80,0.00,0.00,10.80
+"Soliday, Matthew ",Chef,10/16/24 11:11 AM,10/16/24 9:08 PM,9.96,0.00,0.00,9.96
+"Mattson, Daniel",Chef,10/16/24 12:14 PM,10/16/24 9:14 PM,8.99,0.00,0.00,8.99
+"Foutch, Christopher",Chef,10/16/24 1:00 PM,10/16/24 9:10 PM,8.18,0.00,0.00,8.18
+"Page, Madeleine",Server,10/16/24 1:43 PM,10/16/24 9:18 PM,7.58,0.00,0.00,7.58
+"Smedley, Nick",Bartender,10/16/24 1:52 PM,10/16/24 9:31 PM,7.65,0.00,0.00,7.65
+"Bar, Bar",Bartender,10/16/24 1:52 PM,10/17/24 4:00 AM,14.12,0.00,0.00,14.12
+"Jacob, Jonathan",Server,10/16/24 3:06 PM,10/16/24 9:22 PM,6.27,0.00,0.00,6.27
+"Strifert, Margo",Server,10/16/24 4:00 PM,10/16/24 9:20 PM,5.33,0.00,0.00,5.33
+"Foutch, Christopher",Chef,10/16/24 9:14 PM,10/16/24 9:14 PM,0.00,0.00,0.00,0.00
+"LaBarge, Miles",Chef,10/17/24 8:55 AM,10/17/24 5:32 PM,8.61,0.00,0.00,8.61
+"Castillo, Pedro ",Chef,10/17/24 10:58 AM,10/17/24 10:36 PM,11.64,0.00,0.00,11.64
+"Mattson, Daniel",Chef,10/17/24 12:22 PM,10/17/24 9:53 PM,9.51,0.00,0.00,9.51
+"Foutch, Christopher",Chef,10/17/24 12:54 PM,10/17/24 9:50 PM,8.93,0.00,0.00,8.93
+"Rubingu, Viktoria",Bartender,10/17/24 2:01 PM,10/17/24 10:07 PM,8.10,0.00,0.00,8.10
+"Jacob, Jonathan",Server,10/17/24 3:05 PM,10/17/24 9:54 PM,6.83,0.00,0.00,6.83
+"Smedley, Nick",Bartender,10/17/24 3:53 PM,10/17/24 8:59 PM,5.10,0.00,0.00,5.10
+"Fitzgerald , Alexandra ",Server,10/17/24 4:03 PM,10/17/24 9:57 PM,5.90,0.00,0.00,5.90
+"Goodin, Wesley",Server,10/17/24 4:09 PM,10/17/24 9:57 PM,5.80,0.00,0.00,5.80
+"Bar, Bar",Bartender,10/17/24 4:12 PM,10/17/24 9:55 PM,5.72,0.00,0.00,5.72
+"Johnson, Chloe",Server,10/17/24 4:19 PM,10/17/24 9:44 PM,5.42,0.00,0.00,5.42
+"Underwood, Todd",Server,10/17/24 4:34 PM,10/17/24 9:52 PM,5.29,0.00,0.00,5.29
+"Fitzgerald , Alexandra ",Server,10/17/24 9:57 PM,10/17/24 10:36 PM,0.64,0.00,0.00,0.64
+"Mascia, Michaela",Chef,10/18/24 11:00 AM,10/18/24 10:24 PM,11.40,0.00,0.00,11.40
+"Mitcham, Mark ",Chef,10/18/24 11:55 AM,10/18/24 11:30 PM,11.59,0.00,0.00,11.59
+"Klatch, Uriel",Chef,10/18/24 2:04 PM,10/18/24 2:04 PM,0.00,0.00,0.00,0.00
+"Klatch, Uriel",Chef,10/18/24 2:04 PM,10/18/24 10:23 PM,8.32,0.00,0.00,8.32
+"Rubingu, Viktoria",Bartender,10/18/24 2:07 PM,10/18/24 8:57 PM,6.84,0.00,0.00,6.84
+"Jacob, Jonathan",Server,10/18/24 3:09 PM,10/18/24 10:35 PM,7.44,0.00,0.00,7.44
+"Bar, Bar",Bartender,10/18/24 3:44 PM,10/18/24 3:54 PM,0.17,0.00,0.00,0.17
+"Smedley, Nick",Bartender,10/18/24 3:54 PM,10/18/24 10:40 PM,6.78,0.00,0.00,6.78
+"Bar, Bar",Bartender,10/18/24 3:54 PM,10/18/24 10:22 PM,6.47,0.00,0.00,6.47
+"Johnson, Chloe",Server,10/18/24 4:03 PM,10/18/24 9:34 PM,5.51,0.00,0.00,5.51
+"Fitzgerald , Alexandra ",Server,10/18/24 4:03 PM,10/18/24 10:40 PM,6.60,0.00,0.00,6.60
+"Page, Madeleine",Server,10/18/24 4:05 PM,10/18/24 8:44 PM,4.65,0.00,0.00,4.65
+"Goodin, Wesley",Server,10/18/24 4:34 PM,10/18/24 10:19 PM,5.75,0.00,0.00,5.75
+"Mattson, Daniel",Chef,10/19/24 9:00 AM,10/19/24 4:44 PM,7.74,0.00,0.00,7.74
+"Mascia, Michaela",Chef,10/19/24 11:01 AM,10/19/24 10:18 PM,11.29,0.00,0.00,11.29
+"Soliday, Matthew ",Chef,10/19/24 11:01 AM,10/19/24 10:16 PM,11.25,0.00,0.00,11.25
+"Mitcham, Mark ",Chef,10/19/24 11:45 AM,10/19/24 11:10 PM,11.41,0.00,0.00,11.41
+"Bar, Bar",Bartender,10/19/24 1:23 PM,10/19/24 10:19 PM,8.93,0.00,0.00,8.93
+"Smedley, Nick",Bartender,10/19/24 1:48 PM,10/19/24 8:49 PM,7.01,0.00,0.00,7.01
+"Fitzgerald , Alexandra ",Server,10/19/24 1:57 PM,10/19/24 11:13 PM,9.28,0.00,0.00,9.28
+"Page, Madeleine",Server,10/19/24 3:03 PM,10/19/24 10:24 PM,7.36,0.00,0.00,7.36
+"Jacob, Jonathan",Server,10/19/24 3:12 PM,10/19/24 10:34 PM,7.36,0.00,0.00,7.36
+"Goodin, Wesley",Server,10/19/24 4:00 PM,10/19/24 10:31 PM,6.52,0.00,0.00,6.52
+"Rubingu, Viktoria",Bartender,10/19/24 4:17 PM,10/19/24 10:34 PM,6.29,0.00,0.00,6.29
+"Johnson, Chloe",Server,10/19/24 4:30 PM,10/19/24 10:27 PM,5.96,0.00,0.00,5.96
+"Whiting, Kai ",Sous Chef,10/19/24 4:43 PM,10/20/24 4:00 AM,11.28,0.00,0.00,11.28
+"Jacob, Jonathan",Server,10/19/24 10:38 PM,10/19/24 10:38 PM,0.00,0.00,0.00,0.00
+"Klatch, Uriel",Chef,10/20/24 10:59 AM,10/20/24 10:21 PM,11.37,0.00,0.00,11.37
+"Mascia, Michaela",Chef,10/20/24 11:02 AM,10/20/24 10:06 PM,11.07,0.00,0.00,11.07
+"Foutch, Christopher",Chef,10/20/24 11:04 AM,10/20/24 10:07 PM,11.06,0.00,0.00,11.06
+"Mitcham, Mark ",Chef,10/20/24 11:49 AM,10/20/24 11:04 PM,11.25,0.00,0.00,11.25
+"Smedley, Nick",Bartender,10/20/24 12:50 PM,10/20/24 10:13 PM,9.39,0.00,0.00,9.39
+"Bar, Bar",Bartender,10/20/24 12:50 PM,10/20/24 9:47 PM,8.96,0.00,0.00,8.96
+"Rubingu, Viktoria",Bartender,10/20/24 2:55 PM,10/20/24 10:13 PM,7.30,0.00,0.00,7.30
+"Green, Jordan",Server,10/20/24 2:57 PM,10/20/24 10:20 PM,7.39,0.00,0.00,7.39
+"Johnson, Chloe",Server,10/20/24 2:58 PM,10/20/24 9:46 PM,6.79,0.00,0.00,6.79
+"Somerset, Clara",Server,10/20/24 3:03 PM,10/20/24 9:51 PM,6.80,0.00,0.00,6.80
+"Page, Madeleine",Server,10/20/24 3:04 PM,10/20/24 9:41 PM,6.63,0.00,0.00,6.63
+"Whiting, Kai ",Sous Chef,10/20/24 3:12 PM,10/20/24 10:22 PM,7.16,0.00,0.00,7.16
+"Goodin, Wesley",Server,10/20/24 3:32 PM,10/20/24 10:13 PM,6.67,0.00,0.00,6.67
+"Fitzgerald , Alexandra ",Server,10/20/24 12:50 PM,10/20/24 9:11 PM,8.35,0.00,0.00,8.35
+"Maher, Tricia",Owner,10/20/24 10:16 PM,10/20/24 10:16 PM,0.01,0.00,0.00,0.01
+"Soliday, Matthew ",Chef,10/21/24 9:59 AM,10/21/24 9:59 AM,0.00,0.00,0.00,0.00
+"Soliday, Matthew ",Chef,10/21/24 9:59 AM,10/21/24 4:42 PM,6.72,0.00,0.00,6.72
+"Klatch, Uriel",Chef,10/21/24 9:59 AM,10/21/24 4:48 PM,6.82,0.00,0.00,6.82
+"Castillo, Pedro ",Chef,10/21/24 9:59 AM,10/21/24 5:40 PM,7.68,0.00,0.00,7.68
+"Page, Madeleine",Server,10/21/24 11:53 AM,10/21/24 3:00 PM,3.11,0.00,0.00,3.11
+"Pratz Saint-Geours, Amelia",Chef,10/21/24 4:03 PM,10/22/24 12:45 AM,8.71,0.00,0.00,8.71
+"Soliday, Matthew ",Chef,10/22/24 10:56 AM,10/22/24 9:52 PM,10.95,0.00,0.00,10.95
+"Castillo, Pedro ",Chef,10/22/24 11:05 AM,10/22/24 10:25 PM,11.32,0.00,0.00,11.32
+"Foutch, Christopher",Chef,10/22/24 1:09 PM,10/22/24 6:44 PM,5.57,0.00,0.00,5.57
+"Page, Madeleine",Server,10/22/24 1:20 PM,10/22/24 10:44 PM,9.40,0.00,0.00,9.40
+"Rubingu, Viktoria",Bartender,10/22/24 2:05 PM,10/22/24 9:59 PM,7.90,0.00,0.00,7.90
+"Klatch, Uriel",Chef,10/22/24 2:54 PM,10/22/24 9:58 PM,7.06,0.00,0.00,7.06
+"Underwood, Todd",Server,10/22/24 3:48 PM,10/22/24 10:15 PM,6.46,0.00,0.00,6.46
+"Strifert, Margo",Server,10/22/24 3:57 PM,10/22/24 10:13 PM,6.27,0.00,0.00,6.27
+"Bar, Bar",Bartender,10/22/24 9:46 PM,10/22/24 9:46 PM,0.00,0.00,0.00,0.00
+"LaBarge, Miles",Chef,10/23/24 8:58 AM,10/23/24 5:44 PM,8.77,0.00,0.00,8.77
+"Fitzgerald , Alexandra ",Server,10/23/24 9:56 AM,10/23/24 4:52 PM,6.93,0.00,0.00,6.93
+"Castillo, Pedro ",Chef,10/23/24 10:55 AM,10/23/24 10:39 PM,11.73,0.00,0.00,11.73
+"Mattson, Daniel",Chef,10/23/24 11:14 AM,10/23/24 9:50 PM,10.61,0.00,0.00,10.61
+"Foutch, Christopher",Chef,10/23/24 12:11 PM,10/23/24 10:04 PM,9.88,0.00,0.00,9.88
+"Page, Madeleine",Server,10/23/24 1:35 PM,10/23/24 10:50 PM,9.24,0.00,0.00,9.24
+"Smedley, Nick",Bartender,10/23/24 1:57 PM,10/23/24 10:40 PM,8.72,0.00,0.00,8.72
+"Strifert, Margo",Server,10/23/24 2:02 PM,10/23/24 10:21 PM,8.30,0.00,0.00,8.30
+"Underwood, Todd",Server,10/23/24 2:46 PM,10/23/24 10:27 PM,7.69,0.00,0.00,7.69
+"Bar, Bar",Bartender,10/23/24 3:15 PM,10/23/24 9:50 PM,6.59,0.00,0.00,6.59
+"Somerset, Clara",Server,10/23/24 3:15 PM,10/23/24 10:05 PM,6.82,0.00,0.00,6.82
+"Jacob, Jonathan",Server,10/23/24 3:25 PM,10/23/24 10:26 PM,7.03,0.00,0.00,7.03
+"Bar, Bar",Bartender,10/23/24 9:50 PM,10/23/24 10:19 PM,0.48,0.00,0.00,0.48
+"Maher, Samuel",Owner,10/23/24 10:24 PM,10/23/24 11:04 PM,0.66,0.00,0.00,0.66
+"LaBarge, Miles",Chef,10/24/24 8:53 AM,10/24/24 6:21 PM,9.46,0.00,0.00,9.46
+"Mascia, Michaela",Chef,10/24/24 10:08 AM,10/24/24 4:27 PM,6.32,0.00,0.00,6.32
+"Castillo, Pedro ",Chef,10/24/24 10:55 AM,10/24/24 10:31 PM,11.60,0.00,0.00,11.60
+"Mattson, Daniel",Chef,10/24/24 11:12 AM,10/24/24 9:54 PM,10.69,0.00,0.00,10.69
+"Foutch, Christopher",Chef,10/24/24 12:53 PM,10/24/24 9:56 PM,9.05,0.00,0.00,9.05
+"Rubingu, Viktoria",Bartender,10/24/24 2:09 PM,10/24/24 10:17 PM,8.13,0.00,0.00,8.13
+"Goodin, Wesley",Server,10/24/24 3:59 PM,10/24/24 10:20 PM,6.35,0.00,0.00,6.35
+"Jacob, Jonathan",Server,10/24/24 4:20 PM,10/24/24 10:25 PM,6.09,0.00,0.00,6.09
+"Johnson, Chloe",Server,10/24/24 4:25 PM,10/24/24 10:06 PM,5.68,0.00,0.00,5.68
+"Bar, Bar",Bartender,10/24/24 6:33 PM,10/24/24 10:16 PM,3.73,0.00,0.00,3.73
+"Soliday, Matthew ",Chef,10/25/24 10:24 AM,10/25/24 5:06 PM,6.70,0.00,0.00,6.70
+"Mascia, Michaela",Chef,10/25/24 10:59 AM,10/25/24 10:32 PM,11.54,0.00,0.00,11.54
+"Mitcham, Mark ",Chef,10/25/24 11:50 AM,10/25/24 11:38 PM,11.80,0.00,0.00,11.80
+"Smedley, Nick",Bartender,10/25/24 1:32 PM,10/25/24 8:51 PM,7.31,0.00,0.00,7.31
+"Bar, Bar",Bartender,10/25/24 1:32 PM,10/25/24 10:47 PM,9.25,0.00,0.00,9.25
+"Fitzgerald , Alexandra ",Server,10/25/24 1:53 PM,10/25/24 10:40 PM,8.77,0.00,0.00,8.77
+"Page, Madeleine",Server,10/25/24 2:01 PM,10/25/24 9:58 PM,7.95,0.00,0.00,7.95
+"Jacob, Jonathan",Server,10/25/24 3:04 PM,10/25/24 10:57 PM,7.87,0.00,0.00,7.87
+"Johnson, Chloe",Server,10/25/24 3:43 PM,10/25/24 10:54 PM,7.19,0.00,0.00,7.19
+"Rubingu, Viktoria",Bartender,10/25/24 4:03 PM,10/25/24 10:49 PM,6.77,0.00,0.00,6.77
+"Somerset, Clara",Server,10/25/24 4:31 PM,10/25/24 6:13 PM,1.71,0.00,0.00,1.71
+"Fitzgerald , Alexandra ",Server,10/25/24 10:40 PM,10/25/24 11:44 PM,1.07,0.00,0.00,1.07
+"Soliday, Matthew ",Chef,10/26/24 10:56 AM,10/26/24 10:13 PM,11.30,0.00,0.00,11.30
+"Mattson, Daniel",Chef,10/26/24 11:30 AM,10/26/24 10:12 PM,10.70,0.00,0.00,10.70
+"Mitcham, Mark ",Chef,10/26/24 11:46 AM,10/26/24 11:21 PM,11.58,0.00,0.00,11.58
+"Fitzgerald , Alexandra ",Server,10/26/24 1:34 PM,10/26/24 9:19 PM,7.74,0.00,0.00,7.74
+"Smedley, Nick",Bartender,10/26/24 1:47 PM,10/26/24 10:33 PM,8.77,0.00,0.00,8.77
+"Jacob, Jonathan",Server,10/26/24 3:12 PM,10/26/24 10:18 PM,7.09,0.00,0.00,7.09
+"Barnhart, Mike",Bartender,10/26/24 3:16 PM,10/26/24 8:47 PM,5.51,0.00,0.00,5.51
+"Bar, Bar",Bartender,10/26/24 3:27 PM,10/26/24 10:28 PM,7.02,0.00,0.00,7.02
+"Strifert, Margo",Server,10/26/24 3:58 PM,10/26/24 10:12 PM,6.22,0.00,0.00,6.22
+"Klatch, Uriel",Chef,10/26/24 4:01 PM,10/26/24 10:36 PM,6.58,0.00,0.00,6.58
+"Johnson, Chloe",Server,10/26/24 4:06 PM,10/26/24 10:01 PM,5.92,0.00,0.00,5.92
+"Goodin, Wesley",Server,10/26/24 4:10 PM,10/26/24 10:13 PM,6.06,0.00,0.00,6.06
+"Maher, Samuel",Owner,10/26/24 5:01 PM,10/26/24 10:29 PM,5.45,0.00,0.00,5.45
+"Fitzgerald , Alexandra ",Server,10/26/24 9:19 PM,10/26/24 10:17 PM,0.96,0.00,0.00,0.96
+"Fitzgerald , Alexandra ",Server,10/26/24 10:21 PM,10/26/24 11:24 PM,1.05,0.00,0.00,1.05
+"Mascia, Michaela",Chef,10/27/24 10:59 AM,10/27/24 9:55 PM,10.93,0.00,0.00,10.93
+"Foutch, Christopher",Chef,10/27/24 11:00 AM,10/27/24 10:11 PM,11.19,0.00,0.00,11.19
+"Klatch, Uriel",Chef,10/27/24 11:03 AM,10/27/24 9:58 PM,10.92,0.00,0.00,10.92
+"Mitcham, Mark ",Chef,10/27/24 11:50 AM,10/27/24 11:17 PM,11.46,0.00,0.00,11.46
+"Smedley, Nick",Bartender,10/27/24 12:40 PM,10/27/24 10:21 PM,9.69,0.00,0.00,9.69
+"Fitzgerald , Alexandra ",Server,10/27/24 12:41 PM,10/27/24 10:29 PM,9.80,0.00,0.00,9.80
+"Bar, Bar",Bartender,10/27/24 12:50 PM,10/27/24 8:44 PM,7.91,0.00,0.00,7.91
+"Whiting, Kai ",Sous Chef,10/27/24 2:28 PM,10/27/24 2:28 PM,0.00,0.00,0.00,0.00
+"Johnson, Chloe",Server,10/27/24 2:30 PM,10/27/24 10:02 PM,7.53,0.00,0.00,7.53
+"Barnhart, Mike",Bartender,10/27/24 2:31 PM,10/27/24 10:08 PM,7.62,0.00,0.00,7.62
+"Underwood, Todd",Server,10/27/24 2:56 PM,10/27/24 10:04 PM,7.13,0.00,0.00,7.13
+"Strifert, Margo",Server,10/27/24 2:59 PM,10/27/24 10:02 PM,7.05,0.00,0.00,7.05
+"Soliday, Matthew ",Chef,10/28/24 10:02 AM,10/28/24 4:45 PM,6.70,0.00,0.00,6.70
+"Klatch, Uriel",Chef,10/28/24 10:04 AM,10/28/24 4:45 PM,6.68,0.00,0.00,6.68
+"Castillo, Pedro ",Chef,10/28/24 10:15 AM,10/28/24 5:31 PM,7.27,0.00,0.00,7.27
+"Pratz Saint-Geours, Amelia",Chef,10/28/24 3:58 PM,10/29/24 2:34 AM,10.60,0.00,0.00,10.60
+"Soliday, Matthew ",Chef,10/29/24 11:06 AM,10/29/24 9:45 PM,10.66,0.00,0.00,10.66
+"Castillo, Pedro ",Chef,10/29/24 11:07 AM,10/29/24 10:39 PM,11.53,0.00,0.00,11.53
+"Foutch, Christopher",Chef,10/29/24 12:59 PM,10/29/24 9:58 PM,8.99,0.00,0.00,8.99
+"Rubingu, Viktoria",Bartender,10/29/24 1:13 PM,10/29/24 9:38 PM,8.43,0.00,0.00,8.43
+"Klatch, Uriel",Chef,10/29/24 1:59 PM,10/29/24 9:58 PM,7.98,0.00,0.00,7.98
+"Jacob, Jonathan",Server,10/29/24 3:32 PM,10/29/24 10:11 PM,6.65,0.00,0.00,6.65
+"Strifert, Margo",Server,10/29/24 4:08 PM,10/29/24 10:10 PM,6.04,0.00,0.00,6.04
+"Page, Madeleine",Server,10/29/24 1:15 PM,10/29/24 10:44 PM,9.48,0.00,0.00,9.48
+"Somerset, Clara",Server,10/29/24 5:16 PM,10/29/24 9:54 PM,4.63,0.00,0.00,4.63
+"Bar, Bar",Bartender,10/29/24 6:17 PM,10/29/24 10:05 PM,3.80,0.00,0.00,3.80
+"Maher, Samuel",Owner,10/29/24 9:31 PM,10/29/24 9:40 PM,0.14,0.00,0.00,0.14
+"Barnhart, Mike",Bartender,10/29/24 3:30 PM,10/29/24 10:23 PM,6.88,0.00,0.00,6.88
+"LaBarge, Miles",Chef,10/30/24 8:52 AM,10/30/24 5:59 PM,9.12,0.00,0.00,9.12
+"Castillo, Pedro ",Chef,10/30/24 10:48 AM,10/30/24 10:19 PM,11.52,0.00,0.00,11.52
+"Mattson, Daniel",Chef,10/30/24 11:16 AM,10/30/24 9:40 PM,10.40,0.00,0.00,10.40
+"Smedley, Nick",Bartender,10/30/24 1:42 PM,10/30/24 9:53 PM,8.19,0.00,0.00,8.19
+"Bar, Bar",Bartender,10/30/24 1:42 PM,10/30/24 9:54 PM,8.19,0.00,0.00,8.19
+"Page, Madeleine",Server,10/30/24 1:59 PM,10/30/24 10:20 PM,8.34,0.00,0.00,8.34
+"Jacob, Jonathan",Server,10/30/24 3:07 PM,10/30/24 9:54 PM,6.79,0.00,0.00,6.79
+"Fitzgerald , Alexandra ",Server,10/30/24 3:48 PM,10/30/24 9:54 PM,6.10,0.00,0.00,6.10
+"Strifert, Margo",Server,10/30/24 4:07 PM,10/30/24 9:49 PM,5.70,0.00,0.00,5.70
+"Foutch, Christopher",Chef,10/30/24 1:00 PM,10/30/24 9:51 PM,8.87,0.00,0.00,8.87
+"LaBarge, Miles",Chef,10/31/24 8:56 AM,10/31/24 5:31 PM,8.58,0.00,0.00,8.58
+"Mascia, Michaela",Chef,10/31/24 10:05 AM,10/31/24 2:24 PM,4.32,0.00,0.00,4.32
+"Castillo, Pedro ",Chef,10/31/24 10:56 AM,10/31/24 10:05 PM,11.15,0.00,0.00,11.15
+"Foutch, Christopher",Chef,10/31/24 11:56 AM,10/31/24 9:45 PM,9.81,0.00,0.00,9.81
+"Mattson, Daniel",Chef,10/31/24 12:28 PM,10/31/24 5:29 PM,5.02,0.00,0.00,5.02
+"Rubingu, Viktoria",Bartender,10/31/24 1:40 PM,10/31/24 9:14 PM,7.56,0.00,0.00,7.56
+"Johnson, Chloe",Server,10/31/24 3:16 PM,10/31/24 9:39 PM,6.39,0.00,0.00,6.39
+"Green, Jordan",Server,10/31/24 3:58 PM,10/31/24 9:33 PM,5.58,0.00,0.00,5.58
+"Bar, Bar",Bartender,10/31/24 5:28 PM,10/31/24 9:13 PM,3.76,0.00,0.00,3.76
+"Mascia, Michaela",Chef,11/1/24 11:00 AM,11/1/24 10:10 PM,11.17,0.00,0.00,11.17
+"Mitcham, Mark ",Chef,11/1/24 11:48 AM,11/1/24 11:10 PM,11.35,0.00,0.00,11.35
+"Soliday, Matthew ",Chef,11/1/24 1:04 PM,11/1/24 8:26 PM,7.37,0.00,0.00,7.37
+"Fitzgerald , Alexandra ",Server,11/1/24 1:46 PM,11/1/24 11:10 PM,9.40,0.00,0.00,9.40
+"Page, Madeleine",Server,11/1/24 1:59 PM,11/1/24 9:21 PM,7.35,0.00,0.00,7.35
+"Bar, Bar",Bartender,11/1/24 3:32 PM,11/1/24 10:11 PM,6.64,0.00,0.00,6.64
+"Smedley, Nick",Bartender,11/1/24 3:44 PM,11/1/24 10:34 PM,6.83,0.00,0.00,6.83
+"Goodin, Wesley",Server,11/1/24 4:02 PM,11/1/24 10:13 PM,6.19,0.00,0.00,6.19
+"Johnson, Chloe",Server,11/1/24 4:29 PM,11/1/24 9:39 PM,5.18,0.00,0.00,5.18
+"Jacob, Jonathan",Server,11/1/24 4:32 PM,11/1/24 10:34 PM,6.03,0.00,0.00,6.03
+"Rubingu, Viktoria",Bartender,11/1/24 1:40 PM,11/1/24 8:02 PM,6.38,0.00,0.00,6.38
+"Soliday, Matthew ",Chef,11/2/24 10:59 AM,11/2/24 10:33 PM,11.56,0.00,0.00,11.56
+"Mitcham, Mark ",Chef,11/2/24 11:48 AM,11/2/24 11:21 PM,11.55,0.00,0.00,11.55
+"Klatch, Uriel",Chef,11/2/24 1:12 PM,11/2/24 10:37 PM,9.41,0.00,0.00,9.41
+"Smedley, Nick",Bartender,11/2/24 1:39 PM,11/2/24 9:26 PM,7.78,0.00,0.00,7.78
+"Bar, Bar",Bartender,11/2/24 1:56 PM,11/2/24 9:18 PM,7.37,0.00,0.00,7.37
+"Fitzgerald , Alexandra ",Server,11/2/24 2:05 PM,11/2/24 9:09 PM,7.07,0.00,0.00,7.07
+"Johnson, Chloe",Server,11/2/24 3:54 PM,11/2/24 10:30 PM,6.60,0.00,0.00,6.60
+"Rubingu, Viktoria",Bartender,11/2/24 3:58 PM,11/2/24 10:27 PM,6.48,0.00,0.00,6.48
+"Goodin, Wesley",Server,11/2/24 4:00 PM,11/2/24 10:22 PM,6.37,0.00,0.00,6.37
+"Page, Madeleine",Server,11/2/24 4:02 PM,11/2/24 10:35 PM,6.55,0.00,0.00,6.55
+"Jacob, Jonathan",Server,11/2/24 4:30 PM,11/2/24 10:18 PM,5.81,0.00,0.00,5.81
+"Foutch, Christopher",Chef,11/3/24 10:57 AM,11/3/24 10:02 PM,11.09,0.00,0.00,11.09
+"Klatch, Uriel",Chef,11/3/24 11:01 AM,11/3/24 9:54 PM,10.88,0.00,0.00,10.88
+"Mascia, Michaela",Chef,11/3/24 11:02 AM,11/3/24 9:12 PM,10.17,0.00,0.00,10.17
+"Mitcham, Mark ",Chef,11/3/24 12:08 PM,11/3/24 10:59 PM,10.85,0.00,0.00,10.85
+"Smedley, Nick",Bartender,11/3/24 12:31 PM,11/3/24 8:55 PM,8.40,0.00,0.00,8.40
+"Fitzgerald , Alexandra ",Server,11/3/24 12:56 PM,11/3/24 8:40 PM,7.73,0.00,0.00,7.73
+"Johnson, Chloe",Server,11/3/24 2:50 PM,11/3/24 10:03 PM,7.21,0.00,0.00,7.21
+"Strifert, Margo",Server,11/3/24 3:00 PM,11/3/24 10:14 PM,7.23,0.00,0.00,7.23
+"Page, Madeleine",Server,11/3/24 3:12 PM,11/3/24 9:20 PM,6.13,0.00,0.00,6.13
+"Rubingu, Viktoria",Bartender,11/3/24 3:15 PM,11/3/24 10:13 PM,6.97,0.00,0.00,6.97
+"Goodin, Wesley",Server,11/3/24 3:30 PM,11/3/24 10:13 PM,6.71,0.00,0.00,6.71
+"Bar, Bar",Bartender,11/3/24 4:26 PM,11/3/24 9:53 PM,5.44,0.00,0.00,5.44
+"Soliday, Matthew ",Chef,11/4/24 9:55 AM,11/4/24 3:13 PM,5.30,0.00,0.00,5.30
+"Klatch, Uriel",Chef,11/4/24 10:01 AM,11/4/24 3:09 PM,5.14,0.00,0.00,5.14
+"Castillo, Pedro ",Chef,11/5/24 10:59 AM,11/5/24 10:34 PM,11.58,0.00,0.00,11.58
+"Soliday, Matthew ",Chef,11/5/24 12:48 PM,11/5/24 9:44 PM,8.93,0.00,0.00,8.93
+"Foutch, Christopher",Chef,11/5/24 12:57 PM,11/5/24 9:49 PM,8.86,0.00,0.00,8.86
+"Page, Madeleine",Server,11/5/24 1:20 PM,11/5/24 10:55 PM,9.57,0.00,0.00,9.57
+"Rubingu, Viktoria",Bartender,11/5/24 2:00 PM,11/5/24 9:46 PM,7.76,0.00,0.00,7.76
+"Underwood, Todd",Server,11/5/24 4:02 PM,11/5/24 10:16 PM,6.23,0.00,0.00,6.23
+"Strifert, Margo",Server,11/5/24 4:03 PM,11/5/24 10:11 PM,6.13,0.00,0.00,6.13
+"Klatch, Uriel",Chef,11/5/24 4:05 PM,11/5/24 8:48 PM,4.71,0.00,0.00,4.71
+"Bar, Bar",Bartender,11/5/24 6:42 PM,11/5/24 9:36 PM,2.88,0.00,0.00,2.88
+"LaBarge, Miles",Chef,11/6/24 8:40 AM,11/6/24 5:59 PM,9.31,0.00,0.00,9.31
+"Mascia, Michaela",Chef,11/6/24 11:01 AM,11/6/24 9:11 PM,10.17,0.00,0.00,10.17
+"Foutch, Christopher",Chef,11/6/24 2:08 PM,11/6/24 9:11 PM,7.04,0.00,0.00,7.04
+"Smedley, Nick",Bartender,11/6/24 2:24 PM,11/6/24 9:49 PM,7.42,0.00,0.00,7.42
+"Page, Madeleine",Server,11/6/24 2:28 PM,11/6/24 9:53 PM,7.43,0.00,0.00,7.43
+"Green, Jordan",Server,11/6/24 3:56 PM,11/6/24 8:22 PM,4.43,0.00,0.00,4.43
+"Bar, Bar",Bartender,11/6/24 4:41 PM,11/7/24 4:00 AM,11.32,0.00,0.00,11.32
+"Strifert, Margo",Server,11/6/24 5:15 PM,11/6/24 9:17 PM,4.04,0.00,0.00,4.04
+"LaBarge, Miles",Chef,11/7/24 8:54 AM,11/7/24 5:24 PM,8.49,0.00,0.00,8.49
+"Castillo, Pedro ",Chef,11/7/24 10:49 AM,11/7/24 10:10 PM,11.35,0.00,0.00,11.35
+"Mascia, Michaela",Chef,11/7/24 11:08 AM,11/7/24 9:18 PM,10.17,0.00,0.00,10.17
+"Foutch, Christopher",Chef,11/7/24 1:00 PM,11/7/24 9:19 PM,8.32,0.00,0.00,8.32
+"Smedley, Nick",Bartender,11/7/24 2:53 PM,11/7/24 10:04 PM,7.17,0.00,0.00,7.17
+"Fitzgerald , Alexandra ",Server,11/7/24 3:06 PM,11/7/24 8:42 PM,5.61,0.00,0.00,5.61
+"Green, Jordan",Server,11/7/24 4:21 PM,11/7/24 10:04 PM,5.72,0.00,0.00,5.72
+"Underwood, Todd",Server,11/7/24 4:24 PM,11/7/24 10:04 PM,5.67,0.00,0.00,5.67
+"Bar, Bar",Bartender,11/7/24 5:29 PM,11/7/24 9:28 PM,3.99,0.00,0.00,3.99
+"Mascia, Michaela",Chef,11/8/24 10:08 AM,11/8/24 3:23 PM,5.25,0.00,0.00,5.25
+"Soliday, Matthew ",Chef,11/8/24 10:57 AM,11/8/24 6:26 PM,7.50,0.00,0.00,7.50
+"Mitcham, Mark ",Chef,11/8/24 11:56 AM,11/8/24 10:46 PM,10.83,0.00,0.00,10.83
+"Fitzgerald , Alexandra ",Server,11/8/24 1:31 PM,11/8/24 10:15 PM,8.74,0.00,0.00,8.74
+"Smedley, Nick",Bartender,11/8/24 3:05 PM,11/8/24 10:15 PM,7.15,0.00,0.00,7.15
+"Johnson, Chloe",Server,11/8/24 3:14 PM,11/8/24 10:13 PM,6.99,0.00,0.00,6.99
+"Bar, Bar",Bartender,11/8/24 5:32 PM,11/9/24 4:00 AM,10.45,0.00,0.00,10.45
+"Soliday, Matthew ",Chef,11/9/24 10:55 AM,11/9/24 9:40 PM,10.75,0.00,0.00,10.75
+"Klatch, Uriel",Chef,11/9/24 10:59 AM,11/9/24 9:44 PM,10.74,0.00,0.00,10.74
+"Mitcham, Mark ",Chef,11/9/24 12:00 PM,11/9/24 10:56 PM,10.94,0.00,0.00,10.94
+"Smedley, Nick",Bartender,11/9/24 1:54 PM,11/9/24 10:20 PM,8.42,0.00,0.00,8.42
+"Fitzgerald , Alexandra ",Server,11/9/24 1:58 PM,11/9/24 11:02 PM,9.06,0.00,0.00,9.06
+"Johnson, Chloe",Server,11/9/24 2:53 PM,11/9/24 10:11 PM,7.30,0.00,0.00,7.30
+"Underwood, Todd",Server,11/9/24 2:54 PM,11/9/24 9:49 PM,6.92,0.00,0.00,6.92
+"Barnhart, Mike",Bartender,11/9/24 2:56 PM,11/9/24 10:18 PM,7.36,0.00,0.00,7.36
+"Green, Jordan",Server,11/9/24 3:13 PM,11/9/24 10:26 PM,7.21,0.00,0.00,7.21
+"Strifert, Margo",Server,11/9/24 4:24 PM,11/9/24 9:50 PM,5.44,0.00,0.00,5.44
+"Bar, Bar",Bartender,11/9/24 5:11 PM,11/9/24 8:55 PM,3.74,0.00,0.00,3.74
+"Bar, Bar",Bartender,11/9/24 8:55 PM,11/9/24 10:33 PM,1.63,0.00,0.00,1.63
+"Klatch, Uriel",Chef,11/10/24 10:59 AM,11/10/24 10:56 PM,11.94,0.00,0.00,11.94
+"Foutch, Christopher",Chef,11/10/24 11:10 AM,11/10/24 10:57 PM,11.78,0.00,0.00,11.78
+"Mitcham, Mark ",Chef,11/10/24 12:08 PM,11/11/24 12:24 AM,12.27,0.00,0.00,12.27
+"Fitzgerald , Alexandra ",Server,11/10/24 12:36 PM,11/10/24 11:02 PM,10.42,0.00,0.00,10.42
+"Smedley, Nick",Bartender,11/10/24 12:37 PM,11/10/24 11:01 PM,10.40,0.00,0.00,10.40
+"Strifert, Margo",Server,11/10/24 2:56 PM,11/10/24 10:49 PM,7.88,0.00,0.00,7.88
+"Johnson, Chloe",Server,11/10/24 2:56 PM,11/10/24 10:38 PM,7.70,0.00,0.00,7.70
+"Underwood, Todd",Server,11/10/24 3:05 PM,11/10/24 11:01 PM,7.94,0.00,0.00,7.94
+"Bar, Bar",Bartender,11/10/24 4:34 PM,11/11/24 4:00 AM,11.43,0.00,0.00,11.43
+"Page, Madeleine",Server,11/10/24 6:10 PM,11/10/24 11:08 PM,4.97,0.00,0.00,4.97
+"Soliday, Matthew ",Chef,11/11/24 9:57 AM,11/11/24 4:19 PM,6.36,0.00,0.00,6.36
+"Klatch, Uriel",Chef,11/11/24 10:01 AM,11/11/24 4:17 PM,6.27,0.00,0.00,6.27
+"Castillo, Pedro ",Chef,11/11/24 10:29 AM,11/11/24 4:33 PM,6.06,0.00,0.00,6.06
+"Pratz Saint-Geours, Amelia",Chef,11/11/24 4:53 PM,11/12/24 12:27 AM,7.56,0.00,0.00,7.56
+"Castillo, Pedro ",Chef,11/12/24 10:58 AM,11/12/24 10:03 PM,11.07,0.00,0.00,11.07
+"Soliday, Matthew ",Chef,11/12/24 12:56 PM,11/12/24 9:49 PM,8.88,0.00,0.00,8.88
+"Foutch, Christopher",Chef,11/12/24 1:00 PM,11/12/24 5:17 PM,4.29,0.00,0.00,4.29
+"Page, Madeleine",Server,11/12/24 1:24 PM,11/12/24 10:17 PM,8.87,0.00,0.00,8.87
+"Fitzgerald , Alexandra ",Server,11/12/24 1:59 PM,11/12/24 9:53 PM,7.91,0.00,0.00,7.91
+"Green, Jordan",Server,11/12/24 4:06 PM,11/12/24 9:52 PM,5.78,0.00,0.00,5.78
+"Bar, Bar",Bartender,11/12/24 6:12 PM,11/12/24 9:40 PM,3.46,0.00,0.00,3.46
+"LaBarge, Miles",Chef,11/13/24 8:57 AM,11/13/24 4:49 PM,7.88,0.00,0.00,7.88
+"Castillo, Pedro ",Chef,11/13/24 10:49 AM,11/13/24 10:25 PM,11.60,0.00,0.00,11.60
+"Foutch, Christopher",Chef,11/13/24 11:53 AM,11/13/24 10:04 PM,10.19,0.00,0.00,10.19
+"Bar, Bar",Bartender,11/13/24 1:15 PM,11/14/24 4:00 AM,14.74,0.00,0.00,14.74
+"Smedley, Nick",Bartender,11/13/24 1:34 PM,11/13/24 10:02 PM,8.45,0.00,0.00,8.45
+"Page, Madeleine",Server,11/13/24 1:45 PM,11/13/24 10:27 PM,8.69,0.00,0.00,8.69
+"Fitzgerald , Alexandra ",Server,11/13/24 2:12 PM,11/13/24 10:05 PM,7.88,0.00,0.00,7.88
+"Strifert, Margo",Server,11/13/24 5:19 PM,11/13/24 9:45 PM,4.43,0.00,0.00,4.43
+"LaBarge, Miles",Chef,11/14/24 9:01 AM,11/14/24 5:45 PM,8.72,0.00,0.00,8.72
+"Mattson, Daniel",Chef,11/14/24 9:04 AM,11/14/24 4:10 PM,7.10,0.00,0.00,7.10
+"Castillo, Pedro ",Chef,11/14/24 10:53 AM,11/14/24 10:13 PM,11.34,0.00,0.00,11.34
+"Foutch, Christopher",Chef,11/14/24 12:08 PM,11/14/24 9:40 PM,9.53,0.00,0.00,9.53
+"Bar, Bar",Bartender,11/14/24 1:08 PM,11/14/24 10:07 PM,8.98,0.00,0.00,8.98
+"Smedley, Nick",Bartender,11/14/24 1:09 PM,11/14/24 8:23 PM,7.23,0.00,0.00,7.23
+"Strifert, Margo",Server,11/14/24 3:27 PM,11/14/24 9:26 PM,5.98,0.00,0.00,5.98
+"Goodin, Wesley",Server,11/14/24 3:58 PM,11/14/24 9:34 PM,5.61,0.00,0.00,5.61
+"Barnhart, Mike",Bartender,11/14/24 3:58 PM,11/14/24 10:09 PM,6.18,0.00,0.00,6.18
+"Johnson, Chloe",Server,11/14/24 4:33 PM,11/14/24 9:34 PM,5.03,0.00,0.00,5.03
+"Soliday, Matthew ",Chef,11/15/24 10:58 AM,11/15/24 10:11 PM,11.21,0.00,0.00,11.21
+"Mattson, Daniel",Chef,11/15/24 11:16 AM,11/15/24 10:20 PM,11.08,0.00,0.00,11.08
+"Mitcham, Mark ",Chef,11/15/24 11:48 AM,11/15/24 11:21 PM,11.55,0.00,0.00,11.55
+"Smedley, Nick",Bartender,11/15/24 1:09 PM,11/15/24 11:01 PM,9.87,0.00,0.00,9.87
+"Bar, Bar",Bartender,11/15/24 1:09 PM,11/15/24 11:10 PM,10.03,0.00,0.00,10.03
+"Fitzgerald , Alexandra ",Server,11/15/24 1:23 PM,11/15/24 11:01 PM,9.64,0.00,0.00,9.64
+"Goodin, Wesley",Server,11/15/24 2:59 PM,11/15/24 10:45 PM,7.77,0.00,0.00,7.77
+"Barnhart, Mike",Bartender,11/15/24 3:01 PM,11/15/24 11:01 PM,8.00,0.00,0.00,8.00
+"Johnson, Chloe",Server,11/15/24 3:29 PM,11/15/24 10:46 PM,7.28,0.00,0.00,7.28
+"Whiting, Kai ",Sous Chef,11/15/24 4:02 PM,11/15/24 4:02 PM,0.00,0.00,0.00,0.00
+"Fitzgerald , Alexandra ",Server,11/15/24 11:01 PM,11/15/24 11:25 PM,0.40,0.00,0.00,0.40
+"Mascia, Michaela",Chef,11/16/24 9:58 AM,11/16/24 5:35 PM,7.62,0.00,0.00,7.62
+"Soliday, Matthew ",Chef,11/16/24 11:00 AM,11/16/24 10:13 PM,11.20,0.00,0.00,11.20
+"Klatch, Uriel",Chef,11/16/24 11:01 AM,11/16/24 10:15 PM,11.22,0.00,0.00,11.22
+"Barnhart, Mike",Bartender,11/16/24 1:16 PM,11/16/24 10:08 PM,8.86,0.00,0.00,8.86
+"Fitzgerald , Alexandra ",Server,11/16/24 1:56 PM,11/16/24 10:44 PM,8.80,0.00,0.00,8.80
+"Smedley, Nick",Bartender,11/16/24 1:57 PM,11/16/24 10:38 PM,8.68,0.00,0.00,8.68
+"Johnson, Chloe",Server,11/16/24 2:28 PM,11/16/24 10:15 PM,7.79,0.00,0.00,7.79
+"Goodin, Wesley",Server,11/16/24 3:00 PM,11/16/24 10:40 PM,7.68,0.00,0.00,7.68
+"Strifert, Margo",Server,11/16/24 3:03 PM,11/16/24 10:30 PM,7.44,0.00,0.00,7.44
+"Bar, Bar",Bartender,11/16/24 3:07 PM,11/16/24 9:59 PM,6.86,0.00,0.00,6.86
+"Mitcham, Mark ",Chef,11/16/24 12:00 PM,11/16/24 11:25 PM,11.42,0.00,0.00,11.42
+"Foutch, Christopher",Chef,11/17/24 10:59 AM,11/17/24 9:59 PM,11.00,0.00,0.00,11.00
+"Klatch, Uriel",Chef,11/17/24 11:03 AM,11/17/24 9:57 PM,10.89,0.00,0.00,10.89
+"Mattson, Daniel",Chef,11/17/24 11:08 AM,11/17/24 9:58 PM,10.83,0.00,0.00,10.83
+"Mitcham, Mark ",Chef,11/17/24 11:39 AM,11/17/24 11:46 PM,12.12,0.00,0.00,12.12
+"Bar, Bar",Bartender,11/17/24 12:24 PM,11/17/24 10:38 PM,10.23,0.00,0.00,10.23
+"Smedley, Nick",Bartender,11/17/24 1:12 PM,11/17/24 10:38 PM,9.44,0.00,0.00,9.44
+"Fitzgerald , Alexandra ",Server,11/17/24 1:20 PM,11/17/24 10:44 PM,9.39,0.00,0.00,9.39
+"Barnhart, Mike",Bartender,11/17/24 1:49 PM,11/17/24 10:28 PM,8.65,0.00,0.00,8.65
+"Goodin, Wesley",Server,11/17/24 2:59 PM,11/17/24 10:14 PM,7.26,0.00,0.00,7.26
+"Johnson, Chloe",Server,11/17/24 3:02 PM,11/17/24 10:07 PM,7.09,0.00,0.00,7.09
+"Green, Jordan",Server,11/17/24 3:02 PM,11/17/24 10:19 PM,7.29,0.00,0.00,7.29
+"Strifert, Margo",Server,11/17/24 3:02 PM,11/17/24 10:14 PM,7.20,0.00,0.00,7.20
+"Klatch, Uriel",Chef,11/18/24 10:07 AM,11/18/24 4:08 PM,6.02,0.00,0.00,6.02
+"Soliday, Matthew ",Chef,11/18/24 10:09 AM,11/18/24 4:10 PM,6.01,0.00,0.00,6.01
+"Pratz Saint-Geours, Amelia",Chef,11/18/24 3:37 PM,11/19/24 4:00 AM,12.38,0.00,0.00,12.38
+"Klatch, Uriel",Chef,11/19/24 11:00 AM,11/19/24 9:51 PM,10.85,0.00,0.00,10.85
+"Foutch, Christopher",Chef,11/19/24 11:12 AM,11/19/24 10:06 PM,10.90,0.00,0.00,10.90
+"Page, Madeleine",Server,11/19/24 1:48 PM,11/19/24 10:23 PM,8.59,0.00,0.00,8.59
+"Rubingu, Viktoria",Bartender,11/19/24 2:05 PM,11/19/24 10:09 PM,8.07,0.00,0.00,8.07
+"Bar, Bar",Bartender,11/19/24 3:57 PM,11/19/24 9:35 PM,5.63,0.00,0.00,5.63
+"Green, Jordan",Server,11/19/24 4:06 PM,11/19/24 10:00 PM,5.89,0.00,0.00,5.89
+"Strifert, Margo",Server,11/19/24 4:09 PM,11/19/24 10:02 PM,5.89,0.00,0.00,5.89
+"LaBarge, Miles",Chef,11/20/24 9:02 AM,11/20/24 6:05 PM,9.06,0.00,0.00,9.06
+"Mascia, Michaela",Chef,11/20/24 11:00 AM,11/20/24 6:53 PM,7.89,0.00,0.00,7.89
+"Bar, Bar",Bartender,11/20/24 12:54 PM,11/20/24 10:05 PM,9.19,0.00,0.00,9.19
+"Page, Madeleine",Server,11/20/24 2:02 PM,11/20/24 10:44 PM,8.71,0.00,0.00,8.71
+"Strifert, Margo",Server,11/20/24 4:03 PM,11/20/24 9:57 PM,5.90,0.00,0.00,5.90
+"Fitzgerald , Alexandra ",Server,11/20/24 4:12 PM,11/20/24 10:15 PM,6.04,0.00,0.00,6.04
+"Smedley, Nick",Bartender,11/20/24 1:30 PM,11/20/24 10:05 PM,8.59,0.00,0.00,8.59
+"LaBarge, Miles",Chef,11/21/24 8:55 AM,11/21/24 5:29 PM,8.57,0.00,0.00,8.57
+"Mattson, Daniel",Chef,11/21/24 9:15 AM,11/21/24 4:08 PM,6.90,0.00,0.00,6.90
+"Foutch, Christopher",Chef,11/21/24 12:10 PM,11/21/24 9:26 PM,9.26,0.00,0.00,9.26
+"Smedley, Nick",Bartender,11/21/24 1:25 PM,11/21/24 9:54 PM,8.49,0.00,0.00,8.49
+"Bar, Bar",Bartender,11/21/24 1:34 PM,11/21/24 9:42 PM,8.14,0.00,0.00,8.14
+"Mascia, Michaela",Chef,11/21/24 2:05 PM,11/21/24 9:26 PM,7.35,0.00,0.00,7.35
+"Fitzgerald , Alexandra ",Server,11/21/24 2:59 PM,11/21/24 10:01 PM,7.03,0.00,0.00,7.03
+"Goodin, Wesley",Server,11/21/24 4:02 PM,11/21/24 9:42 PM,5.67,0.00,0.00,5.67
+"Johnson, Chloe",Server,11/21/24 4:31 PM,11/21/24 9:54 PM,5.39,0.00,0.00,5.39
+"Jimenez, josiel",Chef,11/21/24 12:00 PM,11/21/24 9:56 PM,9.93,0.00,0.00,9.93
+"Klatch, Uriel",Chef,11/22/24 10:58 AM,11/22/24 4:12 PM,5.24,0.00,0.00,5.24
+"Soliday, Matthew ",Chef,11/22/24 11:07 AM,11/22/24 9:45 PM,10.64,0.00,0.00,10.64
+"Mattson, Daniel",Chef,11/22/24 11:11 AM,11/22/24 9:52 PM,10.69,0.00,0.00,10.69
+"Mitcham, Mark ",Chef,11/22/24 11:46 AM,11/22/24 10:47 PM,11.01,0.00,0.00,11.01
+"Rubingu, Viktoria",Bartender,11/22/24 12:49 PM,11/22/24 10:15 PM,9.43,0.00,0.00,9.43
+"Bar, Bar",Bartender,11/22/24 12:49 PM,11/22/24 10:07 PM,9.30,0.00,0.00,9.30
+"Smedley, Nick",Bartender,11/22/24 1:11 PM,11/22/24 8:41 PM,7.50,0.00,0.00,7.50
+"Fitzgerald , Alexandra ",Server,11/22/24 1:31 PM,11/22/24 10:22 PM,8.85,0.00,0.00,8.85
+"Page, Madeleine",Server,11/22/24 1:39 PM,11/22/24 10:01 PM,8.36,0.00,0.00,8.36
+"Goodin, Wesley",Server,11/22/24 2:46 PM,11/22/24 9:42 PM,6.93,0.00,0.00,6.93
+"Johnson, Chloe",Server,11/22/24 3:09 PM,11/22/24 10:06 PM,6.95,0.00,0.00,6.95
+"Mascia, Michaela",Chef,11/23/24 10:07 AM,11/23/24 4:57 PM,6.83,0.00,0.00,6.83
+"Klatch, Uriel",Chef,11/23/24 11:00 AM,11/23/24 9:34 PM,10.58,0.00,0.00,10.58
+"Soliday, Matthew ",Chef,11/23/24 11:10 AM,11/23/24 9:29 PM,10.32,0.00,0.00,10.32
+"Mitcham, Mark ",Chef,11/23/24 11:50 AM,11/23/24 10:34 PM,10.74,0.00,0.00,10.74
+"Rubingu, Viktoria",Bartender,11/23/24 1:14 PM,11/23/24 8:04 PM,6.83,0.00,0.00,6.83
+"Fitzgerald , Alexandra ",Server,11/23/24 1:57 PM,11/23/24 10:42 PM,8.75,0.00,0.00,8.75
+"Johnson, Chloe",Server,11/23/24 3:02 PM,11/23/24 9:13 PM,6.20,0.00,0.00,6.20
+"Strifert, Margo",Server,11/23/24 3:03 PM,11/23/24 9:55 PM,6.85,0.00,0.00,6.85
+"Barnhart, Mike",Bartender,11/23/24 3:04 PM,11/23/24 9:00 PM,5.93,0.00,0.00,5.93
+"Smedley, Nick",Bartender,11/23/24 3:11 PM,11/23/24 10:08 PM,6.95,0.00,0.00,6.95
+"Goodin, Wesley",Server,11/23/24 3:28 PM,11/23/24 9:34 PM,6.10,0.00,0.00,6.10
+"Bar, Bar",Bartender,11/23/24 3:53 PM,11/23/24 9:49 PM,5.93,0.00,0.00,5.93
+"Klatch, Uriel",Chef,11/24/24 10:59 AM,11/24/24 4:13 PM,5.23,0.00,0.00,5.23
+"Soliday, Matthew ",Chef,11/24/24 10:59 AM,11/24/24 9:22 PM,10.39,0.00,0.00,10.39
+"Mascia, Michaela",Chef,11/24/24 10:59 AM,11/24/24 9:25 PM,10.44,0.00,0.00,10.44
+"Foutch, Christopher",Chef,11/24/24 11:03 AM,11/24/24 6:18 PM,7.26,0.00,0.00,7.26
+"Mitcham, Mark ",Chef,11/24/24 11:56 AM,11/24/24 10:26 PM,10.52,0.00,0.00,10.52
+"Smedley, Nick",Bartender,11/24/24 12:35 PM,11/24/24 7:55 PM,7.33,0.00,0.00,7.33
+"Fitzgerald , Alexandra ",Server,11/24/24 1:00 PM,11/24/24 7:53 PM,6.89,0.00,0.00,6.89
+"Underwood, Todd",Server,11/24/24 2:50 PM,11/24/24 9:35 PM,6.74,0.00,0.00,6.74
+"Green, Jordan",Server,11/24/24 2:59 PM,11/24/24 9:34 PM,6.59,0.00,0.00,6.59
+"Goodin, Wesley",Server,11/24/24 2:59 PM,11/24/24 9:29 PM,6.50,0.00,0.00,6.50
+"Rubingu, Viktoria",Bartender,11/24/24 3:02 PM,11/24/24 9:37 PM,6.59,0.00,0.00,6.59
+"Bar, Bar",Bartender,11/24/24 4:48 PM,11/25/24 4:00 AM,11.19,0.00,0.00,11.19
+"Jimenez, josiel",Chef,11/25/24 9:58 AM,11/25/24 4:55 PM,6.95,0.00,0.00,6.95
+"Soliday, Matthew ",Chef,11/25/24 10:00 AM,11/25/24 4:52 PM,6.87,0.00,0.00,6.87
+"Klatch, Uriel",Chef,11/25/24 10:01 AM,11/25/24 4:52 PM,6.86,0.00,0.00,6.86
+"Pratz Saint-Geours, Amelia",Chef,11/25/24 5:09 PM,11/26/24 4:00 AM,10.83,0.00,0.00,10.83
+"Pratz Saint-Geours, Amelia",Chef,11/26/24 4:34 AM,11/26/24 4:34 AM,0.00,0.00,0.00,0.00
+"Soliday, Matthew ",Chef,11/26/24 10:03 AM,11/26/24 5:42 PM,7.66,0.00,0.00,7.66
+"Klatch, Uriel",Chef,11/26/24 11:05 AM,11/26/24 10:08 PM,11.06,0.00,0.00,11.06
+"Jimenez, josiel",Chef,11/26/24 12:03 PM,11/26/24 10:17 PM,10.23,0.00,0.00,10.23
+"Rubingu, Viktoria",Bartender,11/26/24 1:55 PM,11/26/24 9:55 PM,8.00,0.00,0.00,8.00
+"Bar, Bar",Bartender,11/26/24 1:56 PM,11/27/24 4:00 AM,14.07,0.00,0.00,14.07
+"Foutch, Christopher",Chef,11/26/24 2:04 PM,11/26/24 10:07 PM,8.05,0.00,0.00,8.05
+"Fitzgerald , Alexandra ",Server,11/26/24 2:06 PM,11/26/24 7:02 PM,4.93,0.00,0.00,4.93
+"Underwood, Todd",Server,11/26/24 3:54 PM,11/26/24 10:15 PM,6.35,0.00,0.00,6.35
+"Strifert, Margo",Server,11/26/24 3:58 PM,11/26/24 10:15 PM,6.28,0.00,0.00,6.28
+"LaBarge, Miles",Chef,11/27/24 8:58 AM,11/27/24 6:20 PM,9.37,0.00,0.00,9.37
+"Jimenez, josiel",Chef,11/27/24 12:05 PM,11/27/24 9:55 PM,9.84,0.00,0.00,9.84
+"Klatch, Uriel",Chef,11/27/24 12:27 PM,11/27/24 9:53 PM,9.44,0.00,0.00,9.44
+"Bar, Bar",Bartender,11/27/24 1:37 PM,11/27/24 8:48 PM,7.19,0.00,0.00,7.19
+"Smedley, Nick",Bartender,11/27/24 1:37 PM,11/27/24 9:32 PM,7.91,0.00,0.00,7.91
+"Fitzgerald , Alexandra ",Server,11/27/24 1:59 PM,11/27/24 9:48 PM,7.81,0.00,0.00,7.81
+"Underwood, Todd",Server,11/27/24 3:53 PM,11/27/24 9:43 PM,5.83,0.00,0.00,5.83
+"Green, Jordan",Server,11/27/24 4:20 PM,11/27/24 9:43 PM,5.38,0.00,0.00,5.38
+"Klatch, Uriel",Chef,11/28/24 9:02 AM,11/28/24 9:19 PM,12.27,0.00,0.00,12.27
+"Jimenez, josiel",Chef,11/28/24 9:36 AM,11/28/24 10:02 PM,12.44,0.00,0.00,12.44
+"Foutch, Christopher",Chef,11/28/24 10:06 AM,11/28/24 8:36 PM,10.51,0.00,0.00,10.51
+"Smedley, Nick",Bartender,11/28/24 11:21 AM,11/28/24 9:01 PM,9.66,0.00,0.00,9.66
+"Fitzgerald , Alexandra ",Server,11/28/24 12:27 PM,11/28/24 9:06 PM,8.64,0.00,0.00,8.64
+"Green, Jordan",Server,11/28/24 12:35 PM,11/28/24 9:36 PM,9.03,0.00,0.00,9.03
+"Rubingu, Viktoria",Bartender,11/28/24 12:54 PM,11/28/24 9:26 PM,8.52,0.00,0.00,8.52
+"Johnson, Chloe",Server,11/28/24 12:55 PM,11/28/24 9:37 PM,8.69,0.00,0.00,8.69
+"Underwood, Todd",Server,11/28/24 12:59 PM,11/28/24 9:51 PM,8.86,0.00,0.00,8.86
+"Bar, Bar",Bartender,11/28/24 3:18 PM,11/28/24 9:10 PM,5.87,0.00,0.00,5.87
+"LaBarge, Miles",Chef,11/29/24 8:54 AM,11/29/24 5:30 PM,8.60,0.00,0.00,8.60
+"Mitcham, Mark ",Chef,11/29/24 11:58 AM,11/29/24 9:59 PM,10.02,0.00,0.00,10.02
+"Foutch, Christopher",Chef,11/29/24 12:02 PM,11/29/24 9:18 PM,9.26,0.00,0.00,9.26
+"Fitzgerald , Alexandra ",Server,11/29/24 1:56 PM,11/29/24 5:11 PM,3.26,0.00,0.00,3.26
+"Rubingu, Viktoria",Bartender,11/29/24 2:08 PM,11/29/24 9:19 PM,7.18,0.00,0.00,7.18
+"Johnson, Chloe",Server,11/29/24 2:42 PM,11/29/24 9:00 PM,6.29,0.00,0.00,6.29
+"Underwood, Todd",Server,11/29/24 2:44 PM,11/29/24 9:08 PM,6.39,0.00,0.00,6.39
+"Bar, Bar",Bartender,11/29/24 5:17 PM,11/29/24 9:15 PM,3.96,0.00,0.00,3.96
+"Soliday, Matthew ",Chef,11/30/24 10:56 AM,11/30/24 9:40 PM,10.74,0.00,0.00,10.74
+"Mascia, Michaela",Chef,11/30/24 11:05 AM,11/30/24 9:41 PM,10.61,0.00,0.00,10.61
+"Rubingu, Viktoria",Bartender,11/30/24 1:09 PM,11/30/24 5:54 PM,4.75,0.00,0.00,4.75
+"Page, Madeleine",Server,11/30/24 2:04 PM,11/30/24 10:11 PM,8.12,0.00,0.00,8.12
+"Johnson, Chloe",Server,11/30/24 2:52 PM,11/30/24 9:11 PM,6.33,0.00,0.00,6.33
+"Goodin, Wesley",Server,11/30/24 2:58 PM,11/30/24 9:37 PM,6.65,0.00,0.00,6.65
+"Strifert, Margo",Server,11/30/24 3:16 PM,11/30/24 9:52 PM,6.60,0.00,0.00,6.60
+"Smedley, Nick",Bartender,11/30/24 3:18 PM,11/30/24 9:34 PM,6.27,0.00,0.00,6.27
+"Bar, Bar",Bartender,11/30/24 4:23 PM,11/30/24 9:28 PM,5.07,0.00,0.00,5.07
+"Mitcham, Mark ",Chef,11/30/24 12:00 PM,11/30/24 10:47 PM,10.79,0.00,0.00,10.79
+"Soliday, Matthew ",Chef,12/1/24 10:52 AM,12/1/24 10:04 PM,11.20,0.00,0.00,11.20
+"Mascia, Michaela",Chef,12/1/24 11:00 AM,12/1/24 10:04 PM,11.07,0.00,0.00,11.07
+"Foutch, Christopher",Chef,12/1/24 11:56 AM,12/1/24 8:28 PM,8.54,0.00,0.00,8.54
+"Mitcham, Mark ",Chef,12/1/24 12:04 PM,12/1/24 10:50 PM,10.75,0.00,0.00,10.75
+"Smedley, Nick",Bartender,12/1/24 12:48 PM,12/1/24 9:03 PM,8.26,0.00,0.00,8.26
+"Rubingu, Viktoria",Bartender,12/1/24 2:48 PM,12/1/24 10:37 PM,7.80,0.00,0.00,7.80
+"Strifert, Margo",Server,12/1/24 2:52 PM,12/1/24 10:28 PM,7.60,0.00,0.00,7.60
+"Fitzgerald , Alexandra ",Server,12/1/24 3:00 PM,12/1/24 9:06 PM,6.11,0.00,0.00,6.11
+"Johnson, Chloe",Server,12/1/24 3:26 PM,12/1/24 9:58 PM,6.54,0.00,0.00,6.54
+"Goodin, Wesley",Server,12/1/24 3:29 PM,12/1/24 10:36 PM,7.11,0.00,0.00,7.11
+"Bar, Bar",Bartender,12/1/24 4:02 PM,12/1/24 10:27 PM,6.41,0.00,0.00,6.41
+"Soliday, Matthew ",Chef,12/2/24 10:07 AM,12/2/24 4:32 PM,6.41,0.00,0.00,6.41
+"Klatch, Uriel",Chef,12/2/24 10:07 AM,12/2/24 4:58 PM,6.84,0.00,0.00,6.84
+"Pratz Saint-Geours, Amelia",Chef,12/2/24 3:47 PM,12/3/24 1:28 AM,9.69,0.00,0.00,9.69
+"Soliday, Matthew ",Chef,12/3/24 11:00 AM,12/3/24 9:16 PM,10.26,0.00,0.00,10.26
+"Jimenez, josiel",Chef,12/3/24 11:35 AM,12/3/24 9:39 PM,10.07,0.00,0.00,10.07
+"Klatch, Uriel",Chef,12/3/24 12:57 PM,12/3/24 5:38 PM,4.69,0.00,0.00,4.69
+"Green, Jordan",Server,12/3/24 3:57 PM,12/3/24 9:46 PM,5.81,0.00,0.00,5.81
+"Bar, Bar",Bartender,12/3/24 7:11 PM,12/4/24 4:00 AM,8.81,0.00,0.00,8.81
+"Rubingu, Viktoria",Bartender,12/3/24 2:00 PM,12/3/24 9:35 PM,7.59,0.00,0.00,7.59
+"LaBarge, Miles",Chef,12/4/24 8:58 AM,12/4/24 5:42 PM,8.74,0.00,0.00,8.74
+"Foutch, Christopher",Chef,12/4/24 11:04 AM,12/4/24 6:07 PM,7.04,0.00,0.00,7.04
+"Jimenez, josiel",Chef,12/4/24 12:02 PM,12/4/24 9:32 PM,9.50,0.00,0.00,9.50
+"Page, Madeleine",Server,12/4/24 1:56 PM,12/4/24 9:38 PM,7.69,0.00,0.00,7.69
+"Smedley, Nick",Bartender,12/4/24 1:57 PM,12/4/24 9:15 PM,7.30,0.00,0.00,7.30
+"Bar, Bar",Bartender,12/4/24 2:52 PM,12/4/24 9:15 PM,6.39,0.00,0.00,6.39
+"Fitzgerald , Alexandra ",Server,12/4/24 3:28 PM,12/4/24 8:32 PM,5.07,0.00,0.00,5.07
+"Klatch, Uriel",Chef,12/4/24 4:00 PM,12/4/24 9:31 PM,5.52,0.00,0.00,5.52
+"Strifert, Margo",Server,12/4/24 4:01 PM,12/4/24 9:34 PM,5.55,0.00,0.00,5.55
+"Soliday, Matthew ",Chef,12/5/24 11:04 AM,12/5/24 9:49 PM,10.75,0.00,0.00,10.75
+"Mascia, Michaela",Chef,12/5/24 11:19 AM,12/5/24 9:49 PM,10.49,0.00,0.00,10.49
+"Jimenez, josiel",Chef,12/5/24 11:58 AM,12/5/24 9:53 PM,9.92,0.00,0.00,9.92
+"Foutch, Christopher",Chef,12/5/24 2:01 PM,12/5/24 9:55 PM,7.90,0.00,0.00,7.90
+"Page, Madeleine",Server,12/5/24 2:04 PM,12/5/24 9:56 PM,7.87,0.00,0.00,7.87
+"Rubingu, Viktoria",Bartender,12/5/24 2:09 PM,12/5/24 9:49 PM,7.66,0.00,0.00,7.66
+"Fitzgerald , Alexandra ",Server,12/5/24 3:44 PM,12/5/24 8:42 PM,4.96,0.00,0.00,4.96
+"Johnson, Chloe",Server,12/5/24 3:56 PM,12/5/24 9:49 PM,5.87,0.00,0.00,5.87
+"Goodin, Wesley",Server,12/5/24 3:59 PM,12/5/24 9:52 PM,5.89,0.00,0.00,5.89
+"Bar, Bar",Bartender,12/5/24 6:31 PM,12/5/24 9:34 PM,3.05,0.00,0.00,3.05
+"LaBarge, Miles",Chef,12/6/24 8:54 AM,12/6/24 5:03 PM,8.15,0.00,0.00,8.15
+"Soliday, Matthew ",Chef,12/6/24 9:53 AM,12/6/24 3:53 PM,6.00,0.00,0.00,6.00
+"Mitcham, Mark ",Chef,12/6/24 12:12 PM,,0.00,0.00,0.00,0.00
+"Mascia, Michaela",Chef,12/6/24 1:05 PM,,0.00,0.00,0.00,0.00
+"Smedley, Nick",Bartender,12/6/24 1:28 PM,12/6/24 2:15 PM,0.79,0.00,0.00,0.79
+"Page, Madeleine",Server,12/6/24 1:41 PM,12/6/24 9:33 PM,7.87,0.00,0.00,7.87
+"Fitzgerald , Alexandra ",Server,12/6/24 1:48 PM,,0.00,0.00,0.00,0.00
+"Rubingu, Viktoria",Bartender,12/6/24 1:58 PM,12/6/24 6:41 PM,4.73,0.00,0.00,4.73
+"Johnson, Chloe",Server,12/6/24 3:01 PM,,0.00,0.00,0.00,0.00
+"Strifert, Margo",Server,12/6/24 3:03 PM,,0.00,0.00,0.00,0.00
+"Goodin, Wesley",Server,12/6/24 3:00 PM,,0.00,0.00,0.00,0.00
+"Bar, Bar",Bartender,12/6/24 3:07 PM,,0.00,0.00,0.00,0.00
+"Smedley, Nick",Bartender,12/6/24 3:41 PM,,0.00,0.00,0.00,0.00

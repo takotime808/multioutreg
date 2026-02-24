@@ -8,10 +8,14 @@ import pandas as pd
 import streamlit as st
 from typing import Any, Dict, List, Optional, Union
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
 from sklearn.decomposition import PCA
 from jinja2 import Template
-
+try:
+    import torch as _torch
+    _torch_available = True
+except ImportError:
+    _torch_available = False
 
 # from multioutreg.gui.report_plotting_utils import (
 #     # plot_to_b64,
@@ -44,6 +48,8 @@ from multioutreg.figures.conformal_plots import (
     plot_conformal_vs_gaussian,
 )
 from multioutreg.model_selection import AutoDetectMultiOutputRegressor
+from multioutreg.utils.imputation import detect_missing, apply_imputation
+from multioutreg.time_series.ts_suitability import check_ts_suitability
 
 # # NOTE: NOT used...yet.
 # from multioutreg.figures.doe_plots import make_doe_plot
@@ -81,6 +87,7 @@ def generate_html_report(
     shap_plot: str | None = None,
     conformal_intervals: tuple | None = None,
     conformal_alpha: float | None = None,
+    imputation_summary: dict | None = None,
 ) -> str:
     """
     Generate an HTML report summarizing surrogate model results, including performance metrics,
@@ -311,6 +318,7 @@ def generate_html_report(
         pca_threshold=pca_threshold,
         pca_n_components=pca_n_components,
         kaiser_rule_suggestion=kaiser_rule_suggestion,
+        imputation_summary=imputation_summary,
     )
     return rendered
 
@@ -327,27 +335,81 @@ if uploaded_file:
     df = pd.read_csv(uploaded_file)
     st.write("## Preview of Data:", df.head())
 
-    with st.form("column_selection"):
-        input_cols = st.multiselect("Select input features", options=df.columns)
-        output_cols = st.multiselect("Select output targets", options=df.columns)
-        use_pca = st.checkbox("Apply PCA to input features")
+    # Missing value detection and per-column imputation choices
+    _missing_summary = detect_missing(df)
+    _impute_choices: Dict[str, str] = {}
+    if not _missing_summary.empty:
+        st.warning(
+            f"{int(_missing_summary['missing_count'].sum())} missing value(s) detected "
+            f"across {len(_missing_summary)} column(s)."
+        )
+        st.dataframe(_missing_summary)
+        st.write("**Choose how to handle missing values per column:**")
+        for _col in _missing_summary.index:
+            _impute_choices[_col] = st.selectbox(
+                f"`{_col}`",
+                ["Impute (KNN)", "Drop rows"],
+                key=f"imp_{_col}",
+            )
+
+    # ── Time Series Suitability Check ──────────────────────────────
+    with st.expander("Auto-detect time series structure (optional)", expanded=False):
+        st.caption(
+            "Run statistical tests (ADF, Ljung-Box) to determine whether your data "
+            "has temporal autocorrelation and would benefit from time series models."
+        )
+        _numeric_01 = [c for c in df.columns if pd.api.types.is_numeric_dtype(df[c])]
+        _c1, _c2 = st.columns(2)
+        with _c1:
+            _ts_dt_01 = st.selectbox(
+                "Datetime column (optional)",
+                ["<none>"] + list(df.columns),
+                key="ts_dt_01",
+            )
+        with _c2:
+            _ts_tgt_01 = st.selectbox(
+                "Target column to test",
+                ["<select>"] + _numeric_01,
+                key="ts_tgt_01",
+            )
+        if st.button("Check time series suitability", key="ts_check_01"):
+            if _ts_tgt_01 == "<select>":
+                st.info("Select a target column to run the check.")
+            else:
+                _dt_arg_01 = None if _ts_dt_01 == "<none>" else _ts_dt_01
+                with st.spinner("Running statistical tests..."):
+                    _ts_result_01 = check_ts_suitability(df, _ts_tgt_01, datetime_col=_dt_arg_01)
+                _rc1, _rc2, _rc3 = st.columns(3)
+                _rc1.metric("ADF p-value", f"{_ts_result_01.get('adf_pvalue', 'N/A')}")
+                _rc2.metric("Ljung-Box p-value", f"{_ts_result_01.get('ljungbox_pvalue', 'N/A')}")
+                _rc3.metric("Detected period", _ts_result_01.get("seasonal_period") or "None")
+                if _ts_result_01.get("suitable"):
+                    st.success(_ts_result_01["recommendation"])
+                    try:
+                        st.page_link(
+                            "pages/05_Time_Series_Forecasting.py",
+                            label="Go to Time Series Forecasting page",
+                        )
+                    except Exception:
+                        st.info("Navigate to page 05 — Time Series Forecasting to use the pipeline.")
+                else:
+                    st.warning(_ts_result_01["recommendation"])
+                with st.expander("Full suitability report"):
+                    st.json(_ts_result_01)
+    # ───────────────────────────────────────────────────────────────
+
+    with st.expander("⚙️ Advanced Settings", expanded=False):
+        # PCA
+        use_pca = st.checkbox("Apply PCA to input features", key="use_pca")
         n_components = None
         pca_method = None
         pca_threshold = None
         if use_pca:
-            # # max_comp = max(1, len(input_cols)) if input_cols else len(df.columns)
-            # max_comp = len(df.columns)
-            # n_components = st.number_input(
-            #     "Number of PCA components",
-            #     min_value=1,
-            #     max_value=max_comp,
-            #     value=min(2, max_comp),
-            #     step=1,
-            # )
             max_comp = len(df.columns)
             pca_method = st.selectbox(
                 "PCA component selection method",
                 ["Manual", "Explained variance threshold", "Kaiser rule"],
+                key="pca_method",
             )
             if pca_method == "Manual":
                 n_components = st.number_input(
@@ -356,6 +418,7 @@ if uploaded_file:
                     max_value=max_comp,
                     value=min(2, max_comp),
                     step=1,
+                    key="pca_n_components",
                 )
             elif pca_method == "Explained variance threshold":
                 pca_threshold = st.slider(
@@ -364,23 +427,122 @@ if uploaded_file:
                     max_value=0.99,
                     value=0.9,
                     step=0.01,
+                    key="pca_threshold",
                 )
 
-        use_conformal = st.checkbox("Compute conformal prediction intervals")
-        conformal_alpha_sel = 0.1
-        if use_conformal:
-            conformal_alpha_sel = st.slider(
-                "Conformal alpha (miscoverage level)",
-                min_value=0.01,
-                max_value=0.5,
-                value=0.1,
-                step=0.01,
+        # Conformal prediction
+        use_conformal = st.checkbox("Compute conformal prediction intervals", key="use_conformal")
+        conformal_alpha_sel = st.slider(
+            "Conformal alpha (miscoverage level)",
+            min_value=0.01,
+            max_value=0.5,
+            value=0.1,
+            step=0.01,
+            disabled=not use_conformal,
+            key="conformal_alpha",
+        )
+
+        # Bayesian Neural Network
+        use_bnn = st.checkbox(
+            "Include BNN (Bayesian Neural Network) as a joint multi-output candidate",
+            value=False,
+            disabled=not _torch_available,
+            help="Requires PyTorch. Trains a Bayesian Neural Network with MC Dropout uncertainty and competes against per-output models.",
+            key="use_bnn",
+        )
+
+        # Mixture of Experts
+        use_moe = st.checkbox(
+            "Include MoE (Mixture of Experts) as a joint multi-output candidate",
+            value=False,
+            help="Trains K expert regressors specialised to different input regions via a learned gating network.",
+            key="use_moe",
+        )
+        moe_n_experts = 4
+        moe_gating_type = "linear"
+        if use_moe:
+            moe_n_experts = st.slider(
+                "MoE: Number of experts",
+                min_value=2,
+                max_value=8,
+                value=4,
+                step=1,
+                key="moe_n_experts",
             )
+            moe_gating_type = st.selectbox(
+                "MoE: Gating type",
+                ["linear", "mlp"],
+                key="moe_gating_type",
+            )
+
+        skip_expensive = st.checkbox(
+            "Skip computationally expensive models",
+            help=(
+                "Excludes Gaussian Process (O(N³)), Neural Network/MLP, and NGBoost "
+                "from the grid search. Recommended for large datasets or quick exploratory runs."
+            ),
+            key="skip_expensive",
+        )
+
+    with st.form("column_selection"):
+        input_cols = st.multiselect("Select input features", options=df.columns)
+        output_cols = st.multiselect("Select output targets", options=df.columns)
 
         description = st.text_area("Optional: Project description")
         submitted = st.form_submit_button("Run Grid Search")
 
     if submitted and input_cols and output_cols:
+        use_pca = st.session_state.use_pca
+        pca_method = st.session_state.get("pca_method")
+        n_components = st.session_state.get("pca_n_components")
+        pca_threshold = st.session_state.get("pca_threshold")
+        use_conformal = st.session_state.use_conformal
+        conformal_alpha_sel = st.session_state.conformal_alpha
+        use_bnn = st.session_state.use_bnn
+        use_moe = st.session_state.use_moe
+        moe_n_experts = st.session_state.get("moe_n_experts", 4)
+        moe_gating_type = st.session_state.get("moe_gating_type", "linear")
+        skip_expensive = st.session_state.skip_expensive
+
+        # Apply imputation / row-dropping for the selected columns before training
+        _all_selected_cols = list(input_cols) + list(output_cols)
+        _cols_to_impute = [
+            c for c in _all_selected_cols
+            if st.session_state.get(f"imp_{c}") == "Impute (KNN)"
+        ]
+        _cols_to_drop = [
+            c for c in _all_selected_cols
+            if st.session_state.get(f"imp_{c}") == "Drop rows"
+        ]
+        _rows_before = len(df)
+        if _cols_to_impute or _cols_to_drop:
+            df = apply_imputation(df, _cols_to_impute, _cols_to_drop)
+        _rows_after = len(df)
+        _imputation_summary = None
+        if _cols_to_impute or _cols_to_drop:
+            _summary_cols = []
+            for _c in _cols_to_impute:
+                if _c in _missing_summary.index:
+                    _summary_cols.append({
+                        "name": _c,
+                        "action": "Imputed (KNN)",
+                        "missing_count": int(_missing_summary.loc[_c, "missing_count"]),
+                        "missing_pct": float(_missing_summary.loc[_c, "missing_pct"]),
+                    })
+            for _c in _cols_to_drop:
+                if _c in _missing_summary.index:
+                    _summary_cols.append({
+                        "name": _c,
+                        "action": "Rows dropped",
+                        "missing_count": int(_missing_summary.loc[_c, "missing_count"]),
+                        "missing_pct": float(_missing_summary.loc[_c, "missing_pct"]),
+                    })
+            _imputation_summary = {
+                "rows_before": _rows_before,
+                "rows_after": _rows_after,
+                "columns": _summary_cols,
+            }
+
         X = df[input_cols].values
         y = df[output_cols].values
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
@@ -434,6 +596,43 @@ if uploaded_file:
             used_feature_names = feature_names_pca
 
         model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
+        _mo_candidates = []
+        if use_bnn and _torch_available:
+            from multioutreg.surrogates.bnn_pytorch import BNNSurrogate
+            _mo_candidates.append(
+                BNNSurrogate(hidden_layer_sizes=(128, 64), max_epochs=300, random_state=0)
+            )
+        if use_moe:
+            from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
+            _mo_candidates.append(
+                MixtureOfExpertsSurrogate(
+                    n_experts=moe_n_experts,
+                    gating_type=moe_gating_type,
+                    random_state=0,
+                )
+            )
+        if _mo_candidates:
+            model.register_multi_output_candidates(_mo_candidates)
+
+        _EXPENSIVE_MODEL_NAMES = {"gp", "mlp", "ngboost"}
+        _EXPENSIVE_DISPLAY_NAMES = {
+            "gp": "Gaussian Process",
+            "mlp": "Neural Network (MLP)",
+            "ngboost": "NGBoost",
+        }
+        if skip_expensive:
+            _keep = [i for i, n in enumerate(model._model_names) if n not in _EXPENSIVE_MODEL_NAMES]
+            _skipped = [model._model_names[i] for i in range(len(model._model_names)) if model._model_names[i] in _EXPENSIVE_MODEL_NAMES]
+            model.estimators = [model.estimators[i] for i in _keep]
+            model.param_spaces = [model.param_spaces[i] for i in _keep]
+            model._surrogate_constructors = [model._surrogate_constructors[i] for i in _keep]
+            model._model_names = [model._model_names[i] for i in _keep]
+            if _skipped:
+                st.info(
+                    f"Skipping {len(_skipped)} expensive model(s): "
+                    + ", ".join(_EXPENSIVE_DISPLAY_NAMES.get(n, n) for n in _skipped)
+                )
+
         model.fit(X_train, y_train)
         best_pred, best_std = model.predict(X_test, return_std=True)
         best_model = model
@@ -487,7 +686,7 @@ if uploaded_file:
             y_pred = best_pred[:, i]
             metrics[name] = {
                 "r2": r2_score(y_true, y_pred),
-                "rmse": mean_squared_error(y_true, y_pred, squared=False),
+                "rmse": root_mean_squared_error(y_true, y_pred),
                 "mae": mean_absolute_error(y_true, y_pred),
                 "mean_predicted_std": float(np.mean(best_std[:, i])),
             }
@@ -535,6 +734,7 @@ if uploaded_file:
             shap_plot=shap_img,
             conformal_intervals=conformal_intervals if use_conformal else None,
             conformal_alpha=conformal_alpha_sel if use_conformal else None,
+            imputation_summary=_imputation_summary,
         )
 
         st.download_button("Download HTML Report", html, file_name="model_report_auto.html", mime="text/html")
