@@ -1,0 +1,29 @@
+multioutreg.time_series.metrics
+===============================
+
+.. py:module:: multioutreg.time_series.metrics
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.metrics.smape
+   multioutreg.time_series.metrics.mase
+   multioutreg.time_series.metrics.weighted_quantile_loss
+
+
+Module Contents
+---------------
+
+.. py:function:: smape(y_true: numpy.ndarray, y_pred: numpy.ndarray, eps: float = 1e-08) -> float
+
+.. py:function:: mase(y_true: numpy.ndarray, y_pred: numpy.ndarray, seasonality: int = 1) -> float
+
+.. py:function:: weighted_quantile_loss(y_true: numpy.ndarray, q_forecasts: numpy.ndarray, q_levels) -> float
+
+   WQL as used in the Chronos evals (lower is better).
+   y_true: [H], q_forecasts: [Q, H], q_levels: [Q]
+
+

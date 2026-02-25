@@ -1,0 +1,1189 @@
+multioutreg.gui.Grid_Search_Surrogate_Models
+============================================
+
+.. py:module:: multioutreg.gui.Grid_Search_Surrogate_Models
+
+.. autoapi-nested-parse::
+
+   Streamlit script performing a grid search over several surrogate models.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.Grid_Search_Surrogate_Models._NGBOOST_AVAILABLE
+   multioutreg.gui.Grid_Search_Surrogate_Models.uploaded_file
+   multioutreg.gui.Grid_Search_Surrogate_Models.df
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.gui.Grid_Search_Surrogate_Models.RandomForestWithUncertainty
+   multioutreg.gui.Grid_Search_Surrogate_Models.ExtraTreesWithUncertainty
+   multioutreg.gui.Grid_Search_Surrogate_Models.GradientBoostingWithUncertainty
+   multioutreg.gui.Grid_Search_Surrogate_Models.KNeighborsRegressorWithUncertainty
+   multioutreg.gui.Grid_Search_Surrogate_Models.BootstrapLinearRegression
+   multioutreg.gui.Grid_Search_Surrogate_Models.PerTargetRegressorWithStd
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.Grid_Search_Surrogate_Models.generate_html_report
+
+
+Module Contents
+---------------
+
+.. py:data:: _NGBOOST_AVAILABLE
+   :value: True
+
+
+.. py:class:: RandomForestWithUncertainty(n_estimators=100, *, criterion='squared_error', max_depth=None, min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features=1.0, max_leaf_nodes=None, min_impurity_decrease=0.0, bootstrap=True, oob_score=False, n_jobs=None, random_state=None, verbose=0, warm_start=False, ccp_alpha=0.0, max_samples=None, monotonic_cst=None)
+
+   Bases: :py:obj:`sklearn.ensemble.RandomForestRegressor`
+
+
+   A random forest regressor.
+
+   A random forest is a meta estimator that fits a number of decision tree
+   regressors on various sub-samples of the dataset and uses averaging to
+   improve the predictive accuracy and control over-fitting.
+   Trees in the forest use the best split strategy, i.e. equivalent to passing
+   `splitter="best"` to the underlying :class:`~sklearn.tree.DecisionTreeRegressor`.
+   The sub-sample size is controlled with the `max_samples` parameter if
+   `bootstrap=True` (default), otherwise the whole dataset is used to build
+   each tree.
+
+   This estimator has native support for missing values (NaNs). During training,
+   the tree grower learns at each split point whether samples with missing values
+   should go to the left or right child, based on the potential gain. When predicting,
+   samples with missing values are assigned to the left or right child consequently.
+   If no missing values were encountered for a given feature during training, then
+   samples with missing values are mapped to whichever child has the most samples.
+
+   For a comparison between tree-based ensemble models see the example
+   :ref:`sphx_glr_auto_examples_ensemble_plot_forest_hist_grad_boosting_comparison.py`.
+
+   Read more in the :ref:`User Guide <forest>`.
+
+   :param n_estimators: The number of trees in the forest.
+
+                        .. versionchanged:: 0.22
+                           The default value of ``n_estimators`` changed from 10 to 100
+                           in 0.22.
+   :type n_estimators: int, default=100
+   :param criterion: The function to measure the quality of a split. Supported criteria
+                     are "squared_error" for the mean squared error, which is equal to
+                     variance reduction as feature selection criterion and minimizes the L2
+                     loss using the mean of each terminal node, "friedman_mse", which uses
+                     mean squared error with Friedman's improvement score for potential
+                     splits, "absolute_error" for the mean absolute error, which minimizes
+                     the L1 loss using the median of each terminal node, and "poisson" which
+                     uses reduction in Poisson deviance to find splits.
+                     Training using "absolute_error" is significantly slower
+                     than when using "squared_error".
+
+                     .. versionadded:: 0.18
+                        Mean Absolute Error (MAE) criterion.
+
+                     .. versionadded:: 1.0
+                        Poisson criterion.
+   :type criterion: {"squared_error", "absolute_error", "friedman_mse", "poisson"},             default="squared_error"
+   :param max_depth: The maximum depth of the tree. If None, then nodes are expanded until
+                     all leaves are pure or until all leaves contain less than
+                     min_samples_split samples.
+   :type max_depth: int, default=None
+   :param min_samples_split: The minimum number of samples required to split an internal node:
+
+                             - If int, then consider `min_samples_split` as the minimum number.
+                             - If float, then `min_samples_split` is a fraction and
+                               `ceil(min_samples_split * n_samples)` are the minimum
+                               number of samples for each split.
+
+                             .. versionchanged:: 0.18
+                                Added float values for fractions.
+   :type min_samples_split: int or float, default=2
+   :param min_samples_leaf: The minimum number of samples required to be at a leaf node.
+                            A split point at any depth will only be considered if it leaves at
+                            least ``min_samples_leaf`` training samples in each of the left and
+                            right branches.  This may have the effect of smoothing the model,
+                            especially in regression.
+
+                            - If int, then consider `min_samples_leaf` as the minimum number.
+                            - If float, then `min_samples_leaf` is a fraction and
+                              `ceil(min_samples_leaf * n_samples)` are the minimum
+                              number of samples for each node.
+
+                            .. versionchanged:: 0.18
+                               Added float values for fractions.
+   :type min_samples_leaf: int or float, default=1
+   :param min_weight_fraction_leaf: The minimum weighted fraction of the sum total of weights (of all
+                                    the input samples) required to be at a leaf node. Samples have
+                                    equal weight when sample_weight is not provided.
+   :type min_weight_fraction_leaf: float, default=0.0
+   :param max_features: The number of features to consider when looking for the best split:
+
+                        - If int, then consider `max_features` features at each split.
+                        - If float, then `max_features` is a fraction and
+                          `max(1, int(max_features * n_features_in_))` features are considered at each
+                          split.
+                        - If "sqrt", then `max_features=sqrt(n_features)`.
+                        - If "log2", then `max_features=log2(n_features)`.
+                        - If None or 1.0, then `max_features=n_features`.
+
+                        .. note::
+                            The default of 1.0 is equivalent to bagged trees and more
+                            randomness can be achieved by setting smaller values, e.g. 0.3.
+
+                        .. versionchanged:: 1.1
+                            The default of `max_features` changed from `"auto"` to 1.0.
+
+                        Note: the search for a split does not stop until at least one
+                        valid partition of the node samples is found, even if it requires to
+                        effectively inspect more than ``max_features`` features.
+   :type max_features: {"sqrt", "log2", None}, int or float, default=1.0
+   :param max_leaf_nodes: Grow trees with ``max_leaf_nodes`` in best-first fashion.
+                          Best nodes are defined as relative reduction in impurity.
+                          If None then unlimited number of leaf nodes.
+   :type max_leaf_nodes: int, default=None
+   :param min_impurity_decrease: A node will be split if this split induces a decrease of the impurity
+                                 greater than or equal to this value.
+
+                                 The weighted impurity decrease equation is the following::
+
+                                     N_t / N * (impurity - N_t_R / N_t * right_impurity
+                                                         - N_t_L / N_t * left_impurity)
+
+                                 where ``N`` is the total number of samples, ``N_t`` is the number of
+                                 samples at the current node, ``N_t_L`` is the number of samples in the
+                                 left child, and ``N_t_R`` is the number of samples in the right child.
+
+                                 ``N``, ``N_t``, ``N_t_R`` and ``N_t_L`` all refer to the weighted sum,
+                                 if ``sample_weight`` is passed.
+
+                                 .. versionadded:: 0.19
+   :type min_impurity_decrease: float, default=0.0
+   :param bootstrap: Whether bootstrap samples are used when building trees. If False, the
+                     whole dataset is used to build each tree.
+   :type bootstrap: bool, default=True
+   :param oob_score: Whether to use out-of-bag samples to estimate the generalization score.
+                     By default, :func:`~sklearn.metrics.r2_score` is used.
+                     Provide a callable with signature `metric(y_true, y_pred)` to use a
+                     custom metric. Only available if `bootstrap=True`.
+
+                     For an illustration of out-of-bag (OOB) error estimation, see the example
+                     :ref:`sphx_glr_auto_examples_ensemble_plot_ensemble_oob.py`.
+   :type oob_score: bool or callable, default=False
+   :param n_jobs: The number of jobs to run in parallel. :meth:`fit`, :meth:`predict`,
+                  :meth:`decision_path` and :meth:`apply` are all parallelized over the
+                  trees. ``None`` means 1 unless in a :obj:`joblib.parallel_backend`
+                  context. ``-1`` means using all processors. See :term:`Glossary
+                  <n_jobs>` for more details.
+   :type n_jobs: int, default=None
+   :param random_state: Controls both the randomness of the bootstrapping of the samples used
+                        when building trees (if ``bootstrap=True``) and the sampling of the
+                        features to consider when looking for the best split at each node
+                        (if ``max_features < n_features``).
+                        See :term:`Glossary <random_state>` for details.
+   :type random_state: int, RandomState instance or None, default=None
+   :param verbose: Controls the verbosity when fitting and predicting.
+   :type verbose: int, default=0
+   :param warm_start: When set to ``True``, reuse the solution of the previous call to fit
+                      and add more estimators to the ensemble, otherwise, just fit a whole
+                      new forest. See :term:`Glossary <warm_start>` and
+                      :ref:`tree_ensemble_warm_start` for details.
+   :type warm_start: bool, default=False
+   :param ccp_alpha: Complexity parameter used for Minimal Cost-Complexity Pruning. The
+                     subtree with the largest cost complexity that is smaller than
+                     ``ccp_alpha`` will be chosen. By default, no pruning is performed. See
+                     :ref:`minimal_cost_complexity_pruning` for details. See
+                     :ref:`sphx_glr_auto_examples_tree_plot_cost_complexity_pruning.py`
+                     for an example of such pruning.
+
+                     .. versionadded:: 0.22
+   :type ccp_alpha: non-negative float, default=0.0
+   :param max_samples: If bootstrap is True, the number of samples to draw from X
+                       to train each base estimator.
+
+                       - If None (default), then draw `X.shape[0]` samples.
+                       - If int, then draw `max_samples` samples.
+                       - If float, then draw `max(round(n_samples * max_samples), 1)` samples. Thus,
+                         `max_samples` should be in the interval `(0.0, 1.0]`.
+
+                       .. versionadded:: 0.22
+   :type max_samples: int or float, default=None
+   :param monotonic_cst:
+                         Indicates the monotonicity constraint to enforce on each feature.
+                           - 1: monotonically increasing
+                           - 0: no constraint
+                           - -1: monotonically decreasing
+
+                         If monotonic_cst is None, no constraints are applied.
+
+                         Monotonicity constraints are not supported for:
+                           - multioutput regressions (i.e. when `n_outputs_ > 1`),
+                           - regressions trained on data with missing values.
+
+                         Read more in the :ref:`User Guide <monotonic_cst_gbdt>`.
+
+                         .. versionadded:: 1.4
+   :type monotonic_cst: array-like of int of shape (n_features), default=None
+
+   .. attribute:: estimator_
+
+      The child estimator template used to create the collection of fitted
+      sub-estimators.
+
+      .. versionadded:: 1.2
+         `base_estimator_` was renamed to `estimator_`.
+
+      :type: :class:`~sklearn.tree.DecisionTreeRegressor`
+
+   .. attribute:: estimators_
+
+      The collection of fitted sub-estimators.
+
+      :type: list of DecisionTreeRegressor
+
+   .. attribute:: feature_importances_
+
+      The impurity-based feature importances.
+      The higher, the more important the feature.
+      The importance of a feature is computed as the (normalized)
+      total reduction of the criterion brought by that feature.  It is also
+      known as the Gini importance.
+
+      Warning: impurity-based feature importances can be misleading for
+      high cardinality features (many unique values). See
+      :func:`sklearn.inspection.permutation_importance` as an alternative.
+
+      :type: ndarray of shape (n_features,)
+
+   .. attribute:: n_features_in_
+
+      Number of features seen during :term:`fit`.
+
+      .. versionadded:: 0.24
+
+      :type: int
+
+   .. attribute:: feature_names_in_
+
+      Names of features seen during :term:`fit`. Defined only when `X`
+      has feature names that are all strings.
+
+      .. versionadded:: 1.0
+
+      :type: ndarray of shape (`n_features_in_`,)
+
+   .. attribute:: n_outputs_
+
+      The number of outputs when ``fit`` is performed.
+
+      :type: int
+
+   .. attribute:: oob_score_
+
+      Score of the training dataset obtained using an out-of-bag estimate.
+      This attribute exists only when ``oob_score`` is True.
+
+      :type: float
+
+   .. attribute:: oob_prediction_
+
+      Prediction computed with out-of-bag estimate on the training set.
+      This attribute exists only when ``oob_score`` is True.
+
+      :type: ndarray of shape (n_samples,) or (n_samples, n_outputs)
+
+   .. attribute:: estimators_samples_
+
+      The subset of drawn samples (i.e., the in-bag samples) for each base
+      estimator. Each subset is defined by an array of the indices selected.
+
+      .. versionadded:: 1.4
+
+      :type: list of arrays
+
+   .. seealso::
+
+      :obj:`sklearn.tree.DecisionTreeRegressor`
+          A decision tree regressor.
+
+      :obj:`sklearn.ensemble.ExtraTreesRegressor`
+          Ensemble of extremely randomized tree regressors.
+
+      :obj:`sklearn.ensemble.HistGradientBoostingRegressor`
+          A Histogram-based Gradient Boosting Regression Tree, very fast for big datasets (n_samples >= 10_000).
+
+   .. admonition:: Notes
+
+      The default values for the parameters controlling the size of the trees
+      (e.g. ``max_depth``, ``min_samples_leaf``, etc.) lead to fully grown and
+      unpruned trees which can potentially be very large on some data sets. To
+      reduce memory consumption, the complexity and size of the trees should be
+      controlled by setting those parameter values.
+
+      The features are always randomly permuted at each split. Therefore,
+      the best found split may vary, even with the same training data,
+      ``max_features=n_features`` and ``bootstrap=False``, if the improvement
+      of the criterion is identical for several splits enumerated during the
+      search of the best split. To obtain a deterministic behaviour during
+      fitting, ``random_state`` has to be fixed.
+
+      The default value ``max_features=1.0`` uses ``n_features``
+      rather than ``n_features / 3``. The latter was originally suggested in
+      [1], whereas the former was more recently justified empirically in [2].
+
+   .. rubric:: References
+
+   .. [1] L. Breiman, "Random Forests", Machine Learning, 45(1), 5-32, 2001.
+
+   .. [2] P. Geurts, D. Ernst., and L. Wehenkel, "Extremely randomized
+          trees", Machine Learning, 63(1), 3-42, 2006.
+
+   .. rubric:: Examples
+
+   >>> from sklearn.ensemble import RandomForestRegressor
+   >>> from sklearn.datasets import make_regression
+   >>> X, y = make_regression(n_features=4, n_informative=2,
+   ...                        random_state=0, shuffle=False)
+   >>> regr = RandomForestRegressor(max_depth=2, random_state=0)
+   >>> regr.fit(X, y)
+   RandomForestRegressor(...)
+   >>> print(regr.predict([[0, 0, 0, 0]]))
+   [-8.32987858]
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> Union[numpy.ndarray, Tuple[numpy.ndarray, numpy.ndarray]]
+
+      Predict using the random forest, optionally returning standard deviation.
+
+      :param X: Input feature array.
+      :type X: np.ndarray
+      :param return_std: Whether to return the standard deviation of predictions.
+      :type return_std: bool, optional
+
+      :returns: Mean predictions or (mean, std) tuple.
+      :rtype: np.ndarray or Tuple[np.ndarray, np.ndarray]
+
+
+
+.. py:class:: ExtraTreesWithUncertainty(n_estimators=100, *, criterion='squared_error', max_depth=None, min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features=1.0, max_leaf_nodes=None, min_impurity_decrease=0.0, bootstrap=False, oob_score=False, n_jobs=None, random_state=None, verbose=0, warm_start=False, ccp_alpha=0.0, max_samples=None, monotonic_cst=None)
+
+   Bases: :py:obj:`sklearn.ensemble.ExtraTreesRegressor`
+
+
+   An extra-trees regressor.
+
+   This class implements a meta estimator that fits a number of
+   randomized decision trees (a.k.a. extra-trees) on various sub-samples
+   of the dataset and uses averaging to improve the predictive accuracy
+   and control over-fitting.
+
+   This estimator has native support for missing values (NaNs) for
+   random splits. During training, a random threshold will be chosen
+   to split the non-missing values on. Then the non-missing values will be sent
+   to the left and right child based on the randomly selected threshold, while
+   the missing values will also be randomly sent to the left or right child.
+   This is repeated for every feature considered at each split. The best split
+   among these is chosen.
+
+   Read more in the :ref:`User Guide <forest>`.
+
+   :param n_estimators: The number of trees in the forest.
+
+                        .. versionchanged:: 0.22
+                           The default value of ``n_estimators`` changed from 10 to 100
+                           in 0.22.
+   :type n_estimators: int, default=100
+   :param criterion: The function to measure the quality of a split. Supported criteria
+                     are "squared_error" for the mean squared error, which is equal to
+                     variance reduction as feature selection criterion and minimizes the L2
+                     loss using the mean of each terminal node, "friedman_mse", which uses
+                     mean squared error with Friedman's improvement score for potential
+                     splits, "absolute_error" for the mean absolute error, which minimizes
+                     the L1 loss using the median of each terminal node, and "poisson" which
+                     uses reduction in Poisson deviance to find splits.
+                     Training using "absolute_error" is significantly slower
+                     than when using "squared_error".
+
+                     .. versionadded:: 0.18
+                        Mean Absolute Error (MAE) criterion.
+   :type criterion: {"squared_error", "absolute_error", "friedman_mse", "poisson"},             default="squared_error"
+   :param max_depth: The maximum depth of the tree. If None, then nodes are expanded until
+                     all leaves are pure or until all leaves contain less than
+                     min_samples_split samples.
+   :type max_depth: int, default=None
+   :param min_samples_split: The minimum number of samples required to split an internal node:
+
+                             - If int, then consider `min_samples_split` as the minimum number.
+                             - If float, then `min_samples_split` is a fraction and
+                               `ceil(min_samples_split * n_samples)` are the minimum
+                               number of samples for each split.
+
+                             .. versionchanged:: 0.18
+                                Added float values for fractions.
+   :type min_samples_split: int or float, default=2
+   :param min_samples_leaf: The minimum number of samples required to be at a leaf node.
+                            A split point at any depth will only be considered if it leaves at
+                            least ``min_samples_leaf`` training samples in each of the left and
+                            right branches.  This may have the effect of smoothing the model,
+                            especially in regression.
+
+                            - If int, then consider `min_samples_leaf` as the minimum number.
+                            - If float, then `min_samples_leaf` is a fraction and
+                              `ceil(min_samples_leaf * n_samples)` are the minimum
+                              number of samples for each node.
+
+                            .. versionchanged:: 0.18
+                               Added float values for fractions.
+   :type min_samples_leaf: int or float, default=1
+   :param min_weight_fraction_leaf: The minimum weighted fraction of the sum total of weights (of all
+                                    the input samples) required to be at a leaf node. Samples have
+                                    equal weight when sample_weight is not provided.
+   :type min_weight_fraction_leaf: float, default=0.0
+   :param max_features: The number of features to consider when looking for the best split:
+
+                        - If int, then consider `max_features` features at each split.
+                        - If float, then `max_features` is a fraction and
+                          `max(1, int(max_features * n_features_in_))` features are considered at each
+                          split.
+                        - If "sqrt", then `max_features=sqrt(n_features)`.
+                        - If "log2", then `max_features=log2(n_features)`.
+                        - If None or 1.0, then `max_features=n_features`.
+
+                        .. note::
+                            The default of 1.0 is equivalent to bagged trees and more
+                            randomness can be achieved by setting smaller values, e.g. 0.3.
+
+                        .. versionchanged:: 1.1
+                            The default of `max_features` changed from `"auto"` to 1.0.
+
+                        Note: the search for a split does not stop until at least one
+                        valid partition of the node samples is found, even if it requires to
+                        effectively inspect more than ``max_features`` features.
+   :type max_features: {"sqrt", "log2", None}, int or float, default=1.0
+   :param max_leaf_nodes: Grow trees with ``max_leaf_nodes`` in best-first fashion.
+                          Best nodes are defined as relative reduction in impurity.
+                          If None then unlimited number of leaf nodes.
+   :type max_leaf_nodes: int, default=None
+   :param min_impurity_decrease: A node will be split if this split induces a decrease of the impurity
+                                 greater than or equal to this value.
+
+                                 The weighted impurity decrease equation is the following::
+
+                                     N_t / N * (impurity - N_t_R / N_t * right_impurity
+                                                         - N_t_L / N_t * left_impurity)
+
+                                 where ``N`` is the total number of samples, ``N_t`` is the number of
+                                 samples at the current node, ``N_t_L`` is the number of samples in the
+                                 left child, and ``N_t_R`` is the number of samples in the right child.
+
+                                 ``N``, ``N_t``, ``N_t_R`` and ``N_t_L`` all refer to the weighted sum,
+                                 if ``sample_weight`` is passed.
+
+                                 .. versionadded:: 0.19
+   :type min_impurity_decrease: float, default=0.0
+   :param bootstrap: Whether bootstrap samples are used when building trees. If False, the
+                     whole dataset is used to build each tree.
+   :type bootstrap: bool, default=False
+   :param oob_score: Whether to use out-of-bag samples to estimate the generalization score.
+                     By default, :func:`~sklearn.metrics.r2_score` is used.
+                     Provide a callable with signature `metric(y_true, y_pred)` to use a
+                     custom metric. Only available if `bootstrap=True`.
+
+                     For an illustration of out-of-bag (OOB) error estimation, see the example
+                     :ref:`sphx_glr_auto_examples_ensemble_plot_ensemble_oob.py`.
+   :type oob_score: bool or callable, default=False
+   :param n_jobs: The number of jobs to run in parallel. :meth:`fit`, :meth:`predict`,
+                  :meth:`decision_path` and :meth:`apply` are all parallelized over the
+                  trees. ``None`` means 1 unless in a :obj:`joblib.parallel_backend`
+                  context. ``-1`` means using all processors. See :term:`Glossary
+                  <n_jobs>` for more details.
+   :type n_jobs: int, default=None
+   :param random_state: Controls 3 sources of randomness:
+
+                        - the bootstrapping of the samples used when building trees
+                          (if ``bootstrap=True``)
+                        - the sampling of the features to consider when looking for the best
+                          split at each node (if ``max_features < n_features``)
+                        - the draw of the splits for each of the `max_features`
+
+                        See :term:`Glossary <random_state>` for details.
+   :type random_state: int, RandomState instance or None, default=None
+   :param verbose: Controls the verbosity when fitting and predicting.
+   :type verbose: int, default=0
+   :param warm_start: When set to ``True``, reuse the solution of the previous call to fit
+                      and add more estimators to the ensemble, otherwise, just fit a whole
+                      new forest. See :term:`Glossary <warm_start>` and
+                      :ref:`tree_ensemble_warm_start` for details.
+   :type warm_start: bool, default=False
+   :param ccp_alpha: Complexity parameter used for Minimal Cost-Complexity Pruning. The
+                     subtree with the largest cost complexity that is smaller than
+                     ``ccp_alpha`` will be chosen. By default, no pruning is performed. See
+                     :ref:`minimal_cost_complexity_pruning` for details. See
+                     :ref:`sphx_glr_auto_examples_tree_plot_cost_complexity_pruning.py`
+                     for an example of such pruning.
+
+                     .. versionadded:: 0.22
+   :type ccp_alpha: non-negative float, default=0.0
+   :param max_samples: If bootstrap is True, the number of samples to draw from X
+                       to train each base estimator.
+
+                       - If None (default), then draw `X.shape[0]` samples.
+                       - If int, then draw `max_samples` samples.
+                       - If float, then draw `max_samples * X.shape[0]` samples. Thus,
+                         `max_samples` should be in the interval `(0.0, 1.0]`.
+
+                       .. versionadded:: 0.22
+   :type max_samples: int or float, default=None
+   :param monotonic_cst:
+                         Indicates the monotonicity constraint to enforce on each feature.
+                           - 1: monotonically increasing
+                           - 0: no constraint
+                           - -1: monotonically decreasing
+
+                         If monotonic_cst is None, no constraints are applied.
+
+                         Monotonicity constraints are not supported for:
+                           - multioutput regressions (i.e. when `n_outputs_ > 1`),
+                           - regressions trained on data with missing values.
+
+                         Read more in the :ref:`User Guide <monotonic_cst_gbdt>`.
+
+                         .. versionadded:: 1.4
+   :type monotonic_cst: array-like of int of shape (n_features), default=None
+
+   .. attribute:: estimator_
+
+      The child estimator template used to create the collection of fitted
+      sub-estimators.
+
+      .. versionadded:: 1.2
+         `base_estimator_` was renamed to `estimator_`.
+
+      :type: :class:`~sklearn.tree.ExtraTreeRegressor`
+
+   .. attribute:: estimators_
+
+      The collection of fitted sub-estimators.
+
+      :type: list of DecisionTreeRegressor
+
+   .. attribute:: feature_importances_
+
+      The impurity-based feature importances.
+      The higher, the more important the feature.
+      The importance of a feature is computed as the (normalized)
+      total reduction of the criterion brought by that feature.  It is also
+      known as the Gini importance.
+
+      Warning: impurity-based feature importances can be misleading for
+      high cardinality features (many unique values). See
+      :func:`sklearn.inspection.permutation_importance` as an alternative.
+
+      :type: ndarray of shape (n_features,)
+
+   .. attribute:: n_features_in_
+
+      Number of features seen during :term:`fit`.
+
+      .. versionadded:: 0.24
+
+      :type: int
+
+   .. attribute:: feature_names_in_
+
+      Names of features seen during :term:`fit`. Defined only when `X`
+      has feature names that are all strings.
+
+      .. versionadded:: 1.0
+
+      :type: ndarray of shape (`n_features_in_`,)
+
+   .. attribute:: n_outputs_
+
+      The number of outputs.
+
+      :type: int
+
+   .. attribute:: oob_score_
+
+      Score of the training dataset obtained using an out-of-bag estimate.
+      This attribute exists only when ``oob_score`` is True.
+
+      :type: float
+
+   .. attribute:: oob_prediction_
+
+      Prediction computed with out-of-bag estimate on the training set.
+      This attribute exists only when ``oob_score`` is True.
+
+      :type: ndarray of shape (n_samples,) or (n_samples, n_outputs)
+
+   .. attribute:: estimators_samples_
+
+      The subset of drawn samples (i.e., the in-bag samples) for each base
+      estimator. Each subset is defined by an array of the indices selected.
+
+      .. versionadded:: 1.4
+
+      :type: list of arrays
+
+   .. seealso::
+
+      :obj:`ExtraTreesClassifier`
+          An extra-trees classifier with random splits.
+
+      :obj:`RandomForestClassifier`
+          A random forest classifier with optimal splits.
+
+      :obj:`RandomForestRegressor`
+          Ensemble regressor using trees with optimal splits.
+
+   .. admonition:: Notes
+
+      The default values for the parameters controlling the size of the trees
+      (e.g. ``max_depth``, ``min_samples_leaf``, etc.) lead to fully grown and
+      unpruned trees which can potentially be very large on some data sets. To
+      reduce memory consumption, the complexity and size of the trees should be
+      controlled by setting those parameter values.
+
+   .. rubric:: References
+
+   .. [1] P. Geurts, D. Ernst., and L. Wehenkel, "Extremely randomized trees",
+          Machine Learning, 63(1), 3-42, 2006.
+
+   .. rubric:: Examples
+
+   >>> from sklearn.datasets import load_diabetes
+   >>> from sklearn.model_selection import train_test_split
+   >>> from sklearn.ensemble import ExtraTreesRegressor
+   >>> X, y = load_diabetes(return_X_y=True)
+   >>> X_train, X_test, y_train, y_test = train_test_split(
+   ...     X, y, random_state=0)
+   >>> reg = ExtraTreesRegressor(n_estimators=100, random_state=0).fit(
+   ...    X_train, y_train)
+   >>> reg.score(X_test, y_test)
+   0.2727...
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> Union[numpy.ndarray, Tuple[numpy.ndarray, numpy.ndarray]]
+
+      Predict regression target for X.
+
+      The predicted regression target of an input sample is computed as the
+      mean predicted regression targets of the trees in the forest.
+
+      :param X: The input samples. Internally, its dtype will be converted to
+                ``dtype=np.float32``. If a sparse matrix is provided, it will be
+                converted into a sparse ``csr_matrix``.
+      :type X: {array-like, sparse matrix} of shape (n_samples, n_features)
+
+      :returns: **y** -- The predicted values.
+      :rtype: ndarray of shape (n_samples,) or (n_samples, n_outputs)
+
+
+
+.. py:class:: GradientBoostingWithUncertainty(alpha=0.95, n_estimators=100)
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`, :py:obj:`sklearn.base.RegressorMixin`
+
+
+   Base class for all estimators in scikit-learn.
+
+   Inheriting from this class provides default implementations of:
+
+   - setting and getting parameters used by `GridSearchCV` and friends;
+   - textual and HTML representation displayed in terminals and IDEs;
+   - estimator serialization;
+   - parameters validation;
+   - data validation;
+   - feature names validation.
+
+   Read more in the :ref:`User Guide <rolling_your_own_estimator>`.
+
+
+   .. admonition:: Notes
+
+      All estimators should specify all the parameters that can be set
+      at the class level in their ``__init__`` as explicit keyword
+      arguments (no ``*args`` or ``**kwargs``).
+
+   .. rubric:: Examples
+
+   >>> import numpy as np
+   >>> from sklearn.base import BaseEstimator
+   >>> class MyEstimator(BaseEstimator):
+   ...     def __init__(self, *, param=1):
+   ...         self.param = param
+   ...     def fit(self, X, y=None):
+   ...         self.is_fitted_ = True
+   ...         return self
+   ...     def predict(self, X):
+   ...         return np.full(shape=X.shape[0], fill_value=self.param)
+   >>> estimator = MyEstimator(param=2)
+   >>> estimator.get_params()
+   {'param': 2}
+   >>> X = np.array([[1, 2], [2, 3], [3, 4]])
+   >>> y = np.array([1, 0, 1])
+   >>> estimator.fit(X, y).predict(X)
+   array([2, 2, 2])
+   >>> estimator.set_params(param=3).fit(X, y).predict(X)
+   array([3, 3, 3])
+
+
+   .. py:attribute:: alpha
+      :value: 0.95
+
+
+
+   .. py:attribute:: n_estimators
+      :value: 100
+
+
+
+   .. py:attribute:: lower
+
+
+   .. py:attribute:: upper
+
+
+   .. py:attribute:: mid
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> GradientBoostingWithUncertainty
+
+      Fit the quantile and mid regressors.
+
+      :param X: Feature matrix.
+      :type X: np.ndarray
+      :param y: Target array.
+      :type y: np.ndarray
+
+      :returns: The fitted model.
+      :rtype: GradientBoostingWithUncertainty
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> Union[numpy.ndarray, Tuple[numpy.ndarray, numpy.ndarray]]
+
+      Predict using the model.
+
+      :param X: Input feature array.
+      :type X: np.ndarray
+      :param return_std: Whether to return standard deviation.
+      :type return_std: bool, optional
+
+      :returns: Mean predictions or (mean, std) tuple.
+      :rtype: np.ndarray or Tuple[np.ndarray, np.ndarray]
+
+
+
+.. py:class:: KNeighborsRegressorWithUncertainty(n_neighbors=5, *, weights='uniform', algorithm='auto', leaf_size=30, p=2, metric='minkowski', metric_params=None, n_jobs=None)
+
+   Bases: :py:obj:`sklearn.neighbors.KNeighborsRegressor`
+
+
+   Regression based on k-nearest neighbors.
+
+   The target is predicted by local interpolation of the targets
+   associated of the nearest neighbors in the training set.
+
+   Read more in the :ref:`User Guide <regression>`.
+
+   .. versionadded:: 0.9
+
+   :param n_neighbors: Number of neighbors to use by default for :meth:`kneighbors` queries.
+   :type n_neighbors: int, default=5
+   :param weights: Weight function used in prediction.  Possible values:
+
+                   - 'uniform' : uniform weights.  All points in each neighborhood
+                     are weighted equally.
+                   - 'distance' : weight points by the inverse of their distance.
+                     in this case, closer neighbors of a query point will have a
+                     greater influence than neighbors which are further away.
+                   - [callable] : a user-defined function which accepts an
+                     array of distances, and returns an array of the same shape
+                     containing the weights.
+
+                   Uniform weights are used by default.
+
+                   See the following example for a demonstration of the impact of
+                   different weighting schemes on predictions:
+                   :ref:`sphx_glr_auto_examples_neighbors_plot_regression.py`.
+   :type weights: {'uniform', 'distance'}, callable or None, default='uniform'
+   :param algorithm: Algorithm used to compute the nearest neighbors:
+
+                     - 'ball_tree' will use :class:`BallTree`
+                     - 'kd_tree' will use :class:`KDTree`
+                     - 'brute' will use a brute-force search.
+                     - 'auto' will attempt to decide the most appropriate algorithm
+                       based on the values passed to :meth:`fit` method.
+
+                     Note: fitting on sparse input will override the setting of
+                     this parameter, using brute force.
+   :type algorithm: {'auto', 'ball_tree', 'kd_tree', 'brute'}, default='auto'
+   :param leaf_size: Leaf size passed to BallTree or KDTree.  This can affect the
+                     speed of the construction and query, as well as the memory
+                     required to store the tree.  The optimal value depends on the
+                     nature of the problem.
+   :type leaf_size: int, default=30
+   :param p: Power parameter for the Minkowski metric. When p = 1, this is
+             equivalent to using manhattan_distance (l1), and euclidean_distance
+             (l2) for p = 2. For arbitrary p, minkowski_distance (l_p) is used.
+   :type p: float, default=2
+   :param metric: Metric to use for distance computation. Default is "minkowski", which
+                  results in the standard Euclidean distance when p = 2. See the
+                  documentation of `scipy.spatial.distance
+                  <https://docs.scipy.org/doc/scipy/reference/spatial.distance.html>`_ and
+                  the metrics listed in
+                  :class:`~sklearn.metrics.pairwise.distance_metrics` for valid metric
+                  values.
+
+                  If metric is "precomputed", X is assumed to be a distance matrix and
+                  must be square during fit. X may be a :term:`sparse graph`, in which
+                  case only "nonzero" elements may be considered neighbors.
+
+                  If metric is a callable function, it takes two arrays representing 1D
+                  vectors as inputs and must return one value indicating the distance
+                  between those vectors. This works for Scipy's metrics, but is less
+                  efficient than passing the metric name as a string.
+
+                  If metric is a DistanceMetric object, it will be passed directly to
+                  the underlying computation routines.
+   :type metric: str, DistanceMetric object or callable, default='minkowski'
+   :param metric_params: Additional keyword arguments for the metric function.
+   :type metric_params: dict, default=None
+   :param n_jobs: The number of parallel jobs to run for neighbors search.
+                  ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+                  ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+                  for more details.
+                  Doesn't affect :meth:`fit` method.
+   :type n_jobs: int, default=None
+
+   .. attribute:: effective_metric_
+
+      The distance metric to use. It will be same as the `metric` parameter
+      or a synonym of it, e.g. 'euclidean' if the `metric` parameter set to
+      'minkowski' and `p` parameter set to 2.
+
+      :type: str or callable
+
+   .. attribute:: effective_metric_params_
+
+      Additional keyword arguments for the metric function. For most metrics
+      will be same with `metric_params` parameter, but may also contain the
+      `p` parameter value if the `effective_metric_` attribute is set to
+      'minkowski'.
+
+      :type: dict
+
+   .. attribute:: n_features_in_
+
+      Number of features seen during :term:`fit`.
+
+      .. versionadded:: 0.24
+
+      :type: int
+
+   .. attribute:: feature_names_in_
+
+      Names of features seen during :term:`fit`. Defined only when `X`
+      has feature names that are all strings.
+
+      .. versionadded:: 1.0
+
+      :type: ndarray of shape (`n_features_in_`,)
+
+   .. attribute:: n_samples_fit_
+
+      Number of samples in the fitted data.
+
+      :type: int
+
+   .. seealso::
+
+      :obj:`NearestNeighbors`
+          Unsupervised learner for implementing neighbor searches.
+
+      :obj:`RadiusNeighborsRegressor`
+          Regression based on neighbors within a fixed radius.
+
+      :obj:`KNeighborsClassifier`
+          Classifier implementing the k-nearest neighbors vote.
+
+      :obj:`RadiusNeighborsClassifier`
+          Classifier implementing a vote among neighbors within a given radius.
+
+   .. admonition:: Notes
+
+      See :ref:`Nearest Neighbors <neighbors>` in the online documentation
+      for a discussion of the choice of ``algorithm`` and ``leaf_size``.
+
+      .. warning::
+
+         Regarding the Nearest Neighbors algorithms, if it is found that two
+         neighbors, neighbor `k+1` and `k`, have identical distances but
+         different labels, the results will depend on the ordering of the
+         training data.
+
+      https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm
+
+   .. rubric:: Examples
+
+   >>> X = [[0], [1], [2], [3]]
+   >>> y = [0, 0, 1, 1]
+   >>> from sklearn.neighbors import KNeighborsRegressor
+   >>> neigh = KNeighborsRegressor(n_neighbors=2)
+   >>> neigh.fit(X, y)
+   KNeighborsRegressor(...)
+   >>> print(neigh.predict([[1.5]]))
+   [0.5]
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> Union[numpy.ndarray, Tuple[numpy.ndarray, numpy.ndarray]]
+
+      Predict using KNN, optionally returning standard deviation.
+
+      :param X: Input feature array.
+      :type X: np.ndarray
+      :param return_std: Whether to return standard deviation.
+      :type return_std: bool, optional
+
+      :returns: Mean predictions or (mean, std) tuple.
+      :rtype: np.ndarray or Tuple[np.ndarray, np.ndarray]
+
+
+
+.. py:class:: BootstrapLinearRegression(n_bootstraps=20)
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`, :py:obj:`sklearn.base.RegressorMixin`
+
+
+   Base class for all estimators in scikit-learn.
+
+   Inheriting from this class provides default implementations of:
+
+   - setting and getting parameters used by `GridSearchCV` and friends;
+   - textual and HTML representation displayed in terminals and IDEs;
+   - estimator serialization;
+   - parameters validation;
+   - data validation;
+   - feature names validation.
+
+   Read more in the :ref:`User Guide <rolling_your_own_estimator>`.
+
+
+   .. admonition:: Notes
+
+      All estimators should specify all the parameters that can be set
+      at the class level in their ``__init__`` as explicit keyword
+      arguments (no ``*args`` or ``**kwargs``).
+
+   .. rubric:: Examples
+
+   >>> import numpy as np
+   >>> from sklearn.base import BaseEstimator
+   >>> class MyEstimator(BaseEstimator):
+   ...     def __init__(self, *, param=1):
+   ...         self.param = param
+   ...     def fit(self, X, y=None):
+   ...         self.is_fitted_ = True
+   ...         return self
+   ...     def predict(self, X):
+   ...         return np.full(shape=X.shape[0], fill_value=self.param)
+   >>> estimator = MyEstimator(param=2)
+   >>> estimator.get_params()
+   {'param': 2}
+   >>> X = np.array([[1, 2], [2, 3], [3, 4]])
+   >>> y = np.array([1, 0, 1])
+   >>> estimator.fit(X, y).predict(X)
+   array([2, 2, 2])
+   >>> estimator.set_params(param=3).fit(X, y).predict(X)
+   array([3, 3, 3])
+
+
+   .. py:attribute:: n_bootstraps
+      :value: 20
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> BootstrapLinearRegression
+
+      Fit bootstrapped linear regression models.
+
+      :param X: Feature matrix.
+      :type X: np.ndarray
+      :param y: Target array.
+      :type y: np.ndarray
+
+      :returns: The fitted model.
+      :rtype: BootstrapLinearRegression
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> Union[numpy.ndarray, Tuple[numpy.ndarray, numpy.ndarray]]
+
+      Predict using ensemble of linear models.
+
+      :param X: Input feature array.
+      :type X: np.ndarray
+      :param return_std: Whether to return standard deviation.
+      :type return_std: bool, optional
+
+      :returns: Mean predictions or (mean, std) tuple.
+      :rtype: np.ndarray or Tuple[np.ndarray, np.ndarray]
+
+
+
+.. py:class:: PerTargetRegressorWithStd(estimators)
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`, :py:obj:`sklearn.base.RegressorMixin`
+
+
+   Base class for all estimators in scikit-learn.
+
+   Inheriting from this class provides default implementations of:
+
+   - setting and getting parameters used by `GridSearchCV` and friends;
+   - textual and HTML representation displayed in terminals and IDEs;
+   - estimator serialization;
+   - parameters validation;
+   - data validation;
+   - feature names validation.
+
+   Read more in the :ref:`User Guide <rolling_your_own_estimator>`.
+
+
+   .. admonition:: Notes
+
+      All estimators should specify all the parameters that can be set
+      at the class level in their ``__init__`` as explicit keyword
+      arguments (no ``*args`` or ``**kwargs``).
+
+   .. rubric:: Examples
+
+   >>> import numpy as np
+   >>> from sklearn.base import BaseEstimator
+   >>> class MyEstimator(BaseEstimator):
+   ...     def __init__(self, *, param=1):
+   ...         self.param = param
+   ...     def fit(self, X, y=None):
+   ...         self.is_fitted_ = True
+   ...         return self
+   ...     def predict(self, X):
+   ...         return np.full(shape=X.shape[0], fill_value=self.param)
+   >>> estimator = MyEstimator(param=2)
+   >>> estimator.get_params()
+   {'param': 2}
+   >>> X = np.array([[1, 2], [2, 3], [3, 4]])
+   >>> y = np.array([1, 0, 1])
+   >>> estimator.fit(X, y).predict(X)
+   array([2, 2, 2])
+   >>> estimator.set_params(param=3).fit(X, y).predict(X)
+   array([3, 3, 3])
+
+
+   .. py:attribute:: estimators
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> PerTargetRegressorWithStd
+
+      Fit separate estimators for each output column.
+
+      :param X: Feature matrix.
+      :type X: np.ndarray
+      :param y: Multi-output target matrix.
+      :type y: np.ndarray
+
+      :returns: The fitted model.
+      :rtype: PerTargetRegressorWithStd
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> Union[numpy.ndarray, Tuple[numpy.ndarray, numpy.ndarray]]
+
+      Predict using individual estimators for each target dimension.
+
+      :param X: Input feature array.
+      :type X: np.ndarray
+      :param return_std: Whether to return standard deviation.
+      :type return_std: bool, optional
+
+      :returns: Mean predictions or (mean, std) tuple.
+      :rtype: np.ndarray or Tuple[np.ndarray, np.ndarray]
+
+
+
+.. py:function:: generate_html_report(model_type: str, fidelity_levels: List[str], output_names: List[str], description: str, metrics: Dict[str, Dict[str, float]], uncertainty_metrics: Dict[str, float], y_test: numpy.ndarray, best_pred: numpy.ndarray, best_std: numpy.ndarray, best_model: Any, X_train: numpy.ndarray, n_train: int, n_test: int, cross_validation: str, seed: int, notes: str, feature_names_pca: List[str] | None = None, pca_explained_variance: List[float] | None = None, pca_variance_plot: str | None = None, pca_method: str | None = None, pca_threshold: float | None = None, pca_n_components: int | None = None, kaiser_rule_suggestion: str | None = None, conformal_intervals: tuple | None = None, conformal_alpha: float | None = None, imputation_summary: dict | None = None) -> str
+
+   Generate an HTML report from model training and evaluation results.
+
+   :param model_type: Type of model used.
+   :type model_type: str
+   :param fidelity_levels: Fidelity levels used (if any).
+   :type fidelity_levels: List[str]
+   :param output_names: Names of the output dimensions.
+   :type output_names: List[str]
+   :param description: Description of the modeling project.
+   :type description: str
+   :param metrics: Dictionary of evaluation metrics for each output.
+   :type metrics: Dict[str, Dict[str, float]]
+   :param uncertainty_metrics: Dictionary of uncertainty metrics.
+   :type uncertainty_metrics: Dict[str, float]
+   :param y_test: Ground truth values for test set.
+   :type y_test: np.ndarray
+   :param best_pred: Predictions from the best model.
+   :type best_pred: np.ndarray
+   :param best_std: Uncertainty estimates from the best model.
+   :type best_std: np.ndarray
+   :param best_model: The best performing model.
+   :type best_model: Any
+   :param X_train: Training input features.
+   :type X_train: np.ndarray
+   :param n_train: Number of training samples.
+   :type n_train: int
+   :param n_test: Number of test samples.
+   :type n_test: int
+   :param cross_validation: Description of the CV strategy.
+   :type cross_validation: str
+   :param seed: Random seed used.
+   :type seed: int
+   :param notes: Additional notes.
+   :type notes: str
+   :param feature_names_pca: Names to use for PCA.
+   :type feature_names_pca: List[str] | None, optional
+   :param pca_explained_variance: Explained variance ratios from PCA if applied.
+   :type pca_explained_variance: List[float] | None, optional
+   :param pca_variance_plot: Base64-encoded plot showing PCA variance ratios.
+   :type pca_variance_plot: str | None, optional
+   :param pca_method: Method used to choose the number of PCA components.
+   :type pca_method: str | None, optional
+   :param pca_threshold: Explained variance threshold if that method was used.
+   :type pca_threshold: float | None, optional
+   :param pca_n_components: Final number of PCA components retained.
+   :type pca_n_components: int | None, optional
+   :param kaiser_rule_suggestion: PCA explanation statement.
+   :type kaiser_rule_suggestion: str | None, optional
+
+   :returns: Rendered HTML report.
+   :rtype: str
+
+
+.. py:data:: uploaded_file
+
+.. py:data:: df
+   :value: None
+
+

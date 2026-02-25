@@ -1,0 +1,145 @@
+multioutreg.time_series.ts_dynamic_fit.algs.sarima
+==================================================
+
+.. py:module:: multioutreg.time_series.ts_dynamic_fit.algs.sarima
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.algs.sarima.SARIMA
+
+
+Module Contents
+---------------
+
+.. py:class:: SARIMA(df: pandas.DataFrame, feature_column='customers', verbose=False, log_filename='pipeline.log')
+
+   .. py:attribute:: diff_count
+      :value: 0
+
+
+
+   .. py:attribute:: stationary
+      :value: False
+
+
+
+   .. py:attribute:: visualize
+      :value: False
+
+
+
+   .. py:attribute:: verbose
+      :value: False
+
+
+
+   .. py:attribute:: log_filename
+      :value: 'pipeline.log'
+
+
+
+   .. py:attribute:: feature_column
+      :value: 'customers'
+
+
+
+   .. py:attribute:: data
+
+
+   .. py:attribute:: orig_data
+
+
+   .. py:attribute:: diff_1_data
+      :value: None
+
+
+
+   .. py:attribute:: diff_2_data
+      :value: None
+
+
+
+   .. py:method:: log_to_file(log: str) -> None
+
+
+   .. py:method:: make_stationary(df)
+
+      ADF Statistic: Measures whether the series has a unit root (non-stationarity).
+          - If this number is less than the critical values, you can reject the null hypothesis
+          - If not then the data is likely not stationary
+
+      Args: DataFrame
+
+      Returns: Boolean, Tuple
+          This returns a tuple with multiple values. Here is what each means:
+
+          (
+           ADF Statistic, :
+           P-value,
+           Number of lags used in the test,
+           Number of observations used in the regression (after lagging),
+           Critical values for the test statistic at
+               {1%,
+                5%,
+                10%},
+           Maximized information criterion if autolag is used (e.g., AIC, BIC, etc.)
+
+          )
+
+
+
+   .. py:method:: fit_sarima(p, q, P, Q, s_value)
+
+
+   .. py:method:: grid_search_sarima(p_values=range(0, 2), q_values=range(0, 2), P_values=range(0, 2), Q_values=range(0, 2), s_value=0)
+
+      Perform a grid search to find the optimal SARIMA model order (p, d, q, s) for a given time series.
+      For our use "d" will always be 0 because we are only using this on data we previously made stationary.
+      The s value (seaosnal period) has to have its own detection run, which is why it is passed here as an argument.
+
+      This function iterates through all combinations of provided AR (p) and MA (q) orders,
+      fits an SARIMA model for each (p, 0, q, s) quartet, and selects the order with the lowest AIC score.
+      It returns the optimal model order along with the fitted model instance.
+
+      :param X: The univariate time series data to fit.
+      :type X: array-like or pandas.Series
+      :param p_values: Sequence of candidate AR (autoregressive) orders to try.
+      :type p_values: iterable of int
+      :param q_values: Sequence of candidate MA (moving average) orders to try.
+      :type q_values: iterable of int
+
+      :returns:     best_order (tuple of int): The (p, q) order with the lowest AIC value found.
+                    best_model (statsmodels SARIMAResults): The fitted ARIMA model instance corresponding to best_order.
+      :rtype: tuple
+
+      :raises Any exceptions raised by statsmodels SARIMA on invalid configurations will be caught and skipped.:
+
+
+
+   .. py:method:: detect_seasonal_period(data, max_lag=None, threshold=0.3)
+
+      Automatically find likely seasonality period based on ACF peak.
+
+      :param data: Time series data
+      :type data: array-like
+      :param max_lag: Maximum lag to check. Default: len(data)//2.
+      :type max_lag: int, optional
+      :param threshold: Minimum ACF value considered as a significant peak.
+      :type threshold: float
+
+      :returns: Most likely seasonality period (lag of first significant ACF peak).
+      :rtype: s_value (int)
+
+
+
+   .. py:method:: run() -> Tuple[Dict[str, Any], pandas.DataFrame, Any]
+
+      Runs the SARIMA parameter search, performs differencing for stationarity,
+      finds the best SARIMA model order, evaluates model performance, and returns results.
+
+
+

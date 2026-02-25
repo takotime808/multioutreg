@@ -1,0 +1,188 @@
+multioutreg.surrogates.sparse_gp_gpytorch
+=========================================
+
+.. py:module:: multioutreg.surrogates.sparse_gp_gpytorch
+
+.. autoapi-nested-parse::
+
+   Sparse GP surrogate (SGPR) — optional dependency ``pip install gpytorch``.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.sparse_gp_gpytorch._GPYTORCH_AVAILABLE
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.sparse_gp_gpytorch._SGPRModel
+   multioutreg.surrogates.sparse_gp_gpytorch.SparseGPSurrogate
+   multioutreg.surrogates.sparse_gp_gpytorch._SGPREstimator
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.sparse_gp_gpytorch._require_gpytorch
+   multioutreg.surrogates.sparse_gp_gpytorch._select_inducing_points
+
+
+Module Contents
+---------------
+
+.. py:data:: _GPYTORCH_AVAILABLE
+   :value: True
+
+
+.. py:function:: _require_gpytorch() -> None
+
+.. py:class:: _SGPRModel(train_x, train_y, likelihood, inducing_points)
+
+   Bases: :py:obj:`gpytorch.models.ExactGP if _GPYTORCH_AVAILABLE else object`
+
+
+   Single-output sparse GP with inducing points (Titsias 2009, SGPR).
+
+
+   .. py:attribute:: mean_module
+
+
+   .. py:attribute:: covar_module
+
+
+   .. py:method:: forward(x)
+
+
+.. py:function:: _select_inducing_points(X: numpy.ndarray, n_inducing: int) -> numpy.ndarray
+
+   Select inducing points via random subsampling (without replacement).
+
+
+.. py:class:: SparseGPSurrogate(n_inducing: int = 50, max_iter: int = 100, learning_rate: float = 0.1, random_state: int | None = None)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Sparse Gaussian Process surrogate with inducing points (SGPR).
+
+   Extends exact GP inference to larger datasets using a set of ``n_inducing``
+   inducing points (Titsias 2009).  Scales as O(n·m²) where m is the number
+   of inducing points, unlocking GP-quality posterior uncertainty in the
+   n = 300–10 000 regime where exact GP (O(n³)) becomes infeasible.
+
+   One GP model is trained independently per output column; predictions include
+   a calibrated posterior standard deviation.
+
+   Requires the optional ``gpytorch`` package::
+
+       pip install gpytorch
+
+   :param n_inducing: Number of inducing points.  More points → better approximation but
+                      O(m²) memory and compute.  Typical range: 20–200.
+   :type n_inducing: int, default 50
+   :param max_iter: Adam optimiser steps for hyperparameter training.
+   :type max_iter: int, default 100
+   :param learning_rate:
+   :type learning_rate: float, default 0.1
+   :param random_state:
+   :type random_state: int | None, default None
+
+
+   .. py:attribute:: n_inducing
+      :value: 50
+
+
+
+   .. py:attribute:: max_iter
+      :value: 100
+
+
+
+   .. py:attribute:: learning_rate
+      :value: 0.1
+
+
+
+   .. py:attribute:: random_state
+      :value: None
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, Y: numpy.ndarray) -> SparseGPSurrogate
+
+      Fit one SGPR per output on (X, Y).
+
+      :param X:
+      :type X: np.ndarray, shape (n_samples, n_features)
+      :param Y:
+      :type Y: np.ndarray, shape (n_samples,) or (n_samples, n_outputs)
+
+      :rtype: self
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> numpy.ndarray | tuple[np.ndarray, np.ndarray]
+
+      Predict outputs for X.
+
+      :param X:
+      :type X: np.ndarray
+      :param return_std: If True, also return posterior standard deviation.
+      :type return_std: bool, default False
+
+      :returns: * **y_pred** (*np.ndarray, shape (n_samples, n_outputs)*)
+                * **y_std** (*np.ndarray, shape (n_samples, n_outputs)  [only if return_std]*)
+
+
+
+   .. py:method:: _conformal_point_predict(X: numpy.ndarray) -> numpy.ndarray
+
+
+   .. py:method:: get_params(deep: bool = True) -> dict
+
+
+   .. py:method:: set_params(**params) -> SparseGPSurrogate
+
+
+.. py:class:: _SGPREstimator(n_inducing: int = 50, max_iter: int = 100, learning_rate: float = 0.1)
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`, :py:obj:`sklearn.base.RegressorMixin`
+
+
+   Single-output SGPR estimator (sklearn-compatible, used by GridSearchCV).
+
+   Thin wrapper so that ``AutoDetectMultiOutputRegressor.with_vendored_surrogates``
+   can include SGPR in its per-output grid search without exposing the
+   full multi-output ``SparseGPSurrogate`` API.
+
+
+   .. py:attribute:: n_inducing
+      :value: 50
+
+
+
+   .. py:attribute:: max_iter
+      :value: 100
+
+
+
+   .. py:attribute:: learning_rate
+      :value: 0.1
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> _SGPREstimator
+
+
+   .. py:method:: predict(X: numpy.ndarray) -> numpy.ndarray
+
+

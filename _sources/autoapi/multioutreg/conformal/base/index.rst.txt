@@ -1,0 +1,90 @@
+multioutreg.conformal.base
+==========================
+
+.. py:module:: multioutreg.conformal.base
+
+.. autoapi-nested-parse::
+
+   Abstract base class for conformal prediction wrappers.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.conformal.base.BaseConformalPredictor
+
+
+Module Contents
+---------------
+
+.. py:class:: BaseConformalPredictor(estimator: sklearn.base.BaseEstimator, random_state: Optional[int] = None)
+
+   Bases: :py:obj:`abc.ABC`
+
+
+   Abstract base for conformal prediction wrappers.
+
+   All conformal predictors follow a two-phase protocol:
+   1. fit(X, y) -- fits the underlying model AND calibrates nonconformity scores.
+   2. predict_interval(X, alpha) -- returns (y_lower, y_upper) with
+      guaranteed marginal coverage >= 1-alpha.
+
+   For multi-output regression, conformal calibration is applied independently
+   per output (marginal coverage guarantee per target).
+
+
+   .. py:attribute:: estimator
+
+
+   .. py:attribute:: random_state
+      :value: None
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> BaseConformalPredictor
+      :abstractmethod:
+
+
+      Fit the model and compute calibration scores.
+
+
+
+   .. py:method:: predict_interval(X: numpy.ndarray, alpha: float = 0.1) -> Tuple[numpy.ndarray, numpy.ndarray]
+      :abstractmethod:
+
+
+      Compute prediction intervals with coverage >= 1-alpha.
+
+      :returns: **y_lower, y_upper** -- Shape (n_samples,) for single output or (n_samples, n_outputs).
+      :rtype: np.ndarray
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, alpha: Optional[float] = None) -> Union[numpy.ndarray, Tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]]
+
+      Point predictions. If alpha is given, returns (y_pred, y_lower, y_upper).
+
+
+
+   .. py:method:: _ensure_2d(y: numpy.ndarray) -> numpy.ndarray
+      :staticmethod:
+
+
+      Ensure y is 2D (n_samples, n_outputs).
+
+
+
+   .. py:method:: _conformal_quantile(scores: numpy.ndarray, alpha: float) -> float
+      :staticmethod:
+
+
+      Compute the conformal quantile with finite-sample correction.
+
+      Uses q = ceil((n+1)(1-alpha)) / n, which guarantees
+      P(Y in interval) >= 1-alpha for exchangeable data.
+
+
+

@@ -1,0 +1,75 @@
+multioutreg.surrogates.conformal_network_sklearn
+================================================
+
+.. py:module:: multioutreg.surrogates.conformal_network_sklearn
+
+.. autoapi-nested-parse::
+
+   Neural-network surrogate with split-conformal uncertainty estimates.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.conformal_network_sklearn.ConformalPredictionNetworkSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: ConformalPredictionNetworkSurrogate(hidden_layer_sizes=(100, ), alpha=0.0001, max_iter=500, calibration_fraction=0.2, conformal_quantile=0.9, random_state=None)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   MLP surrogate with calibrated residual-based predictive uncertainty.
+
+
+   .. py:attribute:: hidden_layer_sizes
+      :value: (100,)
+
+
+
+   .. py:attribute:: alpha
+      :value: 0.0001
+
+
+
+   .. py:attribute:: max_iter
+      :value: 500
+
+
+
+   .. py:attribute:: calibration_fraction
+      :value: 0.2
+
+
+
+   .. py:attribute:: conformal_quantile
+      :value: 0.9
+
+
+
+   .. py:attribute:: random_state
+      :value: None
+
+
+
+   .. py:method:: get_params(deep=True)
+
+
+   .. py:method:: set_params(**params)
+
+
+   .. py:method:: _make_model()
+
+
+   .. py:method:: fit(X, Y)
+
+
+   .. py:method:: predict(X, return_std=False)
+
+

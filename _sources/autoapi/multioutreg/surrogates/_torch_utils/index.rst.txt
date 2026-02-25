@@ -1,0 +1,97 @@
+multioutreg.surrogates._torch_utils
+===================================
+
+.. py:module:: multioutreg.surrogates._torch_utils
+
+.. autoapi-nested-parse::
+
+   Shared PyTorch training utilities for surrogate models.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.surrogates._torch_utils._TORCH_AVAILABLE
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates._torch_utils.TorchStandardScaler
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.surrogates._torch_utils.require_torch
+   multioutreg.surrogates._torch_utils.train_loop
+   multioutreg.surrogates._torch_utils.to_tensor
+
+
+Module Contents
+---------------
+
+.. py:data:: _TORCH_AVAILABLE
+   :value: True
+
+
+.. py:function:: require_torch()
+
+.. py:class:: TorchStandardScaler
+
+   StandardScaler for numpy arrays used before/after PyTorch forward passes.
+
+
+   .. py:method:: fit(X: numpy.ndarray) -> TorchStandardScaler
+
+
+   .. py:method:: transform(X: numpy.ndarray) -> numpy.ndarray
+
+
+   .. py:method:: inverse_transform(X: numpy.ndarray) -> numpy.ndarray
+
+
+   .. py:method:: fit_transform(X: numpy.ndarray) -> numpy.ndarray
+
+
+.. py:function:: train_loop(model: torch.nn.Module, optimizer: torch.optim.Optimizer, loss_fn, X_tensor: torch.Tensor, Y_tensor: torch.Tensor, max_epochs: int = 500, batch_size: int = 64, patience: int = 20, min_delta: float = 1e-06, lr_scheduler: torch.optim.lr_scheduler._LRScheduler | None = None) -> list[float]
+
+   Standard mini-batch training loop with early stopping.
+
+   :param model:
+   :type model: nn.Module
+   :param optimizer:
+   :type optimizer: torch.optim.Optimizer
+   :param loss_fn: Called as ``loss_fn(y_pred, y_true)`` and returns a scalar tensor.
+   :type loss_fn: callable
+   :param X_tensor: Full training data (will be batched internally).
+   :type X_tensor: torch.Tensor
+   :param Y_tensor: Full training data (will be batched internally).
+   :type Y_tensor: torch.Tensor
+   :param max_epochs:
+   :type max_epochs: int
+   :param batch_size:
+   :type batch_size: int
+   :param patience: Number of epochs without improvement before stopping.
+   :type patience: int
+   :param min_delta: Minimum absolute improvement to reset patience counter.
+   :type min_delta: float
+   :param lr_scheduler: Called as ``lr_scheduler.step()`` after each epoch.
+   :type lr_scheduler: optional
+
+   :returns: **losses** -- Training loss per epoch.
+   :rtype: list[float]
+
+
+.. py:function:: to_tensor(X: numpy.ndarray, dtype=None) -> torch.Tensor
+
+   Convert numpy array to float32 tensor.
+
+

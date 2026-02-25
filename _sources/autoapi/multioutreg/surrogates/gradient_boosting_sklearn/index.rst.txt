@@ -1,0 +1,25 @@
+multioutreg.surrogates.gradient_boosting_sklearn
+================================================
+
+.. py:module:: multioutreg.surrogates.gradient_boosting_sklearn
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.gradient_boosting_sklearn.GradientBoostingSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: GradientBoostingSurrogate(**kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   Gradient Boosting regression surrogate.
+
+

@@ -1,0 +1,91 @@
+multioutreg.figures.residuals
+=============================
+
+.. py:module:: multioutreg.figures.residuals
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.residuals.plot_residuals_multioutput
+   multioutreg.figures.residuals.plot_residuals_multioutput_with_regplot
+
+
+Module Contents
+---------------
+
+.. py:function:: plot_residuals_multioutput(y_pred: numpy.ndarray, y_true: numpy.ndarray, max_cols: int = 3, base_width: int = 8, base_height: int = 7, savefig: str = False, suptitle: str = 'Residuals vs. Predicted Value', supxlabel: str = 'Predicted Value', supylabel: str = 'Residual (Observed - Predicted)', target_list: list = None) -> List[matplotlib.pyplot.Axes]
+
+   Plot residuals (Observed - Predicted) for each target in a multi-output regression problem.
+
+   Each output (target) gets its own subplot, all sharing y-limits for easy visual comparison.
+   Layout is a grid with up to `max_cols` columns per row. Shared axis labels and a customizable
+   figure title are supported.
+
+   :param y_pred: Predicted values, shape (n_samples, n_targets) or (n_samples,).
+   :type y_pred: np.ndarray
+   :param y_true: True values, shape (n_samples, n_targets) or (n_samples,).
+   :type y_true: np.ndarray
+   :param max_cols: Maximum number of columns in the subplot grid (default is 3).
+   :type max_cols: int, optional
+   :param base_width: Width of each subplot in inches (default is 8).
+   :type base_width: int, optional
+   :param base_height: Height of each subplot in inches (default is 7).
+   :type base_height: int, optional
+   :param savefig: If a string, the path where the figure should be saved (e.g. "plot.png"). If False (default), the plot is shown instead.
+   :type savefig: str or bool, optional
+   :param suptitle: Overall title for the figure (default is "Residuals vs. Predicted Value").
+   :type suptitle: str, optional
+   :param supxlabel: Shared x-axis label for all subplots (default is "Predicted Value").
+   :type supxlabel: str, optional
+   :param supylabel: Shared y-axis label for all subplots (default is "Residual (Observed - Predicted)").
+   :type supylabel: str, optional
+   :param target_list: List of titles for each target subplot (default is ["Target 1", "Target 2", ...]).
+   :type target_list: list of str, optional
+
+   :returns: List of matplotlib Axes objects for each subplot.
+   :rtype: List[plt.Axes]
+
+   .. rubric:: Example
+
+   >>> plot_residuals_multioutput(y_pred, y_true, suptitle="Residuals for Each Output")
+   >>> plot_residuals_multioutput(y_pred, y_true, savefig="residuals.png", target_list=["Pressure", "Temperature"])
+
+   .. admonition:: Notes
+
+      - If `savefig` is provided as a string, the figure is saved to disk and not displayed interactively.
+      - Extra/empty subplot axes are hidden if n_targets is not a multiple of max_cols.
+
+
+.. py:function:: plot_residuals_multioutput_with_regplot(y_pred: numpy.ndarray, y_true: numpy.ndarray, max_cols: int = 3, base_width: int = 8, base_height: int = 7, savefig: str = False, suptitle: str = 'Residuals vs. Predicted Value', supxlabel: str = 'Predicted Value', supylabel: str = 'Residual (Observed - Predicted)', target_list: list = None) -> List[matplotlib.pyplot.Axes]
+
+   Plot residuals (Observed - Predicted) for each target in a multi-output regression problem,
+   using seaborn.regplot (scatter+trend line) in each subplot.
+
+   :param y_pred: Predicted values, shape (n_samples, n_targets) or (n_samples,).
+   :type y_pred: np.ndarray
+   :param y_true: True values, shape (n_samples, n_targets) or (n_samples,).
+   :type y_true: np.ndarray
+   :param max_cols: Maximum number of columns in the subplot grid (default is 3).
+   :type max_cols: int, optional
+   :param base_width: Width of each subplot in inches (default is 8).
+   :type base_width: int, optional
+   :param base_height: Height of each subplot in inches (default is 7).
+   :type base_height: int, optional
+   :param savefig: If a string, the path where the figure should be saved (e.g. "plot.png"). If False (default), the plot is shown instead.
+   :type savefig: str or bool, optional
+   :param suptitle: Overall title for the figure (default is "Residuals vs. Predicted Value").
+   :type suptitle: str, optional
+   :param supxlabel: Shared x-axis label for all subplots (default is "Predicted Value").
+   :type supxlabel: str, optional
+   :param supylabel: Shared y-axis label for all subplots (default is "Residual (Observed - Predicted)").
+   :type supylabel: str, optional
+   :param target_list: List of titles for each target subplot (default is ["Target 1", "Target 2", ...]).
+   :type target_list: list of str, optional
+
+   :returns: List of matplotlib Axes objects for each subplot.
+   :rtype: List[plt.Axes]
+
+

@@ -1,0 +1,160 @@
+multioutreg.surrogates.deep_ensemble_pytorch
+============================================
+
+.. py:module:: multioutreg.surrogates.deep_ensemble_pytorch
+
+.. autoapi-nested-parse::
+
+   Deep Ensemble surrogate — gold-standard UQ via N independent networks.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.deep_ensemble_pytorch._MULTI_OUTPUT
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.deep_ensemble_pytorch.DeepEnsembleSurrogate
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.deep_ensemble_pytorch._build_network
+
+
+Module Contents
+---------------
+
+.. py:data:: _MULTI_OUTPUT
+   :value: True
+
+
+.. py:function:: _build_network(n_features: int, n_outputs: int, hidden_layer_sizes: tuple)
+
+   Build a simple deterministic feed-forward network (no dropout).
+
+
+.. py:class:: DeepEnsembleSurrogate(n_estimators: int = 5, hidden_layer_sizes: tuple = (128, 64), max_epochs: int = 500, learning_rate: float = 0.001, batch_size: int = 64, patience: int = 30, random_state: int | None = None)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Deep Ensemble surrogate (Lakshminarayanan et al. 2017).
+
+   Trains ``n_estimators`` independent feed-forward networks from different
+   random seeds and uses their prediction disagreement as epistemic uncertainty.
+   This approach consistently outperforms single-model uncertainty methods
+   (MC Dropout, conformal wrappers) on calibration benchmarks.
+
+   Each network is trained with MSE loss.  At inference the ensemble mean is
+   the point estimate; predictive std is the cross-network standard deviation.
+
+   Requires PyTorch (core dependency)::
+
+       pip install torch
+
+   :param n_estimators: Number of independent networks in the ensemble.  5 gives a good
+                        variance estimate; 10+ improves calibration at extra compute cost.
+   :type n_estimators: int, default 5
+   :param hidden_layer_sizes: Width of each hidden layer.
+   :type hidden_layer_sizes: tuple[int, ...], default (128, 64)
+   :param max_epochs:
+   :type max_epochs: int, default 500
+   :param learning_rate:
+   :type learning_rate: float, default 1e-3
+   :param batch_size:
+   :type batch_size: int, default 64
+   :param patience: Early-stopping patience (epochs without improvement).
+   :type patience: int, default 30
+   :param random_state: Base seed; individual networks use ``random_state + i`` so each
+                        gets a distinct initialisation.
+   :type random_state: int | None, default None
+
+
+   .. py:attribute:: _multi_output
+      :value: True
+
+
+
+   .. py:attribute:: n_estimators
+      :value: 5
+
+
+
+   .. py:attribute:: hidden_layer_sizes
+      :value: (128, 64)
+
+
+
+   .. py:attribute:: max_epochs
+      :value: 500
+
+
+
+   .. py:attribute:: learning_rate
+      :value: 0.001
+
+
+
+   .. py:attribute:: batch_size
+      :value: 64
+
+
+
+   .. py:attribute:: patience
+      :value: 30
+
+
+
+   .. py:attribute:: random_state
+      :value: None
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, Y: numpy.ndarray) -> DeepEnsembleSurrogate
+
+      Train all ensemble members on (X, Y).
+
+      :param X:
+      :type X: np.ndarray, shape (n_samples, n_features)
+      :param Y:
+      :type Y: np.ndarray, shape (n_samples,) or (n_samples, n_outputs)
+
+      :rtype: self
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> numpy.ndarray | tuple[np.ndarray, np.ndarray]
+
+      Predict outputs for X.
+
+      :param X:
+      :type X: np.ndarray
+      :param return_std: If True, also return predictive std estimated from ensemble spread.
+      :type return_std: bool, default False
+
+      :returns: * **y_pred** (*np.ndarray, shape (n_samples, n_outputs)*)
+                * **y_std** (*np.ndarray, shape (n_samples, n_outputs)  [only if return_std]*)
+
+
+
+   .. py:method:: _conformal_point_predict(X: numpy.ndarray) -> numpy.ndarray
+
+
+   .. py:method:: get_params(deep: bool = True) -> dict
+
+
+   .. py:method:: set_params(**params) -> DeepEnsembleSurrogate
+
+

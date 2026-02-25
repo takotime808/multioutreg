@@ -1,0 +1,127 @@
+multioutreg.time_series.chronos_adapter
+=======================================
+
+.. py:module:: multioutreg.time_series.chronos_adapter
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.time_series.chronos_adapter._import_err
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.time_series.chronos_adapter.ForecastResult
+   multioutreg.time_series.chronos_adapter.ChronosForecaster
+
+
+Module Contents
+---------------
+
+.. py:data:: _import_err
+
+.. py:class:: ForecastResult
+
+   Container for forecast outputs.
+
+
+   .. py:attribute:: quantiles
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: q_levels
+      :type:  Tuple[float, Ellipsis]
+
+
+   .. py:attribute:: ids
+      :type:  Tuple[str, Ellipsis]
+      :value: ()
+
+
+
+   .. py:property:: median
+      :type: numpy.ndarray
+
+
+
+.. py:class:: ChronosForecaster(model_name: str = 'amazon/chronos-bolt-base', device: str | None = None, torch_dtype: Optional[torch.dtype] = None, context_length: Optional[int] = None, default_quantiles: Sequence[float] = (0.1, 0.5, 0.9))
+
+   Thin, sklearn-ish wrapper around Chronos / Chronos-Bolt.
+
+   - For *Bolt* models (e.g., 'amazon/chronos-bolt-base'): direct multi-step *quantile* forecasting.
+   - For original *Chronos* (e.g., 'amazon/chronos-t5-small'): we sample trajectories and compute quantiles.
+
+   References: Chronos paper & repo.
+
+
+   .. py:attribute:: model_name
+      :value: 'amazon/chronos-bolt-base'
+
+
+
+   .. py:attribute:: device
+      :value: 'cpu'
+
+
+
+   .. py:attribute:: torch_dtype
+      :value: Ellipsis
+
+
+
+   .. py:attribute:: context_length
+      :value: None
+
+
+
+   .. py:attribute:: default_quantiles
+
+
+   .. py:attribute:: _is_bolt
+
+
+   .. py:attribute:: _pipe
+
+
+   .. py:attribute:: _series_ids
+      :type:  Tuple[str, Ellipsis]
+      :value: ()
+
+
+
+   .. py:attribute:: _contexts
+      :type:  list[torch.Tensor]
+      :value: []
+
+
+
+   .. py:method:: fit(y: pandas.Series | numpy.ndarray | pandas.DataFrame | Dict[str, Iterable[float]]) -> ChronosForecaster
+
+      Fit simply records the historical context (Chronos is pretrained / zero-shot).
+      Accepts:
+        - 1D array/Series (single univariate series)
+        - DataFrame with 1+ columns (multi-target => per-column series)
+        - dict of {name: sequence}
+
+
+
+   .. py:method:: predict(prediction_length: int, quantiles: Optional[Sequence[float]] = None, num_samples: int = 200) -> ForecastResult
+
+      Returns quantile forecasts with shape [n_series, n_quantiles, horizon].
+
+
+
+   .. py:method:: _left_pad(contexts: Sequence[torch.Tensor]) -> torch.Tensor
+      :staticmethod:
+
+
+      Left-pad 1D tensors to same length: shape [B, T].
+
+
+

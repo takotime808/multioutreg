@@ -1,0 +1,109 @@
+multioutreg.surrogates.gating_network
+=====================================
+
+.. py:module:: multioutreg.surrogates.gating_network
+
+.. autoapi-nested-parse::
+
+   Gating network implementations for MixtureOfExpertsSurrogate.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.gating_network.LinearGatingNetwork
+   multioutreg.surrogates.gating_network.MLPGatingNetwork
+
+
+Module Contents
+---------------
+
+.. py:class:: LinearGatingNetwork(n_experts: int, random_state: int | None = None)
+
+   Linear softmax gating: input -> (n_experts,) expert weights.
+
+   Implemented as multinomial logistic regression on hard-assignment labels.
+
+   :param n_experts:
+   :type n_experts: int
+   :param random_state:
+   :type random_state: int | None, default None
+
+
+   .. py:attribute:: n_experts
+
+
+   .. py:attribute:: random_state
+      :value: None
+
+
+
+   .. py:attribute:: _clf
+
+
+   .. py:attribute:: _scaler
+
+
+   .. py:method:: fit(X: numpy.ndarray, labels: numpy.ndarray) -> LinearGatingNetwork
+
+      Fit on hard-assignment labels.
+
+      :param X:
+      :type X: np.ndarray, shape (n_samples, n_features)
+      :param labels:
+      :type labels: np.ndarray, shape (n_samples,)  integer in [0, n_experts)
+
+
+
+   .. py:method:: predict_proba(X: numpy.ndarray) -> numpy.ndarray
+
+      Return (n_samples, n_experts) soft assignment weights.
+
+
+
+.. py:class:: MLPGatingNetwork(n_experts: int, hidden_layer_sizes: tuple = (64, 32), random_state: int | None = None)
+
+   MLP gating network with softmax output.
+
+   :param n_experts:
+   :type n_experts: int
+   :param hidden_layer_sizes:
+   :type hidden_layer_sizes: tuple[int, ...], default (64, 32)
+   :param random_state:
+   :type random_state: int | None, default None
+
+
+   .. py:attribute:: n_experts
+
+
+   .. py:attribute:: hidden_layer_sizes
+      :value: (64, 32)
+
+
+
+   .. py:attribute:: random_state
+      :value: None
+
+
+
+   .. py:attribute:: _clf
+
+
+   .. py:attribute:: _scaler
+
+
+   .. py:method:: fit(X: numpy.ndarray, labels: numpy.ndarray) -> MLPGatingNetwork
+
+      Fit on hard-assignment labels.
+
+
+
+   .. py:method:: predict_proba(X: numpy.ndarray) -> numpy.ndarray
+
+      Return (n_samples, n_experts) soft assignment weights.
+
+
+

@@ -1,0 +1,18 @@
+multioutreg.time_series.ts_dynamic_fit.data_handling
+====================================================
+
+.. py:module:: multioutreg.time_series.ts_dynamic_fit.data_handling
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/Analyzer/index
+   /autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/DataProcessor/index
+   /autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/PullData/index
+   /autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/ingest/index
+
+

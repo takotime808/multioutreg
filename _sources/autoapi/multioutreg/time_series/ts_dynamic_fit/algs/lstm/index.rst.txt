@@ -1,0 +1,176 @@
+multioutreg.time_series.ts_dynamic_fit.algs.lstm
+================================================
+
+.. py:module:: multioutreg.time_series.ts_dynamic_fit.algs.lstm
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.algs.lstm.LSTMModel
+   multioutreg.time_series.ts_dynamic_fit.algs.lstm.LSTM
+
+
+Module Contents
+---------------
+
+.. py:class:: LSTMModel(input_size: int = 1, hidden_layer_size: int = 128, num_layers: int = 2, output_size: int = 10)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Base class for all neural network modules.
+
+   Your models should also subclass this class.
+
+   Modules can also contain other Modules, allowing them to be nested in
+   a tree structure. You can assign the submodules as regular attributes::
+
+       import torch.nn as nn
+       import torch.nn.functional as F
+
+
+       class Model(nn.Module):
+           def __init__(self) -> None:
+               super().__init__()
+               self.conv1 = nn.Conv2d(1, 20, 5)
+               self.conv2 = nn.Conv2d(20, 20, 5)
+
+           def forward(self, x):
+               x = F.relu(self.conv1(x))
+               return F.relu(self.conv2(x))
+
+   Submodules assigned in this way will be registered, and will also have their
+   parameters converted when you call :meth:`to`, etc.
+
+   .. note::
+       As per the example above, an ``__init__()`` call to the parent class
+       must be made before assignment on the child.
+
+   :ivar training: Boolean represents whether this module is in training or
+                   evaluation mode.
+   :vartype training: bool
+
+
+   .. py:attribute:: hidden_layer_size
+      :value: 128
+
+
+
+   .. py:attribute:: lstm
+
+
+   .. py:attribute:: linear
+
+
+   .. py:method:: forward(input_seq: torch.FloatTensor) -> torch.FloatTensor
+
+      Forward pass to produce a multi-step forecast.
+
+      :param input_seq: Sequence data for prediction.
+      :type input_seq: torch.FloatTensor
+
+      :returns: Model outputs for multi-step forecast.
+      :rtype: torch.FloatTensor
+
+
+
+.. py:class:: LSTM(df: pandas.DataFrame, fut_pred: int, feature_column: str = 'customers', train_window: int = 10, verbose: bool = False, log_filename: str = 'pipeline.log')
+
+   .. py:attribute:: verbose
+      :value: False
+
+
+
+   .. py:attribute:: data
+
+
+   .. py:attribute:: orig_data
+
+
+   .. py:attribute:: train_window
+      :value: 10
+
+
+
+   .. py:attribute:: log_filename
+      :value: 'pipeline.log'
+
+
+
+   .. py:attribute:: scaled_data
+      :value: None
+
+
+
+   .. py:method:: log_to_file(log: str) -> None
+
+      Appends log message to file.
+
+      :param log: Log message.
+      :type log: str
+
+      :returns: None
+
+
+
+   .. py:method:: create_inout_sequences(input_data: torch.FloatTensor, window: int, fut_pred: int) -> list
+
+      Creates input-output sequences for training.
+
+      :param input_data: Scaled time series data.
+      :type input_data: torch.FloatTensor
+      :param window: Sequence window size.
+      :type window: int
+      :param fut_pred: Prediction horizon.
+      :type fut_pred: int
+
+      :returns: List of (train_seq, train_label) tuples for training.
+      :rtype: list
+
+
+
+   .. py:method:: visualize(historical_df: pandas.Series, future_preds: numpy.ndarray, fut_pred: int, resid_std: Optional[float] = None) -> None
+
+      Plots actual values, forecasts, and optionally confidence intervals.
+
+      :param historical_df: Original historical time series data.
+      :type historical_df: pd.Series
+      :param future_preds: Future predictions from the model.
+      :type future_preds: np.ndarray
+      :param fut_pred: Prediction horizon.
+      :type fut_pred: int
+      :param resid_std: Residual standard deviation (for interval).
+      :type resid_std: Optional[float]
+
+      :returns: None
+
+
+
+   .. py:method:: convert_keys_to_str(obj: Any) -> Any
+
+      Recursively converts dictionary keys to strings if pandas timestamps.
+
+      :param obj: Input dictionary or list.
+      :type obj: Any
+
+      :returns: Object with keys converted to strings.
+      :rtype: Any
+
+
+
+   .. py:method:: run() -> Tuple[Dict[str, Any], pandas.Series, LSTMModel]
+
+      Trains LSTM model, predicts, evaluates, and returns metadata and objects.
+
+      :returns:     - performance and metadata dictionary
+                    - original time series
+                    - trained model
+      :rtype: Tuple[Dict[str, Any], pd.Series, LSTMModel]
+
+      :raises None:
+
+
+

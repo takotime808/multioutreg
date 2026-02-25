@@ -1,0 +1,155 @@
+multioutreg.surrogates.rfgp_sklearn
+===================================
+
+.. py:module:: multioutreg.surrogates.rfgp_sklearn
+
+.. autoapi-nested-parse::
+
+   Random Fourier Feature Gaussian Process surrogate.
+
+   Approximates a stationary kernel GP using Bochner's theorem (Rahimi & Recht,
+   2007).  Training cost is O(D·n) instead of the O(n³) required by an exact GP,
+   where D is the number of random Fourier features.  Uncertainty estimates are
+   derived from the Bayesian Ridge posterior in the lifted feature space —
+   analytic, no sampling required.
+
+   Supported kernels
+   -----------------
+   * ``'rbf'``      — Radial Basis Function / squared-exponential.
+                      Spectral density: N(0, 1/l²).
+   * ``'matern32'`` — Matérn ν=3/2.  Spectral density: multivariate Student-t
+                      with 2ν=3 degrees of freedom.
+                      Sampled as z·√(ν/u)/l, z~N(0,I), u~Gamma(ν,1).
+   * ``'matern52'`` — Matérn ν=5/2.  Spectral density: multivariate Student-t
+                      with 2ν=5 degrees of freedom.
+                      Sampled as z·√(ν/u)/l, z~N(0,I), u~Gamma(ν,1).
+
+   The Matérn kernels are less smooth than RBF and are often a better prior for
+   physical engineering surrogates that have finite differentiability.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.rfgp_sklearn._VALID_KERNELS
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.rfgp_sklearn._RFFEstimator
+   multioutreg.surrogates.rfgp_sklearn.RFFGPSurrogate
+
+
+Module Contents
+---------------
+
+.. py:data:: _VALID_KERNELS
+   :value: ('rbf', 'matern32', 'matern52')
+
+
+.. py:class:: _RFFEstimator(n_components=500, length_scale=1.0, kernel='rbf', random_state=None)
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`, :py:obj:`sklearn.base.RegressorMixin`
+
+
+   Single-output RFF-GP estimator (sklearn-compatible, used by GridSearchCV).
+
+
+   .. py:attribute:: n_components
+      :value: 500
+
+
+
+   .. py:attribute:: length_scale
+      :value: 1.0
+
+
+
+   .. py:attribute:: kernel
+      :value: 'rbf'
+
+
+
+   .. py:attribute:: random_state
+      :value: None
+
+
+
+   .. py:method:: _sample_frequencies(rng, n_features: int, D: int) -> numpy.ndarray
+
+      Sample spectral frequencies ω according to the chosen kernel.
+
+
+
+   .. py:method:: _rff_transform(X: numpy.ndarray) -> numpy.ndarray
+
+
+   .. py:method:: fit(X, y)
+
+
+   .. py:method:: predict(X, return_std=False)
+
+
+.. py:class:: RFFGPSurrogate(n_components=500, length_scale=1.0, kernel='rbf', random_state=None)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Random Fourier Feature Gaussian Process surrogate.
+
+   Fits one :class:`_RFFEstimator` per output column.  Compared to the exact
+   GP, this model:
+
+   * Trains in O(D·n) instead of O(n³)
+   * Predicts in O(D) instead of O(n)
+   * Uses zero external dependencies beyond numpy and sklearn
+   * Preserves the kernel structure of the chosen stationary kernel
+
+   :param n_components: Number of random Fourier features D. Higher values give a better
+                        kernel approximation; 500 is usually sufficient.
+   :type n_components: int
+   :param length_scale: Length scale of the kernel being approximated.
+   :type length_scale: float
+   :param kernel: Kernel type.  One of ``'rbf'``, ``'matern32'``, ``'matern52'``.
+                  Matérn kernels use Student-t spectral sampling and are less smooth
+                  than RBF, making them a better prior for many physical models.
+   :type kernel: str
+   :param random_state: Seed for the random frequency draw, for reproducibility.
+   :type random_state: int or None
+
+
+   .. py:attribute:: n_components
+      :value: 500
+
+
+
+   .. py:attribute:: length_scale
+      :value: 1.0
+
+
+
+   .. py:attribute:: kernel
+      :value: 'rbf'
+
+
+
+   .. py:attribute:: random_state
+      :value: None
+
+
+
+   .. py:method:: fit(X, Y)
+
+
+   .. py:method:: predict(X, return_std=False)
+
+
+   .. py:method:: _conformal_point_predict(X)
+
+

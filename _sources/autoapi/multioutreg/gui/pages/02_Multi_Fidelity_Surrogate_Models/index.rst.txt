@@ -1,0 +1,79 @@
+multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models
+========================================================
+
+.. py:module:: multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models
+
+.. autoapi-nested-parse::
+
+   Streamlit page for multi-fidelity surrogate modeling.
+
+   Accepts a single CSV with a fidelity level column, splits data per level,
+   and grid-searches over combinations of multi-fidelity surrogate types and
+   base surrogate classes:
+
+   * StackedVFMSurrogate  — nonlinear recursive feature augmentation (N levels)
+   * AdditiveCorrectionVFM — two-level additive correction (Kennedy-O'Hagan)
+   * MultiFidelitySurrogate — independent surrogate per level (no coupling)
+
+   Example data can be downloaded from the "Other Dataset Examples" page.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models.uploaded_file
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models.df
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models.generate_html_report
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._split_by_fidelity
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._compute_metrics
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._build_candidates
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._fit_candidate
+
+
+Module Contents
+---------------
+
+.. py:function:: generate_html_report(model_type: str, fidelity_levels: List[str], output_names: List[str], description: str, metrics: Dict[str, Dict[str, float]], uncertainty_metrics: Dict[str, float], y_test: numpy.ndarray, best_pred: numpy.ndarray, best_std: numpy.ndarray, best_model: Any, X_train: numpy.ndarray, n_train: int, n_test: int, cross_validation: str, seed: int, notes: str, conformal_intervals: tuple | None = None, conformal_alpha: float | None = None, imputation_summary: dict | None = None) -> str
+
+   Render a Jinja2 HTML report from model evaluation results.
+
+
+.. py:function:: _split_by_fidelity(df: pandas.DataFrame, fidelity_col: str, input_cols: List[str], output_cols: List[str], ordered_levels: List) -> Dict[str, tuple]
+
+   Return ``{level_name: (X, Y)}`` for each fidelity level.
+
+
+.. py:function:: _compute_metrics(y_test: numpy.ndarray, y_pred: numpy.ndarray, y_std: numpy.ndarray, output_names: List[str]) -> Dict[str, Dict[str, float]]
+
+.. py:function:: _build_candidates(level_names: List[str], skip_expensive: bool) -> List[dict]
+
+   Return a list of candidate configs for the grid search.
+
+   Each config is a dict with keys:
+       name            display name for the results table
+       mf_type         "stacked" | "additive" | "independent"
+       surrogate_cls   base surrogate class
+       augment_with_std  bool (StackedVFM only)
+
+
+.. py:function:: _fit_candidate(cand: dict, train_data: Dict[str, tuple], level_names: List[str]) -> Any
+
+   Fit and return the model described by *cand*.
+
+
+.. py:data:: uploaded_file
+
+.. py:data:: df
+   :value: None
+
+

@@ -1,0 +1,46 @@
+multioutreg.surrogates.multi_fidelity
+=====================================
+
+.. py:module:: multioutreg.surrogates.multi_fidelity
+
+.. autoapi-nested-parse::
+
+   Multi-fidelity wrapper for surrogate models.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.multi_fidelity.MultiFidelitySurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: MultiFidelitySurrogate(surrogate_cls, fidelity_levels: Iterable[str])
+
+   Manage surrogates for different fidelity levels.
+
+
+   .. py:attribute:: fidelity_levels
+
+
+   .. py:attribute:: models
+      :type:  Dict[str, multioutreg.surrogates.base_sklearn.BaseSurrogate]
+
+
+   .. py:method:: fit(data: Union[Dict[str, Tuple[numpy.ndarray, numpy.ndarray]], Tuple[numpy.ndarray, numpy.ndarray]]) -> MultiFidelitySurrogate
+
+      Fit surrogates for each fidelity level.
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, level: str | None = None, return_std: bool = False)
+
+      Predict with the surrogate corresponding to ``level``.
+
+
+

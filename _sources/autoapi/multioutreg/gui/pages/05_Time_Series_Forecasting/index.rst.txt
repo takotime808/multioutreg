@@ -1,0 +1,29 @@
+multioutreg.gui.pages.05_Time_Series_Forecasting
+================================================
+
+.. py:module:: multioutreg.gui.pages.05_Time_Series_Forecasting
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.05_Time_Series_Forecasting._TS_DIR
+   multioutreg.gui.pages.05_Time_Series_Forecasting.uploaded
+   multioutreg.gui.pages.05_Time_Series_Forecasting._ts_available
+
+
+Module Contents
+---------------
+
+.. py:data:: _TS_DIR
+   :value: b'.'
+
+
+.. py:data:: uploaded
+
+.. py:data:: _ts_available
+   :value: False
+
+

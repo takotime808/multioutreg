@@ -1,0 +1,18 @@
+multioutreg.report
+==================
+
+.. py:module:: multioutreg.report
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/report/generate_report/index
+   /autoapi/multioutreg/report/generate_report1/index
+   /autoapi/multioutreg/report/generate_report1_safe/index
+   /autoapi/multioutreg/report/template/index
+
+

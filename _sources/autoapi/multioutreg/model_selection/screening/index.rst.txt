@@ -1,0 +1,312 @@
+multioutreg.model_selection.screening
+=====================================
+
+.. py:module:: multioutreg.model_selection.screening
+
+.. autoapi-nested-parse::
+
+   Statistical pre-screening tests for model selection.
+
+   Runs inexpensive statistical tests on (X, Y) *before* training any model so that
+   unsuitable or computationally expensive models can be skipped.
+
+   Six tests are provided:
+
+   1. **Sample size** — rule-based thresholds gate GP (O(N³)), SVR, MLP, and bootstrap LR.
+   2. **Normality** (Shapiro-Wilk / D'Agostino K²) — non-normal residuals suggest
+      tree-based or non-linear models.
+   3. **Linearity** (Ramsey RESET) — detected non-linearity activates RF, GB, MLP, DT.
+   4. **Heteroscedasticity** (Breusch-Pagan) — input-dependent variance activates quantile
+      GB and heteroscedastic ensemble wrappers.
+   5. **Multicollinearity** (VIF) — flags unstable linear model fits.
+   6. **Non-linear dependency** (cross-validated RF–LR R² gain) — confirms whether a
+      non-linear model actually outperforms linear regression on this data.
+
+   Quick usage::
+
+       from multioutreg.model_selection.screening import ModelScreener
+
+       screener = ModelScreener().fit(X_train, Y_train)
+       specs = screener.screen()                    # global candidate list
+       matrix = screener.screen_per_output(names)   # per-output boolean schedule
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.model_selection.screening.TestResult
+   multioutreg.model_selection.screening.ModelScreener
+   multioutreg.model_selection.screening.ModelSpec
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.model_selection.screening.test_sample_size
+   multioutreg.model_selection.screening.test_normality
+   multioutreg.model_selection.screening.test_linearity
+   multioutreg.model_selection.screening.test_heteroscedasticity
+   multioutreg.model_selection.screening.test_multicollinearity
+   multioutreg.model_selection.screening.test_nonlinear_dependency
+   multioutreg.model_selection.screening._eligible_for_output_j
+   multioutreg.model_selection.screening._lr
+   multioutreg.model_selection.screening._gp
+   multioutreg.model_selection.screening._rf
+   multioutreg.model_selection.screening._gb
+   multioutreg.model_selection.screening._svr
+   multioutreg.model_selection.screening._knn
+   multioutreg.model_selection.screening._dt
+   multioutreg.model_selection.screening._mlp
+   multioutreg.model_selection.screening._blr
+   multioutreg.model_selection.screening._gbq
+   multioutreg.model_selection.screening._ehet
+
+
+Module Contents
+---------------
+
+.. py:class:: TestResult
+
+   Result of a single statistical test.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: passed
+      :type:  bool
+
+
+   .. py:attribute:: statistic
+      :type:  float
+
+
+   .. py:attribute:: p_value
+      :type:  Optional[float]
+
+
+   .. py:attribute:: message
+      :type:  str
+
+
+   .. py:attribute:: alpha
+      :type:  float
+      :value: 0.05
+
+
+
+   .. py:method:: __repr__() -> str
+
+
+.. py:function:: test_sample_size(X: numpy.ndarray) -> Dict[str, TestResult]
+
+   Rule-based sample-size thresholds — no p-value, purely deterministic.
+
+   Returns a dict with keys:
+   - ``gp_feasible``       — N < 300  (GP cost O(N³))
+   - ``svr_feasible``      — N < 2000 (SVR kernel matrix O(N²))
+   - ``mlp_feasible``      — N > 100  (MLP needs sufficient data)
+   - ``bootstrap_needed``  — N < 500  (bootstrap LR adds value on small N)
+   - ``knn_ratio_ok``      — N/p > 10 (KNN degrades in high dimensions)
+   - ``pbr_feasible``      — p < 20   (degree-2 expansion of 20+ features is expensive)
+
+
+.. py:function:: test_normality(y: numpy.ndarray, alpha: float = 0.05) -> TestResult
+
+   Shapiro-Wilk (N ≤ 5000) or D'Agostino K² (N > 5000).
+
+   PASS = residuals are consistent with normality.
+   FAIL = significant non-normality; tree/non-linear models are recommended.
+
+
+.. py:function:: test_linearity(X: numpy.ndarray, y: numpy.ndarray, alpha: float = 0.05) -> TestResult
+
+   Ramsey RESET test for functional-form misspecification.
+
+   Fits OLS then checks whether powers of the fitted values improve the fit.
+   PASS = linear model is adequate.
+   FAIL = non-linearity detected; tree/MLP models are likely beneficial.
+
+
+.. py:function:: test_heteroscedasticity(X: numpy.ndarray, y: numpy.ndarray, alpha: float = 0.05) -> TestResult
+
+   Breusch-Pagan test: regresses squared OLS residuals on features.
+
+   Detects heteroscedasticity where **variance** is a linear function of the
+   regressors (e.g. ``var(e | x) = a + b·x``).
+
+   PASS = no evidence of heteroscedasticity.
+   FAIL = input-dependent variance; quantile GB or heteroscedastic ensembles are
+          indicated.
+
+
+.. py:function:: test_multicollinearity(X: numpy.ndarray, threshold: float = 10.0) -> TestResult
+
+   Variance Inflation Factor (VIF) for each feature.
+
+   PASS = max VIF < threshold.
+   FAIL = severe collinearity; linear model coefficients are unstable.
+
+
+.. py:function:: test_nonlinear_dependency(X: numpy.ndarray, y: numpy.ndarray, gain_threshold: float = 0.05, cv: int = 3) -> TestResult
+
+   Cross-validated RF vs LinearRegression R² gain.
+
+   If a small RandomForest outperforms LinearRegression by more than
+   *gain_threshold* in CV R², non-linear structure is confirmed.
+
+   Preferred over the MI-Pearson gap because it uses the full feature set in
+   both models and directly answers: *does a non-linear model predict better?*
+
+   PASS = RF and LR perform similarly (linear structure sufficient).
+   FAIL = RF outperforms LR; RF / GB / MLP are recommended.
+
+
+.. py:class:: ModelScreener(alpha: float = 0.05, gain_threshold: float = 0.05, vif_threshold: float = 10.0)
+
+   Run all pre-screening tests and produce a model candidate schedule.
+
+   :param alpha: Significance level for all hypothesis tests (default 0.05).
+   :type alpha: float
+   :param gain_threshold: Minimum RF–LR R² gain to flag data as non-linear (default 0.05).
+   :type gain_threshold: float
+   :param vif_threshold: VIF above which multicollinearity is flagged (default 10.0).
+   :type vif_threshold: float
+
+   .. rubric:: Examples
+
+   >>> screener = ModelScreener().fit(X_train, Y_train)
+   >>> specs = screener.screen()          # global list of ModelSpec
+   >>> matrix = screener.screen_per_output(output_names)  # per-output DataFrame
+
+
+   .. py:attribute:: alpha
+      :value: 0.05
+
+
+
+   .. py:attribute:: gain_threshold
+      :value: 0.05
+
+
+
+   .. py:attribute:: vif_threshold
+      :value: 10.0
+
+
+
+   .. py:attribute:: _size
+      :type:  Dict[str, TestResult]
+
+
+   .. py:attribute:: _vif
+      :type:  Optional[TestResult]
+      :value: None
+
+
+
+   .. py:attribute:: _per_output
+      :type:  List[Dict[str, TestResult]]
+      :value: []
+
+
+
+   .. py:attribute:: global_flags_
+      :type:  Dict[str, bool]
+
+
+   .. py:method:: fit(X: numpy.ndarray, Y: numpy.ndarray) -> ModelScreener
+
+      Run all tests.  Call before ``screen()`` or ``screen_per_output()``.
+
+
+
+   .. py:method:: screen() -> List[ModelSpec]
+
+      Return global list of :class:`ModelSpec` objects.
+
+      Models whose factory is ``None`` were skipped; the ``reason_excluded``
+      field explains why.
+
+
+
+   .. py:method:: screen_per_output(output_names: Optional[List[str]] = None) -> pandas.DataFrame
+
+      Return a boolean DataFrame (index=model, columns=output).
+
+      ``True`` = run this model on this output; ``False`` = skip.
+      Requires :func:`fit` to have been called first.
+
+
+
+   .. py:method:: eligible_indices_for_output(output_idx: int, model_names: List[str]) -> List[int]
+
+      Return indices into *model_names* that should be tried for *output_idx*.
+
+      Used by :class:`~multioutreg.model_selection.AutoDetectMultiOutputRegressor`
+      to filter its estimator list per output when ``pre_screen=True``.
+
+
+
+.. py:function:: _eligible_for_output_j(tests: Dict[str, TestResult], size: Dict[str, TestResult]) -> Dict[str, bool]
+
+   Map test results to a {model_name: eligible} dict.
+
+
+.. py:class:: ModelSpec
+
+   Descriptor for a candidate model returned by :meth:`ModelScreener.screen`.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: factory
+      :type:  object
+
+
+   .. py:attribute:: cost
+      :type:  str
+
+
+   .. py:attribute:: reason_included
+      :type:  str
+      :value: ''
+
+
+
+   .. py:attribute:: reason_excluded
+      :type:  str
+      :value: ''
+
+
+
+.. py:function:: _lr()
+
+.. py:function:: _gp()
+
+.. py:function:: _rf()
+
+.. py:function:: _gb()
+
+.. py:function:: _svr()
+
+.. py:function:: _knn()
+
+.. py:function:: _dt()
+
+.. py:function:: _mlp()
+
+.. py:function:: _blr()
+
+.. py:function:: _gbq()
+
+.. py:function:: _ehet()
+

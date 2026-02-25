@@ -1,0 +1,188 @@
+multioutreg.time_series
+=======================
+
+.. py:module:: multioutreg.time_series
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/time_series/chronos_adapter/index
+   /autoapi/multioutreg/time_series/financial/index
+   /autoapi/multioutreg/time_series/metrics/index
+   /autoapi/multioutreg/time_series/ts_dynamic_fit/index
+   /autoapi/multioutreg/time_series/ts_suitability/index
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ChronosForecaster
+   multioutreg.time_series.ForecastResult
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.load_financial_csv
+   multioutreg.time_series.forecast_with_chronos
+   multioutreg.time_series.check_ts_suitability
+
+
+Package Contents
+----------------
+
+.. py:class:: ChronosForecaster(model_name: str = 'amazon/chronos-bolt-base', device: str | None = None, torch_dtype: Optional[torch.dtype] = None, context_length: Optional[int] = None, default_quantiles: Sequence[float] = (0.1, 0.5, 0.9))
+
+   Thin, sklearn-ish wrapper around Chronos / Chronos-Bolt.
+
+   - For *Bolt* models (e.g., 'amazon/chronos-bolt-base'): direct multi-step *quantile* forecasting.
+   - For original *Chronos* (e.g., 'amazon/chronos-t5-small'): we sample trajectories and compute quantiles.
+
+   References: Chronos paper & repo.
+
+
+   .. py:attribute:: model_name
+      :value: 'amazon/chronos-bolt-base'
+
+
+
+   .. py:attribute:: device
+      :value: 'cpu'
+
+
+
+   .. py:attribute:: torch_dtype
+      :value: Ellipsis
+
+
+
+   .. py:attribute:: context_length
+      :value: None
+
+
+
+   .. py:attribute:: default_quantiles
+
+
+   .. py:attribute:: _is_bolt
+
+
+   .. py:attribute:: _pipe
+
+
+   .. py:attribute:: _series_ids
+      :type:  Tuple[str, Ellipsis]
+      :value: ()
+
+
+
+   .. py:attribute:: _contexts
+      :type:  list[torch.Tensor]
+      :value: []
+
+
+
+   .. py:method:: fit(y: pandas.Series | numpy.ndarray | pandas.DataFrame | Dict[str, Iterable[float]]) -> ChronosForecaster
+
+      Fit simply records the historical context (Chronos is pretrained / zero-shot).
+      Accepts:
+        - 1D array/Series (single univariate series)
+        - DataFrame with 1+ columns (multi-target => per-column series)
+        - dict of {name: sequence}
+
+
+
+   .. py:method:: predict(prediction_length: int, quantiles: Optional[Sequence[float]] = None, num_samples: int = 200) -> ForecastResult
+
+      Returns quantile forecasts with shape [n_series, n_quantiles, horizon].
+
+
+
+   .. py:method:: _left_pad(contexts: Sequence[torch.Tensor]) -> torch.Tensor
+      :staticmethod:
+
+
+      Left-pad 1D tensors to same length: shape [B, T].
+
+
+
+.. py:class:: ForecastResult
+
+   Container for forecast outputs.
+
+
+   .. py:attribute:: quantiles
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: q_levels
+      :type:  Tuple[float, Ellipsis]
+
+
+   .. py:attribute:: ids
+      :type:  Tuple[str, Ellipsis]
+      :value: ()
+
+
+
+   .. py:property:: median
+      :type: numpy.ndarray
+
+
+
+.. py:function:: load_financial_csv(path: str | pathlib.Path, column: str = 'Close') -> pandas.Series
+
+   Load a financial time series from a CSV file.
+
+   The CSV is expected to have a date column as the first column and the
+   specified price column. Dates are parsed and used as the index.
+
+   :param path: File path to the CSV file.
+   :param column: Name of the column to extract. Default is ``"Close"``.
+
+
+.. py:function:: forecast_with_chronos(series: pandas.Series, horizon: int, forecaster: Optional[multioutreg.time_series.chronos_adapter.ChronosForecaster] = None, **kwargs) -> multioutreg.time_series.chronos_adapter.ForecastResult
+
+   Forecast a financial series using :class:`ChronosForecaster`.
+
+   :param series: Historical price series.
+   :param horizon: Number of future steps to forecast.
+   :param forecaster: Optional pre-configured ``ChronosForecaster``. If ``None``, one is
+                      created using ``kwargs``.
+   :param \*\*kwargs: Additional keyword arguments passed to ``ChronosForecaster`` when the
+                      ``forecaster`` is ``None``.
+
+
+.. py:function:: check_ts_suitability(df: pandas.DataFrame, target_col: str, datetime_col: str | None = None, min_length: int = 30) -> dict
+
+   Run statistical tests to determine if data is suitable for time series modeling.
+
+   Runs three tests:
+   - ADF (Augmented Dickey-Fuller): checks for stationarity.
+   - Ljung-Box: checks for significant autocorrelation (serial dependence).
+   - ACF seasonality scan: estimates a dominant seasonal period if present.
+
+   :param df: Input data.
+   :type df: pd.DataFrame
+   :param target_col: Column to analyse.
+   :type target_col: str
+   :param datetime_col: If provided, data is sorted by this column before testing.
+   :type datetime_col: str | None
+   :param min_length: Minimum number of non-null observations required to run tests (default 30).
+   :type min_length: int
+
+   :returns: n_obs, adf_statistic, adf_pvalue, is_stationary,
+             ljungbox_pvalue, has_autocorrelation, seasonal_period,
+             min_length_ok, suitable, recommendation.
+             On error: suitable=False, error=<message>.
+   :rtype: dict with keys
+
+

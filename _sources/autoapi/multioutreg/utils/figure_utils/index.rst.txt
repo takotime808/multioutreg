@@ -1,0 +1,41 @@
+multioutreg.utils.figure_utils
+==============================
+
+.. py:module:: multioutreg.utils.figure_utils
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.utils.figure_utils.safe_plot_b64
+   multioutreg.utils.figure_utils.plot_to_b64
+
+
+Module Contents
+---------------
+
+.. py:function:: safe_plot_b64(plot_func: Callable[Ellipsis, Any], *args: Any, **kwargs: Any) -> str
+
+   Executes a plotting function and returns a PNG plot as a base64-encoded string.
+
+   :param plot_func: A function that generates a matplotlib plot (e.g., a plotting routine).
+   :param \*args: Positional arguments to pass to `plot_func`.
+   :param \*\*kwargs: Keyword arguments to pass to `plot_func`.
+
+   :returns: A base64-encoded PNG image of the generated plot. If the plotting function
+             raises an exception, returns a base64-encoded blank plot with the error message.
+
+
+.. py:function:: plot_to_b64(plot_fn: Callable[[], None]) -> str
+
+   Convert a plot function to a base64-encoded PNG image.
+
+   :param plot_fn: Function that generates a matplotlib plot.
+   :type plot_fn: Callable[[], None]
+
+   :returns: Base64-encoded string of the PNG plot image.
+   :rtype: str
+
+

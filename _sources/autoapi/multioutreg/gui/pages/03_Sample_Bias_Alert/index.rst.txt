@@ -1,0 +1,67 @@
+multioutreg.gui.pages.03_Sample_Bias_Alert
+==========================================
+
+.. py:module:: multioutreg.gui.pages.03_Sample_Bias_Alert
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.03_Sample_Bias_Alert.compute_bias_metrics
+   multioutreg.gui.pages.03_Sample_Bias_Alert.scan_logs
+   multioutreg.gui.pages.03_Sample_Bias_Alert.pca_plot
+   multioutreg.gui.pages.03_Sample_Bias_Alert.main
+
+
+Module Contents
+---------------
+
+.. py:function:: compute_bias_metrics(df: pandas.DataFrame) -> dict
+
+   Compute basic metrics to detect potential sample bias in a dataset.
+
+   This includes:
+   - Duplicate row rate
+   - Maximum absolute correlation between numeric features
+   - Minimum and maximum variance across features
+
+   :param df: Input DataFrame containing experimental or modeling data.
+   :type df: pd.DataFrame
+
+   :returns: A dictionary with the following keys:
+             - "duplicate_rate": float
+             - "max_abs_corr": float
+             - "min_variance": float
+             - "max_variance": float
+   :rtype: dict
+
+
+.. py:function:: scan_logs(log_path: str) -> list[str]
+
+   Scan a log file for numerical stability issues such as Cholesky decomposition errors.
+
+   :param log_path: Path to the log file to be scanned.
+   :type log_path: str
+
+   :returns: A list of warning strings if Cholesky-related issues are found, otherwise an empty list.
+   :rtype: list of str
+
+
+.. py:function:: pca_plot(df: pandas.DataFrame) -> matplotlib.pyplot.Figure
+
+   Generate a 2D PCA scatter plot from numeric columns in the input DataFrame.
+
+   The data is first standardized using `StandardScaler`, then projected onto
+   the first two principal components.
+
+   :param df: Input dataset. Only numeric columns are used, and rows with NaNs are dropped.
+   :type df: pd.DataFrame
+
+   :returns: A matplotlib figure containing the PCA scatter plot.
+   :rtype: matplotlib.figure.Figure
+
+
+.. py:function:: main() -> None
+

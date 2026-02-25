@@ -1,0 +1,74 @@
+multioutreg.conformal.cv_plus
+=============================
+
+.. py:module:: multioutreg.conformal.cv_plus
+
+.. autoapi-nested-parse::
+
+   CV+ (cross-validation+) conformal prediction (Barber et al., 2021).
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.conformal.cv_plus.CVPlusConformalPredictor
+
+
+Module Contents
+---------------
+
+.. py:class:: CVPlusConformalPredictor(estimator, n_folds: int = 5, random_state: Optional[int] = None)
+
+   Bases: :py:obj:`multioutreg.conformal.base.BaseConformalPredictor`
+
+
+   CV+ conformal prediction (Barber et al., 2021).
+
+   Uses K-fold cross-validation to compute out-of-fold residuals for every
+   training point, avoiding the data-splitting inefficiency of split conformal.
+   All data is used for both training and calibration.
+
+   :param estimator: Any regressor with fit/predict. Will be cloned for each fold.
+   :type estimator: sklearn-compatible regressor
+   :param n_folds: Number of cross-validation folds (default 5).
+   :type n_folds: int
+   :param random_state: Seed for reproducible fold splits.
+   :type random_state: int, optional
+
+
+   .. py:attribute:: n_folds
+      :value: 5
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> CVPlusConformalPredictor
+
+      Fit fold models and compute out-of-fold calibration scores.
+
+      :param X:
+      :type X: (n_samples, n_features)
+      :param y:
+      :type y: (n_samples,) or (n_samples, n_outputs)
+
+
+
+   .. py:method:: predict_interval(X: numpy.ndarray, alpha: float = 0.1) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+      CV+ prediction intervals.
+
+      Uses the mean of fold model predictions combined with the conformal
+      quantile of out-of-fold residuals (jackknife+ style).
+
+      :param X:
+      :type X: (n_samples, n_features)
+      :param alpha: Miscoverage level. Intervals target 1-alpha coverage.
+      :type alpha: float
+
+      :returns: **y_lower, y_upper**
+      :rtype: np.ndarray
+
+
+

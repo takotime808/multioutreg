@@ -1,0 +1,28 @@
+multioutreg.gui.pages.04_Sampling_and_Bias_Dashboard
+====================================================
+
+.. py:module:: multioutreg.gui.pages.04_Sampling_and_Bias_Dashboard
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.04_Sampling_and_Bias_Dashboard.compute_bias_metrics
+   multioutreg.gui.pages.04_Sampling_and_Bias_Dashboard.scan_logs
+   multioutreg.gui.pages.04_Sampling_and_Bias_Dashboard.show_base64_image
+   multioutreg.gui.pages.04_Sampling_and_Bias_Dashboard.main
+
+
+Module Contents
+---------------
+
+.. py:function:: compute_bias_metrics(df: pandas.DataFrame) -> dict
+
+.. py:function:: scan_logs(log_path: str) -> list[str]
+
+.. py:function:: show_base64_image(b64_str: str, caption: str = '')
+
+.. py:function:: main()
+

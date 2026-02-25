@@ -1,0 +1,37 @@
+multioutreg.surrogates.base_sklearn
+===================================
+
+.. py:module:: multioutreg.surrogates.base_sklearn
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.base_sklearn.BaseSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: BaseSurrogate(base_estimator)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Base class for multi-output surrogates.
+
+
+   .. py:attribute:: model
+
+
+   .. py:method:: fit(X, Y)
+
+
+   .. py:method:: predict(X, return_std=False)
+
+
+   .. py:method:: _conformal_point_predict(X)
+
+

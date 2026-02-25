@@ -1,0 +1,25 @@
+multioutreg.surrogates.svr_sklearn
+==================================
+
+.. py:module:: multioutreg.surrogates.svr_sklearn
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.svr_sklearn.SVRSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: SVRSurrogate(**kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   Support Vector Regression surrogate.
+
+

@@ -1,0 +1,31 @@
+multioutreg.time_series.ts_dynamic_fit
+======================================
+
+.. py:module:: multioutreg.time_series.ts_dynamic_fit
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/time_series/ts_dynamic_fit/algs/index
+   /autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/index
+   /autoapi/multioutreg/time_series/ts_dynamic_fit/main/index
+   /autoapi/multioutreg/time_series/ts_dynamic_fit/src/index
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.main
+
+
+Package Contents
+----------------
+
+.. py:function:: main()
+

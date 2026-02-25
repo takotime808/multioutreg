@@ -1,0 +1,19 @@
+multioutreg.utils.surrogate_utils
+=================================
+
+.. py:module:: multioutreg.utils.surrogate_utils
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.utils.surrogate_utils.predict_with_std
+
+
+Module Contents
+---------------
+
+.. py:function:: predict_with_std(multioutput_model, X)
+

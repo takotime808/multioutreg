@@ -1,0 +1,119 @@
+multioutreg.gui.pages.05_Sampling_Datasets_Examples
+===================================================
+
+.. py:module:: multioutreg.gui.pages.05_Sampling_Datasets_Examples
+
+.. autoapi-nested-parse::
+
+   Streamlit page for downloading example datasets made from different sampling methods.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.05_Sampling_Datasets_Examples.datasets
+   multioutreg.gui.pages.05_Sampling_Datasets_Examples.csv_bytes
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.05_Sampling_Datasets_Examples.generate_sparse_alpha_cfd_dataset
+   multioutreg.gui.pages.05_Sampling_Datasets_Examples.fix_generate_grid_sampling_dataset
+   multioutreg.gui.pages.05_Sampling_Datasets_Examples.generate_grid_sampling_dataset
+   multioutreg.gui.pages.05_Sampling_Datasets_Examples.generate_random_sampling_dataset
+   multioutreg.gui.pages.05_Sampling_Datasets_Examples.generate_sobol_sampling_dataset
+   multioutreg.gui.pages.05_Sampling_Datasets_Examples.generate_lhs_sampling_dataset
+   multioutreg.gui.pages.05_Sampling_Datasets_Examples.generate_uncertain_sampling_dataset
+
+
+Module Contents
+---------------
+
+.. py:function:: generate_sparse_alpha_cfd_dataset(selected_alphas: list = [0, 5, 10, 15, 20], beta_range: tuple = (-5, 5), reynolds_range: tuple = (100000.0, 10000000.0), num_beta: int = 5, num_re: int = 5, noise_std: float = 0.01, include_metadata: bool = False) -> pandas.DataFrame
+
+   Generate a synthetic CFD dataset for selected alpha values only.
+
+   :param selected_alphas: List of alpha values (in degrees) to include.
+   :type selected_alphas: list
+   :param beta_range: Range of sideslip angle beta in degrees.
+   :type beta_range: tuple
+   :param reynolds_range: Range of Reynolds number (min, max).
+   :type reynolds_range: tuple
+   :param num_beta: Number of beta samples.
+   :type num_beta: int
+   :param num_re: Number of Reynolds number samples.
+   :type num_re: int
+   :param noise_std: Standard deviation of added Gaussian noise.
+   :type noise_std: float
+   :param include_metadata: If True, return a DataFrame with all columns.
+   :type include_metadata: bool
+
+   :returns: DataFrame with columns: alpha_deg, beta_deg, Re, Cl, Cd
+   :rtype: pd.DataFrame
+
+
+.. py:function:: fix_generate_grid_sampling_dataset()
+
+   Generate a gridded regression dataset using a smooth function over 2D space.
+
+   This example uses the function:
+       f(x, y) = sin(x) + cos(y) + (x * y) / 10
+
+   :returns: Dataset name and DataFrame with columns: ["x1", "x2", "response"]
+   :rtype: Tuple[str, pd.DataFrame]
+
+
+.. py:function:: generate_grid_sampling_dataset(num_points_per_axis: int = 10)
+
+   Generate a structured grid-sampled dataset with 5 input features and a nonlinear response.
+
+   :param num_points_per_axis: Number of grid points per axis for x1 and x2 (default is 10).
+   :type num_points_per_axis: int, optional
+
+   :returns: Dataset name and DataFrame with columns ["x1", ..., "x5", "response"]
+   :rtype: Tuple[str, pd.DataFrame]
+
+
+.. py:function:: generate_random_sampling_dataset(n_points=100)
+
+   Generate a dataset using random uniform sampling.
+   Designed to produce high std and low silhouette --> Random.
+
+   :rtype: Tuple[str, pd.DataFrame]
+
+
+.. py:function:: generate_sobol_sampling_dataset(n_points=128)
+
+   Generate a dataset using Sobol low-discrepancy sequence.
+   Designed to produce moderate std and low entropy --> Sobol.
+
+   :rtype: Tuple[str, pd.DataFrame]
+
+
+.. py:function:: generate_lhs_sampling_dataset(n_points=100)
+
+   Generate a dataset using Latin Hypercube Sampling.
+   Designed to produce moderate std and higher entropy --> LHS.
+
+   :rtype: Tuple[str, pd.DataFrame]
+
+
+.. py:function:: generate_uncertain_sampling_dataset()
+
+   Generate an uncertain sampling dataset with fixed values.
+   Intended to strongly trigger 'Uncertain' detection.
+
+   :returns: Dataset name and DataFrame.
+   :rtype: Tuple[str, pd.DataFrame]
+
+
+.. py:data:: datasets
+
+.. py:data:: csv_bytes
+

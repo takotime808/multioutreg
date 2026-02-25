@@ -1,0 +1,108 @@
+multioutreg.time_series.ts_dynamic_fit.data_handling.DataProcessor
+==================================================================
+
+.. py:module:: multioutreg.time_series.ts_dynamic_fit.data_handling.DataProcessor
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.data_handling.DataProcessor.DataProcessor
+
+
+Module Contents
+---------------
+
+.. py:class:: DataProcessor(verbose: bool = False, log_filename: str = 'pipeline.log')
+
+   Data engineering pipeline for time series preprocessing.
+   Handles data ingestion, validation, cleaning, and feature engineering.
+
+
+   .. py:attribute:: data
+      :type:  Optional[pandas.DataFrame]
+      :value: None
+
+
+
+   .. py:attribute:: processed_data
+      :type:  Optional[pandas.DataFrame]
+      :value: None
+
+
+
+   .. py:attribute:: verbose
+      :type:  bool
+      :value: False
+
+
+
+   .. py:attribute:: log_filename
+      :type:  str
+      :value: 'pipeline.log'
+
+
+
+   .. py:method:: log_to_file(log: str) -> None
+
+
+   .. py:method:: load_data(data: Union[str, pandas.DataFrame], format: str = 'csv') -> Optional[pandas.DataFrame]
+
+      Load time series data from various formats or directly from a DataFrame.
+
+      :param data: Path to the data file or a DataFrame
+      :type data: str or pd.DataFrame
+      :param format: Format of the file ('csv', 'excel'). Ignored if DataFrame.
+      :type format: str
+
+      :returns: Loaded data
+                future_pred: Loaded data shape at dimension 0 (needed for prediction intervals in deep models)
+      :rtype: pd.DataFrame
+
+
+
+   .. py:method:: validate_data(datetime_col: Optional[str] = None, target_col: Optional[str] = None) -> Dict[str, Any]
+
+      Perform automated data quality checks.
+
+      :param datetime_col: Name of datetime column
+      :type datetime_col: str
+      :param target_col: Name of target variable column
+      :type target_col: str
+
+      :returns: Validation results
+      :rtype: dict
+
+
+
+   .. py:method:: preprocess_data(datetime_col: str, target_col: str, freq: str = '15min') -> pandas.DataFrame
+
+      Preprocess time series data with transformations and cleaning.
+
+      :param datetime_col: Name of datetime column
+      :type datetime_col: str
+      :param target_col: Name of target variable column
+      :type target_col: str
+      :param freq: Resampling frequency
+      :type freq: str
+
+      :returns: Preprocessed data
+      :rtype: pd.DataFrame
+
+
+
+   .. py:method:: engineer_features(target_col: str) -> pandas.DataFrame
+
+      Create time series features for model training.
+      I think this will be helpful for future analysis as all the info is in one place, and the same data can be used.
+
+      :param target_col: Name of target variable column
+      :type target_col: str
+
+      :returns: Data with engineered features
+      :rtype: pd.DataFrame
+
+
+

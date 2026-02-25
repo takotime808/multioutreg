@@ -1,0 +1,147 @@
+multioutreg.surrogates.moe_surrogate
+====================================
+
+.. py:module:: multioutreg.surrogates.moe_surrogate
+
+.. autoapi-nested-parse::
+
+   Mixture of Experts surrogate model.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.moe_surrogate.MixtureOfExpertsSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: MixtureOfExpertsSurrogate(n_experts: int = 4, expert_type=None, expert_params: dict | list[dict] | None = None, gating_type: Literal['linear', 'mlp'] = 'linear', routing: Literal['soft', 'hard'] = 'soft', max_em_iters: int = 20, random_state: int | None = None)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Mixture of Experts surrogate with learned gating network.
+
+   Specializes K expert regressors to different regions of input space
+   using a gating network trained via a hard-EM loop.
+
+   :param n_experts:
+   :type n_experts: int, default 4
+   :param expert_type: Surrogate class(es) to use as experts.  A single type is used for all
+                       experts; a list of types enables heterogeneous experts (one per slot).
+                       Defaults to ``RandomForestSurrogate``.
+   :type expert_type: type | list[type] | None
+   :param expert_params: Constructor keyword arguments for each expert.  A single dict applies
+                         to all experts; a list is paired element-wise with ``expert_type``.
+   :type expert_params: dict | list[dict] | None
+   :param gating_type:
+   :type gating_type: {"linear", "mlp"}, default "linear"
+   :param routing: ``"soft"``: predictions are a weighted sum over all experts.
+                   ``"hard"``: each sample is routed to the highest-weight expert only.
+   :type routing: {"soft", "hard"}, default "soft"
+   :param max_em_iters: Maximum number of hard-EM iterations.  Stops early if assignments
+                        do not change between iterations.
+   :type max_em_iters: int, default 20
+   :param random_state:
+   :type random_state: int | None, default None
+
+
+   .. py:attribute:: _multi_output
+      :value: True
+
+
+
+   .. py:attribute:: n_experts
+      :value: 4
+
+
+
+   .. py:attribute:: expert_type
+      :value: None
+
+
+
+   .. py:attribute:: expert_params
+      :value: None
+
+
+
+   .. py:attribute:: gating_type
+      :value: 'linear'
+
+
+
+   .. py:attribute:: routing
+      :value: 'soft'
+
+
+
+   .. py:attribute:: max_em_iters
+      :value: 20
+
+
+
+   .. py:attribute:: random_state
+      :value: None
+
+
+
+   .. py:method:: _make_expert(k: int)
+
+
+   .. py:method:: _make_gating_network()
+
+
+   .. py:method:: fit(X: numpy.ndarray, Y: numpy.ndarray) -> MixtureOfExpertsSurrogate
+
+      Fit experts and gating network using a hard-EM loop.
+
+      :param X:
+      :type X: np.ndarray, shape (n_samples, n_features)
+      :param Y:
+      :type Y: np.ndarray, shape (n_samples,) or (n_samples, n_outputs)
+
+      :rtype: self
+
+
+
+   .. py:method:: get_routing_weights(X: numpy.ndarray) -> numpy.ndarray
+
+      Return gating weights for each sample.
+
+      :param X:
+      :type X: np.ndarray
+
+      :returns: **weights**
+      :rtype: np.ndarray, shape (n_samples, n_experts)
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> numpy.ndarray | tuple[numpy.ndarray, numpy.ndarray]
+
+      Predict outputs for X.
+
+      :param X:
+      :type X: np.ndarray
+      :param return_std: If True, also return uncertainty estimated from expert disagreement.
+      :type return_std: bool, default False
+
+      :returns: * **y_pred** (*np.ndarray, shape (n_samples, n_outputs)*)
+                * **y_std** (*np.ndarray, shape (n_samples, n_outputs)  [only if return_std=True]*)
+
+
+
+   .. py:method:: _conformal_point_predict(X: numpy.ndarray) -> numpy.ndarray
+
+
+   .. py:method:: get_params(deep: bool = True) -> dict
+
+
+   .. py:method:: set_params(**params) -> MixtureOfExpertsSurrogate
+
+

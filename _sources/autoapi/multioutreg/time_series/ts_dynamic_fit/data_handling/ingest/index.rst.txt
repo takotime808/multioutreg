@@ -1,0 +1,81 @@
+multioutreg.time_series.ts_dynamic_fit.data_handling.ingest
+===========================================================
+
+.. py:module:: multioutreg.time_series.ts_dynamic_fit.data_handling.ingest
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.data_handling.ingest.find_file_by_prefix
+   multioutreg.time_series.ts_dynamic_fit.data_handling.ingest.read_orders
+   multioutreg.time_series.ts_dynamic_fit.data_handling.ingest.read_shifts
+   multioutreg.time_series.ts_dynamic_fit.data_handling.ingest.read_sales
+   multioutreg.time_series.ts_dynamic_fit.data_handling.ingest.read_time_entries
+
+
+Module Contents
+---------------
+
+.. py:function:: find_file_by_prefix(directory: str, prefix: str, extension: Optional[str] = None) -> Optional[str]
+
+   Finds the first file in the directory that starts with the given prefix.
+   Optionally filter by file extension.
+
+   :param directory: The path to search.
+   :type directory: str
+   :param prefix: The prefix to match.
+   :type prefix: str
+   :param extension: Only match files with this extension (e.g. ".csv").
+   :type extension: Optional[str]
+
+   :returns: The found file path, or None.
+   :rtype: Optional[str]
+
+
+.. py:function:: read_orders(directory: str) -> pandas.DataFrame
+
+   Reads the most recent OrderDetails file from the directory.
+
+   :param directory: Folder containing data.
+   :type directory: str
+
+   :returns: Orders data.
+   :rtype: pd.DataFrame
+
+
+.. py:function:: read_shifts(directory: str) -> pandas.DataFrame
+
+   Reads the most recent Shifts_Closed file from the directory.
+
+   :param directory: Folder containing data.
+   :type directory: str
+
+   :returns: Shifts data.
+   :rtype: pd.DataFrame
+
+
+.. py:function:: read_sales(directory: str) -> pandas.DataFrame
+
+   Reads the most recent sp_hourly_sales file from the directory.
+
+   :param directory: Folder containing data.
+   :type directory: str
+
+   :returns: Sales data.
+   :rtype: pd.DataFrame
+
+
+.. py:function:: read_time_entries(directory: str) -> pandas.DataFrame
+
+   Reads the most recent TimeEntries file from the directory.
+
+   :param directory: Folder containing data.
+   :type directory: str
+
+   :returns: Time Entries data.
+   :rtype: pd.DataFrame
+
+

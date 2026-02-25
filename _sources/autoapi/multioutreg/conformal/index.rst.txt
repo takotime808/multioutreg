@@ -1,0 +1,213 @@
+multioutreg.conformal
+=====================
+
+.. py:module:: multioutreg.conformal
+
+.. autoapi-nested-parse::
+
+   Conformal prediction for distribution-free prediction intervals.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/conformal/base/index
+   /autoapi/multioutreg/conformal/cv_plus/index
+   /autoapi/multioutreg/conformal/metrics/index
+   /autoapi/multioutreg/conformal/split_conformal/index
+   /autoapi/multioutreg/conformal/utils/index
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.conformal.SplitConformalPredictor
+   multioutreg.conformal.CVPlusConformalPredictor
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.conformal.conformal_coverage
+   multioutreg.conformal.conformal_interval_width
+   multioutreg.conformal.conformal_summary
+   multioutreg.conformal.conditional_coverage
+
+
+Package Contents
+----------------
+
+.. py:class:: SplitConformalPredictor(estimator, calibration_size: float = 0.2, adaptive: bool = False, random_state: Optional[int] = None)
+
+   Bases: :py:obj:`multioutreg.conformal.base.BaseConformalPredictor`
+
+
+   Split (inductive) conformal prediction.
+
+   Splits training data into a proper training set and a calibration set.
+   The model is fitted on the training set, and nonconformity scores
+   (absolute residuals) are computed on the calibration set. At prediction
+   time, the conformal quantile of these scores determines the interval width.
+
+   Coverage guarantee: P(Y in [y_lower, y_upper]) >= 1 - alpha
+   for exchangeable data.
+
+   :param estimator: Any regressor with fit/predict. Will be cloned internally.
+   :type estimator: sklearn-compatible regressor
+   :param calibration_size: Fraction of training data reserved for calibration (default 0.2).
+   :type calibration_size: float
+   :param adaptive: If True, uses normalized residuals |y - y_hat| / y_std for
+                    locally-adaptive intervals. Requires the estimator to support
+                    predict(X, return_std=True).
+   :type adaptive: bool
+   :param random_state: Seed for reproducible calibration splits.
+   :type random_state: int, optional
+
+
+   .. py:attribute:: calibration_size
+      :value: 0.2
+
+
+
+   .. py:attribute:: adaptive
+      :value: False
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> SplitConformalPredictor
+
+      Fit model on training split and compute calibration scores.
+
+      :param X:
+      :type X: (n_samples, n_features)
+      :param y:
+      :type y: (n_samples,) or (n_samples, n_outputs)
+
+
+
+   .. py:method:: predict_interval(X: numpy.ndarray, alpha: float = 0.1) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+      Compute prediction intervals.
+
+      :param X:
+      :type X: (n_samples, n_features)
+      :param alpha: Miscoverage level. Intervals target 1-alpha coverage.
+      :type alpha: float
+
+      :returns: **y_lower, y_upper** -- Shape (n_samples,) for single output or (n_samples, n_outputs).
+      :rtype: np.ndarray
+
+
+
+.. py:class:: CVPlusConformalPredictor(estimator, n_folds: int = 5, random_state: Optional[int] = None)
+
+   Bases: :py:obj:`multioutreg.conformal.base.BaseConformalPredictor`
+
+
+   CV+ conformal prediction (Barber et al., 2021).
+
+   Uses K-fold cross-validation to compute out-of-fold residuals for every
+   training point, avoiding the data-splitting inefficiency of split conformal.
+   All data is used for both training and calibration.
+
+   :param estimator: Any regressor with fit/predict. Will be cloned for each fold.
+   :type estimator: sklearn-compatible regressor
+   :param n_folds: Number of cross-validation folds (default 5).
+   :type n_folds: int
+   :param random_state: Seed for reproducible fold splits.
+   :type random_state: int, optional
+
+
+   .. py:attribute:: n_folds
+      :value: 5
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> CVPlusConformalPredictor
+
+      Fit fold models and compute out-of-fold calibration scores.
+
+      :param X:
+      :type X: (n_samples, n_features)
+      :param y:
+      :type y: (n_samples,) or (n_samples, n_outputs)
+
+
+
+   .. py:method:: predict_interval(X: numpy.ndarray, alpha: float = 0.1) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+      CV+ prediction intervals.
+
+      Uses the mean of fold model predictions combined with the conformal
+      quantile of out-of-fold residuals (jackknife+ style).
+
+      :param X:
+      :type X: (n_samples, n_features)
+      :param alpha: Miscoverage level. Intervals target 1-alpha coverage.
+      :type alpha: float
+
+      :returns: **y_lower, y_upper**
+      :rtype: np.ndarray
+
+
+
+.. py:function:: conformal_coverage(y_true: numpy.ndarray, y_lower: numpy.ndarray, y_upper: numpy.ndarray, output_names: Optional[List[str]] = None) -> pandas.DataFrame
+
+   Compute empirical coverage per output.
+
+   :param y_true:
+   :type y_true: (n_samples,) or (n_samples, n_outputs)
+   :param y_lower:
+   :type y_lower: same shape as y_true
+   :param y_upper:
+   :type y_upper: same shape as y_true
+   :param output_names:
+   :type output_names: list of str, optional
+
+   :returns: **pd.DataFrame with columns**
+   :rtype: output, coverage, n_samples
+
+
+.. py:function:: conformal_interval_width(y_lower: numpy.ndarray, y_upper: numpy.ndarray, output_names: Optional[List[str]] = None) -> pandas.DataFrame
+
+   Compute interval width statistics per output.
+
+   :returns: **pd.DataFrame with columns**
+   :rtype: output, mean_width, median_width, std_width
+
+
+.. py:function:: conformal_summary(y_true: numpy.ndarray, y_lower: numpy.ndarray, y_upper: numpy.ndarray, alpha: float, output_names: Optional[List[str]] = None) -> pandas.DataFrame
+
+   Combined coverage and width summary.
+
+   :returns: * **pd.DataFrame with columns** (*output, nominal_coverage, empirical_coverage,*)
+             * *mean_width, median_width, coverage_gap*
+
+
+.. py:function:: conditional_coverage(y_true: numpy.ndarray, y_lower: numpy.ndarray, y_upper: numpy.ndarray, n_bins: int = 10) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+   Assess conditional coverage by binning y_true.
+
+   For single-output only (1D arrays).
+
+   :param y_true:
+   :type y_true: (n_samples,)
+   :param y_lower:
+   :type y_lower: (n_samples,)
+   :param y_upper:
+   :type y_upper: (n_samples,)
+   :param n_bins:
+   :type n_bins: int
+
+   :returns: * **bin_centers** (*(n_bins,)*)
+             * **bin_coverages** (*(n_bins,)*)
+
+

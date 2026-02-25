@@ -1,0 +1,77 @@
+multioutreg.conformal.metrics
+=============================
+
+.. py:module:: multioutreg.conformal.metrics
+
+.. autoapi-nested-parse::
+
+   Evaluation metrics for conformal prediction intervals.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.conformal.metrics.conformal_coverage
+   multioutreg.conformal.metrics.conformal_interval_width
+   multioutreg.conformal.metrics.conformal_summary
+   multioutreg.conformal.metrics.conditional_coverage
+
+
+Module Contents
+---------------
+
+.. py:function:: conformal_coverage(y_true: numpy.ndarray, y_lower: numpy.ndarray, y_upper: numpy.ndarray, output_names: Optional[List[str]] = None) -> pandas.DataFrame
+
+   Compute empirical coverage per output.
+
+   :param y_true:
+   :type y_true: (n_samples,) or (n_samples, n_outputs)
+   :param y_lower:
+   :type y_lower: same shape as y_true
+   :param y_upper:
+   :type y_upper: same shape as y_true
+   :param output_names:
+   :type output_names: list of str, optional
+
+   :returns: **pd.DataFrame with columns**
+   :rtype: output, coverage, n_samples
+
+
+.. py:function:: conformal_interval_width(y_lower: numpy.ndarray, y_upper: numpy.ndarray, output_names: Optional[List[str]] = None) -> pandas.DataFrame
+
+   Compute interval width statistics per output.
+
+   :returns: **pd.DataFrame with columns**
+   :rtype: output, mean_width, median_width, std_width
+
+
+.. py:function:: conformal_summary(y_true: numpy.ndarray, y_lower: numpy.ndarray, y_upper: numpy.ndarray, alpha: float, output_names: Optional[List[str]] = None) -> pandas.DataFrame
+
+   Combined coverage and width summary.
+
+   :returns: * **pd.DataFrame with columns** (*output, nominal_coverage, empirical_coverage,*)
+             * *mean_width, median_width, coverage_gap*
+
+
+.. py:function:: conditional_coverage(y_true: numpy.ndarray, y_lower: numpy.ndarray, y_upper: numpy.ndarray, n_bins: int = 10) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+   Assess conditional coverage by binning y_true.
+
+   For single-output only (1D arrays).
+
+   :param y_true:
+   :type y_true: (n_samples,)
+   :param y_lower:
+   :type y_lower: (n_samples,)
+   :param y_upper:
+   :type y_upper: (n_samples,)
+   :param n_bins:
+   :type n_bins: int
+
+   :returns: * **bin_centers** (*(n_bins,)*)
+             * **bin_coverages** (*(n_bins,)*)
+
+

@@ -1,0 +1,65 @@
+multioutreg.performance.metrics_generalized_api
+===============================================
+
+.. py:module:: multioutreg.performance.metrics_generalized_api
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.performance.metrics_generalized_api._predict_with_uncertainty
+   multioutreg.performance.metrics_generalized_api.get_uq_performance_metrics_flexible
+
+
+Module Contents
+---------------
+
+.. py:function:: _predict_with_uncertainty(estimator: Any, X: numpy.ndarray, method: Optional[str] = None) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+   Predicts mean and uncertainty (standard deviation) from a scikit-learn-style estimator
+   using a flexible API.
+
+   Attempts the provided method first, then tries several common uncertainty prediction APIs:
+     - predict(X, return_std=True)
+     - predict(X, return_cov=True)
+     - predict(X) and predict_std(X)
+     - predict(X) and predict_var(X)
+
+   :param estimator: The trained regressor or estimator object.
+   :type estimator: Any
+   :param X: Input feature matrix of shape (n_samples, n_features).
+   :type X: np.ndarray
+   :param method: If specified, try this method first.
+                  One of: 'return_std', 'return_cov', 'predict_std', 'predict_var'.
+   :type method: Optional[str]
+
+   :returns:     - pred: Predicted means, shape (n_samples, [n_outputs])
+                 - std: Predicted standard deviations (uncertainties), shape matches pred.
+   :rtype: Tuple[np.ndarray, np.ndarray]
+
+   :raises RuntimeError: If none of the prediction APIs are supported by the estimator.
+
+   .. rubric:: Example
+
+   pred, std = _predict_with_uncertainty(my_gp, X_test, method='return_std')
+
+
+.. py:function:: get_uq_performance_metrics_flexible(model: Any, X_test: numpy.ndarray, y_test: numpy.ndarray, uncertainty_method: Optional[str] = None, y_pred_std: Optional[numpy.ndarray] = None, std_is_var: bool = False) -> Tuple[pandas.DataFrame, Dict[str, float]]
+
+   Computes UQ metrics for any model: handles different APIs for uncertainty prediction.
+
+   :param model: Your trained regressor (must implement predict and, optionally, predict_std or predict_var).
+   :param X_test: Test features, shape (n_samples, n_features).
+   :param y_test: Test targets, shape (n_samples, n_outputs).
+   :param uncertainty_method: Optional string, one of:
+                              ['return_std', 'return_cov', 'predict_std', 'predict_var']
+   :param y_pred_std: Optional (n_samples, n_outputs) ndarray, directly supply stddevs or variances.
+   :param std_is_var: If True, will sqrt the std array passed in (for variance-to-std conversion).
+
+   :returns: pd.DataFrame with metrics per output.
+             overall_metrics: dict of metrics computed on all outputs at once (flattened).
+   :rtype: metrics_df
+
+

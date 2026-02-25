@@ -1,0 +1,133 @@
+multioutreg.surrogates.catboost_sklearn
+=======================================
+
+.. py:module:: multioutreg.surrogates.catboost_sklearn
+
+.. autoapi-nested-parse::
+
+   CatBoost surrogate — optional dependency ``pip install catboost``.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.catboost_sklearn._CATBOOST_AVAILABLE
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.catboost_sklearn.CatBoostSurrogate
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.catboost_sklearn._require_catboost
+
+
+Module Contents
+---------------
+
+.. py:data:: _CATBOOST_AVAILABLE
+   :value: True
+
+
+.. py:function:: _require_catboost() -> None
+
+.. py:class:: CatBoostSurrogate(n_estimators: int = 200, learning_rate: float = 0.05, depth: int = 6, use_uncertainty: bool = True, virtual_ensembles_count: int = 10, verbose: bool | int = False, **kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   CatBoost regression surrogate with optional native uncertainty.
+
+   Wraps :class:`catboost.CatBoostRegressor` in a ``MultiOutputRegressor``.
+   When ``use_uncertainty=True`` (default), trains with
+   ``loss_function="RMSEWithUncertainty"`` and returns aleatoric + epistemic
+   variance via CatBoost's virtual ensemble mechanism — the only tree-based
+   surrogate in this library with native (non-conformal) uncertainty output.
+
+   Requires the optional ``catboost`` package::
+
+       pip install catboost
+
+   :param n_estimators: Number of boosting iterations.
+   :type n_estimators: int, default 200
+   :param learning_rate: Shrinkage applied to each tree.
+   :type learning_rate: float, default 0.05
+   :param depth: Maximum tree depth.
+   :type depth: int, default 6
+   :param use_uncertainty: If True, trains with ``loss_function="RMSEWithUncertainty"`` and
+                           returns native uncertainty from ``virtual_ensembles_predict``.
+                           If False, uses standard RMSE loss and returns zeros for std.
+   :type use_uncertainty: bool, default True
+   :param virtual_ensembles_count: Number of virtual ensembles used when estimating uncertainty.
+                                   Higher values give smoother variance estimates at extra compute cost.
+   :type virtual_ensembles_count: int, default 10
+   :param verbose: CatBoost verbosity. ``False`` / ``0`` suppresses all output.
+   :type verbose: bool | int, default False
+   :param \*\*kwargs: Additional keyword arguments forwarded to ``CatBoostRegressor``.
+
+
+   .. py:attribute:: n_estimators
+      :value: 200
+
+
+
+   .. py:attribute:: learning_rate
+      :value: 0.05
+
+
+
+   .. py:attribute:: depth
+      :value: 6
+
+
+
+   .. py:attribute:: use_uncertainty
+      :value: True
+
+
+
+   .. py:attribute:: virtual_ensembles_count
+      :value: 10
+
+
+
+   .. py:attribute:: verbose
+      :value: False
+
+
+
+   .. py:attribute:: _extra_kwargs
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> numpy.ndarray | tuple[np.ndarray, np.ndarray]
+
+      Predict outputs for X.
+
+      :param X:
+      :type X: array-like of shape (n_samples, n_features)
+      :param return_std: If True and ``use_uncertainty=True``, returns predictive std from
+                         CatBoost virtual ensembles (total uncertainty = aleatoric + epistemic).
+      :type return_std: bool, default False
+
+      :returns: * **y_pred** (*np.ndarray, shape (n_samples, n_outputs)*)
+                * **y_std** (*np.ndarray, shape (n_samples, n_outputs)  [only if return_std]*)
+
+
+
+   .. py:method:: get_params(deep: bool = True) -> dict
+
+
+   .. py:method:: set_params(**params) -> CatBoostSurrogate
+
+

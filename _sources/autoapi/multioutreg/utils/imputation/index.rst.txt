@@ -1,0 +1,54 @@
+multioutreg.utils.imputation
+============================
+
+.. py:module:: multioutreg.utils.imputation
+
+.. autoapi-nested-parse::
+
+   Utilities for detecting and handling missing values in DataFrames.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.utils.imputation.detect_missing
+   multioutreg.utils.imputation.apply_imputation
+
+
+Module Contents
+---------------
+
+.. py:function:: detect_missing(df: pandas.DataFrame) -> pandas.DataFrame
+
+   Return a summary of missing values per column.
+
+   :param df: Input DataFrame to inspect.
+   :type df: pd.DataFrame
+
+   :returns: DataFrame indexed by column name with columns ``missing_count`` and
+             ``missing_pct``.  Only columns that have at least one missing value
+             are included.  Returns an empty DataFrame when no values are missing.
+   :rtype: pd.DataFrame
+
+
+.. py:function:: apply_imputation(df: pandas.DataFrame, cols_to_impute: list[str], cols_to_drop_rows: list[str], n_neighbors: int = 5) -> pandas.DataFrame
+
+   Clean a DataFrame by KNN-imputing selected columns and dropping rows elsewhere.
+
+   :param df: Input DataFrame (not modified in-place).
+   :type df: pd.DataFrame
+   :param cols_to_impute: Columns where missing values should be filled using KNN imputation.
+   :type cols_to_impute: list[str]
+   :param cols_to_drop_rows: Columns where any row with a missing value should be dropped entirely.
+   :type cols_to_drop_rows: list[str]
+   :param n_neighbors: Number of nearest neighbors used by :class:`~sklearn.impute.KNNImputer`.
+                       Default is 5.
+   :type n_neighbors: int, optional
+
+   :returns: Cleaned copy of ``df``.
+   :rtype: pd.DataFrame
+
+

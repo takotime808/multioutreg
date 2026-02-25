@@ -1,0 +1,87 @@
+multioutreg.figures.uncertainty_toolbox_extension
+=================================================
+
+.. py:module:: multioutreg.figures.uncertainty_toolbox_extension
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.uncertainty_toolbox_extension.plot_intervals_ordered
+   multioutreg.figures.uncertainty_toolbox_extension.plot_uct_intervals_ordered_multioutput
+
+
+Module Contents
+---------------
+
+.. py:function:: plot_intervals_ordered(y_pred: numpy.ndarray, y_std: numpy.ndarray, y_true: numpy.ndarray, n_subset: Union[int, None] = None, ylims: Union[Tuple[float, float], None] = None, num_stds_confidence_bound: int = 2, ax: Union[matplotlib.axes.Axes, None] = None, target: str = 'output') -> matplotlib.axes.Axes
+
+   Plot residuals (Observed - Predicted) for each target in a multi-output regression problem.
+
+   :param y_pred: Predicted means (1D array).
+   :param y_std: Predicted stds (1D array).
+   :param y_true: True labels (1D array).
+   :param n_subset: Number of points to randomly select.
+   :param ylims: Optional y-axis limits.
+   :param num_stds_confidence_bound: Interval width (number of stds).
+   :param ax: matplotlib axes (optional).
+   :param target: Name of target variable.
+
+   :returns: The plot axis.
+   :rtype: Axes
+
+
+.. py:function:: plot_uct_intervals_ordered_multioutput(y_pred: numpy.ndarray, y_std: numpy.ndarray, y_true: numpy.ndarray, ax_list: Union[List[matplotlib.axes.Axes], None] = None, n_subset: Union[int, None] = None, num_stds_confidence_bound: int = 2, savefig: str = False, suptitle: str = 'Ordered Prediction Intervals per Output', supxlabel: str = 'Index (Ordered by Observed Value)', supylabel: str = 'Predicted Values and Intervals', target_list: list = None, ylims: Union[Tuple[float, float], None] = None, max_cols: int = 3) -> List[matplotlib.axes.Axes]
+
+   Plot ordered prediction intervals for each dimension (output) of a multi-output regression problem.
+
+   This function generates a separate subplot for each output dimension, plotting the predicted means,
+   confidence intervals (as error bars), and observed values, ordered by the observed value. X and Y labels
+   are shared across subplots. Optionally, only a random subset of samples can be plotted.
+
+   :param y_pred: Predicted means, shape (n_samples, n_outputs) or (n_samples,).
+   :type y_pred: np.ndarray
+   :param y_std: Predicted standard deviations, same shape as `y_pred`.
+   :type y_std: np.ndarray
+   :param y_true: True target values, same shape as `y_pred`.
+   :type y_true: np.ndarray
+   :param ax_list: List of matplotlib axes to plot on. If None, new axes are created.
+   :type ax_list: list of matplotlib.axes.Axes or None, optional
+   :param n_subset: If provided, plot only this many samples (randomly selected).
+   :type n_subset: int or None, optional
+   :param num_stds_confidence_bound: Number of standard deviations to use for error bars (default: 2).
+   :type num_stds_confidence_bound: int, optional
+   :param savefig: If a string, the path to save the resulting figure. If False (default), figure is not saved.
+   :type savefig: str or bool, optional
+   :param suptitle: Supertitle for the full figure (default: "Ordered Prediction Intervals per Output").
+   :type suptitle: str, optional
+   :param supxlabel: Shared x-axis label for the figure.
+   :type supxlabel: str, optional
+   :param supylabel: Shared y-axis label for the figure.
+   :type supylabel: str, optional
+   :param target_list: List of output (target) names, one per output dimension. Used as subplot titles.
+                       If None, targets are named "Output {i}" by default.
+   :type target_list: list of str or None, optional
+   :param ylims: Shared y-axis limits for all subplots as (lower, upper).
+   :type ylims: tuple of float or None, optional
+
+   :returns: List of axes objects corresponding to each output dimension.
+   :rtype: list of matplotlib.axes.Axes
+
+   :raises ValueError: If the input arrays do not have compatible shapes or dimensions.
+
+   .. rubric:: Examples
+
+   >>> axes = plot_uct_intervals_ordered_multioutput(y_pred, y_std, y_true)
+   >>> axes = plot_uct_intervals_ordered_multioutput(y_pred, y_std, y_true, n_subset=50, target_list=["Y1", "Y2"])
+
+   .. admonition:: Notes
+
+      Each subplot visualizes:
+        - predicted means (with error bars showing uncertainty),
+        - observed (true) values,
+        - shared axis labels and an overall figure title.
+
+

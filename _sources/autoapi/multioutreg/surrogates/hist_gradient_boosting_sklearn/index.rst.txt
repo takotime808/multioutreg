@@ -1,0 +1,87 @@
+multioutreg.surrogates.hist_gradient_boosting_sklearn
+=====================================================
+
+.. py:module:: multioutreg.surrogates.hist_gradient_boosting_sklearn
+
+.. autoapi-nested-parse::
+
+   HistGradientBoosting surrogate — zero extra dependencies.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.hist_gradient_boosting_sklearn.HistGradientBoostingSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: HistGradientBoostingSurrogate(max_iter: int = 100, learning_rate: float = 0.1, max_leaf_nodes: int = 31, max_depth=None, min_samples_leaf: int = 20, **kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   Histogram-based Gradient Boosting regression surrogate.
+
+   Wraps :class:`sklearn.ensemble.HistGradientBoostingRegressor` in a
+   ``MultiOutputRegressor``.  Significantly faster than
+   ``GradientBoostingSurrogate`` for large datasets (n > 5 000) due to the
+   histogram-bin approximation.  Requires no additional dependencies beyond
+   scikit-learn.
+
+   Uncertainty is not natively available from this estimator; use
+   :meth:`wrap_conformal` / :meth:`conformal_predict` for
+   distribution-free prediction intervals.
+
+   :param max_iter: Number of boosting rounds.
+   :type max_iter: int, default 100
+   :param learning_rate: Shrinkage applied to each tree.
+   :type learning_rate: float, default 0.1
+   :param max_leaf_nodes: Maximum number of leaves per tree.  ``None`` means no limit.
+   :type max_leaf_nodes: int or None, default 31
+   :param max_depth: Maximum depth of each tree.
+   :type max_depth: int or None, default None
+   :param min_samples_leaf: Minimum number of samples per leaf.
+   :type min_samples_leaf: int, default 20
+   :param \*\*kwargs: Additional keyword arguments forwarded to
+                      ``HistGradientBoostingRegressor``.
+
+
+   .. py:attribute:: max_iter
+      :value: 100
+
+
+
+   .. py:attribute:: learning_rate
+      :value: 0.1
+
+
+
+   .. py:attribute:: max_leaf_nodes
+      :value: 31
+
+
+
+   .. py:attribute:: max_depth
+      :value: None
+
+
+
+   .. py:attribute:: min_samples_leaf
+      :value: 20
+
+
+
+   .. py:attribute:: _extra_kwargs
+
+
+   .. py:method:: get_params(deep: bool = True) -> dict
+
+
+   .. py:method:: set_params(**params) -> HistGradientBoostingSurrogate
+
+

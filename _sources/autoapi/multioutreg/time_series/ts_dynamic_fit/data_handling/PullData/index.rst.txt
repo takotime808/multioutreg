@@ -1,0 +1,62 @@
+multioutreg.time_series.ts_dynamic_fit.data_handling.PullData
+=============================================================
+
+.. py:module:: multioutreg.time_series.ts_dynamic_fit.data_handling.PullData
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.data_handling.PullData.move_selected_local_data_to_old
+   multioutreg.time_series.ts_dynamic_fit.data_handling.PullData.download_selected_folders
+   multioutreg.time_series.ts_dynamic_fit.data_handling.PullData.pull_data
+
+
+Module Contents
+---------------
+
+.. py:function:: move_selected_local_data_to_old(local_dir: str, base_types: List[str]) -> None
+
+   Moves older files in local_dir/data to local_dir/old, only if a newer file of the same base type exists.
+
+   :param local_dir: The path containing 'data' and 'old' subfolders.
+   :type local_dir: str
+   :param base_types: List of filename base types (e.g., ["OrderDetails"]) to consider for moving.
+   :type base_types: List[str]
+
+   :returns: None
+
+   :raises None:
+
+
+.. py:function:: download_selected_folders(prefixes: List[str], local_dir: str, bucket) -> List[str]
+
+   Downloads files from specified S3 prefixes into a local directory,
+   maintaining subdirectory structure and returning any errors encountered.
+
+   :param prefixes: List of data prefixes to fetch from S3.
+   :type prefixes: List[str]
+   :param local_dir: Local directory where data should be saved.
+   :type local_dir: str
+   :param bucket: Boto3 S3 Bucket resource to download from.
+
+   :returns: List of paths of files that failed to download.
+   :rtype: List[str]
+
+   :raises None (exceptions are caught internally and appended to results):
+
+
+.. py:function:: pull_data() -> None
+
+   Downloads selected folders from S3, moves older files to archive folder if needed,
+   and handles any errors or critical failures during the process.
+
+   :param None:
+
+   :returns: None
+
+   :raises None (all errors are handled and logged internally):
+
+

@@ -1,0 +1,30 @@
+multioutreg.sampling.infer_sampling
+===================================
+
+.. py:module:: multioutreg.sampling.infer_sampling
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.sampling.infer_sampling.infer_sampling_and_plot_umap
+
+
+Module Contents
+---------------
+
+.. py:function:: infer_sampling_and_plot_umap(X: numpy.ndarray, explanation_indicator: bool = False) -> Tuple[str, matplotlib.pyplot.Figure] | Tuple[str, matplotlib.pyplot.Figure, str]
+
+   Wrapper around generate_umap_plot to return method, plot, and explanation.
+
+   :param X: Input feature matrix.
+   :type X: np.ndarray
+   :param explanation_indicator: If True, also return the explanation text.
+   :type explanation_indicator: bool
+
+   :returns: Sampling method name and matplotlib Figure (and explanation if requested).
+   :rtype: Union[Tuple[str, plt.Figure], Tuple[str, plt.Figure, str]]
+
+

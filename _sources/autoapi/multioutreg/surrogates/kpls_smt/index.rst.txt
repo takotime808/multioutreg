@@ -1,0 +1,142 @@
+multioutreg.surrogates.kpls_smt
+===============================
+
+.. py:module:: multioutreg.surrogates.kpls_smt
+
+.. autoapi-nested-parse::
+
+   KPLS surrogate — Kriging with Partial Least Squares dimensionality reduction.
+
+   Wraps the ``KPLS`` model from the SMT Surrogate Modeling Toolbox.  KPLS
+   reduces the effective input dimensionality with a PLS projection before
+   fitting a Kriging (GP) model, making it well-suited for high-dimensional
+   inputs (p >> n) where standard Kriging would otherwise be impractical.
+
+   The probabilistic model gives the same Kriging mean and variance as a
+   standard GP in the projected space.
+
+   Installation
+   ------------
+       pip install smt          # core SMT (includes KPLS)
+       # or
+       pip install smt[gpx]     # also installs Rust-accelerated GPX backend
+
+   If the optional dependency is not installed this module defines placeholder
+   classes that raise ``ImportError`` at instantiation so the rest of the
+   package continues to work without it.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.kpls_smt._KPLS_AVAILABLE
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.kpls_smt._KPLSEstimator
+   multioutreg.surrogates.kpls_smt.KPLSSurrogate
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.kpls_smt._check_available
+
+
+Module Contents
+---------------
+
+.. py:data:: _KPLS_AVAILABLE
+   :value: True
+
+
+.. py:function:: _check_available()
+
+.. py:class:: _KPLSEstimator(n_comp=2, corr='squar_exp', poly='constant')
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`, :py:obj:`sklearn.base.RegressorMixin`
+
+
+   Single-output KPLS estimator (sklearn-compatible, used by GridSearchCV).
+
+
+   .. py:attribute:: n_comp
+      :value: 2
+
+
+
+   .. py:attribute:: corr
+      :value: 'squar_exp'
+
+
+
+   .. py:attribute:: poly
+      :value: 'constant'
+
+
+
+   .. py:method:: fit(X, y)
+
+
+   .. py:method:: predict(X, return_std=False)
+
+
+.. py:class:: KPLSSurrogate(n_comp=2, corr='squar_exp', poly='constant')
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Kriging with Partial Least Squares (KPLS) surrogate via SMT.
+
+   KPLS reduces input dimensionality with PLS before fitting a Kriging model.
+   This makes it well-suited for high-dimensional problems (p >> n) where
+   standard GP/Kriging would be slow or numerically unstable due to the
+   large covariance matrix.
+
+   Requires ``pip install smt``.  The dependency is optional; if not
+   installed an ``ImportError`` is raised at instantiation time.
+
+   :param n_comp: Number of PLS components.  Defaults to 2.  Will be clamped to
+                  ``min(n_comp, n_features)`` at fit time.
+   :type n_comp: int
+   :param corr: Correlation function: ``"squar_exp"`` (RBF), ``"abs_exp"``,
+                ``"matern52"``, or ``"matern32"``.
+   :type corr: str
+   :param poly: Regression/trend term: ``"constant"``, ``"linear"``, or
+                ``"quadratic"``.
+   :type poly: str
+
+
+   .. py:attribute:: n_comp
+      :value: 2
+
+
+
+   .. py:attribute:: corr
+      :value: 'squar_exp'
+
+
+
+   .. py:attribute:: poly
+      :value: 'constant'
+
+
+
+   .. py:method:: fit(X, Y)
+
+
+   .. py:method:: predict(X, return_std=False)
+
+
+   .. py:method:: _conformal_point_predict(X)
+
+

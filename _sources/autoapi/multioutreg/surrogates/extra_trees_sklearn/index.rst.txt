@@ -1,0 +1,28 @@
+multioutreg.surrogates.extra_trees_sklearn
+==========================================
+
+.. py:module:: multioutreg.surrogates.extra_trees_sklearn
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.extra_trees_sklearn.ExtraTreesRegressorSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: ExtraTreesRegressorSurrogate(**kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   Extra-Trees surrogate using ensemble variance for uncertainty.
+
+
+   .. py:method:: predict(X, return_std=False)
+
+

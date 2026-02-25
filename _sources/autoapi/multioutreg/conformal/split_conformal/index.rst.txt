@@ -1,0 +1,84 @@
+multioutreg.conformal.split_conformal
+=====================================
+
+.. py:module:: multioutreg.conformal.split_conformal
+
+.. autoapi-nested-parse::
+
+   Split (inductive) conformal prediction.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.conformal.split_conformal.SplitConformalPredictor
+
+
+Module Contents
+---------------
+
+.. py:class:: SplitConformalPredictor(estimator, calibration_size: float = 0.2, adaptive: bool = False, random_state: Optional[int] = None)
+
+   Bases: :py:obj:`multioutreg.conformal.base.BaseConformalPredictor`
+
+
+   Split (inductive) conformal prediction.
+
+   Splits training data into a proper training set and a calibration set.
+   The model is fitted on the training set, and nonconformity scores
+   (absolute residuals) are computed on the calibration set. At prediction
+   time, the conformal quantile of these scores determines the interval width.
+
+   Coverage guarantee: P(Y in [y_lower, y_upper]) >= 1 - alpha
+   for exchangeable data.
+
+   :param estimator: Any regressor with fit/predict. Will be cloned internally.
+   :type estimator: sklearn-compatible regressor
+   :param calibration_size: Fraction of training data reserved for calibration (default 0.2).
+   :type calibration_size: float
+   :param adaptive: If True, uses normalized residuals |y - y_hat| / y_std for
+                    locally-adaptive intervals. Requires the estimator to support
+                    predict(X, return_std=True).
+   :type adaptive: bool
+   :param random_state: Seed for reproducible calibration splits.
+   :type random_state: int, optional
+
+
+   .. py:attribute:: calibration_size
+      :value: 0.2
+
+
+
+   .. py:attribute:: adaptive
+      :value: False
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> SplitConformalPredictor
+
+      Fit model on training split and compute calibration scores.
+
+      :param X:
+      :type X: (n_samples, n_features)
+      :param y:
+      :type y: (n_samples,) or (n_samples, n_outputs)
+
+
+
+   .. py:method:: predict_interval(X: numpy.ndarray, alpha: float = 0.1) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+      Compute prediction intervals.
+
+      :param X:
+      :type X: (n_samples, n_features)
+      :param alpha: Miscoverage level. Intervals target 1-alpha coverage.
+      :type alpha: float
+
+      :returns: **y_lower, y_upper** -- Shape (n_samples,) for single output or (n_samples, n_outputs).
+      :rtype: np.ndarray
+
+
+

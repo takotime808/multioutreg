@@ -1,0 +1,49 @@
+multioutreg.utils.aux_funcs
+===========================
+
+.. py:module:: multioutreg.utils.aux_funcs
+
+.. autoapi-nested-parse::
+
+   Utility and auxiliary functions, `multioutreg.utils.aux_funcs`, for multioutreg library.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.utils.aux_funcs.execute_command
+   multioutreg.utils.aux_funcs.parse_out_response
+
+
+Module Contents
+---------------
+
+.. py:function:: execute_command(command: str) -> subprocess.CompletedProcess
+
+   Execute provided command.
+
+   This function exists for sphinx docs demonstration.
+
+   :param command: Command to be executed.
+   :type command: str
+
+   :returns: Executed command details.
+   :rtype: subprocess.CompletedProcess
+
+
+.. py:function:: parse_out_response(uninstall_command_return: subprocess.CompletedProcess) -> str
+
+   Parse out response from executed command.
+
+   This function exists for sphinx docs demonstration.
+
+   :param uninstall_command_return: Executed command details.
+   :type uninstall_command_return: subprocess.CompletedProcess
+
+   :returns: Response from executing command.
+   :rtype: str
+
+

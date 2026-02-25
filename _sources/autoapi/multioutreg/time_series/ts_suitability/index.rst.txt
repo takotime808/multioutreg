@@ -1,0 +1,47 @@
+multioutreg.time_series.ts_suitability
+======================================
+
+.. py:module:: multioutreg.time_series.ts_suitability
+
+.. autoapi-nested-parse::
+
+   Statistical tests to determine whether uploaded data is suitable for time series modeling.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_suitability.check_ts_suitability
+
+
+Module Contents
+---------------
+
+.. py:function:: check_ts_suitability(df: pandas.DataFrame, target_col: str, datetime_col: str | None = None, min_length: int = 30) -> dict
+
+   Run statistical tests to determine if data is suitable for time series modeling.
+
+   Runs three tests:
+   - ADF (Augmented Dickey-Fuller): checks for stationarity.
+   - Ljung-Box: checks for significant autocorrelation (serial dependence).
+   - ACF seasonality scan: estimates a dominant seasonal period if present.
+
+   :param df: Input data.
+   :type df: pd.DataFrame
+   :param target_col: Column to analyse.
+   :type target_col: str
+   :param datetime_col: If provided, data is sorted by this column before testing.
+   :type datetime_col: str | None
+   :param min_length: Minimum number of non-null observations required to run tests (default 30).
+   :type min_length: int
+
+   :returns: n_obs, adf_statistic, adf_pvalue, is_stationary,
+             ljungbox_pvalue, has_autocorrelation, seasonal_period,
+             min_length_ok, suitable, recommendation.
+             On error: suitable=False, error=<message>.
+   :rtype: dict with keys
+
+

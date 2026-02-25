@@ -1,0 +1,65 @@
+multioutreg.surrogates.conformal_mixin
+======================================
+
+.. py:module:: multioutreg.surrogates.conformal_mixin
+
+.. autoapi-nested-parse::
+
+   Shared conformal prediction mixin for surrogate models.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.conformal_mixin.ConformalMixin
+
+
+Module Contents
+---------------
+
+.. py:class:: ConformalMixin
+
+   Mixin providing conformal prediction calibration and inference.
+
+   Any surrogate that implements ``fit(X, Y)`` and ``predict(X)`` can
+   inherit this mixin to gain ``wrap_conformal`` and ``conformal_predict``
+   without depending on sklearn's ``MultiOutputRegressor``.
+
+   Subclasses must implement ``_conformal_point_predict(X)`` that returns
+   an ``(n_samples, n_outputs)`` array. By default this calls
+   ``self.predict(X)`` with no keyword arguments.
+
+
+   .. py:method:: _conformal_point_predict(X: numpy.ndarray) -> numpy.ndarray
+
+
+   .. py:method:: wrap_conformal(X_cal: numpy.ndarray, y_cal: numpy.ndarray, **kwargs) -> ConformalMixin
+
+      Calibrate conformal prediction intervals on held-out data.
+
+      :param X_cal: Calibration features (must NOT overlap with training data).
+      :type X_cal: np.ndarray
+      :param y_cal: Calibration targets.
+      :type y_cal: np.ndarray
+
+      :rtype: self
+
+
+
+   .. py:method:: conformal_predict(X: numpy.ndarray, alpha: float = 0.1)
+
+      Return conformal prediction intervals.
+
+      :param X:
+      :type X: np.ndarray
+      :param alpha: Miscoverage level. Intervals target 1-alpha coverage.
+      :type alpha: float
+
+      :returns: **y_lower, y_upper**
+      :rtype: np.ndarray
+
+
+

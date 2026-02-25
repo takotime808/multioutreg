@@ -1,0 +1,29 @@
+multioutreg.figures.coverage_plots
+==================================
+
+.. py:module:: multioutreg.figures.coverage_plots
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.coverage_plots.plot_coverage
+
+
+Module Contents
+---------------
+
+.. py:function:: plot_coverage(y_true, y_pred, y_std, output_names=None, n_cols=3, intervals=[0.5, 0.68, 0.8, 0.9, 0.95, 0.99])
+
+   Coverage plot: for each confidence level, plots nominal vs empirical coverage.
+
+   :param y_true: arrays, shapes (n_samples, n_outputs) or (n_samples,)
+   :param y_pred: arrays, shapes (n_samples, n_outputs) or (n_samples,)
+   :param y_std: arrays, shapes (n_samples, n_outputs) or (n_samples,)
+   :param output_names: list of output variable names (optional)
+   :param n_cols: subplots columns if multi-output
+   :param intervals: list of confidence intervals (as fractions, e.g. 0.95 for 95%)
+
+

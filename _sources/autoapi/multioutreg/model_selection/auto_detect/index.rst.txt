@@ -1,0 +1,145 @@
+multioutreg.model_selection.auto_detect
+=======================================
+
+.. py:module:: multioutreg.model_selection.auto_detect
+
+.. autoapi-nested-parse::
+
+   Utilities for automatically selecting the best regressor per output.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.model_selection.auto_detect._NGBOOST_AVAILABLE
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.model_selection.auto_detect.AutoDetectMultiOutputRegressor
+
+
+Module Contents
+---------------
+
+.. py:data:: _NGBOOST_AVAILABLE
+   :value: True
+
+
+.. py:class:: AutoDetectMultiOutputRegressor(estimators: Sequence[sklearn.base.BaseEstimator], param_spaces: Sequence[dict], cv: int = 3, scoring: str = 'neg_mean_squared_error', pre_screen: bool = False)
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`, :py:obj:`sklearn.base.RegressorMixin`
+
+
+   Fit a separate estimator per output choosing the best via grid search.
+
+   :param estimators: Candidate sklearn estimators to evaluate.
+   :type estimators: sequence of BaseEstimator
+   :param param_spaces: Parameter grids corresponding to each estimator.
+   :type param_spaces: sequence of dict
+   :param cv: Number of cross-validation folds used in grid search.
+   :type cv: int
+   :param scoring: Sklearn scoring metric for GridSearchCV.
+   :type scoring: str
+   :param pre_screen: When True, run statistical pre-screening tests before fitting each
+                      output and skip models that are either computationally expensive
+                      without justification or unlikely to improve on a linear baseline.
+                      See :class:`~multioutreg.model_selection.screening.ModelScreener`.
+   :type pre_screen: bool, default False
+
+
+   .. py:attribute:: estimators
+
+
+   .. py:attribute:: param_spaces
+
+
+   .. py:attribute:: cv
+      :value: 3
+
+
+
+   .. py:attribute:: scoring
+      :value: 'neg_mean_squared_error'
+
+
+
+   .. py:attribute:: pre_screen
+      :value: False
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> AutoDetectMultiOutputRegressor
+
+
+   .. py:method:: register_multi_output_candidates(surrogates: list) -> AutoDetectMultiOutputRegressor
+
+      Register joint multi-output surrogate candidates.
+
+      These surrogates predict all outputs simultaneously (i.e. they set
+      ``_multi_output = True``). They are evaluated once on the full Y matrix
+      during ``fit()`` and each output's score is compared against the
+      per-output GridSearchCV winners.
+
+      :param surrogates: Fitted or unfitted surrogate instances with ``fit(X, Y)`` and
+                         ``predict(X)`` that return an ``(n_samples, n_outputs)`` array.
+      :type surrogates: list
+
+      :rtype: self
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> numpy.ndarray
+
+
+   .. py:method:: with_vendored_surrogates(cv: int = 3, scoring: str = 'neg_mean_squared_error', fidelity_levels: Sequence[str] | None = None, pre_screen: bool = False) -> AutoDetectMultiOutputRegressor
+      :classmethod:
+
+
+      Return instance configured to search all vendored surrogates.
+
+      :param pre_screen: When True, statistical tests are run at the start of ``fit()``
+                         to skip expensive models that are unlikely to help on this data.
+                         Computationally heavy models (GP, SVR, MLP, heteroscedastic
+                         ensembles) are only run when the data characteristics justify them.
+      :type pre_screen: bool, default False
+
+
+
+   .. py:method:: calibrate_conformal(X_cal: numpy.ndarray, y_cal: numpy.ndarray, **kwargs) -> AutoDetectMultiOutputRegressor
+
+      Calibrate conformal prediction intervals using held-out data.
+
+      Computes absolute residuals on the calibration set using the
+      already-fitted model. These residuals are used at prediction time
+      to construct distribution-free intervals with coverage guarantees.
+
+      :param X_cal: Calibration features (must NOT overlap with training data).
+      :type X_cal: np.ndarray
+      :param y_cal: Calibration targets.
+      :type y_cal: np.ndarray
+
+      :rtype: self
+
+
+
+   .. py:method:: predict_interval(X: numpy.ndarray, alpha: float = 0.1) -> tuple
+
+      Return conformal prediction intervals.
+
+      :param X:
+      :type X: np.ndarray
+      :param alpha: Miscoverage level. Intervals target 1-alpha coverage.
+      :type alpha: float
+
+      :returns: **y_lower, y_upper**
+      :rtype: np.ndarray
+
+
+

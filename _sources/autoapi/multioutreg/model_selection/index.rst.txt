@@ -1,0 +1,261 @@
+multioutreg.model_selection
+===========================
+
+.. py:module:: multioutreg.model_selection
+
+.. autoapi-nested-parse::
+
+   Model selection utilities.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/model_selection/auto_detect/index
+   /autoapi/multioutreg/model_selection/model_wrappers/index
+   /autoapi/multioutreg/model_selection/screening/index
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.model_selection.AutoDetectMultiOutputRegressor
+   multioutreg.model_selection.ModelScreener
+   multioutreg.model_selection.ModelSpec
+
+
+Package Contents
+----------------
+
+.. py:class:: AutoDetectMultiOutputRegressor(estimators: Sequence[sklearn.base.BaseEstimator], param_spaces: Sequence[dict], cv: int = 3, scoring: str = 'neg_mean_squared_error', pre_screen: bool = False)
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`, :py:obj:`sklearn.base.RegressorMixin`
+
+
+   Fit a separate estimator per output choosing the best via grid search.
+
+   :param estimators: Candidate sklearn estimators to evaluate.
+   :type estimators: sequence of BaseEstimator
+   :param param_spaces: Parameter grids corresponding to each estimator.
+   :type param_spaces: sequence of dict
+   :param cv: Number of cross-validation folds used in grid search.
+   :type cv: int
+   :param scoring: Sklearn scoring metric for GridSearchCV.
+   :type scoring: str
+   :param pre_screen: When True, run statistical pre-screening tests before fitting each
+                      output and skip models that are either computationally expensive
+                      without justification or unlikely to improve on a linear baseline.
+                      See :class:`~multioutreg.model_selection.screening.ModelScreener`.
+   :type pre_screen: bool, default False
+
+
+   .. py:attribute:: estimators
+
+
+   .. py:attribute:: param_spaces
+
+
+   .. py:attribute:: cv
+      :value: 3
+
+
+
+   .. py:attribute:: scoring
+      :value: 'neg_mean_squared_error'
+
+
+
+   .. py:attribute:: pre_screen
+      :value: False
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> AutoDetectMultiOutputRegressor
+
+
+   .. py:method:: register_multi_output_candidates(surrogates: list) -> AutoDetectMultiOutputRegressor
+
+      Register joint multi-output surrogate candidates.
+
+      These surrogates predict all outputs simultaneously (i.e. they set
+      ``_multi_output = True``). They are evaluated once on the full Y matrix
+      during ``fit()`` and each output's score is compared against the
+      per-output GridSearchCV winners.
+
+      :param surrogates: Fitted or unfitted surrogate instances with ``fit(X, Y)`` and
+                         ``predict(X)`` that return an ``(n_samples, n_outputs)`` array.
+      :type surrogates: list
+
+      :rtype: self
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> numpy.ndarray
+
+
+   .. py:method:: with_vendored_surrogates(cv: int = 3, scoring: str = 'neg_mean_squared_error', fidelity_levels: Sequence[str] | None = None, pre_screen: bool = False) -> AutoDetectMultiOutputRegressor
+      :classmethod:
+
+
+      Return instance configured to search all vendored surrogates.
+
+      :param pre_screen: When True, statistical tests are run at the start of ``fit()``
+                         to skip expensive models that are unlikely to help on this data.
+                         Computationally heavy models (GP, SVR, MLP, heteroscedastic
+                         ensembles) are only run when the data characteristics justify them.
+      :type pre_screen: bool, default False
+
+
+
+   .. py:method:: calibrate_conformal(X_cal: numpy.ndarray, y_cal: numpy.ndarray, **kwargs) -> AutoDetectMultiOutputRegressor
+
+      Calibrate conformal prediction intervals using held-out data.
+
+      Computes absolute residuals on the calibration set using the
+      already-fitted model. These residuals are used at prediction time
+      to construct distribution-free intervals with coverage guarantees.
+
+      :param X_cal: Calibration features (must NOT overlap with training data).
+      :type X_cal: np.ndarray
+      :param y_cal: Calibration targets.
+      :type y_cal: np.ndarray
+
+      :rtype: self
+
+
+
+   .. py:method:: predict_interval(X: numpy.ndarray, alpha: float = 0.1) -> tuple
+
+      Return conformal prediction intervals.
+
+      :param X:
+      :type X: np.ndarray
+      :param alpha: Miscoverage level. Intervals target 1-alpha coverage.
+      :type alpha: float
+
+      :returns: **y_lower, y_upper**
+      :rtype: np.ndarray
+
+
+
+.. py:class:: ModelScreener(alpha: float = 0.05, gain_threshold: float = 0.05, vif_threshold: float = 10.0)
+
+   Run all pre-screening tests and produce a model candidate schedule.
+
+   :param alpha: Significance level for all hypothesis tests (default 0.05).
+   :type alpha: float
+   :param gain_threshold: Minimum RF–LR R² gain to flag data as non-linear (default 0.05).
+   :type gain_threshold: float
+   :param vif_threshold: VIF above which multicollinearity is flagged (default 10.0).
+   :type vif_threshold: float
+
+   .. rubric:: Examples
+
+   >>> screener = ModelScreener().fit(X_train, Y_train)
+   >>> specs = screener.screen()          # global list of ModelSpec
+   >>> matrix = screener.screen_per_output(output_names)  # per-output DataFrame
+
+
+   .. py:attribute:: alpha
+      :value: 0.05
+
+
+
+   .. py:attribute:: gain_threshold
+      :value: 0.05
+
+
+
+   .. py:attribute:: vif_threshold
+      :value: 10.0
+
+
+
+   .. py:attribute:: _size
+      :type:  Dict[str, TestResult]
+
+
+   .. py:attribute:: _vif
+      :type:  Optional[TestResult]
+      :value: None
+
+
+
+   .. py:attribute:: _per_output
+      :type:  List[Dict[str, TestResult]]
+      :value: []
+
+
+
+   .. py:attribute:: global_flags_
+      :type:  Dict[str, bool]
+
+
+   .. py:method:: fit(X: numpy.ndarray, Y: numpy.ndarray) -> ModelScreener
+
+      Run all tests.  Call before ``screen()`` or ``screen_per_output()``.
+
+
+
+   .. py:method:: screen() -> List[ModelSpec]
+
+      Return global list of :class:`ModelSpec` objects.
+
+      Models whose factory is ``None`` were skipped; the ``reason_excluded``
+      field explains why.
+
+
+
+   .. py:method:: screen_per_output(output_names: Optional[List[str]] = None) -> pandas.DataFrame
+
+      Return a boolean DataFrame (index=model, columns=output).
+
+      ``True`` = run this model on this output; ``False`` = skip.
+      Requires :func:`fit` to have been called first.
+
+
+
+   .. py:method:: eligible_indices_for_output(output_idx: int, model_names: List[str]) -> List[int]
+
+      Return indices into *model_names* that should be tried for *output_idx*.
+
+      Used by :class:`~multioutreg.model_selection.AutoDetectMultiOutputRegressor`
+      to filter its estimator list per output when ``pre_screen=True``.
+
+
+
+.. py:class:: ModelSpec
+
+   Descriptor for a candidate model returned by :meth:`ModelScreener.screen`.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: factory
+      :type:  object
+
+
+   .. py:attribute:: cost
+      :type:  str
+
+
+   .. py:attribute:: reason_included
+      :type:  str
+      :value: ''
+
+
+
+   .. py:attribute:: reason_excluded
+      :type:  str
+      :value: ''
+
+
+

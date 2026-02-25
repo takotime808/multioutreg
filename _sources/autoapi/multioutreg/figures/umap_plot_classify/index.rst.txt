@@ -1,0 +1,28 @@
+multioutreg.figures.umap_plot_classify
+======================================
+
+.. py:module:: multioutreg.figures.umap_plot_classify
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.umap_plot_classify.generate_umap_plot
+
+
+Module Contents
+---------------
+
+.. py:function:: generate_umap_plot(X)
+
+   Generate a UMAP projection and infer the sampling method.
+
+   :param X: Input feature matrix.
+   :type X: np.ndarray or None
+
+   :returns: Base64-encoded plot and inferred sampling explanation.
+   :rtype: Tuple[str, str]
+
+

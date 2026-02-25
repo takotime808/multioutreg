@@ -1,0 +1,15 @@
+multioutreg.sampling
+====================
+
+.. py:module:: multioutreg.sampling
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/sampling/infer_sampling/index
+
+

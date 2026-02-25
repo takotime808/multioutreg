@@ -1,0 +1,24 @@
+multioutreg.gui.pages.Detect_Sampling
+=====================================
+
+.. py:module:: multioutreg.gui.pages.Detect_Sampling
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.Detect_Sampling.uploaded_file
+   multioutreg.gui.pages.Detect_Sampling.df
+
+
+Module Contents
+---------------
+
+.. py:data:: uploaded_file
+
+.. py:data:: df
+   :value: None
+
+

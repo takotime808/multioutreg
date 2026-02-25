@@ -1,0 +1,63 @@
+multioutreg.figures.shap_multioutput
+====================================
+
+.. py:module:: multioutreg.figures.shap_multioutput
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.shap_multioutput.plot_multioutput_shap_bar_subplots
+   multioutreg.figures.shap_multioutput.generate_shap_plot
+   multioutreg.figures.shap_multioutput.plot_multioutput_shap_bar_subplots_no_tree
+
+
+Module Contents
+---------------
+
+.. py:function:: plot_multioutput_shap_bar_subplots(model: sklearn.multioutput.MultiOutputRegressor, X: numpy.ndarray, feature_names: Optional[Sequence[str]] = None, output_names: Optional[Sequence[str]] = None, max_cols: int = 3, savefig: Optional[str] = None) -> matplotlib.pyplot.Figure
+
+   Plot mean absolute SHAP value bar plots for each output of a MultiOutputRegressor in subplots.
+   The figure always uses at most `max_cols` columns per row (default 3), and shows the SHAP value next to each bar.
+
+   :param model: A fitted MultiOutputRegressor model (e.g., wrapping RandomForestRegressor).
+   :type model: MultiOutputRegressor
+   :param X: Feature matrix of shape (n_samples, n_features) used for SHAP analysis.
+   :type X: np.ndarray
+   :param feature_names: List of feature names (length n_features). If None, will use "feature_0", ... etc.
+   :type feature_names: sequence of str, optional
+   :param output_names: List of output/target names (length n_outputs). If None, will use "Output 0", ... etc.
+   :type output_names: sequence of str, optional
+   :param max_cols: Maximum number of columns per row in the subplot grid.
+   :type max_cols: int, default=3
+   :param savefig: If given, path to save the figure to disk instead of showing.
+   :type savefig: str or None, default=None
+
+   :returns: **fig** -- The matplotlib Figure containing all subplots.
+   :rtype: matplotlib.figure.Figure
+
+   .. rubric:: Example
+
+   >>> plot_multioutput_shap_bar_subplots(regr, X, feature_names=feature_names, output_names=output_names)
+
+
+.. py:function:: generate_shap_plot(model: Any, X: numpy.ndarray, output_names: List[str]) -> Dict[str, str]
+
+   Generate SHAP summary plots for each output dimension.
+
+   :param model: Multi-output model.  May expose ``estimators_`` (one per output) or
+                 may be a joint multi-output model (e.g. MixtureOfExpertsSurrogate).
+   :type model: Any
+   :param X: Input features used to compute SHAP values.
+   :type X: np.ndarray
+   :param output_names: Names of output dimensions.
+   :type output_names: List[str]
+
+   :returns: Dictionary mapping output names to base64-encoded SHAP plots.
+   :rtype: Dict[str, str]
+
+
+.. py:function:: plot_multioutput_shap_bar_subplots_no_tree(model: sklearn.multioutput.MultiOutputRegressor, X: numpy.ndarray, feature_names: Optional[Sequence[str]] = None, output_names: Optional[Sequence[str]] = None, max_cols: int = 3, savefig: Optional[str] = None) -> matplotlib.pyplot.Figure
+

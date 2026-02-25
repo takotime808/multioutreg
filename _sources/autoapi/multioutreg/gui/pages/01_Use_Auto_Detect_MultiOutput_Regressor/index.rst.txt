@@ -1,0 +1,109 @@
+multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor
+==============================================================
+
+.. py:module:: multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor
+
+.. autoapi-nested-parse::
+
+   Streamlit script performing a grid search over several surrogate models.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor._torch_available
+   multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor.uploaded_file
+   multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor.df
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor.generate_html_report
+
+
+Module Contents
+---------------
+
+.. py:data:: _torch_available
+   :value: True
+
+
+.. py:function:: generate_html_report(model_type: str, fidelity_levels: List[str], output_names: List[str], description: str, metrics: Dict[str, Dict[str, float]], uncertainty_metrics: Dict[str, float], y_test: numpy.ndarray, best_pred: numpy.ndarray, best_std: numpy.ndarray, best_model: Any, X_train: numpy.ndarray, n_train: int, n_test: int, cross_validation: str, seed: int, notes: str, feature_names: List[str] | None = None, feature_names_pca: List[str] | None = None, pca_explained_variance: List[float] | None = None, pca_variance_plot: str | None = None, pca_method: str | None = None, pca_threshold: float | None = None, pca_n_components: int | None = None, kaiser_rule_suggestion: str | None = None, template_path: Optional[Union[str, os.PathLike]] = None, shap_plot: str | None = None, conformal_intervals: tuple | None = None, conformal_alpha: float | None = None, imputation_summary: dict | None = None) -> str
+
+   Generate an HTML report summarizing surrogate model results, including performance metrics,
+   uncertainty plots, SHAP values, PDPs, PCA visualizations, and residual analysis.
+
+   This function wraps model output and diagnostics into a styled report by rendering a Jinja2
+   HTML template. It supports optional PCA annotations, sampling visualizations, and error histograms.
+   Designed to be used interactively or programmatically within the Streamlit grid search app.
+
+   :param model_type: Type of surrogate model used (e.g., "AutoDetectMultiOutputRegressor").
+   :type model_type: str
+   :param fidelity_levels: List of fidelity levels (e.g., ["Low", "High"]) if multi-fidelity data is involved.
+   :type fidelity_levels: List[str]
+   :param output_names: Names of output variables for multi-output regression.
+   :type output_names: List[str]
+   :param description: Optional project description to embed in the report.
+   :type description: str
+   :param metrics: Dictionary containing performance metrics (r2, rmse, mae, etc.) for each output.
+   :type metrics: Dict[str, Dict[str, float]]
+   :param uncertainty_metrics: Global uncertainty metrics across all outputs.
+   :type uncertainty_metrics: Dict[str, float]
+   :param y_test: Ground truth test targets.
+   :type y_test: np.ndarray
+   :param best_pred: Model predictions on test data.
+   :type best_pred: np.ndarray
+   :param best_std: Predicted standard deviation (uncertainty) per test prediction.
+   :type best_std: np.ndarray
+   :param best_model: Trained surrogate model object.
+   :type best_model: Any
+   :param X_train: Training feature matrix.
+   :type X_train: np.ndarray
+   :param n_train: Number of training samples.
+   :type n_train: int
+   :param n_test: Number of test samples.
+   :type n_test: int
+   :param cross_validation: Text description of the cross-validation strategy used.
+   :type cross_validation: str
+   :param seed: Random seed used during data splitting or model training.
+   :type seed: int
+   :param notes: Additional notes to be included in the report.
+   :type notes: str
+   :param feature_names: Names of original input features (used in PDP plots).
+   :type feature_names: List[str] | None, optional
+   :param feature_names_pca: Names of PCA components (used for visualization if PCA was applied).
+   :type feature_names_pca: List[str] | None, optional
+   :param pca_explained_variance: Explained variance ratios from PCA analysis.
+   :type pca_explained_variance: List[float] | None, optional
+   :param pca_variance_plot: Base64-encoded PNG string of the scree plot (PCA variance).
+   :type pca_variance_plot: str | None, optional
+   :param pca_method: Method used to select the number of PCA components ("Manual", "Kaiser rule", etc.).
+   :type pca_method: str | None, optional
+   :param pca_threshold: Explained variance threshold used, if applicable.
+   :type pca_threshold: float | None, optional
+   :param pca_n_components: Number of PCA components retained.
+   :type pca_n_components: int | None, optional
+   :param kaiser_rule_suggestion: Human-readable explanation of the Kaiser rule component count.
+   :type kaiser_rule_suggestion: str | None, optional
+   :param template_path: Path to the HTML Jinja2 template. Used for unit testing or template overrides.
+                         If not provided, falls back to the default report template or env variable "MOR_TEMPLATE_PATH".
+   :type template_path: str | None, optional
+   :param shap_plot: Generate multioupyt shap plots as subplots on one figure.
+   :type shap_plot: str | None,
+
+   :returns: Fully rendered HTML report as a string, ready to be saved or displayed.
+   :rtype: str
+
+
+.. py:data:: uploaded_file
+
+.. py:data:: df
+   :value: None
+
+

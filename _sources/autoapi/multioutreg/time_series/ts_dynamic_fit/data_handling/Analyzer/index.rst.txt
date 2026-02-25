@@ -1,0 +1,73 @@
+multioutreg.time_series.ts_dynamic_fit.data_handling.Analyzer
+=============================================================
+
+.. py:module:: multioutreg.time_series.ts_dynamic_fit.data_handling.Analyzer
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.data_handling.Analyzer.DataHolder
+   multioutreg.time_series.ts_dynamic_fit.data_handling.Analyzer.Analyzer
+
+
+Module Contents
+---------------
+
+.. py:class:: DataHolder(orders: pandas.DataFrame, shifts: pandas.DataFrame = None, sales: pandas.DataFrame = None, timeentries: pandas.DataFrame = None)
+
+   DataHolder class to hold all relevant dataframes
+
+
+   .. py:attribute:: orders
+
+
+   .. py:attribute:: shifts
+      :value: None
+
+
+
+   .. py:attribute:: sales
+      :value: None
+
+
+
+   .. py:attribute:: timeentries
+      :value: None
+
+
+
+.. py:class:: Analyzer(target: DataHolder)
+
+   Class to perform the following analyses on a restaurant:
+   - How many patrons in a day over time?
+   - What is the quality of each server in performance?
+   - How many servers of what type on a shift in conjunction
+     with number of patrons?
+   - What is the most common server profile per day?
+   - What is the count of servers per most popular time?
+   - Restaurant is closed on Monday
+
+
+   .. py:attribute:: restaurant
+
+
+   .. py:method:: classify_servers()
+
+      Try different bucket numbers:
+      3 is a good separation, but Jordan says 2 is good
+      Look into price per guest
+
+
+
+   .. py:method:: servers_per_day() -> pandas.DataFrame
+
+
+   .. py:method:: customers_per_day() -> pandas.DataFrame
+
+
+   .. py:method:: combine_relevant_data() -> pandas.DataFrame
+
+

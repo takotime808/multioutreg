@@ -1,0 +1,55 @@
+multioutreg.gui.pages.lhs_detector_app
+======================================
+
+.. py:module:: multioutreg.gui.pages.lhs_detector_app
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.lhs_detector_app.uploaded_file
+   multioutreg.gui.pages.lhs_detector_app.df
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.lhs_detector_app.plot_pairwise
+   multioutreg.gui.pages.lhs_detector_app.plot_histograms
+   multioutreg.gui.pages.lhs_detector_app.plot_correlation_matrix
+   multioutreg.gui.pages.lhs_detector_app.compute_discrepancy
+   multioutreg.gui.pages.lhs_detector_app.compute_maximin_distance
+   multioutreg.gui.pages.lhs_detector_app.compare_with_random
+   multioutreg.gui.pages.lhs_detector_app.determine_sampling_type
+   multioutreg.gui.pages.lhs_detector_app.is_grid_sample
+
+
+Module Contents
+---------------
+
+.. py:function:: plot_pairwise(df)
+
+.. py:function:: plot_histograms(df)
+
+.. py:function:: plot_correlation_matrix(df)
+
+.. py:function:: compute_discrepancy(X)
+
+.. py:function:: compute_maximin_distance(X)
+
+.. py:function:: compare_with_random(X, n_trials=10)
+
+.. py:function:: determine_sampling_type(metrics, corr)
+
+.. py:function:: is_grid_sample(X: numpy.ndarray, tol=1e-06) -> bool
+
+.. py:data:: uploaded_file
+
+.. py:data:: df
+   :value: None
+
+

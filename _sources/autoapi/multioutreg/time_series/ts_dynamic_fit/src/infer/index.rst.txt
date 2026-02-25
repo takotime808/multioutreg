@@ -1,0 +1,66 @@
+multioutreg.time_series.ts_dynamic_fit.src.infer
+================================================
+
+.. py:module:: multioutreg.time_series.ts_dynamic_fit.src.infer
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.src.infer.prediction_interval
+   multioutreg.time_series.ts_dynamic_fit.src.infer.infer
+   multioutreg.time_series.ts_dynamic_fit.src.infer.plot_inference
+
+
+Module Contents
+---------------
+
+.. py:function:: prediction_interval(future_preds: numpy.ndarray, rmsfe: float) -> None
+
+   Prints a 95% confidence prediction interval for each forecasted value in the sequence.
+
+   :param future_preds: Array of forecasted values.
+   :type future_preds: np.ndarray
+   :param rmsfe: Root Mean Squared Forecast Error for interval calculation.
+   :type rmsfe: float
+
+   :returns: None
+
+   :raises None:
+
+
+.. py:function:: infer(processed_data: pandas.DataFrame, feature_column: str, metadata_path: str = 'Model Registry/example/metadata.json', model_path: str = 'Model Registry/example/LSTM.pt') -> numpy.ndarray
+
+   Runs inference using the specified model (ARIMA, SARIMA, or LSTM) and returns future predictions.
+
+   :param processed_data: Input data for inference.
+   :type processed_data: pd.DataFrame
+   :param feature_column: Column name containing values for prediction.
+   :type feature_column: str
+   :param metadata_path: Path to metadata JSON file. Defaults to 'Model Registry/example/metadata.json'.
+   :type metadata_path: str, optional
+   :param model_path: Path to serialized model file. Defaults to 'Model Registry/example/LSTM.pt'.
+   :type model_path: str, optional
+
+   :returns: Array of future predicted values.
+   :rtype: np.ndarray
+
+   :raises ValueError: If initialization values for differencing are missing.
+
+
+.. py:function:: plot_inference(processed_data: pandas.DataFrame, future_preds: numpy.ndarray) -> None
+
+   Plots actual data vs forecasted future predictions on a date axis.
+
+   :param processed_data: The original processed time series data.
+   :type processed_data: pd.DataFrame
+   :param future_preds: The predicted future values array.
+   :type future_preds: np.ndarray
+
+   :returns: None
+
+   :raises None:
+
+

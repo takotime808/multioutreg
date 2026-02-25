@@ -1,0 +1,102 @@
+multioutreg.gui.report_plotting_utils
+=====================================
+
+.. py:module:: multioutreg.gui.report_plotting_utils
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.report_plotting_utils.plot_to_b64
+   multioutreg.gui.report_plotting_utils.generate_prediction_plot
+   multioutreg.gui.report_plotting_utils.generate_pdp_plot
+   multioutreg.gui.report_plotting_utils.generate_uncertainty_plots
+   multioutreg.gui.report_plotting_utils.generate_umap_plot
+   multioutreg.gui.report_plotting_utils.generate_error_histogram
+
+
+Module Contents
+---------------
+
+.. py:function:: plot_to_b64(plot_fn: Callable[[], None]) -> str
+
+   Convert a plot function to a base64-encoded PNG image.
+
+   :param plot_fn: Function that generates a matplotlib plot.
+   :type plot_fn: Callable[[], None]
+
+   :returns: Base64-encoded string of the PNG plot image.
+   :rtype: str
+
+
+.. py:function:: generate_prediction_plot(y_true: numpy.ndarray, y_pred: numpy.ndarray, y_std: numpy.ndarray, output_names: List[str]) -> Dict[str, str]
+
+   Generate base64-encoded scatter plots of predictions with error bars.
+
+   :param y_true: Ground truth target values of shape (n_samples, n_outputs).
+   :type y_true: np.ndarray
+   :param y_pred: Predicted target values of shape (n_samples, n_outputs).
+   :type y_pred: np.ndarray
+   :param y_std: Standard deviations of predictions of shape (n_samples, n_outputs).
+   :type y_std: np.ndarray
+   :param output_names: Names of output dimensions.
+   :type output_names: List[str]
+
+   :returns: Dictionary mapping output names to base64-encoded plot images.
+   :rtype: Dict[str, str]
+
+
+.. py:function:: generate_pdp_plot(model: Any, X: numpy.ndarray, output_names: List[str], feature_names: List[str]) -> Dict[str, str]
+
+   Generate partial dependence plots (PDPs) for each output dimension.
+
+   :param model: Multi-output model with `estimators_` attribute.
+   :type model: Any
+   :param X: Input features.
+   :type X: np.ndarray
+   :param output_names: Names of output dimensions.
+   :type output_names: List[str]
+   :param feature_names: Names of the input features.
+   :type feature_names: List[str]
+
+   :returns: Dictionary mapping output names to base64-encoded PDP plots.
+   :rtype: Dict[str, str]
+
+
+.. py:function:: generate_uncertainty_plots() -> List[Dict[str, str]]
+
+   Generate a dummy calibration curve for uncertainty illustration.
+
+   :returns: List containing a single dictionary with base64-encoded plot,
+             title, and caption.
+   :rtype: List[Dict[str, str]]
+
+
+.. py:function:: generate_umap_plot(X)
+
+   Generate a UMAP projection and infer the sampling method.
+
+   :param X: Input feature matrix.
+   :type X: np.ndarray or None
+
+   :returns: Base64-encoded plot and inferred sampling explanation.
+   :rtype: Tuple[str, str]
+
+
+.. py:function:: generate_error_histogram(y_true: numpy.ndarray, y_pred: numpy.ndarray, output_names: List[str]) -> List[Dict[str, str]]
+
+   Generate error histograms for each output dimension.
+
+   :param y_true: Ground truth values.
+   :type y_true: np.ndarray
+   :param y_pred: Predicted values.
+   :type y_pred: np.ndarray
+   :param output_names: Names of output dimensions.
+   :type output_names: List[str]
+
+   :returns: List of dictionaries containing base64-encoded histograms and metadata.
+   :rtype: List[Dict[str, str]]
+
+

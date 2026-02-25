@@ -1,0 +1,34 @@
+multioutreg.figures.pdp_plots
+=============================
+
+.. py:module:: multioutreg.figures.pdp_plots
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.pdp_plots.generate_pdp_plot
+
+
+Module Contents
+---------------
+
+.. py:function:: generate_pdp_plot(model: Any, X: numpy.ndarray, output_names: List[str], feature_names: List[str]) -> Dict[str, str]
+
+   Generate partial dependence plots (PDPs) for each output dimension.
+
+   :param model: Multi-output model with `estimators_` attribute.
+   :type model: Any
+   :param X: Input features.
+   :type X: np.ndarray
+   :param output_names: Names of output dimensions.
+   :type output_names: List[str]
+   :param feature_names: Names of the input features.
+   :type feature_names: List[str]
+
+   :returns: Dictionary mapping output names to base64-encoded PDP plots.
+   :rtype: Dict[str, str]
+
+

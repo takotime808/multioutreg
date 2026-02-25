@@ -1,0 +1,17 @@
+multioutreg.gui
+===============
+
+.. py:module:: multioutreg.gui
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/gui/Grid_Search_Surrogate_Models/index
+   /autoapi/multioutreg/gui/pages/index
+   /autoapi/multioutreg/gui/report_plotting_utils/index
+
+

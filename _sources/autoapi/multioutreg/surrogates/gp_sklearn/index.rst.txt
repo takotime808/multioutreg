@@ -1,0 +1,25 @@
+multioutreg.surrogates.gp_sklearn
+=================================
+
+.. py:module:: multioutreg.surrogates.gp_sklearn
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.gp_sklearn.GaussianProcessSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: GaussianProcessSurrogate(**kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   Gaussian Process surrogate with uncertainty.
+
+

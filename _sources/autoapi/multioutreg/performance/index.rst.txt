@@ -1,0 +1,16 @@
+multioutreg.performance
+=======================
+
+.. py:module:: multioutreg.performance
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/performance/metrics/index
+   /autoapi/multioutreg/performance/metrics_generalized_api/index
+
+

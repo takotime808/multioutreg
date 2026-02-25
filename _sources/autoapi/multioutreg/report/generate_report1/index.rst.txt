@@ -1,0 +1,120 @@
+multioutreg.report.generate_report1
+===================================
+
+.. py:module:: multioutreg.report.generate_report1
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.report.generate_report1.n_samples
+   multioutreg.report.generate_report1.y_true
+   multioutreg.report.generate_report1.y_pred
+   multioutreg.report.generate_report1.y_std
+   multioutreg.report.generate_report1.output_names
+   multioutreg.report.generate_report1.metrics
+   multioutreg.report.generate_report1.uncertainty_metrics
+   multioutreg.report.generate_report1.prediction_plots
+   multioutreg.report.generate_report1.shap_plots
+   multioutreg.report.generate_report1.X
+   multioutreg.report.generate_report1.pdp_plots
+   multioutreg.report.generate_report1.x
+   multioutreg.report.generate_report1.uncertainty_plots
+   multioutreg.report.generate_report1.probs
+   multioutreg.report.generate_report1.empirical
+   multioutreg.report.generate_report1.data
+   multioutreg.report.generate_report1.sampling_umap_plot
+   multioutreg.report.generate_report1.sampling_method_explanation
+   multioutreg.report.generate_report1.other_plots
+   multioutreg.report.generate_report1.context
+   multioutreg.report.generate_report1.output_path
+   multioutreg.report.generate_report1.template_path
+   multioutreg.report.generate_report1.env
+   multioutreg.report.generate_report1.template
+   multioutreg.report.generate_report1.html
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.report.generate_report1.plot_to_b64
+   multioutreg.report.generate_report1.shap_plot
+
+
+Module Contents
+---------------
+
+.. py:function:: plot_to_b64()
+
+.. py:data:: n_samples
+   :value: 100
+
+
+.. py:data:: y_true
+
+.. py:data:: y_pred
+
+.. py:data:: y_std
+
+.. py:data:: output_names
+   :value: ['Pressure', 'Temperature']
+
+
+.. py:data:: metrics
+
+.. py:data:: uncertainty_metrics
+
+.. py:data:: prediction_plots
+
+.. py:data:: shap_plots
+
+.. py:data:: X
+
+.. py:function:: shap_plot()
+
+.. py:data:: pdp_plots
+
+.. py:data:: x
+
+.. py:data:: uncertainty_plots
+   :value: []
+
+
+.. py:data:: probs
+
+.. py:data:: empirical
+
+.. py:data:: data
+
+.. py:data:: sampling_umap_plot
+
+.. py:data:: sampling_method_explanation
+   :value: 'Data cluster structure suggests a Latin Hypercube Sampling (LHS) technique was used.'
+
+
+.. py:data:: other_plots
+   :value: []
+
+
+.. py:data:: context
+
+.. py:data:: output_path
+   :value: 'outputs/surrogate_report_example.html'
+
+
+.. py:data:: template_path
+   :value: 'multioutreg/report/template.html'
+
+
+.. py:data:: env
+
+.. py:data:: template
+   :value: 'multioutreg/report/template.html'
+
+
+.. py:data:: html
+

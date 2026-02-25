@@ -1,0 +1,25 @@
+multioutreg.surrogates.knn_sklearn
+==================================
+
+.. py:module:: multioutreg.surrogates.knn_sklearn
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.knn_sklearn.KNeighborsSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: KNeighborsSurrogate(**kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   K-Nearest Neighbors regression surrogate.
+
+

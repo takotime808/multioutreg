@@ -1,0 +1,25 @@
+multioutreg.gui.pages
+=====================
+
+.. py:module:: multioutreg.gui.pages
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/gui/pages/01_Use_Auto_Detect_MultiOutput_Regressor/index
+   /autoapi/multioutreg/gui/pages/02_Multi_Fidelity_Surrogate_Models/index
+   /autoapi/multioutreg/gui/pages/03_Sample_Bias_Alert/index
+   /autoapi/multioutreg/gui/pages/04_Sampling_and_Bias_Dashboard/index
+   /autoapi/multioutreg/gui/pages/05_Sampling_Datasets_Examples/index
+   /autoapi/multioutreg/gui/pages/05_Time_Series_Forecasting/index
+   /autoapi/multioutreg/gui/pages/07_Other_Dataset_Examples/index
+   /autoapi/multioutreg/gui/pages/Detect_Sampling/index
+   /autoapi/multioutreg/gui/pages/lhs_detector_app/index
+   /autoapi/multioutreg/gui/pages/sample_infer/index
+   /autoapi/multioutreg/gui/pages/sample_infer_dashboard/index
+
+

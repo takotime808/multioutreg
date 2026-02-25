@@ -1,0 +1,29 @@
+multioutreg.figures
+===================
+
+.. py:module:: multioutreg.figures
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/figures/confidence_intervals/index
+   /autoapi/multioutreg/figures/conformal_plots/index
+   /autoapi/multioutreg/figures/coverage_plots/index
+   /autoapi/multioutreg/figures/doe_plots/index
+   /autoapi/multioutreg/figures/error_histograms/index
+   /autoapi/multioutreg/figures/model_comparison/index
+   /autoapi/multioutreg/figures/pca_plots/index
+   /autoapi/multioutreg/figures/pdp_plots/index
+   /autoapi/multioutreg/figures/performance_metric_figures/index
+   /autoapi/multioutreg/figures/prediction_plots/index
+   /autoapi/multioutreg/figures/residuals/index
+   /autoapi/multioutreg/figures/shap_multioutput/index
+   /autoapi/multioutreg/figures/uct_calibration_extension/index
+   /autoapi/multioutreg/figures/umap_plot_classify/index
+   /autoapi/multioutreg/figures/uncertainty_toolbox_extension/index
+
+
