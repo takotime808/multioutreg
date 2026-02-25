@@ -3,7 +3,7 @@ name: Pytest Suite
 
 on:
   push:
-    branches: [main, coverage-report-artifact]
+    branches: [main, more-surrogates]
   pull_request:
     branches: [main]
 
@@ -31,7 +31,7 @@ jobs:
     - name: Install dependencies with test extras
       run: |
         python -m pip install --upgrade pip
-        pip install .[test]
+        pip install .[all]
 
     - name: Run tests with coverage
       run: |

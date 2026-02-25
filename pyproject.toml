@@ -51,11 +51,34 @@ ngboost = [
   # ngboost 0.5.8 requires sklearn>=1.6 (uses ensure_all_finite added in 1.6)
   "scikit-learn>=1.6",
 ]
+xgboost = [
+  # Used by surrogate(s): XGBoostSurrogate
+  "xgboost",
+]
+lightgbm = [
+  # Used by surrogate(s): LightGBMSurrogate
+  "lightgbm",
+]
+catboost = [
+  # Used by surrogate(s): CatBoostSurrogate
+  "catboost",
+]
+gpytorch = [
+  # Used by surrogate(s): SparseGPSurrogate
+  "gpytorch",
+]
+smt = [
+  # Used by surrogate(s): KPLSSurrogate, GPXSurrogate
+  "smt[gpx]",
+]
 test = [
     "pytest",
     "pytest-cov",
     "pytest-sugar",
     # "pytest-xdist",
+]
+all = [
+  "multioutreg[ts,ngboost,xgboost,lightgbm,catboost,gpytorch,smt,test]",
 ]
 
 [tool.setuptools.packages.find]
