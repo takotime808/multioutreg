@@ -3,7 +3,7 @@ name: Pytest Suite
 
 on:
   push:
-    branches: [main, test-cov-badge]
+    branches: [main]
   pull_request:
     branches: [main]
 
