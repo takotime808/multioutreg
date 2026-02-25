@@ -76,6 +76,7 @@ test = [
     "pytest-cov",
     "pytest-sugar",
     # "pytest-xdist",
+    "coverage-badge",
 ]
 all = [
   "multioutreg[ts,ngboost,xgboost,lightgbm,catboost,gpytorch,smt,test]",
@@ -84,6 +85,10 @@ all = [
 [tool.setuptools.packages.find]
 where = [".", "mor_cli", "multioutreg"]
 namespaces = false
+
+# Include html files in wheel distribution -- NO need for Manifest.in
+[tool.setuptools.package-data]
+"multioutreg.report" = ["*.html"]
 
 [project.scripts]
 multioutreg = "mor_cli:main"

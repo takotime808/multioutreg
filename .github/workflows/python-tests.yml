@@ -3,7 +3,7 @@ name: Pytest Suite
 
 on:
   push:
-    branches: [main, more-surrogates]
+    branches: [main]
   pull_request:
     branches: [main]
 
@@ -34,30 +34,27 @@ jobs:
         pip install .[all]
 
     - name: Run tests with coverage
-      run: |
-        pytest tests --cov=multioutreg --cov-report=term-missing --cov-report=html
+      id: tests
+      continue-on-error: true
+      run: pytest tests --cov=multioutreg --cov-report=xml
 
-    # - name: Upload coverage file
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: coverage-file
-    #     path: .coverage*
-    #     if-no-files-found: ignore
+    - name: Generate badge
+      if: ${{ steps.tests.outcome == 'success' }}
+      run: coverage-badge -o coverage.svg -f
 
-    - name: Upload HTML coverage report
+    # Add -99% coverage badge if tests fail, so docs still build.
+    - name: Generate fallback badge when tests fail
+      if: ${{ steps.tests.outcome != 'success' }}
+      run: curl -sSL "https://img.shields.io/badge/coverage--99%25-red.svg" -o coverage.svg
+
+    - name: Upload badge artifact
+      if: ${{ always() }}
       uses: actions/upload-artifact@v4
       with:
-        name: coverage-html
-        path: htmlcov/
-        if-no-files-found: ignore
+        name: coverage-badge
+        path: coverage.svg
+        if-no-files-found: error
 
-    # - name: Run linter
-    #   run: |
-    #     pip install ruff
-    #     ruff multioutreg
-
-    # - name: Upload to Codecov
-    #   uses: codecov/codecov-action@v4
-    #   with:
-    #     token: ${{ secrets.CODECOV_TOKEN }}  # optional if public
-
+    - name: Fail workflow if tests failed
+      if: ${{ steps.tests.outcome != 'success' }}
+      run: exit 1
