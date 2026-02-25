@@ -18,6 +18,7 @@ Multi-Output Multi-Fidelity Surrogate Modeling with Uncertainty Quantification.
 
 [![codecov](https://codecov.io/gh/takotime808/multioutreg/branch/test-cov-badge/graph/badge.svg)](https://codecov.io/gh/takotime808/multioutreg)
 
+![Coverage](docs/badges/coverage.svg)
 
 This repository provides utilities for evaluating multi-output surrogate models
 with uncertainty estimation. Example notebooks in `examples/` demonstrate the
