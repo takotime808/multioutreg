@@ -30,12 +30,25 @@ def test_metrics_basic():
     w = weighted_quantile_loss(y, qs, [0.1, 0.5, 0.9])
     assert w >= 0.0
 
-# # TODO: Fix this test
-# @pytest.mark.skipif(not _CHRONOS, reason="chronos-forecasting not installed")
-# def test_chronos_shapes():
-#     # short synthetic series
-#     y = np.sin(np.linspace(0, 4*np.pi, 48)).astype(np.float32)
-#     f = ChronosForecaster("amazon/chronos-bolt-tiny").fit(y)
-#     res = f.predict(prediction_length=8, quantiles=(0.1, 0.5, 0.9))
-#     assert res.quantiles.shape == (1, 3, 8)
-#     assert list(res.q_levels) == [0.1, 0.5, 0.9]
+@pytest.mark.skipif(not _CHRONOS, reason="chronos-forecasting not installed")
+def test_chronos_shapes():
+    """Test output shapes without downloading a real model (uses mock pipeline)."""
+    from unittest.mock import MagicMock, patch
+
+    # Simulate Bolt output: shape [B=1, 9_quantiles, H=8]
+    mock_output = MagicMock()
+    mock_output.detach.return_value.cpu.return_value.numpy.return_value = np.zeros(
+        (1, 9, 8), dtype=np.float32
+    )
+
+    with patch("multioutreg.time_series.chronos_adapter.BaseChronosPipeline") as MockPipeline:
+        mock_pipe_instance = MagicMock()
+        mock_pipe_instance.predict.return_value = mock_output
+        MockPipeline.from_pretrained.return_value = mock_pipe_instance
+
+        y = np.sin(np.linspace(0, 4 * np.pi, 48)).astype(np.float32)
+        f = ChronosForecaster("amazon/chronos-bolt-tiny").fit(y)
+        res = f.predict(prediction_length=8, quantiles=(0.1, 0.5, 0.9))
+
+    assert res.quantiles.shape == (1, 3, 8)
+    assert list(res.q_levels) == [0.1, 0.5, 0.9]
