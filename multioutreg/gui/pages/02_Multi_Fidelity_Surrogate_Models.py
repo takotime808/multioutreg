@@ -43,9 +43,13 @@ from multioutreg.surrogates import (
     MultiFidelitySurrogate,
     RandomForestSurrogate,
     StackedVFMSurrogate,
+    ElasticNetSurrogate,
+    LassoSurrogate,
 )
 from multioutreg.surrogates.lightgbm_sklearn import _LIGHTGBM_AVAILABLE, LightGBMSurrogate
 from multioutreg.surrogates.xgboost_sklearn import _XGBOOST_AVAILABLE, XGBoostSurrogate
+from multioutreg.surrogates.catboost_sklearn import _CATBOOST_AVAILABLE, CatBoostSurrogate
+from multioutreg.surrogates.sparse_gp_gpytorch import _GPYTORCH_AVAILABLE, SparseGPSurrogate
 from multioutreg.utils.figure_utils import safe_plot_b64
 from multioutreg.utils.imputation import apply_imputation, detect_missing
 
@@ -261,6 +265,8 @@ def _build_candidates(level_names: List[str], skip_expensive: bool) -> List[dict
         ("RF", RandomForestSurrogate),
         ("HGB", HistGradientBoostingSurrogate),
         ("Linear", LinearRegressionSurrogate),
+        ("ElasticNet", ElasticNetSurrogate),
+        ("Lasso", LassoSurrogate),
     ]
     if not skip_expensive:
         surrogates.append(("GP", GaussianProcessSurrogate))
@@ -268,6 +274,10 @@ def _build_candidates(level_names: List[str], skip_expensive: bool) -> List[dict
         surrogates.append(("LightGBM", LightGBMSurrogate))
     if _XGBOOST_AVAILABLE:
         surrogates.append(("XGBoost", XGBoostSurrogate))
+    if _CATBOOST_AVAILABLE:
+        surrogates.append(("CatBoost", CatBoostSurrogate))
+    if _GPYTORCH_AVAILABLE:
+        surrogates.append(("SparseGP", SparseGPSurrogate))
 
     candidates: List[dict] = []
     for sur_name, sur_cls in surrogates:

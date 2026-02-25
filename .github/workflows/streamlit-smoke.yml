@@ -15,7 +15,7 @@ name: Streamlit Smoke Test
 
 on:
   push:
-    branches: [main, surrogate_vendor]
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:

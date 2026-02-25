@@ -24,6 +24,9 @@ from multioutreg.surrogates.gpx_smt import _GPXEstimator, _GPX_AVAILABLE
 from multioutreg.surrogates.kpls_smt import _KPLSEstimator, _KPLS_AVAILABLE
 from multioutreg.surrogates.lightgbm_sklearn import _LIGHTGBM_AVAILABLE, _LGBMRegressor
 from multioutreg.surrogates.xgboost_sklearn import _XGBOOST_AVAILABLE, _XGBRegressor
+from multioutreg.surrogates.catboost_sklearn import _CATBOOST_AVAILABLE, _CatBoostRegressor
+from multioutreg.surrogates.sparse_gp_gpytorch import _GPYTORCH_AVAILABLE, _SGPREstimator
+from sklearn.linear_model import ElasticNet as _ElasticNet, Lasso as _Lasso, QuantileRegressor as _QuantileRegressor
 from sklearn.ensemble import HistGradientBoostingRegressor
 from multioutreg.gui.Grid_Search_Surrogate_Models import (
     RandomForestWithUncertainty,
@@ -121,6 +124,9 @@ def grid_search(
         ("pbr", _PBREstimator, {"degree": [2, 3], "interaction_only": [False, True]}),
         ("sgp", _NystroemEstimator, {"n_components": [50, 200], "gamma": [None, 0.1, 1.0]}),
         ("ard_gp", _ARDGPEstimator, {"alpha": [1e-6, 1e-2]}),
+        ("elastic_net", _ElasticNet, {"alpha": [0.01, 0.1, 1.0], "l1_ratio": [0.25, 0.5, 0.75]}),
+        ("lasso", _Lasso, {"alpha": [0.01, 0.1, 1.0]}),
+        ("quantile", _QuantileRegressor, {"alpha": [0.1, 1.0]}),
     ]
     if _GPX_AVAILABLE:
         surrogate_defs.append(
@@ -137,6 +143,14 @@ def grid_search(
     if _XGBOOST_AVAILABLE:
         surrogate_defs.append(
             ("xgb", _XGBRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "max_depth": [4, 6]})
+        )
+    if _CATBOOST_AVAILABLE:
+        surrogate_defs.append(
+            ("catboost", _CatBoostRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "depth": [4, 6], "verbose": [False]})
+        )
+    if _GPYTORCH_AVAILABLE:
+        surrogate_defs.append(
+            ("sgpr", _SGPREstimator, {"n_inducing": [30, 50], "learning_rate": [0.05, 0.1]})
         )
 
     configs = [(name, Est, params) for name, Est, grid in surrogate_defs for params in ParameterGrid(grid)]

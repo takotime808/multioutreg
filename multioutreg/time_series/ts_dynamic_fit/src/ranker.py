@@ -14,7 +14,6 @@ class Ranker:
     Attributes:
         metrics (list[str]): Error metrics used for ranking.
         all_models (pd.DataFrame): DataFrame containing model results.
-        verbose (bool): Print ranking process details if True.
     """
 
     def __init__(self, df: pd.DataFrame, verbose: bool = False) -> None:
