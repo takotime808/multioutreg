@@ -28,7 +28,7 @@ vendor-provided surrogates. See [`examples/AutoDetectMultiOutputRegressor.ipynb`
 for a short demonstration.
 
 ----
-### 📦 Features ###
+## 📦 Features ##
 
 - 🧠 Auto-detect best multi-output regressors with uncertainty support.
 - 📉 Per-target metrics, SHAP plots, UMAP projections, PDPs, residuals.
@@ -37,7 +37,7 @@ for a short demonstration.
 - 🧪 Fully tested with `pytest` and integrated CI.
 
 ---
-### 🚀 Quickstart ###
+## 🚀 Quickstart ##
 
 **Installation:**
 ```bash
@@ -106,7 +106,7 @@ multioutreg ts-pipeline --help
 ```
 
 ----
-### ☁️ Deployments ###
+## ☁️ Deployments ##
 
 🖥️ The deployed Streamlit application is available at:  
 [https://multioutreg-report.streamlit.app/](https://multioutreg-report.streamlit.app/)
