@@ -66,6 +66,9 @@ from multioutreg.surrogates.gpx_smt import _GPXEstimator, _GPX_AVAILABLE
 from multioutreg.surrogates.kpls_smt import _KPLSEstimator, _KPLS_AVAILABLE
 from multioutreg.surrogates.lightgbm_sklearn import _LIGHTGBM_AVAILABLE, _LGBMRegressor
 from multioutreg.surrogates.xgboost_sklearn import _XGBOOST_AVAILABLE, _XGBRegressor
+from multioutreg.surrogates.catboost_sklearn import _CATBOOST_AVAILABLE, _CatBoostRegressor
+from multioutreg.surrogates.sparse_gp_gpytorch import _GPYTORCH_AVAILABLE, _SGPREstimator
+from sklearn.linear_model import ElasticNet as _ElasticNet, Lasso as _Lasso, QuantileRegressor as _QuantileRegressor
 from multioutreg.time_series.ts_suitability import check_ts_suitability
 
 # NOTE: NOT used...yet.
@@ -839,6 +842,9 @@ if uploaded_file:
             ("pbr", _PBREstimator, {"degree": [2, 3], "interaction_only": [False, True]}),
             ("sgp", _NystroemEstimator, {"n_components": [50, 200], "gamma": [None, 0.1, 1.0]}),
             ("ard_gp", _ARDGPEstimator, {"alpha": [1e-6, 1e-2]}),
+            ("elastic_net", _ElasticNet, {"alpha": [0.01, 0.1, 1.0], "l1_ratio": [0.25, 0.5, 0.75]}),
+            ("lasso", _Lasso, {"alpha": [0.01, 0.1, 1.0]}),
+            ("quantile", _QuantileRegressor, {"alpha": [0.1, 1.0]}),
         ]
         if _NGBOOST_AVAILABLE:
             surrogate_defs.append(
@@ -860,6 +866,14 @@ if uploaded_file:
             surrogate_defs.append(
                 ("xgb", _XGBRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "max_depth": [4, 6]})
             )
+        if _CATBOOST_AVAILABLE:
+            surrogate_defs.append(
+                ("catboost", _CatBoostRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "depth": [4, 6], "verbose": [False]})
+            )
+        if _GPYTORCH_AVAILABLE:
+            surrogate_defs.append(
+                ("sgpr", _SGPREstimator, {"n_inducing": [30, 50], "learning_rate": [0.05, 0.1]})
+            )
 
         if use_screening:
             _screener = ModelScreener().fit(X_train, y_train)
@@ -879,6 +893,9 @@ if uploaded_file:
                     ("pbr", None, None), ("sgp", None, None), ("gpx", None, None),
                     ("ard_gp", None, None), ("kpls", None, None),
                     ("hgb", None, None), ("lgbm", None, None), ("xgb", None, None),
+                    ("elastic_net", None, None), ("lasso", None, None),
+                    ("quantile", None, None), ("catboost", None, None),
+                    ("sgpr", None, None),
                 ]
                 if d[0] in _eligible.index and not _eligible.loc[d[0]].any()
             ]
@@ -888,7 +905,7 @@ if uploaded_file:
                     + ", ".join(skipped)
                 )
 
-        _EXPENSIVE_MODELS = {"gpr", "ngb", "cpn", "ard_gp", "gpx", "kpls"}
+        _EXPENSIVE_MODELS = {"gpr", "ngb", "cpn", "ard_gp", "gpx", "kpls", "sgpr"}
         _EXPENSIVE_DISPLAY_NAMES = {
             "gpr": "Gaussian Process",
             "ngb": "NGBoost",
@@ -896,6 +913,7 @@ if uploaded_file:
             "ard_gp": "ARD Gaussian Process",
             "gpx": "GPX (Rust GP)",
             "kpls": "KPLS (Kriging+PLS)",
+            "sgpr": "Sparse GP (GPyTorch)",
         }
         if skip_expensive:
             _skipped = [d[0] for d in surrogate_defs if d[0] in _EXPENSIVE_MODELS]

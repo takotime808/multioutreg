@@ -39,6 +39,11 @@ from multioutreg.surrogates import (
     HistGradientBoostingSurrogate,
     LightGBMSurrogate,
     XGBoostSurrogate,
+    CatBoostSurrogate,
+    ElasticNetSurrogate,
+    LassoSurrogate,
+    SparseGPSurrogate,
+    QuantileRegressionSurrogate,
 )
 from multioutreg.surrogates.rfgp_sklearn import _RFFEstimator
 from multioutreg.surrogates.polynomial_bayesian_ridge_sklearn import _PBREstimator
@@ -55,6 +60,14 @@ from multioutreg.surrogates.gpx_smt import _GPXEstimator, _GPX_AVAILABLE
 from multioutreg.surrogates.kpls_smt import _KPLSEstimator, _KPLS_AVAILABLE
 from multioutreg.surrogates.lightgbm_sklearn import _LIGHTGBM_AVAILABLE, _LGBMRegressor
 from multioutreg.surrogates.xgboost_sklearn import _XGBOOST_AVAILABLE, _XGBRegressor
+from multioutreg.surrogates.catboost_sklearn import _CATBOOST_AVAILABLE, _CatBoostRegressor
+from multioutreg.surrogates.sparse_gp_gpytorch import _GPYTORCH_AVAILABLE
+
+from sklearn.linear_model import (
+    ElasticNet as _ElasticNet,
+    Lasso as _Lasso,
+    QuantileRegressor as _QuantileRegressor,
+)
 
 class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
     """Fit a separate estimator per output choosing the best via grid search.
@@ -292,6 +305,9 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             _NystroemEstimator(n_components=100),
             _ARDGPEstimator(),
             HistGradientBoostingRegressor(),
+            _ElasticNet(),
+            _Lasso(),
+            _QuantileRegressor(quantile=0.5),
         ]
 
         param_spaces = [
@@ -310,10 +326,14 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             {"n_components": [50, 200], "gamma": [None, 0.1, 1.0]},
             {"alpha": [1e-6, 1e-2]},
             {"max_iter": [100, 200], "learning_rate": [0.05, 0.1]},
+            {"alpha": [0.01, 0.1, 1.0], "l1_ratio": [0.25, 0.5, 0.75]},
+            {"alpha": [0.01, 0.1, 1.0]},
+            {"alpha": [0.1, 1.0]},
         ]
 
         model_names = ["linear", "gp", "rf", "et", "gb", "svr", "knn", "dt", "mlp",
-                       "bayesian_ridge", "rfgp", "pbr", "sgp", "ard_gp", "hgb"]
+                       "bayesian_ridge", "rfgp", "pbr", "nystroem_gp", "ard_gp", "hgb",
+                       "elastic_net", "lasso", "quantile"]
         surrogate_constructors = [
             LinearRegressionSurrogate,
             GaussianProcessSurrogate,
@@ -330,6 +350,9 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             NystroemGPSurrogate,
             ARDGPSurrogate,
             HistGradientBoostingSurrogate,
+            ElasticNetSurrogate,
+            LassoSurrogate,
+            QuantileRegressionSurrogate,
         ]
 
         if _NGBOOST_AVAILABLE:
@@ -361,6 +384,19 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             param_spaces.append({"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "max_depth": [4, 6]})
             model_names.append("xgb")
             surrogate_constructors.append(XGBoostSurrogate)
+
+        if _CATBOOST_AVAILABLE:
+            estimators.append(_CatBoostRegressor(n_estimators=200, verbose=False))
+            param_spaces.append({"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "depth": [4, 6]})
+            model_names.append("catboost")
+            surrogate_constructors.append(CatBoostSurrogate)
+
+        if _GPYTORCH_AVAILABLE:
+            from multioutreg.surrogates.sparse_gp_gpytorch import _SGPREstimator
+            estimators.append(_SGPREstimator(n_inducing=50, max_iter=100))
+            param_spaces.append({"n_inducing": [30, 50, 100], "learning_rate": [0.05, 0.1]})
+            model_names.append("sgpr")
+            surrogate_constructors.append(SparseGPSurrogate)
 
         instance = cls(estimators, param_spaces, cv=cv, scoring=scoring,
                        pre_screen=pre_screen)

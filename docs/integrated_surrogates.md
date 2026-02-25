@@ -48,6 +48,12 @@ expose a `predict(X, return_std=True)` interface and are compatible with
 | **MultiFidelitySurrogate** | Composes around any `BaseSurrogate` | Wrapper (per wrapped surrogate) | Delegates to wrapped surrogate | ✓ | Native (is the wrapper) | ✗ | ✗ | ✗ | ✓ (as `mfs_lr`) | _(wrapped surrogate)_ | _(wrapped surrogate)_ | _(not screened)_ | Multi-fidelity datasets (e.g. coarse + fine simulation); maintains one surrogate instance per fidelity level — **no cross-fidelity coupling** | N/A (wrapper) |
 | **StackedVFMSurrogate** | Composes around any surrogate(s) (default: `RandomForestSurrogate`) | Joint (`_multi_output = True`) | Delegates to per-level surrogates; level k input = `[X_k \| f₀(X_k) \| f₁(...)]` | ✓ | Native (recursive feature augmentation) | ✗ | ✗ | ✗ | ✗ | _(sum of per-level surrogate costs)_ | — | _(not screened)_ | Nonlinear multi-fidelity with N ≥ 2 levels; each level corrects the previous via augmented features; any surrogate mix per level; `augment_with_std=True` pipes uncertainty as features (Perdikaris et al. 2017) | N/A (opt-in) |
 | **AdditiveCorrectionVFM** | Composes around any two surrogates (default: `RandomForestSurrogate` lo, `GaussianProcessSurrogate` delta) | Joint (`_multi_output = True`) | Two-surrogate composition: `f_hi = f_lo + δ` | ✓ | Native (additive correction) | ✗ | ✗ | ✗ | ✗ | _(lo cost + delta cost)_ | — | _(not screened)_ | Two-level additive correction (Kennedy–O'Hagan AR1); learns residual `δ = Y_hi − f_lo(X_hi)`; uncertainty combined in quadrature `σ_hi = √(σ_lo² + σ_δ²)`; `predict_components()` for diagnostics | N/A (opt-in) |
+| **ElasticNetSurrogate** | scikit-learn `ElasticNet` | Per-output (MultiOutputRegressor) | `MultiOutputRegressor` | ✗ | `MultiFidelitySurrogate` wrapper | ✓ | ✓ | ✓ | ✓ | O(n·p) coordinate descent | — | `elastic_net` — always | Sparse linear regression (L1 + L2); zeros irrelevant features; preferred over Lasso when inputs are correlated | — |
+| **LassoSurrogate** | scikit-learn `Lasso` | Per-output (MultiOutputRegressor) | `MultiOutputRegressor` | ✗ | `MultiFidelitySurrogate` wrapper | ✓ | ✓ | ✓ | ✓ | O(n·p) coordinate descent | — | `lasso` — always | Pure L1 sparse regression; hard feature zeroing; interpretable feature selection for p >> n | — |
+| **QuantileRegressionSurrogate** | scikit-learn `QuantileRegressor` | Per-output (internal model list per quantile) | Three `QuantileRegressor` per output (q=α/2, 0.5, 1-α/2) | ✗ | `MultiFidelitySurrogate` wrapper | ✓ | ✓ | ✓ | ✓ | O(n·p) LP solver | — | `quantile` — always | Heteroscedastic asymmetric prediction intervals; robust to outliers; no normality assumption; use `predict_intervals()` for raw (lower, upper) bounds | — |
+| **CatBoostSurrogate** | `catboost.CatBoostRegressor` | Per-output (MultiOutputRegressor) | `MultiOutputRegressor` | ✗ | `MultiFidelitySurrogate` wrapper | ~ | ~ | ~ | ~ | O(n·T·depth) | `pip install catboost` | `catboost` — nonlinear data | Only tree model with native aleatoric + epistemic decomposition (virtual ensembles via `RMSEWithUncertainty`); handles categoricals natively; strong on small tabular data | — |
+| **DeepEnsembleSurrogate** | PyTorch feed-forward networks × N | Joint (`_multi_output = True`) | Native joint architecture | ✗ | `MultiFidelitySurrogate` wrapper | ✗ | ✗ | ✓ (via checkbox) | ✗ | O(N × n·epochs·layers) | `pip install torch` | _(not screened)_ | Empirical gold-standard for calibrated predictive uncertainty (Lakshminarayanan 2017); ensemble disagreement = epistemic std; no variational inference; outperforms BNN on calibration benchmarks | N/A (opt-in) |
+| **SparseGPSurrogate** | GPyTorch SGPR with inducing points | Per-output (internal estimator list) | Internal `estimators_` list | ✗ | `MultiFidelitySurrogate` wrapper | ~ | ~ | ~ | ~ | O(n·m²) where m = n_inducing | `pip install gpytorch` | `sgpr` — N < 10000 | Scalable GP-quality posterior in the n = 300–10 000 regime; exact GP with Nyström inducing-point approximation (Titsias 2009); bridges the gap between O(n³) exact GP and kernel approximations | — |
 
 ## Notes
 
@@ -68,11 +74,12 @@ hyperparameters (e.g. per-output random seeds) are required.
 `MultiOutputRegressor` internally), but overrides `predict` to iterate `model.estimators_`
 directly when `return_std=True` in order to collect per-output posterior standard deviations.
 
-**Joint (`_multi_output = True`)** — `BNNSurrogate`, `MixtureOfExpertsSurrogate`,
-`StackedVFMSurrogate`, and `AdditiveCorrectionVFM` predict all outputs simultaneously from a
-shared architecture (or composition). Inter-output correlations can be captured.
-These cannot be wrapped in `MultiOutputRegressor` and are not included in the standard AutoDetect
-grid search (they require a separate evaluation path).
+**Joint (`_multi_output = True`)** — `BNNSurrogate`, `DeepEnsembleSurrogate`,
+`MixtureOfExpertsSurrogate`, `StackedVFMSurrogate`, and `AdditiveCorrectionVFM` predict all
+outputs simultaneously from a shared architecture (or composition). Inter-output correlations
+can be captured. These cannot be wrapped in `MultiOutputRegressor` and are not included in the
+standard AutoDetect grid search (they require a separate evaluation path via
+`register_multi_output_candidates`).
 
 ### Computational Complexity Notation
 
@@ -100,17 +107,19 @@ unlikely-to-help models per output column:
 | `pbr_feasible` | p < 20 | `pbr` |
 | `knn_ratio_ok` | N/p > 10 | `knn` |
 | Nonlinear detected | Ramsey RESET or RF–LR R² gain > 0.05 | `rf`, `et`, `gb`, `mlp`, `hgb`, `lgbm`, `xgb` |
-| Always eligible | — | `linear`, `dt`, `bayesian_ridge`, `rfgp`, `sgp` |
+| Always eligible | — | `linear`, `dt`, `bayesian_ridge`, `rfgp`, `nystroem_gp`, `elastic_net`, `lasso`, `quantile` |
 
 ### Optional Dependencies
 
 | Package | Required By | Install |
 |---------|------------|---------|
-| `torch` | `BNNSurrogate` | `pip install torch` |
+| `torch` | `BNNSurrogate`, `DeepEnsembleSurrogate` | `pip install torch` |
 | `ngboost` | `NGBoostSurrogate` | `pip install ngboost` |
 | `smt[gpx]` | `GPXSurrogate` | `pip install smt[gpx]` |
 | `smt` | `KPLSSurrogate` | `pip install smt` |
 | `lightgbm` | `LightGBMSurrogate` | `pip install lightgbm` |
 | `xgboost` | `XGBoostSurrogate` | `pip install xgboost` |
+| `catboost` | `CatBoostSurrogate` | `pip install catboost` |
+| `gpytorch` | `SparseGPSurrogate` | `pip install gpytorch` |
 
-All other surrogates (including `HistGradientBoostingSurrogate`) depend only on `numpy` and `scikit-learn`.
+All other surrogates (including `HistGradientBoostingSurrogate`, `ElasticNetSurrogate`, `LassoSurrogate`, `QuantileRegressionSurrogate`) depend only on `numpy` and `scikit-learn`.

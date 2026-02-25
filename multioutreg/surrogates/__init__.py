@@ -28,6 +28,11 @@ from multioutreg.surrogates.ard_gp_sklearn import ARDGPSurrogate
 from multioutreg.surrogates.hist_gradient_boosting_sklearn import HistGradientBoostingSurrogate
 from multioutreg.surrogates.lightgbm_sklearn import LightGBMSurrogate
 from multioutreg.surrogates.xgboost_sklearn import XGBoostSurrogate
+from multioutreg.surrogates.catboost_sklearn import CatBoostSurrogate
+from multioutreg.surrogates.elastic_net_sklearn import ElasticNetSurrogate, LassoSurrogate
+from multioutreg.surrogates.deep_ensemble_pytorch import DeepEnsembleSurrogate
+from multioutreg.surrogates.sparse_gp_gpytorch import SparseGPSurrogate
+from multioutreg.surrogates.quantile_sklearn import QuantileRegressionSurrogate
 
 __all__ = [
     "ConformalMixin",
@@ -57,5 +62,11 @@ __all__ = [
     "HistGradientBoostingSurrogate",
     "LightGBMSurrogate",
     "XGBoostSurrogate",
+    "CatBoostSurrogate",
+    "ElasticNetSurrogate",
+    "LassoSurrogate",
+    "DeepEnsembleSurrogate",
+    "SparseGPSurrogate",
+    "QuantileRegressionSurrogate",
 ]
 
