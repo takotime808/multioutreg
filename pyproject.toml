@@ -86,6 +86,10 @@ all = [
 where = [".", "mor_cli", "multioutreg"]
 namespaces = false
 
+# Include html files in wheel distribution -- NO need for Manifest.in
+[tool.setuptools.package-data]
+"multioutreg.report" = ["*.html"]
+
 [project.scripts]
 multioutreg = "mor_cli:main"
 
