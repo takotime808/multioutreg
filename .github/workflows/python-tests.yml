@@ -3,7 +3,7 @@ name: Pytest Suite
 
 on:
   push:
-    branches: [main, more-surrogates]
+    branches: [main, test-cov-badge]
   pull_request:
     branches: [main]
 
@@ -33,23 +33,31 @@ jobs:
         python -m pip install --upgrade pip
         pip install .[all]
 
-    - name: Run tests with coverage
-      run: |
-        pytest tests --cov=multioutreg --cov-report=term-missing --cov-report=html
+    # - name: Run tests with coverage
+    #   run: |
+    #     pytest tests --cov=multioutreg --cov-report=term-missing --cov-report=html
 
-    # - name: Upload coverage file
+    # - name: Generate coverage badge
+    #   run: |
+    #     coverage-badge -o htmlcov/coverage.svg -f
+
+    # - name: Upload HTML coverage report
     #   uses: actions/upload-artifact@v4
     #   with:
-    #     name: coverage-file
-    #     path: .coverage*
+    #     name: coverage-html
+    #     path: htmlcov/
     #     if-no-files-found: ignore
 
-    - name: Upload HTML coverage report
-      uses: actions/upload-artifact@v4
+    - name: Run tests with coverage
+      run: |
+        pytest tests --cov=multioutreg --cov-report=term-missing --cov-report=html --cov-report=xml
+
+    - name: Upload to Codecov
+      uses: codecov/codecov-action@v4
       with:
-        name: coverage-html
-        path: htmlcov/
-        if-no-files-found: ignore
+        files: ./coverage.xml
+        fail_ci_if_error: true
+        # token: ${{ secrets.CODECOV_TOKEN }}   # needed for private repos
 
     # - name: Run linter
     #   run: |

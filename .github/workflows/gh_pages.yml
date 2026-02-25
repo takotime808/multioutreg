@@ -4,7 +4,7 @@ name: Documentation
 
 on:
   push:
-    branches: [main, master, more-surrogates]
+    branches: [main, master, test-cov-badge]
 
 permissions:
   contents: write
