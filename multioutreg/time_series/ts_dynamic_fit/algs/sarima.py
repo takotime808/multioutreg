@@ -9,9 +9,8 @@ import warnings
 import logging
 from typing import Optional, Tuple, Any, Dict, Sequence, Union
 
-logging.basicConfig(level=logging.INFO, format='%(message)s')
-
 warnings.filterwarnings("ignore")
+_logger = logging.getLogger(__name__)
 
 
 class SARIMA:
@@ -28,9 +27,7 @@ class SARIMA:
         self.diff_2_data = None
 
     def log_to_file(self, log: str) -> None:
-        logging.info(log)
-        with open(f"logs/{self.log_filename}", 'a') as f:
-            f.write(log + '\n')
+        _logger.info(log)
 
         
     def make_stationary(self, df):

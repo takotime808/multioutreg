@@ -4,7 +4,7 @@ from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 import pandas as pd
 import numpy as np
-from src.ForecastAutoIntervals import ForecastAutoIntervals
+from multioutreg.time_series.ts_dynamic_fit.src.ForecastAutoIntervals import ForecastAutoIntervals
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 import torch
 from torch import nn
