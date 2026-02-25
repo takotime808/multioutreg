@@ -42,6 +42,7 @@ jobs:
       if: ${{ steps.tests.outcome == 'success' }}
       run: coverage-badge -o coverage.svg -f
 
+    # Add -99% coverage badge if tests fail, so docs still build.
     - name: Generate fallback badge when tests fail
       if: ${{ steps.tests.outcome != 'success' }}
       run: curl -sSL "https://img.shields.io/badge/coverage--99%25-red.svg" -o coverage.svg
@@ -57,14 +58,3 @@ jobs:
     - name: Fail workflow if tests failed
       if: ${{ steps.tests.outcome != 'success' }}
       run: exit 1
-
-
-    # - name: Run linter
-    #   run: |
-    #     pip install ruff
-    #     ruff multioutreg
-
-    # - name: Upload to Codecov
-    #   uses: codecov/codecov-action@v4
-    #   with:
-    #     token: ${{ secrets.CODECOV_TOKEN }}  # optional if public
