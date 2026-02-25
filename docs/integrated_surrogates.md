@@ -123,3 +123,56 @@ unlikely-to-help models per output column:
 | `gpytorch` | `SparseGPSurrogate` | `pip install gpytorch` |
 
 All other surrogates (including `HistGradientBoostingSurrogate`, `ElasticNetSurrogate`, `LassoSurrogate`, `QuantileRegressionSurrogate`) depend only on `numpy` and `scikit-learn`.
+
+---
+
+## Time Series Forecasters (`multioutreg.time_series`)
+
+These classes share a common `fit(y) → predict(prediction_length, quantiles) → ForecastResult`
+contract.  `ForecastResult.quantiles` has shape `[n_series, n_quantiles, horizon]`.
+They are **not** surrogate models and are **not** part of the regression grid search.
+
+### Legend (TS)
+
+| Symbol | Meaning |
+|--------|---------|
+| split-conformal | Calibrated via held-out residuals; coverage ≈ 1−α without distributional assumptions |
+| Gaussian | `mu ± z_q × σ`; assumes normally-distributed forecast errors |
+| linear interp | Lower/upper bounds linearly interpolated from (lo, median, hi) anchor points |
+| propagated | Recursive uncertainty accumulation across multi-step horizon |
+
+### Forecaster Table
+
+| Class | Backing Library | Uncertainty Method | Fits to 1D Series | Multi-Series | Optional Dep | GUI Tab | Best Use Case |
+|---|---|---|---|---|---|---|---|
+| **ChronosForecaster** | Amazon Chronos (HuggingFace Transformers + PyTorch) | Quantile regression (internal model) | ✓ (also dict of arrays) | ✓ | `pip install chronos-forecasting torch` | Tab 1 | Zero-shot probabilistic forecasting; no training required; strong on data-sparse or novel series |
+| **ProphetForecaster** | Meta Prophet (Stan/cmdstanpy) | linear interp of `yhat_lower`/`yhat`/`yhat_upper` | ✓ | ✗ (one series per fit) | `pip install prophet` | Tab 1 | Long series with strong trend + seasonality (daily/weekly/yearly); interpretable decomposition; handles holidays |
+| **NeuralForecaster** | Nixtla NeuralForecast (PyTorch Lightning) | split-conformal (`val_size`) or point-only if insufficient data | ✓ | ✗ (one series per fit) | `pip install neuralforecast` | Tab 1 | Deep pattern learning on 100+ observations; N-BEATS (interpretable basis expansion) or N-HiTS (hierarchical interpolation) |
+| **LagFeatureForecaster** | Any `BaseSurrogate` or sklearn estimator | split-conformal fallback (all estimators) or `return_std` (GP-family) | ✓ | ✗ | _(surrogate dep)_ | Tab 3 | Bridge all 35+ surrogates to time series; uncertainty via residual conformal calibration on held-out lag windows |
+| **AutoSurrogateForecaster** | `AutoDetectMultiOutputRegressor` (all vendored surrogates) | split-conformal (wraps best selected surrogate) | ✓ | ✗ | _(surrogate deps)_ | Tab 3 (Auto) | Automatic surrogate selection for TS; runs the regression grid search on lag-feature matrices; best when series length ≥ 50 × n_lags |
+
+### Walk-Forward Cross-Validation
+
+| Class / Function | Description |
+|---|---|
+| `WalkForwardCV` | Expanding- or rolling-window walk-forward evaluator. Forecaster contract: `fit(train_series)`, `predict(horizon, quantiles) → ForecastResult`. Reports SMAPE, MASE, WQL per fold. |
+| `walk_forward_splits(n, min_train, horizon, step, max_train)` | Generator of `(train_idx, test_idx)` pairs; no data leakage. |
+| `TimeSeriesSplitWrapper` | sklearn `BaseCrossValidator` adapter for `cross_val_score` / `GridSearchCV`. |
+| `TSFoldResult` | Dataclass: `fold_idx`, `train_size`, `test_size`, `y_true`, `y_pred`, `quantiles` `(Q, H)`, `q_levels`, `smape`, `mase`, `wql`. |
+
+### Uncertainty Utilities (`multioutreg.time_series.uncertainty`)
+
+| Function | Signature | Description |
+|---|---|---|
+| `gaussian_quantiles` | `(mean, std, quantiles) → (Q, H)` | Converts Gaussian `(mu, sigma)` to arbitrary quantile levels via `erfinv`. |
+| `conformal_interval_from_residuals` | `(point_pred, cal_residuals, alpha) → (lower, upper)` | Split-conformal interval: `point_pred ± ceil((n+1)(1−α)/n)`-quantile of `|residuals|`. |
+| `propagate_uncertainty_recursive` | `(single_step_std, horizon, correlation) → (H,)` | AR(1) uncertainty propagation: `σ_h² = σ₁²(1−ρ^{2h})/(1−ρ²)`; bounded variance for |ρ| < 1. |
+
+### Optional Dependencies (TS)
+
+| Package | Required By | Install |
+|---------|------------|---------|
+| `chronos-forecasting`, `torch` | `ChronosForecaster` | `pip install multioutreg[ts]` |
+| `prophet` | `ProphetForecaster` | `pip install multioutreg[prophet]` |
+| `neuralforecast` | `NeuralForecaster` | `pip install multioutreg[neuralforecast]` |
+| `torch` | `LagFeatureForecaster` with `BNNSurrogate` or `DeepEnsembleSurrogate` | `pip install torch` |

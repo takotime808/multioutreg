@@ -7,6 +7,8 @@ import pprint
 from typing import Optional, Dict, Any, Union
 
 warnings.filterwarnings('ignore')
+_logger = logging.getLogger(__name__)
+
 
 class DataProcessor:
     """
@@ -21,9 +23,7 @@ class DataProcessor:
         self.log_filename: str = log_filename
         
     def log_to_file(self, log: str) -> None:
-        logging.info(log)
-        with open(self.log_filename, 'a') as f:
-            f.write(log + '\n')
+        _logger.info(log)
         
     def load_data(
         self, 
@@ -107,10 +107,8 @@ class DataProcessor:
                 'max': self.data[target_col].max(),
                 'zeros': (self.data[target_col] == 0).sum()
             }
-        if self.verbose: 
-            with open(self.log_filename, 'a') as f:
-                f.write("Validation results:\n")
-                f.write(pprint.pformat(validation_results))
+        if self.verbose:
+            _logger.info("Validation results:\n%s", pprint.pformat(validation_results))
         
         return validation_results
     
@@ -201,7 +199,7 @@ class DataProcessor:
             df[f'{target_col}_std_{window}'] = df[target_col].rolling(window=window).std()
         
         # Fill NaN values created by lag and rolling features
-        df = df.fillna(method='bfill').fillna(0)
+        df = df.bfill().ffill().fillna(0)
         
         self.processed_data = df
         if self.verbose:

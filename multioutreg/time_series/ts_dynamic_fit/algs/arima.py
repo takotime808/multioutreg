@@ -1,6 +1,6 @@
 # Copyright (c) 2025 takotime808
 from statsmodels.tsa.stattools import adfuller, acf, pacf
-import pandas as pd 
+import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 from sklearn.metrics import mean_absolute_error as mae
@@ -11,6 +11,7 @@ import sys
 from typing import Optional, Tuple, Any, Dict, Sequence, Union
 
 warnings.filterwarnings("ignore")
+_logger = logging.getLogger(__name__)
 
 
 class ARIMA:
@@ -32,9 +33,7 @@ class ARIMA:
         log_handlers.append(logging.StreamHandler())
 
     def log_to_file(self, log: str) -> None:
-        logging.info(log)
-        with open(f"logs/{self.log_filename}", 'a') as f:
-            f.write(log + '\n')
+        _logger.info(log)
         
     def make_stationary(self, df) -> Tuple[Any, ...]:
         """

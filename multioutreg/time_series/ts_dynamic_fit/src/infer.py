@@ -1,8 +1,8 @@
 # Copyright (c) 2025 takotime808
 import json
-from algs.arima import *
-from algs.sarima import *
-from algs.lstm import *
+from multioutreg.time_series.ts_dynamic_fit.algs.arima import ARIMA
+from multioutreg.time_series.ts_dynamic_fit.algs.sarima import SARIMA
+from multioutreg.time_series.ts_dynamic_fit.algs.lstm import LSTM, LSTMModel
 import pickle
 from typing import Sequence, Any
 import numpy as np

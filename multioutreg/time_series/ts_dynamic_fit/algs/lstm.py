@@ -9,12 +9,13 @@ from sklearn.metrics import mean_squared_error
 import torch
 from torch import nn
 import torch.nn.functional as F
-import pandas as pd 
+import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import logging
-import joblib
 from typing import Tuple, Dict, Any, Optional
+
+_logger = logging.getLogger(__name__)
 
 class LSTMModel(nn.Module):
 
@@ -61,7 +62,7 @@ class LSTM:
 
     def log_to_file(self, log: str) -> None:
         """
-        Appends log message to file.
+        Logs a message via the module logger.
 
         Args:
             log (str): Log message.
@@ -69,9 +70,7 @@ class LSTM:
         Returns:
             None
         """
-        logging.info(log)
-        with open(f"logs/{self.log_filename}", 'a') as f:
-            f.write(log + '\n')
+        _logger.info(log)
 
     def create_inout_sequences(
         self, 
@@ -261,8 +260,6 @@ class LSTM:
         if self.verbose:
             self.visualize(self.orig_data, future_preds, fut_pred, resid_std=resid_std)
 
-        joblib.dump(scaler, "temp/scaler.pkl")
-
         metadata: Dict[str, Any] = {
             "performance": {
                 "Model": 'LSTM',
@@ -283,7 +280,103 @@ class LSTM:
                 "data": self.convert_keys_to_str(self.orig_data.to_dict()),
                 "diff_1_data": None,
                 "diff_2_data": None,
-            }
+            },
+            "scaler": scaler,
         }
+        self._model = model
+        self._scaler = scaler
+        self._fut_pred = fut_pred
         return metadata, self.orig_data, model
+
+    def conformal_calibrate(
+        self,
+        val_series: np.ndarray,
+        n_lags: int,
+        horizon: int,
+        alpha: float = 0.1,
+    ) -> "LSTM":
+        """Calibrate split-conformal prediction intervals on a validation set.
+
+        Must be called after ``run()`` has been executed.  Stores
+        ``self._conformal_q_`` — the (1 - alpha) quantile of absolute residuals
+        on the validation sliding windows — for use in ``predict_interval()``.
+
+        Parameters
+        ----------
+        val_series : np.ndarray, shape (n_val,)
+        n_lags : int
+            Lookback window (must match training window used in ``run()``).
+        horizon : int
+            Steps ahead (must match ``fut_pred`` used in ``run()``).
+        alpha : float, default 0.1
+            Target miscoverage level.
+
+        Returns
+        -------
+        self
+        """
+        if not hasattr(self, "_model") or self._model is None:
+            raise RuntimeError("Call run() before conformal_calibrate().")
+
+        val = np.asarray(val_series, dtype=float)
+        val_scaled = self._scaler.transform(val.reshape(-1, 1)).flatten()
+        val_tensor = torch.FloatTensor(val_scaled)
+        sequences = self.create_inout_sequences(val_tensor, window=n_lags, fut_pred=horizon)
+
+        abs_residuals = []
+        self._model.eval()
+        with torch.no_grad():
+            for seq, labels in sequences:
+                preds = self._model(seq).cpu().numpy().reshape(-1, 1)
+                preds_orig = self._scaler.inverse_transform(preds).flatten()
+                labs_orig = self._scaler.inverse_transform(
+                    labels.cpu().numpy().reshape(-1, 1)
+                ).flatten()
+                abs_residuals.extend(np.abs(preds_orig - labs_orig).tolist())
+
+        abs_residuals = np.array(abs_residuals)
+        n = len(abs_residuals)
+        level = min(1.0, np.ceil((n + 1) * (1.0 - alpha)) / n)
+        self._conformal_q_ = float(np.quantile(abs_residuals, level))
+        return self
+
+    def predict_interval(
+        self,
+        context: np.ndarray,
+        horizon: int,
+        alpha: float = 0.1,
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        """Return conformal prediction intervals for the next ``horizon`` steps.
+
+        Requires ``conformal_calibrate()`` to have been called first.
+
+        Parameters
+        ----------
+        context : np.ndarray, shape (n_lags,)
+            The most recent observed values used as input context.
+        horizon : int
+            Forecast horizon (should match training ``fut_pred``).
+        alpha : float, default 0.1
+            Miscoverage level (1 - alpha coverage).
+
+        Returns
+        -------
+        lower, upper : np.ndarray, each shape (horizon,)
+        """
+        if not hasattr(self, "_conformal_q_"):
+            raise RuntimeError("Call conformal_calibrate() before predict_interval().")
+        if not hasattr(self, "_model") or self._model is None:
+            raise RuntimeError("Call run() before predict_interval().")
+
+        ctx = np.asarray(context, dtype=float)
+        ctx_scaled = self._scaler.transform(ctx.reshape(-1, 1)).flatten()
+        seq = torch.FloatTensor(ctx_scaled)
+
+        self._model.eval()
+        with torch.no_grad():
+            preds = self._model(seq).cpu().numpy().reshape(-1, 1)
+
+        preds_orig = self._scaler.inverse_transform(preds).flatten()[:horizon]
+        q = self._conformal_q_
+        return preds_orig - q, preds_orig + q
 
