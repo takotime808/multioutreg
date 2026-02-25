@@ -76,7 +76,7 @@ test = [
     "pytest-cov",
     "pytest-sugar",
     # "pytest-xdist",
-    # "coverage-badge",
+    "coverage-badge",
 ]
 all = [
   "multioutreg[ts,ngboost,xgboost,lightgbm,catboost,gpytorch,smt,test]",

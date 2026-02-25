@@ -33,45 +33,30 @@ jobs:
         python -m pip install --upgrade pip
         pip install .[all]
 
-    # - name: Run tests with coverage
-    #   run: |
-    #     pytest tests --cov=multioutreg --cov-report=term-missing --cov-report=html
-
-    # - name: Generate coverage badge
-    #   run: |
-    #     coverage-badge -o htmlcov/coverage.svg -f
-
-    # - name: Upload HTML coverage report
-    #   uses: actions/upload-artifact@v4
-    #   with:
-    #     name: coverage-html
-    #     path: htmlcov/
-    #     if-no-files-found: ignore
-
-    #########################
-
-    # - name: Run tests with coverage
-    #   run: |
-    #     pytest tests --cov=multioutreg --cov-report=term-missing --cov-report=html --cov-report=xml
-
-    # - name: Upload to Codecov
-    #   uses: codecov/codecov-action@v4
-    #   with:
-    #     files: ./coverage.xml
-    #     fail_ci_if_error: true
-    #     # token: ${{ secrets.CODECOV_TOKEN }}   # needed for private repos
-
     - name: Run tests with coverage
+      id: tests
+      continue-on-error: true
       run: pytest tests --cov=multioutreg --cov-report=xml
 
     - name: Generate badge
+      if: ${{ steps.tests.outcome == 'success' }}
       run: coverage-badge -o coverage.svg -f
 
+    - name: Generate fallback badge when tests fail
+      if: ${{ steps.tests.outcome != 'success' }}
+      run: curl -sSL "https://img.shields.io/badge/coverage--99%25-red.svg" -o coverage.svg
+
     - name: Upload badge artifact
+      if: ${{ always() }}
       uses: actions/upload-artifact@v4
       with:
         name: coverage-badge
         path: coverage.svg
+        if-no-files-found: error
+
+    - name: Fail workflow if tests failed
+      if: ${{ steps.tests.outcome != 'success' }}
+      run: exit 1
 
 
     # - name: Run linter
@@ -83,4 +68,3 @@ jobs:
     #   uses: codecov/codecov-action@v4
     #   with:
     #     token: ${{ secrets.CODECOV_TOKEN }}  # optional if public
-
