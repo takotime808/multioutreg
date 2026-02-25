@@ -22,7 +22,7 @@ dependencies = [
   "seaborn>=0.13.0,<=0.13.2",
   "uncertainty-toolbox",#>=0.1.4,<0.1.7",
   "shap>=0.48.0",
-  # "jinja2>=3.0",
+  "jinja2>=3.0",
   "umap-learn",
   # "kaleido",
   "nbformat>=4.2.0",
@@ -34,7 +34,12 @@ dependencies = [
   "chronos-forecasting>=1.5.0",
   "torch>=2.1",
   "pandas>=2.0,<2.2", #==2.1.4
-  "numpy>=1.26,<2.0" # ==1.26.4
+  "numpy>=1.26,<2.0", # ==1.26.4
+  "statsmodels",
+  "joblib",
+  # "typing-extensions", # sub-dep of other package
+  "pyyaml",
+  "scipy",
 ]
 
 [project.optional-dependencies]
@@ -44,7 +49,9 @@ ts = [
   "torch>=2.1",
   # These may clash with normal dependencies.
   "pandas>=2.0,<2.2",
-  "numpy>=1.26,<2.0"
+  "numpy>=1.26,<2.0",
+  "boto3",
+  "python-dotenv",
 ]
 ngboost = [
   "ngboost",
@@ -71,6 +78,9 @@ smt = [
   # Used by surrogate(s): KPLSSurrogate, GPXSurrogate
   "smt[gpx]",
 ]
+lstm = [
+  "keras",
+]
 test = [
     "pytest",
     "pytest-cov",
@@ -81,6 +91,12 @@ test = [
 all = [
   "multioutreg[ts,ngboost,xgboost,lightgbm,catboost,gpytorch,smt,test]",
 ]
+examples = [
+  "ray",
+  "hyperopt",
+  "plotly",
+]
+
 
 [tool.setuptools.packages.find]
 where = [".", "mor_cli", "multioutreg"]
