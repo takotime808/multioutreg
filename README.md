@@ -19,21 +19,14 @@ Multi-Output Multi-Fidelity Surrogate Modeling with Uncertainty Quantification.
 
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://multioutreg-regret.streamlit.app/) -->
 
-<!-- Original CICD -->
-<!-- [![codecov](https://codecov.io/gh/takotime808/multioutreg/branch/test-cov-badge/graph/badge.svg)](https://codecov.io/gh/takotime808/multioutreg) -->
-
-<!-- Sphinx -->
-<!-- ![Coverage](https://takotime808.github.io/multioutreg/_static/badges/coverage.svg) -->
-
-<!-- New CICD -->
-<!-- ![Coverage](docs/badges/coverage.svg) -->
 
 This repository provides utilities for evaluating multi-output surrogate models
 with uncertainty estimation. Example notebooks in `examples/` demonstrate the
 plotting functions and performance metrics. A new script `examples/report.py`
 shows how to create an HTML report using a Jinja2 template that collects all
 metrics and figures in one document. Output reports are shown in the docs
-directory: [example_reports](docs/example_reports/).
+directory: [example_reports](docs/example_reports/). In order to run all the 
+examples, some dependencies need to be installed with `pip install -e .[examples]`.
 
 The `AutoDetectMultiOutputRegressor` can now automatically search across all
 vendor-provided surrogates. See [`examples/AutoDetectMultiOutputRegressor.ipynb`](./examples/AutoDetectMultiOutputRegressor.ipynb) 
@@ -53,8 +46,13 @@ for a short demonstration.
 
 **Installation:**
 ```bash
-pip install .[test]  # optional: for testing and dev
+pip install -e .[all]  
 ```
+- `[all]` is optional: it will include deps that are
+  - model specific 
+  - for testing
+  - for dev work
+  - everything except the deps only needed to run the examples: `[examples]`
 
 **Streamlit App:**
 ```sh
