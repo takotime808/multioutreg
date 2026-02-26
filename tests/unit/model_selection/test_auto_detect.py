@@ -61,7 +61,7 @@ def test_init_valid_estimators():
     params = [{}, {"max_depth": [1, None]}]
     model = AutoDetectMultiOutputRegressor(est, params)
     assert isinstance(model, AutoDetectMultiOutputRegressor)
-    assert model.cv == 3
+    assert model.cv == "auto"
 
 
 def test_init_invalid_length():

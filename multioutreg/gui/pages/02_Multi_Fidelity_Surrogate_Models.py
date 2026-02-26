@@ -52,6 +52,7 @@ from multioutreg.surrogates.catboost_sklearn import _CATBOOST_AVAILABLE, CatBoos
 from multioutreg.surrogates.sparse_gp_gpytorch import _GPYTORCH_AVAILABLE, SparseGPSurrogate
 from multioutreg.utils.figure_utils import safe_plot_b64
 from multioutreg.utils.imputation import apply_imputation, detect_missing
+from multioutreg.model_selection.auto_detect import _cv_description, select_cv_strategy
 
 
 # ---------------------------------------------------------------------------
@@ -524,7 +525,8 @@ if uploaded_file:
             test_data[lv_name] = (X_te, Y_te)
 
         X_test, y_test = test_data[level_names[-1]]
-        X_train_hi, _ = train_data[level_names[-1]]  # used for SHAP / plots
+        X_train_hi, Y_train_hi = train_data[level_names[-1]]  # used for SHAP / plots
+        cv_strategy = select_cv_strategy(X_train_hi.shape[0])
         output_names = list(output_cols)
 
         # ------------------------------------------------------------------
@@ -532,11 +534,8 @@ if uploaded_file:
         # ------------------------------------------------------------------
         candidates = _build_candidates(level_names, skip_expensive)
         gs_results: List[dict] = []
-        best_mse = np.inf
-        best_model = None
-        best_pred: np.ndarray | None = None
-        best_std: np.ndarray | None = None
-        best_name: str | None = None
+        best_avg_mse = np.inf
+        best_candidate = None
 
         prog = st.progress(0, text="Running grid search…")
         for _i, _cand in enumerate(candidates):
@@ -545,48 +544,59 @@ if uploaded_file:
                 text=f"Fitting {_cand['name']} ({_i + 1}/{len(candidates)})…",
             )
             try:
-                _m = _fit_candidate(_cand, train_data, level_names)
-                _yp_raw, _ys_raw = _m.predict(X_test, return_std=True)
-                _yp = np.asarray(_yp_raw, dtype=np.float64)
-                _ys = np.asarray(_ys_raw, dtype=np.float64)
-                if _yp.ndim == 1:
-                    _yp = _yp.reshape(-1, 1)
-                if _ys.ndim == 1:
-                    _ys = _ys.reshape(-1, 1)
-                _mse = float(np.mean((y_test - _yp) ** 2))
-                _r2 = float(r2_score(y_test.ravel(), _yp.ravel()))
-                _rmse = float(np.sqrt(_mse))
+                fold_mses = []
+                for _train_idx, _val_idx in cv_strategy.split(X_train_hi):
+                    _train_data_fold = {
+                        lv: (X[_train_idx], Y[_train_idx]) if lv == level_names[-1]
+                        else (X, Y)
+                        for lv, (X, Y) in train_data.items()
+                    }
+                    _X_val = X_train_hi[_val_idx]
+                    _Y_val = Y_train_hi[_val_idx]
+                    _m_fold = _fit_candidate(_cand, _train_data_fold, level_names)
+                    _yp_fold, _ = _m_fold.predict(_X_val, return_std=True)
+                    _yp_fold = np.asarray(_yp_fold, dtype=np.float64)
+                    if _yp_fold.ndim == 1:
+                        _yp_fold = _yp_fold.reshape(-1, 1)
+                    fold_mses.append(float(np.mean((_Y_val - _yp_fold) ** 2)))
+                _avg_mse = float(np.mean(fold_mses))
+                _avg_rmse = float(np.sqrt(_avg_mse))
                 gs_results.append({
                     "Model": _cand["name"],
-                    "MSE": round(_mse, 6),
-                    "RMSE": round(_rmse, 6),
-                    "R²": round(_r2, 4),
+                    "CV MSE": round(_avg_mse, 6),
+                    "CV RMSE": round(_avg_rmse, 6),
                     "Status": "OK",
                 })
-                if _mse < best_mse:
-                    best_mse = _mse
-                    best_model = _m
-                    best_pred = _yp
-                    best_std = _ys
-                    best_name = _cand["name"]
+                if _avg_mse < best_avg_mse:
+                    best_avg_mse = _avg_mse
+                    best_candidate = _cand
             except Exception as _exc:
                 gs_results.append({
                     "Model": _cand["name"],
-                    "MSE": None,
-                    "RMSE": None,
-                    "R²": None,
+                    "CV MSE": None,
+                    "CV RMSE": None,
                     "Status": f"Error: {_exc}",
                 })
 
         prog.empty()
 
-        if best_model is None:
+        if best_candidate is None:
             st.error(
                 "All model candidates failed. "
                 "Check the error messages in the results table below."
             )
             st.dataframe(pd.DataFrame(gs_results))
             st.stop()
+
+        best_model = _fit_candidate(best_candidate, train_data, level_names)
+        best_pred_raw, best_std_raw = best_model.predict(X_test, return_std=True)
+        best_pred = np.asarray(best_pred_raw, dtype=np.float64)
+        best_std = np.asarray(best_std_raw, dtype=np.float64)
+        if best_pred.ndim == 1:
+            best_pred = best_pred.reshape(-1, 1)
+        if best_std.ndim == 1:
+            best_std = best_std.reshape(-1, 1)
+        best_name = best_candidate["name"]
 
         st.write(f"### Grid Search Results — best: **{best_name}**")
         _gs_df = (
@@ -644,7 +654,7 @@ if uploaded_file:
                     X_train=X_train_hi,
                     n_train=X_train_hi.shape[0],
                     n_test=X_test.shape[0],
-                    cross_validation="None",
+                    cross_validation=_cv_description(cv_strategy),
                     seed=0,
                     notes=description or "Generated by Multi-Fidelity Surrogate Model page.",
                     conformal_intervals=conformal_intervals if use_conformal else None,

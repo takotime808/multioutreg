@@ -8,7 +8,7 @@ from typing import Sequence
 
 import numpy as np
 from sklearn.base import BaseEstimator, RegressorMixin, clone
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, KFold, LeaveOneOut, RepeatedKFold
 from sklearn.ensemble import ExtraTreesRegressor, GradientBoostingRegressor, HistGradientBoostingRegressor, RandomForestRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.linear_model import LinearRegression, BayesianRidge
@@ -69,6 +69,67 @@ from sklearn.linear_model import (
     QuantileRegressor as _QuantileRegressor,
 )
 
+def select_cv_strategy(n_samples: int):
+    """Return a CV splitter appropriate for the dataset size.
+
+    Parameters
+    ----------
+    n_samples : int
+        Number of training samples.
+
+    Returns
+    -------
+    CV splitter
+        - ``LeaveOneOut``        when *n_samples* ≤ 20
+        - ``RepeatedKFold(5, 3)`` when 20 < *n_samples* ≤ 100
+        - ``KFold(10)``          when 100 < *n_samples* ≤ 1000
+        - ``KFold(5)``           when *n_samples* > 1000
+    """
+    if n_samples <= 20:
+        return LeaveOneOut()
+    elif n_samples <= 100:
+        return RepeatedKFold(n_splits=5, n_repeats=3, random_state=0)
+    elif n_samples <= 1000:
+        return KFold(n_splits=10, shuffle=True, random_state=0)
+    else:
+        return KFold(n_splits=5, shuffle=True, random_state=0)
+
+
+def _resolve_cv(cv, n_samples: int):
+    """Resolve the ``cv`` parameter to a concrete sklearn splitter.
+
+    Accepted forms
+    --------------
+    ``"auto"``
+        Delegate to :func:`select_cv_strategy`.
+    ``"loocv"``
+        Always use :class:`~sklearn.model_selection.LeaveOneOut`.
+    ``int``
+        Passed through to ``GridSearchCV`` unchanged (K-fold with that many folds).
+    sklearn CV splitter
+        Passed through unchanged.
+    """
+    if cv == "auto":
+        return select_cv_strategy(n_samples)
+    if cv == "loocv":
+        return LeaveOneOut()
+    return cv  # int or any sklearn splitter object
+
+
+def _cv_description(cv) -> str:
+    """Return a human-readable description of a resolved CV splitter or int."""
+    if isinstance(cv, LeaveOneOut):
+        return "Leave-One-Out CV"
+    if isinstance(cv, RepeatedKFold):
+        n_splits = cv.cvargs.get("n_splits", 5)
+        return f"Repeated {n_splits}-Fold CV (×{cv.n_repeats} repeats)"
+    if isinstance(cv, KFold):
+        return f"{cv.n_splits}-Fold CV"
+    if isinstance(cv, int):
+        return f"{cv}-Fold CV"
+    return repr(cv)
+
+
 class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
     """Fit a separate estimator per output choosing the best via grid search.
 
@@ -78,8 +139,14 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
         Candidate sklearn estimators to evaluate.
     param_spaces : sequence of dict
         Parameter grids corresponding to each estimator.
-    cv : int
-        Number of cross-validation folds used in grid search.
+    cv : int | str | CV splitter, default ``"auto"``
+        Cross-validation strategy used inside ``GridSearchCV``.
+
+        - ``"auto"`` — pick automatically based on dataset size via
+          :func:`select_cv_strategy` (recommended).
+        - ``"loocv"`` — always use ``LeaveOneOut``.
+        - ``int`` — use that many K-fold splits (backward-compatible).
+        - any sklearn CV splitter — passed through unchanged.
     scoring : str
         Sklearn scoring metric for GridSearchCV.
     pre_screen : bool, default False
@@ -93,7 +160,7 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
         self,
         estimators: Sequence[BaseEstimator],
         param_spaces: Sequence[dict],
-        cv: int = 3,
+        cv: int | str = "auto",
         scoring: str = "neg_mean_squared_error",
         pre_screen: bool = False,
     ) -> None:
@@ -104,11 +171,22 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
         self.cv = cv
         self.scoring = scoring
         self.pre_screen = pre_screen
+        # Preliminary description available before fit(); overridden in fit()
+        # once n_samples is known (needed when cv="auto").
+        self.cv_description_ = (
+            "auto (resolved at fit time)" if cv == "auto"
+            else _cv_description(cv)
+        )
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> "AutoDetectMultiOutputRegressor":
         y = np.asarray(y)
         if y.ndim == 1:
             y = y.reshape(-1, 1)
+
+        # Resolve cross-validation strategy once, based on dataset size
+        _cv = _resolve_cv(self.cv, X.shape[0])
+        self.cv_strategy_ = _cv
+        self.cv_description_ = _cv_description(_cv)
 
         # Run statistical pre-screening once across all outputs
         _screener = None
@@ -152,7 +230,7 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             for idx, (est, params) in enumerate(zip(self.estimators, self.param_spaces)):
                 if idx not in eligible:
                     continue
-                gs = GridSearchCV(est, params, cv=self.cv, scoring=self.scoring)
+                gs = GridSearchCV(est, params, cv=_cv, scoring=self.scoring)
                 gs.fit(X, y[:, i])
                 if gs.best_score_ > best_score:
                     best_score = gs.best_score_
@@ -273,7 +351,7 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
     @classmethod
     def with_vendored_surrogates(
         cls,
-        cv: int = 3,
+        cv: int | str = "auto",
         scoring: str = "neg_mean_squared_error",
         fidelity_levels: Sequence[str] | None = None,
         pre_screen: bool = False,

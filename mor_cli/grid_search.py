@@ -227,7 +227,7 @@ def grid_search(
         X_train=X_train,
         n_train=X_train.shape[0],
         n_test=X_test.shape[0],
-        cross_validation="None",
+        cross_validation="None (hold-out test split)",
         seed=0,
         notes="Generated report.",
         pca_explained_variance=pca_explained_variance,
