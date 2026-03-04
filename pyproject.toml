@@ -95,6 +95,7 @@ examples = [
   "ray",
   "hyperopt",
   "plotly",
+  "ipykernel",
 ]
 
 
