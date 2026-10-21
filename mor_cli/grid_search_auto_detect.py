@@ -4,7 +4,6 @@ import os
 import typer
 import pandas as pd
 import numpy as np
-import importlib.util
 import matplotlib
 matplotlib.use('Agg')
 from typing import Optional
@@ -16,12 +15,7 @@ from multioutreg.model_selection import AutoDetectMultiOutputRegressor
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
 from multioutreg.utils.imputation import apply_imputation, detect_missing
 
-# # NOTE: Module starts with numeric values, so it cannot be directly imported
-# from multioutreg.gui.pages.Use_Auto_Detect_MultiOutput_Regressor import generate_html_report
-file_path = os.path.abspath("multioutreg/gui/pages/01_Use_Auto_Detect_MultiOutput_Regressor.py")
-spec = importlib.util.spec_from_file_location("use_auto_detect", file_path)
-use_auto_detect = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(use_auto_detect)
+from multioutreg.report.auto_detect_report import generate_html_report
 
 app = typer.Typer(help="Auto-detect surrogate models and generate a report")
 
@@ -151,7 +145,7 @@ def grid_search_auto_detect(
                 metrics[name]["conformal_coverage"] = float(row["coverage"].iloc[0])
                 metrics[name]["conformal_interval_width"] = float(row["mean_width"].iloc[0])
 
-    html = use_auto_detect.generate_html_report(
+    html = generate_html_report(
         model_type="AutoDetectMultiOutputRegressor",
         fidelity_levels=[],
         output_names=out_cols,

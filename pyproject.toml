@@ -18,12 +18,12 @@ dependencies = [
   # "numpy>=1.22,<2.0",
   # "pandas>=1.5,<2.2",
   "matplotlib>=3.5,<4.0",
-  "scikit-learn>=1.2",
+  "scikit-learn>=1.4",  # root_mean_squared_error was added in 1.4 (previously was 1.2)
   "seaborn>=0.13.0,<=0.13.2",
   "uncertainty-toolbox",#>=0.1.4,<0.1.7",
   "shap>=0.48.0",
   "jinja2>=3.0",
-  "umap-learn",
+  "umap-learn>=0.5.8",  # older releases break on scikit-learn>=1.8 (force_all_finite) # no version previously specified
   # "kaleido",
   "nbformat>=4.2.0",
   # "ray[tune]>=2.30",
@@ -97,6 +97,15 @@ examples = [
   "plotly",
 ]
 
+
+[tool.uv]
+# torch >= 2.3 and llvmlite >= 0.44 publish no wheels for Intel macOS, so the
+# lockfile is unsatisfiable there without these platform-specific caps.
+constraint-dependencies = [
+  "torch<2.3; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  "llvmlite<0.44; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  "numba<0.61; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+]
 
 [tool.setuptools.packages.find]
 where = [".", "mor_cli", "multioutreg"]
