@@ -56,3 +56,14 @@ def test_repeatable_predictions(sample_data):
     preds1 = surrogate.predict(X)
     preds2 = surrogate.predict(X)
     np.testing.assert_allclose(preds1, preds2, rtol=1e-5)
+
+
+def test_return_std_is_nonzero_away_from_training_data(sample_data):
+    # Regression: MultiOutputRegressor rejects return_std, which previously
+    # made BaseSurrogate silently return all-zero std for the GP.
+    X, Y = sample_data
+    surrogate = GaussianProcessSurrogate()
+    surrogate.fit(X, Y)
+    X_far = X + 5.0
+    _, stds = surrogate.predict(X_far, return_std=True)
+    assert np.all(stds > 0)

@@ -64,3 +64,14 @@ def test_invalid_input_shape():
         # Incorrect input dimension
         base.predict(np.random.rand(5, 2, 2))
 
+
+
+def test_return_std_matches_underlying_estimators(sample_data):
+    X, Y = sample_data
+    base = BaseSurrogate(GaussianProcessRegressor())
+    base.fit(X, Y)
+    preds, stds = base.predict(X + 1.0, return_std=True)
+    for j, est in enumerate(base.model.estimators_):
+        p, s = est.predict(X + 1.0, return_std=True)
+        np.testing.assert_allclose(preds[:, j], p)
+        np.testing.assert_allclose(stds[:, j], s)

@@ -555,8 +555,10 @@ def _blr():
         def fit(self, X, y):
             rng_ = _np.random.default_rng(self.random_state)
             n = X.shape[0]
-            self.models_ = [LinearRegression().fit(X[rng_.integers(0, n, n)], y[rng_.integers(0, n, n)])
-                            for _ in range(self.n_bootstraps)]
+            self.models_ = []
+            for _ in range(self.n_bootstraps):
+                idx = rng_.integers(0, n, n)
+                self.models_.append(LinearRegression().fit(X[idx], y[idx]))
             return self
         def predict(self, X, return_std=False):
             preds = _np.stack([m.predict(X) for m in self.models_], axis=1)

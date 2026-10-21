@@ -40,9 +40,9 @@ def get_uq_performance_metrics(
     metrics_list = []
     for i in range(n_outputs):
         metrics = uct.get_all_metrics(
-            y_true[:, i],
             y_pred[:, i],
-            y_std[:, i]
+            y_std[:, i],
+            y_true[:, i]
         )
         metrics['output'] = i
         metrics_list.append(metrics)
@@ -51,9 +51,9 @@ def get_uq_performance_metrics(
 
     # Overall metrics on flattened arrays
     overall_metrics = uct.get_all_metrics(
-        y_true.flatten(),
         y_pred.flatten(),
-        y_std.flatten()
+        y_std.flatten(),
+        y_true.flatten()
     )
 
     print(metrics_df)

@@ -123,3 +123,20 @@ def test_vendored_surrogates_with_multi_fidelity(sample_data):
 
     assert preds.shape == y.shape
     assert isinstance(model.models_[0], MultiFidelitySurrogate)
+
+def test_multi_output_candidate_scored_out_of_sample():
+    # Regression: joint multi-output candidates were scored on training data,
+    # so a memorising model (1-NN, zero training error) always beat the
+    # cross-validated single-output winners.
+    from sklearn.neighbors import KNeighborsRegressor
+
+    rng = np.random.RandomState(0)
+    X = rng.rand(150, 3)
+    Y = np.column_stack([X @ [1.0, -2.0, 0.5], X @ [0.5, 1.0, -1.0]])
+    Y += rng.randn(*Y.shape) * 0.3
+
+    model = AutoDetectMultiOutputRegressor([LinearRegression()], [{}])
+    model.register_multi_output_candidates([KNeighborsRegressor(n_neighbors=1)])
+    model.fit(X, Y)
+
+    assert all(isinstance(m, LinearRegression) for m in model.models_)

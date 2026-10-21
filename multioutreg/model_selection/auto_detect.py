@@ -8,7 +8,8 @@ from typing import Sequence
 
 import numpy as np
 from sklearn.base import BaseEstimator, RegressorMixin, clone
-from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import get_scorer
+from sklearn.model_selection import GridSearchCV, check_cv
 from sklearn.ensemble import ExtraTreesRegressor, GradientBoostingRegressor, HistGradientBoostingRegressor, RandomForestRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.linear_model import LinearRegression, BayesianRidge
@@ -69,6 +70,29 @@ from sklearn.linear_model import (
     QuantileRegressor as _QuantileRegressor,
 )
 
+def _clone_surrogate(surrogate):
+    """Return an unfitted copy of a surrogate (sklearn clone, else deepcopy)."""
+    try:
+        return clone(surrogate)
+    except Exception:
+        import copy
+        return copy.deepcopy(surrogate)
+
+
+class _OutputColumn:
+    """Expose column ``j`` of a multi-output model so sklearn scorers can use it."""
+
+    def __init__(self, model, j: int) -> None:
+        self.model = model
+        self.j = j
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        preds = np.asarray(self.model.predict(X))
+        if preds.ndim == 1:
+            preds = preds.reshape(-1, 1)
+        return preds[:, self.j]
+
+
 class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
     """Fit a separate estimator per output choosing the best via grid search.
 
@@ -119,18 +143,24 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
         # Pre-evaluate joint multi-output surrogate candidates (models with
         # _multi_output = True that cannot be wrapped in MultiOutputRegressor).
         # These are scored per output so they can compete in the per-output loop.
+        # They are scored with the same CV splitter and scorer as GridSearchCV so
+        # that the comparison against best_score_ is out-of-sample on both sides.
         _mo_scores: list[tuple] = []  # (per_output_scores, fitted_surrogate)
-        for mo_surrogate in getattr(self, "_multi_output_candidates", []):
+        _mo_candidates = getattr(self, "_multi_output_candidates", [])
+        if _mo_candidates:
+            splitter = check_cv(self.cv)
+            scorer = get_scorer(self.scoring)
+            splits = list(splitter.split(X, y))
+        for mo_surrogate in _mo_candidates:
+            fold_scores = np.zeros((len(splits), y.shape[1]))
+            for f, (tr, te) in enumerate(splits):
+                fold_model = _clone_surrogate(mo_surrogate).fit(X[tr], y[tr])
+                for j in range(y.shape[1]):
+                    fold_scores[f, j] = scorer(
+                        _OutputColumn(fold_model, j), X[te], y[te, j]
+                    )
             mo_surrogate.fit(X, y)
-            mo_preds = np.asarray(mo_surrogate.predict(X))
-            if mo_preds.ndim == 1:
-                mo_preds = mo_preds.reshape(-1, 1)
-            # Use neg-MSE to match GridSearchCV default scoring
-            per_output_mse = [
-                -np.mean((y[:, j] - mo_preds[:, j]) ** 2)
-                for j in range(y.shape[1])
-            ]
-            _mo_scores.append((per_output_mse, mo_surrogate))
+            _mo_scores.append((fold_scores.mean(axis=0).tolist(), mo_surrogate))
 
         self.models_ = []
         # _model_output_col[i] = which column of models_[i].predict(X) gives output i.

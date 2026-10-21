@@ -633,6 +633,13 @@ if uploaded_file:
                     + ", ".join(_EXPENSIVE_DISPLAY_NAMES.get(n, n) for n in _skipped)
                 )
 
+        # Conformal calibration must use data disjoint from both training and the
+        # test set used to report coverage, so hold out part of the training split.
+        if use_conformal:
+            X_train, X_cal, y_train, y_cal = train_test_split(
+                X_train, y_train, test_size=0.2, random_state=0
+            )
+
         model.fit(X_train, y_train)
         best_pred, best_std = model.predict(X_test, return_std=True)
         best_model = model
@@ -641,7 +648,7 @@ if uploaded_file:
         # Conformal prediction
         conformal_intervals = None
         if use_conformal:
-            model.calibrate_conformal(X_test, y_test)
+            model.calibrate_conformal(X_cal, y_cal)
             y_lower, y_upper = model.predict_interval(X_test, alpha=conformal_alpha_sel)
             conformal_intervals = (y_lower, y_upper)
 

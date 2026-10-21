@@ -17,12 +17,19 @@ class BaseSurrogate(ConformalMixin):
 
     def predict(self, X, return_std=False):
         if return_std:
-            try:
-                return self.model.predict(X, return_std=True)
-            except TypeError:
-                preds = self.model.predict(X)
-                std = np.zeros_like(preds)
-                return preds, std
+            # MultiOutputRegressor.predict does not accept return_std, so query
+            # each per-output estimator directly. Estimators without native
+            # uncertainty fall back to zero std for that output.
+            preds, stds = [], []
+            for est in self.model.estimators_:
+                try:
+                    p, s = est.predict(X, return_std=True)
+                except TypeError:
+                    p = est.predict(X)
+                    s = np.zeros_like(p)
+                preds.append(np.asarray(p).ravel())
+                stds.append(np.asarray(s).ravel())
+            return np.column_stack(preds), np.column_stack(stds)
         return self.model.predict(X)
 
     def _conformal_point_predict(self, X):

@@ -110,6 +110,13 @@ def grid_search_auto_detect(
                 random_state=0,
             )
         ])
+    # Conformal calibration must use data disjoint from both training and the
+    # test set used to report coverage, so hold out part of the training split.
+    if conformal:
+        X_train, X_cal, y_train, y_cal = train_test_split(
+            X_train, y_train, test_size=0.2, random_state=0
+        )
+
     model.fit(X_train, y_train)
     best_pred, best_std = model.predict(X_test, return_std=True)
     best_model = model
@@ -118,7 +125,7 @@ def grid_search_auto_detect(
     conformal_summary_df = None
     conformal_intervals = None
     if conformal:
-        model.calibrate_conformal(X_test, y_test)
+        model.calibrate_conformal(X_cal, y_cal)
         y_lower, y_upper = model.predict_interval(X_test, alpha=conformal_alpha)
         conformal_intervals = (y_lower, y_upper)
         from multioutreg.conformal.metrics import conformal_summary as _conformal_summary

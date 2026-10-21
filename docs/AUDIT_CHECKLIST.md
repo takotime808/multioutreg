@@ -13,8 +13,11 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
 - [x] **2. Most surrogates report std = 0 (including GP).** [verified]
   `BaseSurrogate.predict` called `MultiOutputRegressor.predict(X, return_std=True)`, which
   raises `TypeError`; the fallback was `np.zeros_like`. GP/SVR/KNN/LR/DT/GB all claimed zero uncertainty.
-  *Fix:* iterate `estimators_`; return `NaN` (not 0) when a model has no native uncertainty.
-  Also applied to `AutoDetectMultiOutputRegressor.predict`.
+  *Fix:* iterate `estimators_` so models with native uncertainty (GP, BayesianRidge, ...) report it.
+  - [ ] Follow-up: models with *no* native uncertainty still return std = 0 (here, in
+    `AutoDetectMultiOutputRegressor.predict`, MoE hard routing, BNN with `n_mc_samples=1`).
+    `NaN` would be more honest, but the GUI/report feed `best_std` straight into
+    uncertainty-toolbox plots, so those need NaN handling first.
 - [x] **3. Bootstrap LR resamples X and y with different indices.** [verified]
   `multioutreg/model_selection/screening.py` (`_blr`) – fitted slopes ~0 on y = 3x.
 - [x] **4. `get_uq_performance_metrics` passes args in the wrong order.** [verified]
