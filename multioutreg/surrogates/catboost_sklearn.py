@@ -104,7 +104,9 @@ class CatBoostSurrogate(BaseSurrogate):
         y_pred : np.ndarray, shape (n_samples, n_outputs)
         y_std  : np.ndarray, shape (n_samples, n_outputs)  [only if return_std]
         """
-        if not return_std or not self.use_uncertainty:
+        if not return_std:
+            return self._point_predict(X)
+        if not self.use_uncertainty:
             return super().predict(X, return_std=return_std)
 
         # Virtual-ensemble uncertainty: call virtual_ensembles_predict per output.
@@ -120,6 +122,21 @@ class CatBoostSurrogate(BaseSurrogate):
             stds.append(np.sqrt(np.maximum(unc[:, 1], 0.0)))
 
         return np.column_stack(preds), np.column_stack(stds)
+
+    def _point_predict(self, X: np.ndarray) -> np.ndarray:
+        """Return mean predictions with shape (n_samples, n_outputs).
+
+        With ``RMSEWithUncertainty`` each CatBoostRegressor.predict returns
+        ``[mean, variance]`` per row, so only the mean column is kept.
+        """
+        preds = []
+        for est in self.model.estimators_:
+            p = np.asarray(est.predict(X))
+            preds.append(p[:, 0] if p.ndim == 2 else p)
+        return np.column_stack(preds)
+
+    def _conformal_point_predict(self, X: np.ndarray) -> np.ndarray:
+        return self._point_predict(X)
 
     def get_params(self, deep: bool = True) -> dict:
         params = {
