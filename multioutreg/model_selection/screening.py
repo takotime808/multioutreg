@@ -655,10 +655,16 @@ def _br():
     from sklearn.linear_model import BayesianRidge
     return BayesianRidge()
 
+def _scaled(est):
+    from sklearn.pipeline import make_pipeline
+    from sklearn.preprocessing import StandardScaler
+    return make_pipeline(StandardScaler(), est)
+
 def _gp():
     from sklearn.gaussian_process import GaussianProcessRegressor
-    from sklearn.gaussian_process.kernels import RBF
-    return GaussianProcessRegressor(kernel=RBF(), n_restarts_optimizer=2)
+    from multioutreg.surrogates.gp_sklearn import default_gp_kernel
+    return _scaled(GaussianProcessRegressor(
+        kernel=default_gp_kernel(), normalize_y=True, n_restarts_optimizer=2))
 
 def _rf():
     from sklearn.ensemble import RandomForestRegressor
@@ -670,11 +676,11 @@ def _gb():
 
 def _svr():
     from sklearn.svm import SVR
-    return SVR(C=1.0)
+    return _scaled(SVR(C=1.0))
 
 def _knn():
     from sklearn.neighbors import KNeighborsRegressor
-    return KNeighborsRegressor(n_neighbors=5)
+    return _scaled(KNeighborsRegressor(n_neighbors=5))
 
 def _dt():
     from sklearn.tree import DecisionTreeRegressor
@@ -682,7 +688,7 @@ def _dt():
 
 def _mlp():
     from sklearn.neural_network import MLPRegressor
-    return MLPRegressor(hidden_layer_sizes=(64, 64), max_iter=500, random_state=0)
+    return _scaled(MLPRegressor(hidden_layer_sizes=(64, 64), max_iter=500, random_state=0))
 
 def _blr():
     from sklearn.linear_model import LinearRegression

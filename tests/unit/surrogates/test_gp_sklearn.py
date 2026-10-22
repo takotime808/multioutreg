@@ -18,13 +18,13 @@ def sample_data():
 
 def test_initialization_default():
     surrogate = GaussianProcessSurrogate()
-    assert surrogate.model.estimator.__class__.__name__ == "GaussianProcessRegressor"
+    assert surrogate.model.estimator[-1].__class__.__name__ == "GaussianProcessRegressor"
 
 
 def test_initialization_with_kernel_param():
     from sklearn.gaussian_process.kernels import RBF
     surrogate = GaussianProcessSurrogate(kernel=RBF(length_scale=2.0))
-    kernel = surrogate.model.estimator.kernel
+    kernel = surrogate.model.estimator[-1].kernel
     assert hasattr(kernel, 'length_scale')
     assert kernel.length_scale == 2.0
 
@@ -67,3 +67,17 @@ def test_return_std_is_nonzero_away_from_training_data(sample_data):
     X_far = X + 5.0
     _, stds = surrogate.predict(X_far, return_std=True)
     assert np.all(stds > 0)
+
+
+def test_default_kernel_does_not_collapse_on_noisy_data():
+    # Regression: sklearn's default kernel (fixed amplitude, no noise term,
+    # alpha=1e-10) interpolated the noise and collapsed to RBF(1e-5).
+    rng = np.random.default_rng(0)
+    X = rng.uniform(0, 10, (150, 2))
+    y = np.sin(X[:, 0]) + 0.05 * X[:, 1] ** 2 + 0.5 * rng.normal(size=150)
+    Xt = rng.uniform(0, 10, (300, 2))
+    f = np.sin(Xt[:, 0]) + 0.05 * Xt[:, 1] ** 2
+    s = GaussianProcessSurrogate().fit(X, y)
+    pred, std = s.predict(Xt, return_std=True)
+    assert np.mean((pred.ravel() - f) ** 2) < 0.1
+    assert 0.3 < std.mean() < 1.0

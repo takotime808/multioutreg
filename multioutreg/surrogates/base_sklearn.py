@@ -2,14 +2,32 @@
 
 import numpy as np
 from sklearn.multioutput import MultiOutputRegressor
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
 from multioutreg.surrogates.conformal_mixin import ConformalMixin
 
 
-class BaseSurrogate(ConformalMixin):
-    """Base class for multi-output surrogates."""
+def scaled(estimator):
+    """``StandardScaler`` + *estimator*, for models whose fit depends on input units."""
+    return make_pipeline(StandardScaler(), estimator)
 
-    def __init__(self, base_estimator):
-        self.model = MultiOutputRegressor(base_estimator)
+
+class BaseSurrogate(ConformalMixin):
+    """Base class for multi-output surrogates.
+
+    ``scale_inputs=True`` standardises X (fitted on the training data) before the
+    estimator; distance/kernel/penalty-based models (GP, SVR, KNN, MLP, Lasso,
+    ElasticNet) otherwise depend on the units of the inputs.
+    """
+
+    def __init__(self, base_estimator, scale_inputs=False):
+        self.scale_inputs = scale_inputs
+        self.model = self._make_multi(base_estimator)
+
+    def _make_multi(self, estimator):
+        if getattr(self, "scale_inputs", False):
+            estimator = scaled(estimator)
+        return MultiOutputRegressor(estimator)
 
     def fit(self, X, Y):
         self.model.fit(X, Y)

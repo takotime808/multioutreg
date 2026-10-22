@@ -19,7 +19,8 @@ optimisation is slightly more expensive than the scalar-kernel GP for large p.
 import numpy as np
 from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel, WhiteKernel
+from sklearn.preprocessing import StandardScaler
 
 from multioutreg.surrogates.conformal_mixin import ConformalMixin
 
@@ -37,17 +38,23 @@ class _ARDGPEstimator(BaseEstimator, RegressorMixin):
         self.n_restarts_optimizer = n_restarts_optimizer
 
     def fit(self, X, y):
-        kernel = RBF(length_scale=np.ones(X.shape[1]))
+        # Amplitude * ARD-RBF + learned noise, on standardised inputs. Without
+        # the amplitude term the signal variance is fixed at 1 whatever the
+        # scale of y, and without a noise term the GP must interpolate.
+        self._scaler = StandardScaler().fit(X)
+        kernel = (ConstantKernel(1.0) * RBF(length_scale=np.ones(X.shape[1]))
+                  + WhiteKernel(1e-2))
         self._gpr = GaussianProcessRegressor(
             kernel=kernel,
             alpha=self.alpha,
+            normalize_y=True,
             n_restarts_optimizer=self.n_restarts_optimizer,
         )
-        self._gpr.fit(X, y)
+        self._gpr.fit(self._scaler.transform(X), y)
         return self
 
     def predict(self, X, return_std=False):
-        return self._gpr.predict(X, return_std=return_std)
+        return self._gpr.predict(self._scaler.transform(X), return_std=return_std)
 
 
 class ARDGPSurrogate(ConformalMixin):

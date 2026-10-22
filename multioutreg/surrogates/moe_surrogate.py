@@ -15,7 +15,9 @@ class MixtureOfExpertsSurrogate(ConformalMixin):
     """Mixture of Experts surrogate with learned gating network.
 
     Specializes K expert regressors to different regions of input space
-    using a gating network trained via a hard-EM loop.
+    using a gating network trained via a hard-EM loop. Each E-step reassigns
+    every sample to the expert with the highest gating prior times Gaussian
+    likelihood of that expert's residual, so assignments follow expert fit.
 
     Parameters
     ----------
@@ -80,6 +82,53 @@ class MixtureOfExpertsSurrogate(ConformalMixin):
 
         return cls(**params)
 
+    @staticmethod
+    def _expert_outputs(expert, X: np.ndarray, return_std: bool):
+        """Expert prediction (and std, 0 if unsupported) as (n_samples, n_outputs)."""
+        if return_std:
+            try:
+                pred, std = expert.predict(X, return_std=True)
+            except TypeError:
+                pred = expert.predict(X)
+                std = np.zeros_like(np.asarray(pred, dtype=np.float64))
+            pred, std = np.asarray(pred), np.asarray(std)
+            return pred.reshape(len(X), -1), std.reshape(len(X), -1)
+        return np.asarray(expert.predict(X)).reshape(len(X), -1)
+
+    def _reassign(self, X, Y, labels, experts, gating) -> np.ndarray:
+        """E-step: argmax_k log pi_k(x) + log N(y | mu_k(x), sigma^2) per sample.
+
+        sigma^2 is a per-output noise variance pooled over every sample's
+        current expert, so outputs on different scales are weighted fairly.
+        """
+        n = X.shape[0]
+        preds = np.stack([self._expert_outputs(e, X, False) for e in experts])
+        resid2 = (Y[np.newaxis] - preds) ** 2               # (K, n, n_outputs)
+        sigma2 = resid2[labels, np.arange(n)].mean(axis=0)
+        sigma2 = np.maximum(sigma2, 1e-12 * np.maximum(Y.var(axis=0), 1.0))
+        loglik = -0.5 * (resid2 / sigma2 + np.log(2 * np.pi * sigma2)).sum(axis=2)
+        log_prior = np.log(np.clip(gating.predict_proba(X), 1e-12, None))
+        score = log_prior + loglik.T                        # (n, K)
+        new_labels = score.argmax(axis=1)
+        # An expert that lost all its samples would be refit on everything and
+        # never recover; give it the worst-fit samples instead.
+        for k in range(self.n_experts):
+            if not np.any(new_labels == k):
+                fit = score[np.arange(n), new_labels]
+                worst = np.argsort(fit)[: max(1, n // (2 * self.n_experts))]
+                new_labels[worst] = k
+        return new_labels
+
+    def _initial_labels(self, X, Y, rng) -> np.ndarray:
+        from sklearn.cluster import KMeans
+        from sklearn.preprocessing import StandardScaler
+
+        if X.shape[0] < self.n_experts:
+            return rng.integers(0, self.n_experts, size=X.shape[0])
+        Z = StandardScaler().fit_transform(np.hstack([X, Y]))
+        seed = int(rng.integers(0, 2**31 - 1))
+        return KMeans(self.n_experts, n_init=3, random_state=seed).fit_predict(Z)
+
     def _make_gating_network(self):
         from multioutreg.surrogates.gating_network import (
             LinearGatingNetwork,
@@ -119,8 +168,9 @@ class MixtureOfExpertsSurrogate(ConformalMixin):
         n_samples = X.shape[0]
         self.n_outputs_ = Y.shape[1]
 
-        # Initialise with random hard assignments; ensure every expert gets ≥1 sample
-        labels = rng.integers(0, self.n_experts, size=n_samples)
+        # Initialise by k-means on standardised (X, Y): random labels give
+        # near-identical experts, and one then takes every sample.
+        labels = self._initial_labels(X, Y, rng)
         for k in range(self.n_experts):
             if np.sum(labels == k) == 0:
                 labels[rng.integers(0, n_samples)] = k
@@ -142,9 +192,8 @@ class MixtureOfExpertsSurrogate(ConformalMixin):
             gating = self._make_gating_network()
             gating.fit(X, labels)
 
-            # E-step: compute responsibilities and derive new hard assignments
-            responsibilities = gating.predict_proba(X)  # (n_samples, n_experts)
-            new_labels = responsibilities.argmax(axis=1)
+            # E-step: reassign each sample by gating prior x expert likelihood
+            new_labels = self._reassign(X, Y, labels, experts, gating)
 
             if np.array_equal(new_labels, labels):
                 break
@@ -179,7 +228,10 @@ class MixtureOfExpertsSurrogate(ConformalMixin):
         ----------
         X : np.ndarray
         return_std : bool, default False
-            If True, also return uncertainty estimated from expert disagreement.
+            If True, also return the mixture's predictive std. Soft routing uses
+            the law of total variance, ``sum_k w_k (sigma_k^2 + (mu_k - mu)^2)``;
+            hard routing returns the chosen expert's own std. Experts without
+            native uncertainty contribute sigma_k = 0.
 
         Returns
         -------
@@ -192,21 +244,20 @@ class MixtureOfExpertsSurrogate(ConformalMixin):
         X = np.asarray(X, dtype=np.float64)
         weights = self.get_routing_weights(X)  # (n_samples, n_experts)
 
-        expert_preds = []
-        for expert in self.experts_:
-            pred = np.asarray(expert.predict(X))
-            if pred.ndim == 1:
-                pred = pred.reshape(-1, 1)
-            expert_preds.append(pred)
-
+        outputs = [self._expert_outputs(e, X, return_std) for e in self.experts_]
         # Stack to (n_experts, n_samples, n_outputs)
-        expert_preds = np.stack(expert_preds, axis=0)
+        if return_std:
+            expert_preds = np.stack([o[0] for o in outputs], axis=0)
+            expert_stds = np.stack([o[1] for o in outputs], axis=0)
+        else:
+            expert_preds = np.stack(outputs, axis=0)
 
         if self.routing == "hard":
             assignment = weights.argmax(axis=1)  # (n_samples,)
-            y_pred = expert_preds[assignment, np.arange(X.shape[0]), :]
+            rows = np.arange(X.shape[0])
+            y_pred = expert_preds[assignment, rows, :]
             if return_std:
-                return y_pred, np.zeros_like(y_pred)
+                return y_pred, expert_stds[assignment, rows, :]
             return y_pred
 
         # Soft routing: weighted sum over experts
@@ -217,9 +268,9 @@ class MixtureOfExpertsSurrogate(ConformalMixin):
         if not return_std:
             return y_pred
 
-        # Uncertainty via weighted variance of expert disagreement
+        # Law of total variance: within-expert + between-expert (disagreement)
         diff_sq = (expert_preds - y_pred[np.newaxis, :, :]) ** 2
-        y_var = (w * diff_sq).sum(axis=0)
+        y_var = (w * (expert_stds ** 2 + diff_sq)).sum(axis=0)
         y_std = np.sqrt(y_var)
         return y_pred, y_std
 

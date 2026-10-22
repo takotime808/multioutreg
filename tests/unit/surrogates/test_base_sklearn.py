@@ -75,3 +75,20 @@ def test_return_std_matches_underlying_estimators(sample_data):
         p, s = est.predict(X + 1.0, return_std=True)
         np.testing.assert_allclose(preds[:, j], p)
         np.testing.assert_allclose(stds[:, j], s)
+
+
+@pytest.mark.parametrize("name", ["SVRSurrogate", "KNeighborsSurrogate",
+                                  "GaussianProcessSurrogate", "LassoSurrogate",
+                                  "ElasticNetSurrogate"])
+def test_scale_sensitive_surrogates_ignore_input_units(name):
+    # Regression: unscaled inputs made distance/kernel/penalty models depend
+    # on units (e.g. one input in mm, another in m).
+    import multioutreg.surrogates as sur
+
+    rng = np.random.default_rng(0)
+    X = rng.uniform(size=(80, 2))
+    y = np.sin(3 * X[:, 0]) + X[:, 1]
+    X_mm = X * np.array([1.0, 1000.0])
+    a = getattr(sur, name)().fit(X, y).predict(X)
+    b = getattr(sur, name)().fit(X_mm, y).predict(X_mm)
+    np.testing.assert_allclose(a, b, rtol=1e-4, atol=1e-4)

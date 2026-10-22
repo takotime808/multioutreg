@@ -47,7 +47,8 @@ def test_with_vendored_surrogates_runs():
 
 def test_with_vendored_surrogates_includes_conformal_network():
     model = AutoDetectMultiOutputRegressor.with_vendored_surrogates(cv=2)
-    assert ConformalPredictionNetworkSurrogate in model._surrogate_constructors
+    ctor = model._surrogate_constructors[model._model_names.index("mlp")]
+    assert ctor.func is ConformalPredictionNetworkSurrogate
 
 
 @pytest.fixture
@@ -140,3 +141,70 @@ def test_multi_output_candidate_scored_out_of_sample():
     model.fit(X, Y)
 
     assert all(isinstance(m, LinearRegression) for m in model.models_)
+
+
+def test_int_cv_uses_shuffled_folds():
+    # Regression: cv=int meant unshuffled KFold, so data sorted by an input
+    # gave folds that each covered a different input range.
+    from sklearn.model_selection import KFold
+
+    splitter = AutoDetectMultiOutputRegressor([LinearRegression()], [{}], cv=3)._splitter()
+    assert isinstance(splitter, KFold) and splitter.shuffle
+
+
+def test_selection_scores_recorded_with_corrected_se(sample_data):
+    X, y = sample_data
+    model = AutoDetectMultiOutputRegressor(
+        [LinearRegression(), DecisionTreeRegressor(random_state=0)], [{}, {}], cv=3
+    ).fit(X, y)
+    assert len(model.selection_scores_) == y.shape[1]
+    scores = model.selection_scores_[0]
+    assert set(scores) == {"linear", "dt"}
+    assert all(v["se"] > 0 for v in scores.values())
+
+
+def test_one_se_prefers_simpler_model_within_noise():
+    from multioutreg.model_selection.auto_detect import _candidate
+
+    model = AutoDetectMultiOutputRegressor([LinearRegression()], [{}], selection="one_se")
+    simple = _candidate("linear", [-1.10, -0.90, -1.00], 0)
+    costly = _candidate("gp", [-0.98, -0.92, -0.95], 2)     # better, but within 1 SE
+    assert model._choose([simple, costly])["name"] == "linear"
+    model.selection = "best"
+    assert model._choose([simple, costly])["name"] == "gp"
+    far_better = _candidate("gp", [-0.11, -0.09, -0.10], 2)
+    model.selection = "one_se"
+    assert model._choose([simple, far_better])["name"] == "gp"
+
+
+def test_invalid_selection_rejected():
+    with pytest.raises(ValueError):
+        AutoDetectMultiOutputRegressor([LinearRegression()], [{}], selection="1se")
+
+
+def test_vendored_mlp_scores_the_deployed_conformal_network():
+    # Regression: "mlp" was scored as a plain MLPRegressor on 100% of each
+    # fold but deployed as ConformalPredictionNetworkSurrogate trained on 80%.
+    from multioutreg.surrogates.conformal_network_sklearn import _CPNEstimator
+
+    model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
+    i = model._model_names.index("mlp")
+    assert isinstance(model.estimators[i], _CPNEstimator)
+    est = model.estimators[i].fit(*make_regression(60, 3, random_state=0))
+    ctor = model._surrogate_constructors[i]
+    assert ctor.keywords["random_state"] == est.random_state
+
+
+def test_vendored_scaled_pipeline_params_reach_surrogate():
+    # Pipeline grid keys ("svr__C") must be passed to the surrogate as "C".
+    X, y = make_regression(n_samples=60, n_features=3, n_targets=1, noise=0.1,
+                           random_state=0)
+    model = AutoDetectMultiOutputRegressor.with_vendored_surrogates(cv=2)
+    keep = [model._model_names.index(n) for n in ("svr", "lasso")]
+    model.estimators = [model.estimators[i] for i in keep]
+    model.param_spaces = [model.param_spaces[i] for i in keep]
+    model._surrogate_constructors = [model._surrogate_constructors[i] for i in keep]
+    model._model_names = ["svr", "lasso"]
+    model.fit(X, y)
+    assert model.models_[0].scale_inputs
+    assert model.predict(X).shape == (60, 1)

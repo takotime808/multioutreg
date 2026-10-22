@@ -18,12 +18,12 @@ def sample_data():
 
 def test_initialization_default():
     surrogate = SVRSurrogate()
-    assert surrogate.model.estimator.__class__.__name__ == "SVR"
+    assert surrogate.model.estimator[-1].__class__.__name__ == "SVR"
 
 
 def test_initialization_with_params():
     surrogate = SVRSurrogate(C=2.0, kernel='rbf')
-    est = surrogate.model.estimator
+    est = surrogate.model.estimator[-1]  # last step after StandardScaler
     assert est.C == 2.0
     assert est.kernel == 'rbf'
 

@@ -19,7 +19,7 @@ def sample_data():
 
 def test_initialization_default():
     surrogate = ConformalPredictionNetworkSurrogate(random_state=0)
-    assert surrogate.model.estimator.__class__.__name__ == "MLPRegressor"
+    assert surrogate.model.estimator[-1].__class__.__name__ == "MLPRegressor"
 
 
 def test_fit_predict_output_shape(sample_data):

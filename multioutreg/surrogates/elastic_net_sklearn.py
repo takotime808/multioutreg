@@ -3,7 +3,6 @@
 """ElasticNet and Lasso regression surrogates (sparse linear models)."""
 
 from sklearn.linear_model import ElasticNet, Lasso
-from sklearn.multioutput import MultiOutputRegressor
 
 from multioutreg.surrogates.base_sklearn import BaseSurrogate
 
@@ -29,6 +28,8 @@ class ElasticNetSurrogate(BaseSurrogate):
         ``l1_ratio=0.5`` balances sparsity and stability.
     max_iter : int, default 1000
         Maximum number of coordinate descent iterations.
+    scale_inputs : bool, default True
+        Standardise X first; otherwise the penalty depends on the inputs' units.
     **kwargs
         Additional keyword arguments forwarded to ``ElasticNet``.
     """
@@ -38,6 +39,7 @@ class ElasticNetSurrogate(BaseSurrogate):
         alpha: float = 1.0,
         l1_ratio: float = 0.5,
         max_iter: int = 1000,
+        scale_inputs: bool = True,
         **kwargs,
     ):
         self.alpha = alpha
@@ -45,7 +47,8 @@ class ElasticNetSurrogate(BaseSurrogate):
         self.max_iter = max_iter
         self._extra_kwargs = kwargs
         super().__init__(
-            ElasticNet(alpha=alpha, l1_ratio=l1_ratio, max_iter=max_iter, **kwargs)
+            ElasticNet(alpha=alpha, l1_ratio=l1_ratio, max_iter=max_iter, **kwargs),
+            scale_inputs=scale_inputs,
         )
 
     def get_params(self, deep: bool = True) -> dict:
@@ -53,6 +56,7 @@ class ElasticNetSurrogate(BaseSurrogate):
             "alpha": self.alpha,
             "l1_ratio": self.l1_ratio,
             "max_iter": self.max_iter,
+            "scale_inputs": self.scale_inputs,
         }
         params.update(self._extra_kwargs)
         return params
@@ -62,7 +66,7 @@ class ElasticNetSurrogate(BaseSurrogate):
             setattr(self, key, value)
             if key in self._extra_kwargs:
                 self._extra_kwargs[key] = value
-        self.model = MultiOutputRegressor(
+        self.model = self._make_multi(
             ElasticNet(
                 alpha=self.alpha,
                 l1_ratio=self.l1_ratio,
@@ -91,6 +95,8 @@ class LassoSurrogate(BaseSurrogate):
         L1 regularization strength.
     max_iter : int, default 1000
         Maximum number of coordinate descent iterations.
+    scale_inputs : bool, default True
+        Standardise X first; otherwise the penalty depends on the inputs' units.
     **kwargs
         Additional keyword arguments forwarded to ``Lasso``.
     """
@@ -99,15 +105,18 @@ class LassoSurrogate(BaseSurrogate):
         self,
         alpha: float = 1.0,
         max_iter: int = 1000,
+        scale_inputs: bool = True,
         **kwargs,
     ):
         self.alpha = alpha
         self.max_iter = max_iter
         self._extra_kwargs = kwargs
-        super().__init__(Lasso(alpha=alpha, max_iter=max_iter, **kwargs))
+        super().__init__(Lasso(alpha=alpha, max_iter=max_iter, **kwargs),
+                         scale_inputs=scale_inputs)
 
     def get_params(self, deep: bool = True) -> dict:
-        params = {"alpha": self.alpha, "max_iter": self.max_iter}
+        params = {"alpha": self.alpha, "max_iter": self.max_iter,
+                  "scale_inputs": self.scale_inputs}
         params.update(self._extra_kwargs)
         return params
 
@@ -116,7 +125,7 @@ class LassoSurrogate(BaseSurrogate):
             setattr(self, key, value)
             if key in self._extra_kwargs:
                 self._extra_kwargs[key] = value
-        self.model = MultiOutputRegressor(
+        self.model = self._make_multi(
             Lasso(alpha=self.alpha, max_iter=self.max_iter, **self._extra_kwargs)
         )
         return self

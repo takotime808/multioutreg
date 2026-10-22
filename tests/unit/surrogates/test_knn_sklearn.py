@@ -18,12 +18,12 @@ def sample_data():
 
 def test_initialization_default():
     surrogate = KNeighborsSurrogate()
-    assert surrogate.model.estimator.__class__.__name__ == "KNeighborsRegressor"
+    assert surrogate.model.estimator[-1].__class__.__name__ == "KNeighborsRegressor"
 
 
 def test_initialization_with_params():
     surrogate = KNeighborsSurrogate(n_neighbors=3, weights='distance')
-    est = surrogate.model.estimator
+    est = surrogate.model.estimator[-1]  # last step after StandardScaler
     assert est.n_neighbors == 3
     assert est.weights == 'distance'
 
