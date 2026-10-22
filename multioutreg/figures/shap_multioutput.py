@@ -107,7 +107,8 @@ def plot_multioutput_shap_bar_subplots(
 def generate_shap_plot(
     model: Any,
     X: np.ndarray,
-    output_names: List[str]
+    output_names: List[str],
+    feature_names: Optional[Sequence[str]] = None,
 ) -> Dict[str, str]:
     """
     Generate SHAP summary plots for each output dimension.
@@ -121,6 +122,8 @@ def generate_shap_plot(
         Input features used to compute SHAP values.
     output_names : List[str]
         Names of output dimensions.
+    feature_names : Sequence[str], optional
+        Names of the input features; defaults to SHAP's "Feature i" labels.
 
     Returns
     -------
@@ -150,7 +153,9 @@ def generate_shap_plot(
             try:
                 explainer = shap.Explainer(_pfn, X)
                 shap_values = explainer(X)
-                shap.summary_plot(shap_values, X, show=False)
+                shap.summary_plot(
+                    shap_values, X, feature_names=feature_names, show=False
+                )
                 plt.title(f"SHAP for {_name}")
             except Exception:
                 plt.figure()

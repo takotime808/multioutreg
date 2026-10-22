@@ -16,8 +16,14 @@ Statistics (on inputs mapped to the unit cube):
 - ``log_cd``: log10 of the centered L2 discrepancy (``scipy.stats.qmc``), which
   measures joint uniformity. Sobol < LHS < random. Skipped for large ``n``
   (cost is O(n^2 d)).
-- ``nn``: mean nearest-neighbour distance. Space-filling designs spread their
+- ``nn``: mean nearest-neighbour distance (from a random subset of query
+  points when ``n`` is large). Space-filling designs spread their
   points out more than random ones do.
+
+Candidates: ``Random`` (i.i.d. uniform), ``LHS`` and ``Sobol``, where "Sobol"
+means the low-discrepancy family (the null mixes scrambled Sobol and Halton).
+Unscrambled Sobol / Halton sequences are deterministic and are matched
+exactly. Grids are recognised structurally (few distinct levels per input).
 
 For each candidate the statistics are combined into one Mahalanobis distance
 from the simulated designs' mean (using their covariance), and the Monte Carlo
@@ -45,7 +51,9 @@ from scipy.stats import qmc
 
 CANDIDATES: Tuple[str, ...] = ("Random", "LHS", "Sobol")
 # Centered discrepancy is O(n^2 d); above this many points it is skipped.
-MAX_N_DISCREPANCY = 2000
+MAX_N_DISCREPANCY = 1000
+# Mean nearest-neighbour distance is estimated from at most this many query points.
+MAX_NN_QUERIES = 500
 
 
 @dataclass
@@ -77,7 +85,7 @@ def to_unit_cube(X: np.ndarray, bounds: Optional[Tuple[np.ndarray, np.ndarray]] 
     return (X - lo) / span * (n - 1) / n + 0.5 / n
 
 
-def design_statistics(U: np.ndarray) -> Dict[str, float]:
+def design_statistics(U: np.ndarray, rng: Optional[np.random.Generator] = None) -> Dict[str, float]:
     """Statistics of a design already on the unit cube (see module docstring)."""
     n, d = U.shape
     bins = np.minimum((U * n).astype(int), n - 1)
@@ -85,7 +93,11 @@ def design_statistics(U: np.ndarray) -> Dict[str, float]:
     stats = {"strata": strata}
     if n <= MAX_N_DISCREPANCY:
         stats["log_cd"] = float(np.log10(max(qmc.discrepancy(U, method="CD"), 1e-300)))
-    nn = cKDTree(U).query(U, k=2)[0][:, 1]
+    queries = U
+    if n > MAX_NN_QUERIES:
+        rng = rng if rng is not None else np.random.default_rng(0)
+        queries = U[rng.choice(n, MAX_NN_QUERIES, replace=False)]
+    nn = cKDTree(U).query(queries, k=2)[0][:, 1]
     stats["nn"] = float(np.mean(nn))
     return stats
 
@@ -96,11 +108,28 @@ def _simulate(method: str, n: int, d: int, rng: np.random.Generator) -> np.ndarr
     if method == "LHS":
         return qmc.LatinHypercube(d=d, seed=rng).random(n)
     if method == "Sobol":
+        # "Sobol" stands for the low-discrepancy (QMC) family: half the null
+        # designs are scrambled Sobol, half scrambled Halton.
+        if rng.random() < 0.5:
+            return qmc.Halton(d=d, seed=rng).random(n)
         with warnings.catch_warnings():
             # n not a power of 2 loses balance properties; that is what we want to mimic.
             warnings.simplefilter("ignore", UserWarning)
             return qmc.Sobol(d=d, scramble=True, seed=rng).random(n)
     raise ValueError(f"Unknown sampling method: {method}")
+
+
+def default_n_sim(n: int) -> int:
+    """Number of simulated designs per candidate, fewer for large ``n`` to bound runtime.
+
+    The statistics are more concentrated for large ``n``, and 49 simulations
+    still give a smallest attainable p-value of 0.02.
+    """
+    if n <= 500:
+        return 199
+    if n <= 2000:
+        return 99
+    return 49
 
 
 def _mc_p_value(observed: np.ndarray, simulated: np.ndarray) -> float:
@@ -126,6 +155,30 @@ def _mc_p_value(observed: np.ndarray, simulated: np.ndarray) -> float:
     return float((np.sum(d_sim >= d_obs) + 1) / (simulated.shape[0] + 1))
 
 
+def matches_unscrambled_qmc(U: np.ndarray, bounds_known: bool) -> Optional[str]:
+    """Name of the unscrambled QMC sequence whose first ``n`` points equal ``U`` (row order ignored).
+
+    Unscrambled sequences are deterministic, so they cannot be represented by a
+    Monte Carlo null; they are recognised exactly instead.
+    """
+    n, d = U.shape
+    rows = np.lexsort(U.T[::-1])
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        refs = {
+            "Sobol": qmc.Sobol(d=d, scramble=False).random(n + 1),
+            "Halton": qmc.Halton(d=d, scramble=False).random(n + 1),
+        }
+    for name, ref in refs.items():
+        for R in (ref[:n], ref[1:]):  # some tools skip the first point (the origin)
+            if not bounds_known:
+                R = to_unit_cube(R)
+            R = R[np.lexsort(R.T[::-1])]
+            if np.allclose(U[rows], R, atol=1e-6):
+                return name
+    return None
+
+
 def grid_structure(X: np.ndarray) -> Tuple[bool, bool, np.ndarray]:
     """Check for grid structure.
 
@@ -147,7 +200,7 @@ def grid_structure(X: np.ndarray) -> Tuple[bool, bool, np.ndarray]:
 def detect_sampling_method(
     X: np.ndarray,
     bounds: Optional[Tuple[np.ndarray, np.ndarray]] = None,
-    n_sim: int = 199,
+    n_sim: Optional[int] = None,
     alpha: float = 0.05,
     candidates: Sequence[str] = CANDIDATES,
     random_state: Optional[int] = 0,
@@ -157,7 +210,8 @@ def detect_sampling_method(
     Pass only the *input* columns; responses are not part of the design and
     distort every statistic. ``bounds=(lower, upper)`` should be given when the
     design region is known (e.g. ``(0, 1)`` after a probability integral
-    transform); otherwise it is estimated from the data.
+    transform); otherwise it is estimated from the data. ``n_sim`` simulated
+    designs are drawn per candidate (default :func:`default_n_sim`).
 
     The result is a statistical statement, not proof: "consistent with LHS"
     means LHS-simulated designs of the same size look like this one, and with
@@ -202,9 +256,22 @@ def detect_sampling_method(
     else:
         cbounds = None
     d = Xc.shape[1]
-    observed = design_statistics(to_unit_cube(Xc, cbounds))
+    U = to_unit_cube(Xc, cbounds)
+    note = "" if continuous.size == X.shape[1] else f" (tested {d} of {X.shape[1]} inputs; others are discrete)"
+
+    exact = matches_unscrambled_qmc(U, cbounds is not None)
+    if exact is not None:
+        return SamplingDetection(
+            method="Sobol",
+            explanation=f"Points are exactly the first {n} points of the unscrambled {exact} sequence{note} -> Sobol",
+            statistics=design_statistics(U),
+            columns_used=continuous.tolist(),
+        )
 
     rng = np.random.default_rng(random_state)
+    n_sim = default_n_sim(n) if n_sim is None else int(n_sim)
+    observed = design_statistics(U, rng)
+
     p_values: Dict[str, float] = {}
     for method in candidates:
         sims = []
@@ -212,7 +279,7 @@ def detect_sampling_method(
             S = _simulate(method, n, d, rng)
             if cbounds is None:
                 S = to_unit_cube(S)
-            sims.append(design_statistics(S))
+            sims.append(design_statistics(S, rng))
         keys = list(observed)
         p_values[method] = _mc_p_value(
             np.array([observed[k] for k in keys]),
@@ -225,7 +292,6 @@ def detect_sampling_method(
     stat_txt = f"strata filled {observed['strata']:.2f}"
     if "log_cd" in observed:
         stat_txt += f", centered discrepancy {10 ** observed['log_cd']:.2e}"
-    note = "" if continuous.size == X.shape[1] else f" (tested {d} of {X.shape[1]} inputs; others are discrete)"
 
     if not consistent:
         method = "Uncertain"

@@ -4,67 +4,58 @@ import umap
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
-from sklearn.metrics import silhouette_score
-from sklearn.neighbors import KDTree
-from sklearn.cluster import KMeans
-from scipy.stats import entropy
 
 from multioutreg.gui.report_plotting_utils import (
     plot_to_b64,
 )
+from multioutreg.sampling.detect import detect_sampling_method
 
 
-def generate_umap_plot(X):
+def generate_umap_plot(X, random_state: int = 0):
     """
-    Generate a UMAP projection and infer the sampling method.
+    Plot a UMAP projection of the inputs and infer the sampling method.
+
+    The inferred method comes from :func:`multioutreg.sampling.detect.detect_sampling_method`
+    (Monte Carlo tests of stratification, discrepancy and nearest-neighbour
+    spacing against simulated designs). UMAP is only used for the picture: it
+    does not preserve distances, so its embedding cannot tell designs apart.
 
     Parameters
     ----------
-    X : np.ndarray or None
-        Input feature matrix.
+    X : np.ndarray
+        Input (design) matrix. Pass only input columns, not responses.
+    random_state : int
+        Seed for UMAP and for the simulated reference designs.
 
     Returns
     -------
     Tuple[str, str]
-        Base64-encoded plot and inferred sampling explanation.
+        Base64-encoded plot and inferred sampling explanation (ends in ``-> <method>``).
     """
-
     if X is None or len(X) == 0:
-        X = np.random.normal(size=(100, 5))
+        raise ValueError("generate_umap_plot needs a non-empty input matrix")
+    X = np.asarray(X, dtype=float)
 
-    reducer = umap.UMAP(n_neighbors=15, min_dist=0.1, n_components=2, random_state=0)
-    X_emb = reducer.fit_transform(StandardScaler().fit_transform(X))
+    try:
+        detection = detect_sampling_method(X, random_state=random_state)
+        method, explanation = detection.method, detection.explanation
+    except ValueError as exc:  # e.g. fewer than 4 points
+        method, explanation = "Uncertain", f"Sampling method not tested: {exc} -> Uncertain"
 
-    clusters = KMeans(n_clusters=2, n_init="auto", random_state=0).fit_predict(X_emb)
-
-    dists = KDTree(X_emb).query(X_emb, k=2)[0][:, 1]
-    std = np.std(dists)
-    sil = silhouette_score(X_emb, clusters)
-    ent = entropy(np.histogram(dists, bins=30, density=True)[0])
-
-    if std < 0.05 and sil > 0.6:
-        method = "Grid"
-        explanation = "Low std and high silhouette -> Grid"
-    elif std > 0.2 and sil < 0.3:
-        method = "Random"
-        explanation = "High std and low silhouette -> Random"
-    elif 0.05 <= std <= 0.15:
-        if ent < 2.0:
-            method = "Sobol"
-            explanation = "Moderate spread, low entropy -> Sobol"
-        else:
-            method = "LHS"
-            explanation = "Moderate spread, higher entropy -> LHS"
+    X_std = StandardScaler().fit_transform(X)
+    if X.shape[1] >= 2 and X.shape[0] > 3:
+        n_neighbors = min(15, X.shape[0] - 1)
+        reducer = umap.UMAP(n_neighbors=n_neighbors, min_dist=0.1, n_components=2, random_state=random_state)
+        X_emb = reducer.fit_transform(X_std)
+        xlabel_default, ylabel_default = "UMAP-1", "UMAP-2"
     else:
-        method = "Uncertain"
-        explanation = "Pattern unclear"
+        X_emb = np.column_stack([X_std[:, 0], np.zeros(len(X_std))])
+        xlabel_default, ylabel_default = "x (standardised)", ""
 
-    def plot_fn(xlabel: str = "UMAP-1", ylabel: str = "UMAP-2"):
+    def plot_fn(xlabel: str = xlabel_default, ylabel: str = ylabel_default):
         plt.figure()
-        plt.scatter(X_emb[:, 0], X_emb[:, 1], c=clusters, cmap="tab10", alpha=0.7)
+        plt.scatter(X_emb[:, 0], X_emb[:, 1], alpha=0.7)
         plt.title(f"UMAP 2D Projection - Inferred: {method}")
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
     return plot_to_b64(plot_fn), explanation
-
-

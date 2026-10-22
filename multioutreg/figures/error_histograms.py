@@ -32,12 +32,12 @@ def generate_error_histogram(
         def plot_fn():
             plt.figure()
             plt.hist(y_pred[:, i] - y_true[:, i], bins=20, alpha=0.8)
-            plt.xlabel("Prediction Error")
+            plt.xlabel("Prediction Error (Predicted − Observed)")
             plt.ylabel("Frequency")
             plt.title(f"Error Histogram ({name})")
         plots.append({
             "img_b64": plot_to_b64(plot_fn),
             "title": f"Error Histogram", 
-            "caption": f"Histogram of prediction errors for {name}."
+            "caption": f"Histogram of prediction errors (predicted − observed) for {name}."
         })
     return plots

@@ -19,10 +19,13 @@ matplotlib.use("Agg")  # plotting helpers call plt.show(); never open desktop wi
 import os
 from typing import Any, Dict, List
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import streamlit as st
 from jinja2 import Template
+from scipy.stats import norm
+from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
 from sklearn.model_selection import train_test_split
 
@@ -36,7 +39,6 @@ from multioutreg.figures.pdp_plots import generate_pdp_plot
 from multioutreg.figures.prediction_plots import plot_predictions_with_error_bars
 from multioutreg.figures.residuals import plot_residuals_multioutput_with_regplot
 from multioutreg.figures.shap_multioutput import generate_shap_plot
-from multioutreg.figures.umap_plot_classify import generate_umap_plot
 from multioutreg.figures.confidence_intervals import plot_intervals_ordered_multi
 from multioutreg.surrogates import (
     AdditiveCorrectionVFM,
@@ -53,7 +55,8 @@ from multioutreg.surrogates.lightgbm_sklearn import _LIGHTGBM_AVAILABLE, LightGB
 from multioutreg.surrogates.xgboost_sklearn import _XGBOOST_AVAILABLE, XGBoostSurrogate
 from multioutreg.surrogates.catboost_sklearn import _CATBOOST_AVAILABLE, CatBoostSurrogate
 from multioutreg.surrogates.sparse_gp_gpytorch import _GPYTORCH_AVAILABLE, SparseGPSurrogate
-from multioutreg.utils.figure_utils import safe_plot_b64
+from multioutreg.sampling.detect import detect_sampling_method
+from multioutreg.utils.figure_utils import plot_to_b64, safe_plot_b64
 from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
 
 
@@ -81,8 +84,19 @@ def generate_html_report(
     conformal_intervals: tuple | None = None,
     conformal_alpha: float | None = None,
     imputation_summary: dict | None = None,
+    input_names: List[str] | None = None,
+    calibration_residuals: np.ndarray | None = None,
+    X_design: np.ndarray | None = None,
 ) -> str:
-    """Render a Jinja2 HTML report from model evaluation results."""
+    """Render a Jinja2 HTML report from model evaluation results.
+
+    ``best_model`` is explained by SHAP / PDP, so pass a
+    :class:`_HighestFidelityView` to explain the level that is evaluated.
+    ``calibration_residuals`` are |y_cal - y_cal_pred| from the conformal
+    calibration split; the Gaussian-vs-conformal plot needs them.
+    ``X_design`` is the input design used for sampling-method inference
+    (defaults to ``X_train``).
+    """
     prediction_plots: Dict[str, str] = {}
     prediction_plots["all_in_one"] = safe_plot_b64(
         plot_intervals_ordered_multi,
@@ -101,7 +115,9 @@ def generate_html_report(
             n_cols=3,
         )
 
-    shap_plots = generate_shap_plot(best_model, X_train, output_names)
+    shap_plots = generate_shap_plot(
+        best_model, X_train, output_names, feature_names=input_names
+    )
 
     unc_img = safe_plot_b64(
         plot_coverage, y_test, best_pred, best_std, output_names=output_names
@@ -110,15 +126,24 @@ def generate_html_report(
         {
             "img_b64": unc_img,
             "title": "Coverage Plot",
-            "caption": "Nominal vs empirical coverage.",
+            "caption": (
+                "Fraction of highest-fidelity test points inside the model's Gaussian "
+                "interval (prediction ± z·std) at each nominal level. Points below the "
+                "diagonal mean the predicted std is too small (overconfident); points "
+                "above it mean the std is too large (underconfident)."
+            ),
         }
     ]
 
+    if input_names is None:
+        input_names = [f"x{j}" for j in range(X_train.shape[1])]
     pdp_plots = generate_pdp_plot(
-        best_model, X_train, output_names, feature_names=list(output_names)
+        best_model, X_train, output_names, feature_names=list(input_names)
     )
 
-    sampling_umap_plot, sampling_method_explanation = generate_umap_plot(X_train)
+    sampling_umap_plot, sampling_method_explanation = _sampling_plot(
+        X_train if X_design is None else X_design, input_names
+    )
 
     other_img = safe_plot_b64(
         plot_residuals_multioutput_with_regplot,
@@ -126,15 +151,18 @@ def generate_html_report(
         y_test,
         target_list=output_names,
     )
-    sampling_other_plots = [
+    other_plots = [
         {
             "img_b64": other_img,
             "title": "Residuals",
-            "caption": "Residual vs predicted values.",
+            "caption": (
+                "Residual (observed − predicted) vs predicted value on the "
+                "highest-fidelity test set, with a linear trend and its 95% band. "
+                "A trend or an offset from zero indicates systematic bias."
+            ),
         }
     ]
-
-    other_plots = generate_error_histogram(y_test, best_pred, output_names)
+    other_plots += generate_error_histogram(y_test, best_pred, output_names)
 
     conformal_plots_list = []
     if conformal_intervals is not None and conformal_alpha is not None:
@@ -151,23 +179,29 @@ def generate_html_report(
             ),
             "title": f"Conformal Prediction Intervals ({int((1 - alpha) * 100)}%)",
             "caption": (
-                "Distribution-free prediction intervals ordered by observed value. "
-                "Guaranteed marginal coverage."
+                "Split-conformal prediction intervals on the highest-fidelity test set, "
+                "ordered by observed value. The half-width is calibrated on a held-out "
+                "part of the highest-fidelity training data, so coverage is at least "
+                f"{1 - alpha:.0%} on average when calibration and test points are "
+                "exchangeable."
             ),
         })
-        conformal_plots_list.append({
-            "img_b64": safe_plot_b64(
-                plot_conformal_vs_gaussian,
-                y_test, best_pred, best_std,
-                np.abs(y_test - best_pred),
-                output_names=output_names,
-            ),
-            "title": "Gaussian CI vs Conformal PI Coverage",
-            "caption": (
-                "Comparison of nominal vs empirical coverage for Gaussian confidence "
-                "intervals and conformal prediction intervals."
-            ),
-        })
+        if calibration_residuals is not None:
+            conformal_plots_list.append({
+                "img_b64": safe_plot_b64(
+                    plot_conformal_vs_gaussian,
+                    y_test, best_pred, best_std,
+                    calibration_residuals,
+                    output_names=output_names,
+                ),
+                "title": "Gaussian CI vs Conformal PI Coverage",
+                "caption": (
+                    "Empirical test-set coverage at each nominal level for Gaussian "
+                    "intervals (prediction ± z·std) and conformal intervals "
+                    "(prediction ± a quantile of the calibration residuals). Curves "
+                    "near the diagonal are well calibrated."
+                ),
+            })
 
     template_path = os.path.join(
         os.path.dirname(__file__), "../../report/template.html"
@@ -192,7 +226,7 @@ def generate_html_report(
         pdp_plots=pdp_plots,
         sampling_umap_plot=sampling_umap_plot,
         sampling_method_explanation=sampling_method_explanation,
-        sampling_other_plots=sampling_other_plots,
+        sampling_other_plots=[],
         other_plots=other_plots,
         n_train=n_train,
         n_test=n_test,
@@ -249,6 +283,68 @@ def _compute_metrics(
             "mean_predicted_std": float(np.mean(y_std[:, i])),
         }
     return metrics
+
+
+def _compute_uncertainty_metrics(
+    y_test: np.ndarray,
+    y_pred: np.ndarray,
+    y_std: np.ndarray,
+    nominal: float = 0.95,
+) -> Dict[str, float]:
+    """Average (over outputs) calibration metrics of the Gaussian ``mean ± std``."""
+    err = np.abs(y_test - y_pred)
+    z = norm.ppf(0.5 + nominal / 2)
+    coverage = float(np.mean(err <= z * y_std))
+    pct = f"{nominal:.0%}"
+    out = {
+        "Sharpness (mean predicted std)": float(np.mean(y_std)),
+        f"Empirical coverage of {pct} Gaussian interval": coverage,
+        f"Miscoverage at {pct} (|nominal − empirical|)": abs(nominal - coverage),
+    }
+    # NLL is undefined for zero std (models without native uncertainty).
+    if np.all(y_std > 0):
+        out["Gaussian NLL (mean per point)"] = float(
+            np.mean(-norm.logpdf(y_test, loc=y_pred, scale=y_std))
+        )
+    return out
+
+
+def _sampling_plot(X: np.ndarray, input_names: List[str]) -> tuple:
+    """Return ``(b64_png, explanation)`` for the sampling section of the report."""
+    X = np.asarray(X, dtype=np.float64)
+    X = X[np.all(np.isfinite(X), axis=1)]
+    try:
+        det = detect_sampling_method(X)
+        explanation = f"Inferred sampling method: {det.method}. {det.explanation}"
+    except ValueError as exc:
+        explanation = f"Sampling method not inferred: {exc}"
+    explanation += " (Based on the highest-fidelity input design.)"
+
+    def plot_fn():
+        plt.figure()
+        if X.shape[1] == 1:
+            plt.scatter(X[:, 0], np.zeros(len(X)), alpha=0.7)
+            plt.xlabel(input_names[0])
+            plt.yticks([])
+            plt.title("Highest-fidelity input design")
+        elif X.shape[1] == 2 or len(X) < 5:
+            plt.scatter(X[:, 0], X[:, 1], alpha=0.7)
+            plt.xlabel(input_names[0])
+            plt.ylabel(input_names[1])
+            plt.title("Highest-fidelity input design")
+        else:
+            import umap
+            from sklearn.preprocessing import StandardScaler
+
+            emb = umap.UMAP(
+                n_neighbors=min(15, len(X) - 1), n_components=2, random_state=0
+            ).fit_transform(StandardScaler().fit_transform(X))
+            plt.scatter(emb[:, 0], emb[:, 1], alpha=0.7)
+            plt.xlabel("UMAP-1")
+            plt.ylabel("UMAP-2")
+            plt.title("UMAP projection of highest-fidelity input design")
+
+    return plot_to_b64(plot_fn), explanation
 
 
 # ---------------------------------------------------------------------------
@@ -366,6 +462,41 @@ def _predict_highest(
     if y_std.ndim == 1:
         y_std = y_std.reshape(-1, 1)
     return y_pred, y_std
+
+
+class _OutputColumn(RegressorMixin, BaseEstimator):
+    """Single-output, already-fitted regressor for SHAP and sklearn PDP."""
+
+    def __init__(self, predict_fn=None, index: int = 0):
+        self.predict_fn = predict_fn
+        self.index = index
+
+    def fit(self, X, y=None):
+        return self
+
+    def predict(self, X):
+        return self.predict_fn(np.asarray(X, dtype=np.float64))[:, self.index]
+
+    def __sklearn_is_fitted__(self):
+        return True
+
+
+class _HighestFidelityView:
+    """Expose a fitted multi-fidelity model's highest-fidelity predictions.
+
+    ``MultiFidelitySurrogate.predict`` defaults to the lowest level and none of
+    the multi-fidelity models have ``estimators_``, so SHAP / PDP would
+    otherwise explain the wrong level or be skipped.
+    """
+
+    def __init__(self, model: Any, cand: dict, level_names: List[str], n_outputs: int):
+        self.model = model
+        self._cand = cand
+        self._level_names = level_names
+        self.estimators_ = [_OutputColumn(self.predict, i) for i in range(n_outputs)]
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        return _predict_highest(self.model, self._cand, X, self._level_names)[0]
 
 
 def _select_best_candidate(
@@ -603,7 +734,7 @@ if uploaded_file:
                     "results may be unreliable."
                 )
 
-        # Train/test split per level (80/20); evaluate on highest-fidelity test set
+        # Train/test split per level (75/25); evaluate on highest-fidelity test set
         train_data: Dict[str, tuple] = {}
         test_data: Dict[str, tuple] = {}
         for lv_name, (X_k, Y_k) in level_data.items():
@@ -678,8 +809,13 @@ if uploaded_file:
         st.write("### Best Model Metrics (highest-fidelity test set)")
         st.dataframe(pd.DataFrame(metrics).T)
 
+        uncertainty_metrics = _compute_uncertainty_metrics(y_test, best_pred, best_std)
+        st.write("### Uncertainty Calibration (Gaussian std, highest-fidelity test set)")
+        st.dataframe(pd.Series(uncertainty_metrics, name="value").to_frame())
+
         # Conformal prediction
         conformal_intervals = None
+        residuals = None
         if use_conformal:
             from multioutreg.conformal.base import BaseConformalPredictor
             from multioutreg.conformal.metrics import conformal_summary as _conf_summary
@@ -705,29 +841,51 @@ if uploaded_file:
             st.write(f"### Conformal Prediction Summary (alpha={conformal_alpha_sel})")
             st.dataframe(conf_df)
 
+        _n_per_level = {lv: train_data[lv][0].shape[0] for lv in level_names}
+        _n_train_txt = (
+            f"{sum(_n_per_level.values())} across all levels ("
+            + ", ".join(f"{lv}: {n}" for lv, n in _n_per_level.items())
+            + ")"
+        )
+        _cv_txt = (
+            "Model selected on a hold-out validation split (20% of highest-fidelity "
+            "training data), then refit on all training data. Metrics are on a 25% "
+            "highest-fidelity test split never used for selection."
+        )
+        if use_conformal:
+            _cv_txt += (
+                f" Conformal intervals calibrated on {X_cal.shape[0]} highest-fidelity "
+                "training points held out from fitting."
+            )
+
         # Report
         try:
             with st.spinner("Generating HTML report…"):
                 html = generate_html_report(
-                    model_type=best_model.__class__.__name__,
+                    model_type=f"{best_name} ({best_model.__class__.__name__})",
                     fidelity_levels=level_names,
                     output_names=output_names,
                     description=description,
                     metrics=metrics,
-                    uncertainty_metrics={"dummy_metric": 0.0},
+                    uncertainty_metrics=uncertainty_metrics,
                     y_test=y_test,
                     best_pred=best_pred,
                     best_std=best_std,
-                    best_model=best_model,
+                    best_model=_HighestFidelityView(
+                        best_model, best_cand, level_names, len(output_names)
+                    ),
                     X_train=X_train_hi,
-                    n_train=X_train_hi.shape[0],
-                    n_test=X_test.shape[0],
-                    cross_validation="Hold-out validation (20% of highest-fidelity training data)",
+                    n_train=_n_train_txt,
+                    n_test=f"{X_test.shape[0]} (highest fidelity: {level_names[-1]})",
+                    cross_validation=_cv_txt,
                     seed=0,
                     notes=description or "Generated by Multi-Fidelity Surrogate Model page.",
                     conformal_intervals=conformal_intervals if use_conformal else None,
                     conformal_alpha=conformal_alpha_sel if use_conformal else None,
                     imputation_summary=_imputation_summary,
+                    input_names=list(input_cols),
+                    calibration_residuals=residuals,
+                    X_design=level_data[level_names[-1]][0],
                 )
         except Exception as exc:
             st.error(f"Report generation failed: {exc}")

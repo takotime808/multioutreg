@@ -360,6 +360,8 @@ def test_generate_html_report_runs(tmp_path):
 
 _select_best_candidate = _mf_page._select_best_candidate
 _predict_highest = _mf_page._predict_highest
+_HighestFidelityView = _mf_page._HighestFidelityView
+_compute_uncertainty_metrics = _mf_page._compute_uncertainty_metrics
 
 
 class _MeanSurrogate:
@@ -437,3 +439,37 @@ def test_predict_highest_uses_highest_level_for_independent():
     # hi level is y = 3x; lo level (the predict() default) is y = -3x
     assert y_pred.shape == (1, 1) and y_std.shape == (1, 1)
     assert y_pred[0, 0] == pytest.approx(3.0, abs=1e-6)
+
+
+def test_highest_fidelity_view_explains_highest_level():
+    """SHAP / PDP must see the highest level, not MultiFidelitySurrogate's default."""
+    from sklearn.base import is_regressor
+    from sklearn.inspection import partial_dependence
+    from multioutreg.surrogates import LinearRegressionSurrogate, MultiFidelitySurrogate
+
+    train_data = _linear_train_data()
+    cand = _independent("linear", LinearRegressionSurrogate)
+    model = MultiFidelitySurrogate(LinearRegressionSurrogate, ["lo", "hi"]).fit(train_data)
+    view = _HighestFidelityView(model, cand, ["lo", "hi"], n_outputs=1)
+    X = np.array([[1.0], [2.0]])
+    np.testing.assert_allclose(view.predict(X)[:, 0], [3.0, 6.0], atol=1e-6)
+    est = view.estimators_[0]
+    assert is_regressor(est)
+    np.testing.assert_allclose(est.predict(X), [3.0, 6.0], atol=1e-6)
+    pd_res = partial_dependence(est, X, [0], grid_resolution=2)
+    np.testing.assert_allclose(pd_res["average"][0], [3.0, 6.0], atol=1e-6)
+
+
+def test_compute_uncertainty_metrics():
+    y = np.zeros((4, 1))
+    pred = np.array([[0.0], [0.0], [0.0], [3.0]])
+    std = np.ones((4, 1))
+    m = _compute_uncertainty_metrics(y, pred, std)
+    assert m["Empirical coverage of 95% Gaussian interval"] == pytest.approx(0.75)
+    assert m["Miscoverage at 95% (|nominal − empirical|)"] == pytest.approx(0.2)
+    assert m["Sharpness (mean predicted std)"] == pytest.approx(1.0)
+    assert "Gaussian NLL (mean per point)" in m
+    # NLL is omitted when any std is zero (no native uncertainty)
+    assert "Gaussian NLL (mean per point)" not in _compute_uncertainty_metrics(
+        y, pred, np.zeros((4, 1))
+    )
