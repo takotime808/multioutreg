@@ -154,7 +154,13 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   method from `detect_sampling_method`. UMAP is now only the picture: it does not preserve
   distances, so its embedding cannot separate designs. `None` / empty input raises `ValueError`;
   fewer than 4 points gives "Uncertain" in the plot caption, and fewer than 10 points skips the MC
-  test ("Uncertain"). The KMeans colouring was dropped. VALIDATION_PLACEHOLDER
+  test ("Uncertain"). The KMeans colouring was dropped.
+  Validation (inputs rescaled to an arbitrary box, default `n_sim`, 10 seeds per cell,
+  n ∈ {20, 100, 300} × d ∈ {2, 5, 10}, 90 designs per row): Random 85/90, LHS 81/90,
+  scrambled Sobol 86/90, Halton → "Sobol" 77/90, normal inputs → "Uncertain" 71/90. At n ≥ 100 every
+  cell is ≥ 8/10, and most misses are "Uncertain" (about alpha = 5%). At n = 20, normal inputs are
+  often called "Random" (power is low) and Halton in d = 10 is 4/10. The old UMAP rules had no
+  validation; on the repo's example datasets they called the LHS file "not LHS" (E9).
   - [ ] Follow-up: designs with non-uniform marginals (e.g. LHS of normals) are "Uncertain" unless
     the marginals are supplied (`compare_sample_methods`), and the reports test `X_train` after
     the split / imputation / PCA, which hides a true LHS. Plan:
