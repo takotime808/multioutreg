@@ -61,7 +61,7 @@ A new package, `multioutreg/active/`:
 | `acquisition.py` | Uncertainty extraction (`predict_mean_std`, `CommitteeSurrogate`), output standardization and aggregation, and acquisition functions on `(mean, std)` arrays: `max_variance`, `upper_confidence_bound`, `expected_improvement`, `probability_of_improvement` |
 | `batch.py` | `select_batch`: greedy top-k with a distance penalty around already-chosen points (local penalization / maximin style) |
 | `loop.py` | `ActiveLearner`: initial design, candidate pool, `ask` / `tell` / `run`, history and stopping rules |
-| `multi_fidelity.py` | Per-level variance reduction, cost-aware acquisitions, and `MultiFidelityActiveLearner` |
+| `multi_fidelity.py` | Per-level variance reduction (`fidelity_info`), level trust, cost-aware acquisitions, and `MultiFidelityActiveLearner` |
 | `benchmarks.py` | Analytic test functions, including standard multi-fidelity pairs, for tests, docs and the tutorial notebook |
 
 ### Conventions
@@ -148,12 +148,12 @@ initial design (scrambled Sobol or LHS, n_init points)
 - `ask(n)` returns the next `n` points without evaluating anything; `tell(X, Y)`
   appends results and marks the model stale. `run(simulator, n_iter, ...)`
   chains them for Python simulators.
-- **History:** one record per iteration (number of samples, acquisition max,
-  mean standardized std over the pool, and held-out metrics when test data is
-  supplied) for convergence plots.
-- **Stopping rules:** budget (number of evaluations); maximum standardized std
-  over the pool below `std_tol`; held-out RMSE improvement below a relative
-  tolerance for `patience` iterations.
+- **History:** one record per fitted model (number of evaluations, best
+  observed objective, and held-out RMSE / NRMSE when test data is supplied)
+  for convergence plots.
+- **Stopping rules:** budget (`max_evals`), and held-out NRMSE not improving
+  by a relative `rtol` for `patience` iterations. A threshold on the maximum
+  standardized std over the pool (no test data needed) comes later.
 - **Reproducibility:** one `random_state` seeds the initial design and every
   candidate pool.
 
@@ -199,11 +199,17 @@ var_hi(x) = rho^2 · var_lo(x) + var_delta(x)
   `R_hi(x) = rho^2 · var_lo(x) + var_delta(x)`, and costs `c_hi + c_lo`.
   With `nested=False` it reduces only `var_delta(x)` and costs `c_hi`.
 
-This decomposition corrects itself: once the low-fidelity model is well
-sampled, `var_lo` is small everywhere, `R_lo` falls towards zero, and the
-remaining `var_delta`, which only high-fidelity runs can reduce, takes over.
-The cheap level cannot absorb the whole budget unless it really is that
-informative.
+When the model is right, this decomposition corrects itself: once the
+low-fidelity model is well sampled, `var_lo` is small everywhere, `R_lo` falls
+towards zero, and the remaining `var_delta`, which only high-fidelity runs can
+reduce, takes over.
+
+**It is not safe on its own.** The prototype showed the failure. With a
+low fidelity that is pure noise and 3 high-fidelity points, least squares fits
+`rho ≈ ±300`. A GP on noise keeps a large `var_lo`, so `rho^2 · var_lo` looks
+valuable everywhere, and the learner spent its entire budget on the noise. No
+further high-fidelity point ever arrived to correct `rho`. Hence the *level
+trust* safeguard below.
 
 **Other models (`StackedVFMSurrogate` and anything with
 `predict(X, level=...)`).** There is no analytic split, so the plan follows
@@ -215,7 +221,9 @@ R_l(x) = corr_l^2 · var_hi(x),   corr_{L-1} = 1
 
 where `corr_l` is the correlation between level-`l` and high-fidelity
 predictions over the candidate pool (one value per output, clipped to
-`[0, 1]`). This is cruder: it does not change with `x`, and
+`[0, 1]`). This is cruder: it does not change with `x`; in a stacked model
+the high level is built on the lower one's predictions, so the two correlate
+by construction (the trust factor below is what keeps this honest); and
 `StackedVFMSurrogate` reports only the top level's own std (see its
 docstring). It is the fallback, not the main path.
 
@@ -237,10 +245,20 @@ pool and takes the best. For MF-EI with AR1 models, `corr_l(x)` is
 - **Seeding:** each level starts with its own space-filling design;
   high-fidelity seed points are a subset of the low-fidelity ones, so the
   initial design is nested.
-- **Minimum high-fidelity share:** `min_hi_fraction` forces a high-fidelity
-  query whenever high-fidelity spending falls below that share of the budget
-  spent so far. This guards against a low-fidelity model that is
-  overconfident (small `var_lo`) but biased.
+- **Level trust** (`level_trust`, `trust_z=1.0`): each lower level's
+  reduction is multiplied by `max(0, LCB(|r|))^2`, where `r` is the
+  correlation between that level's prediction and the observed high-fidelity
+  values at the high-fidelity points, and `LCB` is a Fisher-z lower bound
+  `tanh(atanh(|r|) - z / sqrt(n - 3))`. Trust is 0 below 6 high-fidelity
+  points: with 4 points pure noise reached `|r| = 0.97` in the prototype's
+  tests. A lower level earns credit only once the data shows it predicts the
+  high fidelity, whatever the fitted model claims.
+- **Minimum high-fidelity share** (`min_hi_fraction`, default 0.25): forces a
+  high-fidelity query whenever high-fidelity spending falls below that share
+  of the total spent so far. Evidence about a lower level only comes from
+  high-fidelity runs, so without this a spuriously trusted level can lock in.
+  It also guards against a low fidelity that is overconfident (small
+  `var_lo`) but biased.
 - **Budget overrun:** a query whose cost exceeds the remaining budget is
   skipped in favour of the best affordable one; the loop stops when nothing
   is affordable.
@@ -250,6 +268,14 @@ pool and takes the best. For MF-EI with AR1 models, `corr_l(x)` is
 
 ### Open Questions
 
+- **Dropping a useless level from the model.** The safeguards protect the
+  *spending*, not the *surrogate*. In the tutorial's pure-noise experiment
+  the learner put about 85% of the budget into the high fidelity, yet
+  `AdditiveCorrectionVFM` still pushed the noise through `rho · f_lo` and was
+  far worse than a GP on the same high-fidelity points alone. The learner
+  should compare the fused model against a high-fidelity-only model on
+  held-out or cross-validated high-fidelity error, and drop levels whose trust
+  stays near zero.
 - Pointwise reduction ignores that a run at `x` also informs nearby points.
   An integrated (ALC-style) multi-fidelity criterion needs joint covariances
   per level, which only the GP surrogates provide.
@@ -264,7 +290,7 @@ pool and takes the best. For MF-EI with AR1 models, `corr_l(x)` is
 
 ## Benchmarks
 
-`multioutreg.active.benchmarks` will provide analytic functions with known
+`multioutreg.active.benchmarks` provides analytic functions with known
 bounds, so tests, docs and the notebook share one definition:
 
 | Function | Dim | Outputs | Fidelities | Use |
@@ -288,23 +314,26 @@ bounds, so tests, docs and the notebook share one definition:
 - **Loop:** `ask` / `tell` round-trip shapes; the budget is respected;
   reproducible with a fixed seed; active learning beats random sampling on
   Forrester with a GP at a fixed budget (seeded, loose margin).
-- **Multi-fidelity:** costs are accounted exactly; `min_hi_fraction` holds;
-  with an uninformative low level (`corr ≈ 0`) the learner spends almost
-  nothing on it; with a perfectly correlated, 10x cheaper low level it
-  prefers low-fidelity runs.
+- **Multi-fidelity:** costs are accounted exactly; designs stay nested;
+  `min_hi_fraction` holds; the AR1 variance split adds up to `var_hi`; trust
+  is 0 below 6 points, near 1 for an exact low fidelity and small for noise;
+  with a pure-noise low level the learner keeps buying high-fidelity runs;
+  with a perfectly correlated, 20x cheaper low level it prefers low-fidelity
+  runs.
 
 ## Delivery Phases
 
 | Phase | Scope | Status |
 |---|---|---|
 | 1 | `acquisition.py`, `batch.py`, `loop.py`, `benchmarks.py`, unit tests, tutorial notebook | Prototype |
-| 2 | `multi_fidelity.py` with AR1 variance split, correlation fallback, cost-aware acquisitions, `MultiFidelityActiveLearner` | Prototype |
+| 2 | `multi_fidelity.py` with AR1 variance split, correlation fallback, level trust, cost-aware acquisitions, `MultiFidelityActiveLearner` | Prototype |
 | 3 | GP-specific integrated-variance (ALC) and MF-ALC; conformal-width score; NaN std in `AutoDetectMultiOutputRegressor` | Planned |
 | 4 | `mor_cli` command that writes a CSV of the next points (ask/tell through files), a Streamlit page, and an "adaptive design" note in reports and sampling detection | Planned |
 | 5 | MF max-value entropy search; validation against BoTorch reference implementations (AL17) | Planned |
 
-The prototype lives on the `active-learning-prototype` branch; the tutorial
-is `docs/tutorials/active_learning_benchmarks.ipynb` on that branch.
+The prototype is `multioutreg/active/` with tests in `tests/unit/active/`;
+the tutorial is
+[Active Learning on Benchmark Functions](tutorials/active_learning_benchmarks.ipynb).
 
 ## Risks
 

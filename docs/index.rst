@@ -26,6 +26,7 @@ Notes about project.
 
    tutorials/forecasting_with_chronos
    tutorials/multi_fidelity_surrogates
+   tutorials/active_learning_benchmarks
 
 .. toctree::
    :maxdepth: 2
