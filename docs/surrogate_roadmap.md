@@ -128,14 +128,49 @@ would hold items 1–5.
   or Sobol and will likely be reported as "Uncertain". Reports should say when
   a design was built adaptively.
 
+## Cross-Cutting Additions
+
+Gaps that are not specific to multi-fidelity or multi-output modelling, but
+that the candidates above either depend on or would benefit from.
+
+### Candidates
+
+| # | Addition | Rationale | Effort |
+|---|---|---|---|
+| 1 | **Benchmark suite** of analytic test problems: Forrester, Branin, Currin, Park and Borehole multi-fidelity variants, plus correlated multi-output toy functions | Nothing in the package compares surrogates on problems with a known answer. Without it, the multi-fidelity candidates and the accuracy-vs-cost evaluation above have nothing to be judged on. | Low |
+| 2 | **Std recalibration** (variance scaling or isotonic, Kuleshov et al. 2018) | All calibration in the package today is conformal; nothing corrects a model's own `std` when it is over- or under-dispersed. Acquisition functions and the joint metrics consume `std` directly. `uncertainty-toolbox` (a core dependency) already provides a std recalibrator. | Low |
+| 3 | **Global sensitivity analysis** (first-order and total Sobol indices) | A primary use of a fitted surrogate, and absent from the package; the SHAP and PDP figures answer a different question. Saltelli/Jansen estimators can run on `scipy.stats.qmc` samples, and repeating them over posterior draws gives indices with uncertainty. | Low |
+| 4 | **Gradient-enhanced surrogates** (`smt` GEKPLS) | Many simulators return adjoint gradients; using them cuts the number of samples needed substantially. `smt` is already an optional extra. | Low |
+| 5 | **Model persistence** | There is no save/load API for fitted surrogates (`joblib` is used only in reports and time series), so a model trained in the GUI or CLI cannot be reused. Store the package version, feature and output names, and the fidelity levels alongside the model. | Low |
+| 6 | **Extrapolation flag** | Nothing warns when a prediction point lies outside the training design. A convex-hull, Mahalanobis or nearest-neighbour distance check fits alongside the existing sampling and DOE diagnostics. | Low |
+| 7 | **Ensembling Auto-Detect candidates** | Auto-Detect keeps one winner. Stacking, or a model-averaged mixture of the candidates' predictive distributions, usually beats it, and the candidates' disagreement is the committee estimate that query-by-committee needs (see [Active Learning](#active-learning)). | Medium |
+| 8 | **Optimization on the surrogate** | Acquisition functions choose where to sample, but nothing optimizes the fitted surrogate itself: inverse design, constrained optimization, or a Pareto front across outputs (the natural use of a multi-output surrogate). | Medium |
+| 9 | **Categorical and mixed-integer inputs** (`smt` mixed-integer kernels, GPyTorch categorical kernels) | Categorical columns are currently dropped (`gui/pages/lhs_detector_app.py`). | Medium |
+| 10 | **Missing outputs in per-output wrappers** | Mask missing values per output instead of dropping whole rows. Simpler than the multi-task GP route above, and common when simulation runs fail partway. | Low–Medium |
+| 11 | **Hyperparameter search beyond grid search** (random search, Optuna) | Model selection uses `GridSearchCV` only, which scales poorly as candidates and parameters grow. `ray[tune]` and `hyperopt` are commented out of `pyproject.toml`. | Low–Medium |
+
+### Issues to Resolve First
+
+- **Default fidelity level:** `MultiFidelitySurrogate.predict` uses the
+  *lowest* level when `level` is not given (see the open follow-up to item 1c
+  in the [audit checklist](AUDIT_CHECKLIST.md)). It should default to the
+  highest level, or require `level`, before the multi-fidelity surrogates are
+  added to Auto-Detect.
+- **NaN std downstream:** returning NaN instead of zero std (the first issue
+  under [Active Learning](#active-learning)) first needs NaN handling in the
+  GUI and report plots, which pass `best_std` directly to uncertainty-toolbox.
+
 ## Recommended First Batch
 
 Low effort, using dependencies already declared in `pyproject.toml`:
 
-1. `MFKSurrogate` (SMT co-kriging).
-2. The PCA output-reduction wrapper.
-3. The multi-task GP (GPyTorch).
-4. The Gaussian copula wrapper, plus energy-score and variogram-score metrics.
+1. The benchmark suite, so the additions below can be compared.
+2. `MFKSurrogate` (SMT co-kriging).
+3. The PCA output-reduction wrapper.
+4. The multi-task GP (GPyTorch).
+5. The Gaussian copula wrapper, plus energy-score and variogram-score metrics.
+6. Std recalibration and the extrapolation flag.
+7. Model persistence.
 
 New surrogates should follow the existing conventions: inherit from
 `ConformalMixin` (or `BaseSurrogate`), implement `predict(X, return_std=...)`,
@@ -166,5 +201,12 @@ unit tests under `tests/unit/surrogates/`.
 - Srinivas, N., Krause, A., Kakade, S. M., & Seeger, M. (2010). Gaussian
   process optimization in the bandit setting: no regret and experimental
   design. *ICML*.
+- Kuleshov, V., Fenner, N., & Ermon, S. (2018). Accurate uncertainties for
+  deep learning using calibrated regression. *ICML*.
+- Saltelli, A., et al. (2010). Variance based sensitivity analysis of model
+  output. Design and estimator for the total sensitivity index. *Computer
+  Physics Communications*, 181(2).
+- Bouhlel, M. A., & Martins, J. R. R. A. (2019). Gradient-enhanced kriging
+  for high-dimensional problems. *Engineering with Computers*, 35(1).
 - Settles, B. (2009). Active learning literature survey. *Computer Sciences
   Technical Report 1648*, University of Wisconsin–Madison.
