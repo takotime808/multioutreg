@@ -51,15 +51,17 @@ for a short demonstration.
 ---
 ## 🚀 Quickstart ##
 
-**Installation:**
+**Installation:** (requires Python >= 3.10)
 ```bash
-pip install .[test]  # optional: for testing and dev
+uv sync --extra test  # or: pip install .[test]
 ```
 
 **Streamlit App:**
 ```sh
-streamlit run multioutreg/gui/Grid_Search_Surrogate_Models.py
+.venv/bin/streamlit run multioutreg/gui/Grid_Search_Surrogate_Models.py
 ```
+Use the `streamlit` from the project environment; a `streamlit` from another
+Python (e.g. a base conda env) will fail with import errors.
 
 [Notebooks and scripts](examples/) can be run once the tool is installed.
 

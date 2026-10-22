@@ -2,6 +2,9 @@
 
 """Streamlit script performing a grid search over several surrogate models."""
 
+import matplotlib
+matplotlib.use("Agg")  # plotting helpers call plt.show(); never open desktop windows
+
 import os
 import numpy as np
 import pandas as pd
@@ -328,7 +331,7 @@ if uploaded_file:
             st.image(
                 f"data:image/png;base64,{pca_variance_plot}",
                 caption="Scree Plot",
-                use_column_width=True,
+                width="stretch",
             )
             used_feature_names = feature_names_pca
 
@@ -448,7 +451,7 @@ if uploaded_file:
         st.image(
             f"data:image/png;base64,{shap_img}",
             caption="Mean(|SHAP value|) for each feature and output",
-            use_column_width=True,
+            width="stretch",
         )
 
         html = generate_html_report(

@@ -29,7 +29,7 @@ dependencies = [
   # "ray[tune]>=2.30",
   # "hyperopt>=0.2",
   # "textual",
-  "streamlit",
+  "streamlit>=1.50",  # width="stretch" replaces deprecated use_column_width
   # ----- Below this line are duplicates from [ts] below...this is necessary for the
   "chronos-forecasting>=1.5.0",
   "torch>=2.1",

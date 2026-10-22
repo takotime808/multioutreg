@@ -1,5 +1,7 @@
 # Copyright (c) 2025 takotime808
 
+import matplotlib
+matplotlib.use("Agg")  # plotting helpers call plt.show(); never open desktop windows
 import os
 import re
 import tempfile
@@ -38,7 +40,7 @@ def scan_logs(log_path: str) -> list[str]:
 
 def show_base64_image(b64_str: str, caption: str = ""):
     if b64_str:
-        st.image(f"data:image/png;base64,{b64_str}", caption=caption, use_column_width=True)
+        st.image(f"data:image/png;base64,{b64_str}", caption=caption, width="stretch")
 
 
 def main():

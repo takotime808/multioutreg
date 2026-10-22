@@ -74,7 +74,12 @@ def dummy_get_all_metrics(y_pred, y_std, y_true):
     return dummy_metrics
 
 import multioutreg.performance.metrics_generalized_api as mgapi
-mgapi.uct.get_all_metrics = dummy_get_all_metrics
+
+
+@pytest.fixture(autouse=True)
+def _mock_uct_get_all_metrics(monkeypatch):
+    # Scoped to this module; a module-level assignment leaked into other tests.
+    monkeypatch.setattr(mgapi.uct, "get_all_metrics", dummy_get_all_metrics)
 
 # --- Estimator mocks ---
 class EstimatorReturnStd:

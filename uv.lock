@@ -1901,7 +1901,7 @@ requires-dist = [
     { name = "shap", specifier = ">=0.48.0" },
     { name = "smt", extras = ["gpx"], marker = "extra == 'smt'" },
     { name = "statsmodels" },
-    { name = "streamlit" },
+    { name = "streamlit", specifier = ">=1.50" },
     { name = "termcolor" },
     { name = "terminology" },
     { name = "torch", specifier = ">=2.1" },

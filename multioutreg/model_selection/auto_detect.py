@@ -79,7 +79,7 @@ def _clone_surrogate(surrogate):
         return copy.deepcopy(surrogate)
 
 
-class _OutputColumn:
+class _OutputColumn(RegressorMixin, BaseEstimator):
     """Expose column ``j`` of a multi-output model so sklearn scorers can use it."""
 
     def __init__(self, model, j: int) -> None:

@@ -13,6 +13,9 @@ base surrogate classes:
 Example data can be downloaded from the "Other Dataset Examples" page.
 """
 
+import matplotlib
+matplotlib.use("Agg")  # plotting helpers call plt.show(); never open desktop windows
+
 import os
 from typing import Any, Dict, List
 
@@ -431,7 +434,7 @@ if uploaded_file:
         use_conformal = st.checkbox(
             "Compute conformal prediction intervals",
             value=False,
-            help="Calibrate split-conformal intervals on the highest-fidelity test set after fitting.",
+            help="Calibrate split-conformal intervals on a held-out part of the highest-fidelity training data.",
         )
         conformal_alpha_sel = st.slider(
             "Conformal alpha (miscoverage level)",
@@ -524,6 +527,16 @@ if uploaded_file:
             test_data[lv_name] = (X_te, Y_te)
 
         X_test, y_test = test_data[level_names[-1]]
+
+        # Conformal calibration must use data disjoint from both training and the
+        # test set used to report coverage, so hold out part of the hi-fi training split.
+        if use_conformal:
+            _X_hi, _Y_hi = train_data[level_names[-1]]
+            _X_fit, X_cal, _Y_fit, y_cal = train_test_split(
+                _X_hi, _Y_hi, test_size=0.2, random_state=0
+            )
+            train_data[level_names[-1]] = (_X_fit, _Y_fit)
+
         X_train_hi, _ = train_data[level_names[-1]]  # used for SHAP / plots
         output_names = list(output_cols)
 
@@ -594,7 +607,7 @@ if uploaded_file:
             .sort_values("MSE", na_position="last")
             .reset_index(drop=True)
         )
-        st.dataframe(_gs_df, use_container_width=True)
+        st.dataframe(_gs_df, width="stretch")
 
         # Per-output metrics for the best model
         metrics = _compute_metrics(y_test, best_pred, best_std, output_names)
@@ -607,7 +620,9 @@ if uploaded_file:
             from multioutreg.conformal.base import BaseConformalPredictor
             from multioutreg.conformal.metrics import conformal_summary as _conf_summary
 
-            residuals = np.abs(y_test - best_pred)
+            _cal_pred, _ = best_model.predict(X_cal, return_std=True)
+            _cal_pred = np.asarray(_cal_pred, dtype=np.float64).reshape(len(y_cal), -1)
+            residuals = np.abs(y_cal - _cal_pred)
             n_outputs = y_test.shape[1]
             q = np.array([
                 BaseConformalPredictor._conformal_quantile(

@@ -2,6 +2,9 @@
 
 """Streamlit page for downloading example datasets made from different sampling methods."""
 
+import matplotlib
+matplotlib.use("Agg")  # plotting helpers call plt.show(); never open desktop windows
+
 import numpy as np
 import pandas as pd
 # import seaborn as sns
@@ -301,7 +304,7 @@ for i, (name, df) in enumerate(datasets):
     col1, col2 = st.columns([3, 2])  # Data | Visual
 
     with col1:
-        st.dataframe(df.head(), use_container_width=True)
+        st.dataframe(df.head(), width="stretch")
         csv_bytes = df.to_csv(index=False).encode("utf-8")
         filename = name.lower().replace(" ", "_").replace("-", "_") + ".csv"
         st.download_button(

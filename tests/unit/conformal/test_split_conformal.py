@@ -5,6 +5,7 @@ import pytest
 from sklearn.datasets import make_regression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, WhiteKernel
 from sklearn.linear_model import LinearRegression
 from sklearn.svm import SVR
 
@@ -122,11 +123,12 @@ class TestSplitConformalAdaptive:
         X_test = rng.randn(50, 3)
         y_test = X_test[:, 0] ** 2 + 0.5 * rng.randn(50)
 
-        cp = SplitConformalPredictor(
-            GaussianProcessRegressor(random_state=0),
-            adaptive=True,
-            random_state=0,
+        # A noise term is needed: the default kernel interpolates the noise,
+        # collapsing the length scale so predictive std is constant off-sample.
+        gp = GaussianProcessRegressor(
+            kernel=RBF() + WhiteKernel(), normalize_y=True, random_state=0
         )
+        cp = SplitConformalPredictor(gp, adaptive=True, random_state=0)
         cp.fit(X, y)
         y_lower, y_upper = cp.predict_interval(X_test, alpha=0.1)
         widths = y_upper - y_lower

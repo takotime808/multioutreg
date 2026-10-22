@@ -28,7 +28,7 @@ from multioutreg.surrogates.catboost_sklearn import _CATBOOST_AVAILABLE, _CatBoo
 from multioutreg.surrogates.sparse_gp_gpytorch import _GPYTORCH_AVAILABLE, _SGPREstimator
 from sklearn.linear_model import ElasticNet as _ElasticNet, Lasso as _Lasso, QuantileRegressor as _QuantileRegressor
 from sklearn.ensemble import HistGradientBoostingRegressor
-from multioutreg.gui.Grid_Search_Surrogate_Models import (
+from multioutreg.gui.grid_search_core import (
     RandomForestWithUncertainty,
     GradientBoostingWithUncertainty,
     KNeighborsRegressorWithUncertainty,

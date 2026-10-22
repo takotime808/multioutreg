@@ -60,7 +60,8 @@ class ChronosForecaster:
             )
         self.model_name = model_name
         self.device = device or ("cuda" if torch.cuda.is_available() else ("mps" if torch.backends.mps.is_available() else "cpu"))
-        self.torch_dtype = torch_dtype or (getattr(torch, "bfloat16", torch.float32) if self.device != "cpu" else torch.float32)
+        # bfloat16 is only safe on CUDA; MPS rejects it ("BFloat16 is not supported on MPS").
+        self.torch_dtype = torch_dtype or (getattr(torch, "bfloat16", torch.float32) if self.device == "cuda" else torch.float32)
         self.context_length = context_length
         self.default_quantiles = tuple(float(q) for q in default_quantiles)
 

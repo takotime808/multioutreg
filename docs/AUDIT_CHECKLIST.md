@@ -279,3 +279,9 @@ rolling-origin as an optional `--folds k` that defaults to 1.
 - [ ] `Ranker` uses those metrics; `results.json` records H and the metrics.
 - [ ] A.3 SARIMA bugs fixed (or logged as their own items); item 26 `mase` fixed.
 - [ ] A.6 tests pass, and the CLI and UI pick the same model on the same data (closes E10).
+- [x] **E11.** Streamlit pages never set a matplotlib backend, so on an interactive default (TkAgg)
+  the plotting helpers' `plt.show()` opened a desktop "Figure 1" window, blocked the run until it was
+  closed, and then `safe_plot_b64` saved a blank figure into the report. All GUI scripts and the
+  remaining CLI commands now force `Agg`.
+- [ ] **E12.** Plotting helpers in `multioutreg/figures/` should not call `plt.show()` at all; return
+  the figure and let the caller decide.

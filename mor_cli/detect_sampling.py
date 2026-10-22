@@ -1,5 +1,7 @@
 # Copyright (c) 2025 takotime808
 
+import matplotlib
+matplotlib.use("Agg")  # plotting helpers call plt.show(); never open desktop windows
 import typer
 import pandas as pd
 from typing_extensions import Annotated
