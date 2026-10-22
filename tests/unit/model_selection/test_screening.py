@@ -182,3 +182,19 @@ def test_pre_screen_works_without_vendored_names():
         [LinearRegression(), GaussianProcessRegressor()], [{}, {}], pre_screen=True)
     model.fit(X, y)
     assert type(model.models_[0]).__name__ == "LinearRegression"
+
+
+def test_ehet_std_is_heteroscedastic_and_covers():
+    # Regression: _EHet's std was the spread of a bootstrap RF ensemble only
+    # (epistemic, ~45% coverage of 90% intervals) and did not follow the noise.
+    from multioutreg.model_selection.screening import _ehet
+
+    rng = np.random.default_rng(0)
+    X = rng.uniform(size=(1400, 2))
+    noise = 0.1 + 0.5 * X[:, 0]
+    y = np.sin(6 * X[:, 0]) + X[:, 1] + noise * rng.normal(size=1400)
+    model = _ehet().fit(X[:400], y[:400])
+    pred, std = model.predict(X[400:], return_std=True)
+    coverage = np.mean(np.abs(y[400:] - pred) <= 1.645 * std)
+    assert 0.83 <= coverage <= 0.97
+    assert np.corrcoef(std, noise[400:])[0, 1] > 0.7

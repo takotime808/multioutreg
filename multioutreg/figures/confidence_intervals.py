@@ -9,6 +9,7 @@ from sklearn.base import RegressorMixin
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.multioutput import MultiOutputRegressor
 from sklearn.model_selection import train_test_split
+from multioutreg.surrogates.forest_uncertainty import estimate_noise_variance
 
 
 def plot_intervals_ordered(
@@ -412,12 +413,15 @@ def plot_multioutput_confidence_intervals(
     model = MultiOutputRegressor(base_estimator)
     model.fit(X_train, Y_train)
     
+    # tree spread (epistemic) + held-out noise variance (aleatoric), audit item 27
+    Y_train_arr = np.asarray(Y_train)
     means = []
     stds = []
-    for est in model.estimators_:
+    for j, est in enumerate(model.estimators_):
         preds = np.array([tree.predict(X_test) for tree in est.estimators_])
+        noise_var = estimate_noise_variance(est, X_train, Y_train_arr[:, j])
         means.append(preds.mean(axis=0))
-        stds.append(preds.std(axis=0))
+        stds.append(np.sqrt(preds.var(axis=0) + noise_var))
     means = np.stack(means, axis=1)
     stds = np.stack(stds, axis=1)
 
@@ -519,12 +523,15 @@ def plot_regressormixin_confidence_intervals(
     model = MultiOutputRegressor(base_estimator)
     model.fit(X_train, Y_train)
     
+    # tree spread (epistemic) + held-out noise variance (aleatoric), audit item 27
+    Y_train_arr = np.asarray(Y_train)
     means = []
     stds = []
-    for est in model.estimators_:
+    for j, est in enumerate(model.estimators_):
         preds = np.array([tree.predict(X_test) for tree in est.estimators_])
+        noise_var = estimate_noise_variance(est, X_train, Y_train_arr[:, j])
         means.append(preds.mean(axis=0))
-        stds.append(preds.std(axis=0))
+        stds.append(np.sqrt(preds.var(axis=0) + noise_var))
     means = np.stack(means, axis=1)
     stds = np.stack(stds, axis=1)
 

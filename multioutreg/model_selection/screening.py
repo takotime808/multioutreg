@@ -750,28 +750,54 @@ def _gbq():
 
 def _ehet():
     from sklearn.ensemble import RandomForestRegressor
-    from sklearn.base import BaseEstimator, RegressorMixin, clone
+    from sklearn.base import BaseEstimator, RegressorMixin
     import numpy as _np
 
     class _EHet(BaseEstimator, RegressorMixin):
+        """Bootstrap RF ensemble (epistemic) + RF noise-variance model (aleatoric).
+
+        The noise model is fitted on ``r_i^2 - v_i`` at each training point, where
+        ``r_i`` is the residual of the members that did not see point i
+        (out-of-bag) and ``v_i`` their variance, so it estimates the noise
+        variance as a function of x. std(x) = sqrt(spread(x)^2 + noise(x)).
+        """
         def __init__(self, n_estimators=10, random_state=0):
             self.n_estimators = n_estimators
             self.random_state = random_state
         def fit(self, X, y):
+            X, y = _np.asarray(X), _np.asarray(y).ravel()
             rng_ = _np.random.default_rng(self.random_state)
             n = X.shape[0]
             self.models_ = []
+            oob = _np.ones((self.n_estimators, n), dtype=bool)
             for i in range(self.n_estimators):
                 idx = rng_.integers(0, n, n)
+                oob[i, idx] = False
                 m = RandomForestRegressor(n_estimators=50, random_state=i)
                 m.fit(X[idx], y[idx])
                 self.models_.append(m)
+
+            preds = _np.stack([m.predict(X) for m in self.models_])
+            count = oob.sum(axis=0)
+            keep = count >= 2
+            self.noise_model_ = None
+            if keep.sum() >= 10:
+                preds, oob, count = preds[:, keep], oob[:, keep], count[keep]
+                mean = (preds * oob).sum(axis=0) / count
+                var = (((preds - mean) ** 2) * oob).sum(axis=0) / count
+                target = (y[keep] - mean) ** 2 - var
+                self.noise_model_ = RandomForestRegressor(
+                    n_estimators=100, min_samples_leaf=max(5, n // 20),
+                    random_state=self.random_state,
+                ).fit(X[keep], target)
             return self
         def predict(self, X, return_std=False):
             preds = _np.stack([m.predict(X) for m in self.models_], axis=1)
             mean = preds.mean(axis=1)
             if return_std:
-                return mean, preds.std(axis=1)
+                noise = (_np.clip(self.noise_model_.predict(X), 0.0, None)
+                         if self.noise_model_ is not None else 0.0)
+                return mean, _np.sqrt(preds.var(axis=1) + noise)
             return mean
 
     return _EHet()

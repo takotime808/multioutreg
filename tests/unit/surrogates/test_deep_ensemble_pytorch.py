@@ -90,11 +90,47 @@ class TestDeepEnsembleSurrogate:
         """Single member ensemble has no inter-model disagreement → std = 0."""
         X, Y = sample_data
         s = DeepEnsembleSurrogate(
-            n_estimators=1, hidden_layer_sizes=(16,), max_epochs=5, random_state=0
+            n_estimators=1, hidden_layer_sizes=(16,), max_epochs=5, random_state=0,
+            loss="mse",
         )
         s.fit(X, Y)
         _, stds = s.predict(X, return_std=True)
         assert np.allclose(stds, 0.0)
+
+    def test_n_estimators_1_nll_gives_noise_std(self, sample_data):
+        """With the NLL head a single member still predicts the noise std."""
+        X, Y = sample_data
+        s = DeepEnsembleSurrogate(
+            n_estimators=1, hidden_layer_sizes=(16,), max_epochs=5, random_state=0
+        )
+        s.fit(X, Y)
+        _, stds = s.predict(X, return_std=True)
+        assert np.all(stds > 0)
+
+    def test_invalid_loss_raises(self):
+        with pytest.raises(ValueError):
+            DeepEnsembleSurrogate(loss="huber")
+
+    def test_nll_head_learns_noise_and_covers(self):
+        """Ensemble spread alone under-covers on noisy data; NLL heads add the noise."""
+        rng = np.random.default_rng(0)
+        X = rng.uniform(0, 1, (1000, 2))
+        noise = 0.1 + 0.5 * X[:, 0]
+        y = (np.sin(6 * X[:, 0]) + X[:, 1] + noise * rng.standard_normal(1000)).reshape(-1, 1)
+        X_tr, X_te, y_tr, y_te = X[:400], X[400:], y[:400], y[400:]
+        cover = {}
+        for loss in ("mse", "nll"):
+            s = DeepEnsembleSurrogate(
+                n_estimators=5, hidden_layer_sizes=(64, 32), max_epochs=300,
+                random_state=0, loss=loss,
+            )
+            pred, std = s.fit(X_tr, y_tr).predict(X_te, return_std=True)
+            cover[loss] = np.mean(np.abs(y_te - pred) <= 1.645 * std)
+            if loss == "nll":
+                # heteroscedastic: std grows with the noise level
+                assert np.corrcoef(std[:, 0], noise[400:])[0, 1] > 0.7
+        assert cover["mse"] < 0.5
+        assert 0.75 <= cover["nll"] <= 0.99
 
     def test_predict_before_fit_raises(self):
         s = DeepEnsembleSurrogate()

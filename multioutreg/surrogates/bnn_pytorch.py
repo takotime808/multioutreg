@@ -8,10 +8,15 @@ import numpy as np
 
 from multioutreg.surrogates._torch_utils import (
     TorchStandardScaler,
+    gaussian_nll_loss,
+    mixture_mean_std,
     require_torch,
+    split_mean_var,
     to_tensor,
     train_loop,
 )
+
+_LOSSES = ("nll", "mse")
 from multioutreg.surrogates.conformal_mixin import ConformalMixin
 
 # _multi_output sentinel: this surrogate predicts all outputs jointly
@@ -24,6 +29,16 @@ class BNNSurrogate(ConformalMixin):
     Trains a fully-connected network with dropout and approximates the
     posterior predictive distribution at inference by running ``n_mc_samples``
     stochastic forward passes with dropout active.
+
+    With ``loss="nll"`` (default) the network also has a variance head and is
+    trained on the Gaussian negative log-likelihood (heteroscedastic MC
+    Dropout, Kendall & Gal 2017). Predictive variance = mean of the predicted
+    noise variances (aleatoric) + variance of the MC means (epistemic).
+
+    With ``loss="mse"`` the std is the spread of the MC passes only. That is
+    epistemic only: it ignores the noise in y, so its intervals under-cover
+    on noisy data. Use it only for noise-free data or wrap it with conformal
+    prediction.
 
     Parameters
     ----------
@@ -39,6 +54,9 @@ class BNNSurrogate(ConformalMixin):
     patience : int, default 30
         Early-stopping patience (epochs without improvement).
     random_state : int | None, default None
+    loss : {"nll", "mse"}, default "nll"
+        ``"nll"`` learns the noise variance (aleatoric + epistemic std);
+        ``"mse"`` gives the epistemic-only MC spread.
     """
 
     _multi_output = True  # signals AutoDetect to evaluate on full Y
@@ -53,8 +71,12 @@ class BNNSurrogate(ConformalMixin):
         batch_size: int = 64,
         patience: int = 30,
         random_state: int | None = None,
+        loss: str = "nll",
     ):
         require_torch()
+        if loss not in _LOSSES:
+            raise ValueError(f"loss must be one of {_LOSSES}, got {loss!r}")
+        self.loss = loss
         self.hidden_layer_sizes = hidden_layer_sizes
         self.dropout_p = dropout_p
         self.n_mc_samples = n_mc_samples
@@ -100,9 +122,10 @@ class BNNSurrogate(ConformalMixin):
         X_t = to_tensor(X_s)
         Y_t = to_tensor(Y_s)
 
+        nll = self.loss == "nll"
         self.network_ = MCDropoutNet(
             n_features=X.shape[1],
-            n_outputs=self.n_outputs_,
+            n_outputs=2 * self.n_outputs_ if nll else self.n_outputs_,
             hidden_layer_sizes=self.hidden_layer_sizes,
             dropout_p=self.dropout_p,
         )
@@ -110,7 +133,7 @@ class BNNSurrogate(ConformalMixin):
         optimizer = torch.optim.Adam(
             self.network_.parameters(), lr=self.learning_rate
         )
-        loss_fn = nn.MSELoss()
+        loss_fn = gaussian_nll_loss(self.n_outputs_) if nll else nn.MSELoss()
 
         self.training_losses_ = train_loop(
             model=self.network_,
@@ -133,7 +156,9 @@ class BNNSurrogate(ConformalMixin):
         ----------
         X : np.ndarray
         return_std : bool, default False
-            If True, also return predictive std estimated via MC Dropout.
+            If True, also return the predictive std (see the class docstring).
+            With ``n_mc_samples=1`` this is the noise std alone (``"nll"``)
+            or zero (``"mse"``).
 
         Returns
         -------
@@ -149,28 +174,31 @@ class BNNSurrogate(ConformalMixin):
         X_s = self.x_scaler_.transform(X).astype(np.float32)
         X_t = to_tensor(X_s)
 
-        if not return_std or self.n_mc_samples == 1:
-            self.network_.eval()
-            with torch.no_grad():
-                y_s = self.network_(X_t).numpy()
-            y_pred = self.y_scaler_.inverse_transform(y_s)
-            if not return_std:
-                return y_pred
-            return y_pred, np.zeros_like(y_pred)
-
-        # MC Dropout: keep dropout active, run n_mc_samples stochastic passes
+        deterministic = not return_std or self.n_mc_samples == 1
+        n_passes = 1 if deterministic else self.n_mc_samples
         self.network_.eval()
-        self.network_.enable_dropout()
-        samples = []
-        with torch.no_grad():
-            for _ in range(self.n_mc_samples):
-                y_s = self.network_(X_t).numpy()
-                samples.append(self.y_scaler_.inverse_transform(y_s))
+        if not deterministic:
+            # MC Dropout: keep dropout active, run n_mc_samples stochastic passes
+            self.network_.enable_dropout()
 
-        samples = np.stack(samples, axis=0)  # (n_mc_samples, n_samples, n_outputs)
-        y_pred = samples.mean(axis=0)
-        y_std = samples.std(axis=0)
-        return y_pred, y_std
+        nll = getattr(self, "loss", "mse") == "nll"
+        means, variances = [], []
+        with torch.no_grad():
+            for _ in range(n_passes):
+                out = self.network_(X_t)
+                if nll:
+                    mu_s, var_s = split_mean_var(out, self.n_outputs_)
+                    variances.append(var_s.numpy() * self.y_scaler_.scale_ ** 2)
+                else:
+                    mu_s = out
+                means.append(self.y_scaler_.inverse_transform(mu_s.numpy()))
+
+        means = np.stack(means, axis=0)  # (n_passes, n_samples, n_outputs)
+        if not return_std:
+            return means[0]
+        if nll:
+            return mixture_mean_std(means, np.stack(variances, axis=0))
+        return means.mean(axis=0), means.std(axis=0)
 
     def _conformal_point_predict(self, X: np.ndarray) -> np.ndarray:
         preds = self.predict(X)
@@ -189,6 +217,7 @@ class BNNSurrogate(ConformalMixin):
             "batch_size": self.batch_size,
             "patience": self.patience,
             "random_state": self.random_state,
+            "loss": self.loss,
         }
 
     def set_params(self, **params) -> "BNNSurrogate":

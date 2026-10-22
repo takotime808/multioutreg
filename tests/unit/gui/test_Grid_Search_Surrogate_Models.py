@@ -78,3 +78,22 @@ def test_gradient_boosting_with_uncertainty_std_is_sigma():
     y = X[:, 0] + rng.normal(size=2000)  # sigma = 1
     _, std = GradientBoostingWithUncertainty().fit(X, y).predict(X[:500], return_std=True)
     assert abs(std.mean() - 1.0) < 0.2
+
+
+def test_forest_wrappers_add_noise_variance():
+    # Audit item 27: tree spread alone is epistemic only; the wrappers add a
+    # held-out noise variance per output. ExtraTrees (no bootstrap) uses K-fold
+    # refits, which must not recurse into the wrapper's own fit.
+    from multioutreg.gui.grid_search_core import ExtraTreesWithUncertainty
+
+    rng = np.random.default_rng(0)
+    X = rng.uniform(size=(200, 3))
+    y = np.sin(6 * X[:, 0]) + 0.3 * rng.normal(size=200)
+    for cls in (RandomForestWithUncertainty, ExtraTreesWithUncertainty):
+        model = cls(n_estimators=30, random_state=0).fit(X, y)
+        assert np.isscalar(model.noise_var_) and model.noise_var_ >= 0
+        mean, std = model.predict(X, return_std=True)
+        tree_var = np.stack([t.predict(X) for t in model.estimators_]).var(axis=0)
+        np.testing.assert_allclose(std, np.sqrt(tree_var + model.noise_var_))
+        multi = cls(n_estimators=30, random_state=0).fit(X, np.column_stack([y, 2 * y]))
+        assert multi.noise_var_.shape == (2,)

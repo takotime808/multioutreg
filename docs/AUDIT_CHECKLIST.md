@@ -188,8 +188,27 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   (lower = mean = upper); bootstrap branch uses in-sample residuals and ignores horizon growth.
 - [ ] **26. `time_series/metrics.py`**: `mase` denominator should use the training series;
   `weighted_quantile_loss` is mean pinball, not Chronos WQL (2·Σpinball/Σ|y|).
-- [ ] **27. Epistemic-only uncertainty** (RF/ET spread, MSE deep ensemble, MC-dropout): no aleatoric
+- [x] **27. Epistemic-only uncertainty** (RF/ET spread, MSE deep ensemble, MC-dropout): no aleatoric
   term ⇒ under-coverage. `_EHet` is not heteroscedastic. Document, add NLL heads, or conformalize.
+  *Done:* `DeepEnsembleSurrogate` and `BNNSurrogate` take `loss="nll"` (new default): each network
+  has a mean and a softplus variance head trained on the Gaussian NLL, and the std is that of the
+  equal-weight mixture, sqrt(mean noise var + var of the member / MC-pass means) (Lakshminarayanan
+  2017; Kendall & Gal 2017). `loss="mse"` keeps the old epistemic-only spread, documented as
+  under-covering. RF / ET (`RandomForestSurrogate`, `ExtraTreesRegressorSurrogate`, the grid-search
+  `*WithUncertainty` wrappers and the RF interval plots in `figures/confidence_intervals.py`) now
+  share `surrogates/forest_uncertainty.py`: std = sqrt(tree var(x) + c), where c = max(held-out
+  MSE − mean held-out tree var, 0) per output, held-out = out-of-bag trees (RF) or 5-fold refits
+  (ET, `bootstrap=False`). This makes the mean predicted variance match the held-out MSE; c is
+  constant in x and smaller than the noise variance, because fully grown trees already fit some of
+  the noise. `include_noise=False` returns the spread alone. `_EHet` keeps its bootstrap-RF spread
+  and adds an RF noise model fitted on out-of-bag `r² − v`, so its std follows the noise.
+  Validation (n_train = 400, d = 3, test n = 3000, two outputs: noise 0.1–0.6 and 0.3, two seeds),
+  coverage of 90% Gaussian intervals before → after: deep ensemble 0.14–0.22 → 0.80–0.87,
+  MC-dropout 0.34–0.43 → 0.92–0.95, `_EHet` 0.40–0.47 → 0.88–0.93, RF 0.80–0.86 → 0.86–0.92,
+  ET 0.80–0.86 → 0.85–0.92. Correlation of predicted std with the true noise std: 0.97 (deep
+  ensemble), 0.94 (MC-dropout), 0.95 (`_EHet`). Tests: coverage and heteroscedasticity tests
+  in `tests/unit/surrogates/test_{rf,extra_trees}_sklearn.py`, `test_{bnn,deep_ensemble}_pytorch.py`,
+  `tests/unit/model_selection/test_screening.py`, `tests/unit/gui/test_Grid_Search_Surrogate_Models.py`.
 - [ ] **28. Multi-fidelity**: `MultiFidelitySurrogate` is independent per-level models;
   `StackedVFM` augments with in-sample lower-level preds (use OOF); `AdditiveCorrectionVFM` fixes rho=1.
 - [x] **29. `metrics_generalized_api.py`**: `return_std` branch runs even when already `tried`;

@@ -8,10 +8,15 @@ import numpy as np
 
 from multioutreg.surrogates._torch_utils import (
     TorchStandardScaler,
+    gaussian_nll_loss,
+    mixture_mean_std,
     require_torch,
+    split_mean_var,
     to_tensor,
     train_loop,
 )
+
+_LOSSES = ("nll", "mse")
 from multioutreg.surrogates.conformal_mixin import ConformalMixin
 
 # _multi_output sentinel: this surrogate predicts all outputs jointly
@@ -36,12 +41,19 @@ class DeepEnsembleSurrogate(ConformalMixin):
     """Deep Ensemble surrogate (Lakshminarayanan et al. 2017).
 
     Trains ``n_estimators`` independent feed-forward networks from different
-    random seeds and uses their prediction disagreement as epistemic uncertainty.
-    This approach consistently outperforms single-model uncertainty methods
-    (MC Dropout, conformal wrappers) on calibration benchmarks.
+    random seeds.
 
-    Each network is trained with MSE loss.  At inference the ensemble mean is
-    the point estimate; predictive std is the cross-network standard deviation.
+    With ``loss="nll"`` (default) each network has a mean and a variance head
+    and is trained on the Gaussian negative log-likelihood, as in the paper.
+    The prediction is the equal-weight mixture of the members: predictive
+    variance = mean of the member noise variances (aleatoric) + variance of
+    the member means (epistemic).
+
+    With ``loss="mse"`` the networks predict the mean only and the predictive
+    std is the cross-network spread. That is epistemic only: it ignores the
+    noise in y, so its intervals under-cover on noisy data (often far below
+    nominal). Use it only for noise-free data or wrap it with conformal
+    prediction.
 
     Requires PyTorch (core dependency)::
 
@@ -62,6 +74,9 @@ class DeepEnsembleSurrogate(ConformalMixin):
     random_state : int | None, default None
         Base seed; individual networks use ``random_state + i`` so each
         gets a distinct initialisation.
+    loss : {"nll", "mse"}, default "nll"
+        ``"nll"`` learns the noise variance (aleatoric + epistemic std);
+        ``"mse"`` gives the epistemic-only ensemble spread.
     """
 
     _multi_output = True  # signals AutoDetect to evaluate on full Y
@@ -75,8 +90,12 @@ class DeepEnsembleSurrogate(ConformalMixin):
         batch_size: int = 64,
         patience: int = 30,
         random_state: int | None = None,
+        loss: str = "nll",
     ):
         require_torch()
+        if loss not in _LOSSES:
+            raise ValueError(f"loss must be one of {_LOSSES}, got {loss!r}")
+        self.loss = loss
         self.n_estimators = n_estimators
         self.hidden_layer_sizes = hidden_layer_sizes
         self.max_epochs = max_epochs
@@ -114,6 +133,13 @@ class DeepEnsembleSurrogate(ConformalMixin):
         X_t = to_tensor(X_s)
         Y_t = to_tensor(Y_s)
 
+        if self.loss == "nll":
+            n_heads = 2 * self.n_outputs_
+            loss_fn = gaussian_nll_loss(self.n_outputs_)
+        else:
+            n_heads = self.n_outputs_
+            loss_fn = nn.MSELoss()
+
         self.networks_: list[nn.Module] = []
         for i in range(self.n_estimators):
             seed = (self.random_state + i) if self.random_state is not None else None
@@ -121,12 +147,12 @@ class DeepEnsembleSurrogate(ConformalMixin):
                 torch.manual_seed(seed)
                 np.random.seed(seed)
 
-            net = _build_network(X.shape[1], self.n_outputs_, self.hidden_layer_sizes)
+            net = _build_network(X.shape[1], n_heads, self.hidden_layer_sizes)
             optimizer = torch.optim.Adam(net.parameters(), lr=self.learning_rate)
             train_loop(
                 model=net,
                 optimizer=optimizer,
-                loss_fn=nn.MSELoss(),
+                loss_fn=loss_fn,
                 X_tensor=X_t,
                 Y_tensor=Y_t,
                 max_epochs=self.max_epochs,
@@ -147,7 +173,7 @@ class DeepEnsembleSurrogate(ConformalMixin):
         ----------
         X : np.ndarray
         return_std : bool, default False
-            If True, also return predictive std estimated from ensemble spread.
+            If True, also return the predictive std (see the class docstring).
 
         Returns
         -------
@@ -165,20 +191,27 @@ class DeepEnsembleSurrogate(ConformalMixin):
         X_s = self.x_scaler_.transform(X).astype(np.float32)
         X_t = to_tensor(X_s)
 
-        member_preds = []
+        nll = getattr(self, "loss", "mse") == "nll"
+        member_means, member_vars = [], []
         with torch.no_grad():
             for net in self.networks_:
-                y_s = net(X_t).numpy()
-                member_preds.append(self.y_scaler_.inverse_transform(y_s))
+                out = net(X_t)
+                if nll:
+                    mu_s, var_s = split_mean_var(out, self.n_outputs_)
+                    member_vars.append(var_s.numpy() * self.y_scaler_.scale_ ** 2)
+                else:
+                    mu_s = out
+                member_means.append(self.y_scaler_.inverse_transform(mu_s.numpy()))
 
         # stack: (n_estimators, n_samples, n_outputs)
-        stack = np.stack(member_preds, axis=0)
-        y_pred = stack.mean(axis=0)
+        means = np.stack(member_means, axis=0)
+        if nll:
+            y_pred, y_std = mixture_mean_std(means, np.stack(member_vars, axis=0))
+        else:
+            y_pred, y_std = means.mean(axis=0), means.std(axis=0)
 
         if not return_std:
             return y_pred
-
-        y_std = stack.std(axis=0)
         return y_pred, y_std
 
     def _conformal_point_predict(self, X: np.ndarray) -> np.ndarray:
@@ -197,6 +230,7 @@ class DeepEnsembleSurrogate(ConformalMixin):
             "batch_size": self.batch_size,
             "patience": self.patience,
             "random_state": self.random_state,
+            "loss": self.loss,
         }
 
     def set_params(self, **params) -> "DeepEnsembleSurrogate":
