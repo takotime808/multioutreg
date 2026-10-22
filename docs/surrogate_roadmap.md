@@ -72,6 +72,9 @@ common in simulation data.
 
 ## Active Learning
 
+The detailed design, including multi-fidelity active learning, is on the
+[Active Learning Plan](active_learning.md) page.
+
 ### Current State
 
 `multioutreg` does not do active learning. Every fitting path

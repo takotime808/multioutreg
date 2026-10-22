@@ -33,6 +33,7 @@ Notes about project.
 
    integrated_surrogates
    surrogate_roadmap
+   active_learning
    parallel_computing
    references
 
