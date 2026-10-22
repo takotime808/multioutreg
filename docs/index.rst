@@ -32,6 +32,7 @@ Notes about project.
    :caption: Resources
 
    integrated_surrogates
+   surrogate_roadmap
    references
 
 .. toctree::
