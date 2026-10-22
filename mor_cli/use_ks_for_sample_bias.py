@@ -301,4 +301,7 @@ def compare_sample_methods(
     if result.p_values:
         typer.echo("\nMonte Carlo p-values: " + ", ".join(f"{m}={p:.3f}" for m, p in result.p_values.items()))
     typer.echo(f"Justification: {result.explanation}")
-    typer.echo(f"\nThe uploaded data most closely matches the '{result.method}' sampling technique.")
+    if result.method == "Uncertain":
+        typer.echo("\nThe uploaded data does not clearly match Grid, LHS, Sobol or Random sampling.")
+    else:
+        typer.echo(f"\nThe uploaded data most closely matches the '{result.method}' sampling technique.")

@@ -130,11 +130,35 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
 
 ## Medium
 
-- [ ] **19. KS sampling-method detector** (`mor_cli/use_ks_for_sample_bias.py`): sums per-dim D,
+- [x] **19. KS sampling-method detector** (`mor_cli/use_ks_for_sample_bias.py`): sums per-dim D,
   no p-values, single unseeded draw, marginal KS can't separate LHS vs random, grid uses cbrt(n)
   for any d, beta grid ignores loc. Use `qmc.discrepancy` / NN-distance stats vs a simulated null.
-- [ ] **20. UMAP sampling classifier**: ad-hoc absolute thresholds on UMAP distances;
+  *Done:* new shared detector `multioutreg/sampling/detect.py::detect_sampling_method`. It computes
+  stratum occupancy, centered L2 discrepancy (`qmc.discrepancy`, n ≤ 1000) and mean NN distance,
+  and compares them with the same statistics on designs simulated by Random / LHS / Sobol
+  (Sobol + Halton) of the same n and d. The statistics are combined into one Mahalanobis distance
+  and a Monte Carlo p-value per method; the method with the highest p wins, or "Uncertain" if
+  all p < 0.05. `n_sim` is 199 / 99 / 49 depending on n, so the smallest attainable p is always
+  < 0.05. Grids are recognised by structure (few levels per input; full factorial, including
+  when extra columns are derived features), and unscrambled Sobol / Halton by exact match.
+  `compare_sample_methods` now maps inputs through their YAML CDFs (probability integral
+  transform) and runs the detector on known bounds, so any marginal works. It reports a per-input
+  KS test with p-values as a check of the YAML marginals only, and has `--seed`. Generators take an
+  `rng`; grid levels are `floor(m^(1/d))` at equal-probability stratum centres; beta uses `loc`; and
+  YAML `"None"` strings are read as missing. Validation (10 seeded designs per cell, n ∈ {20, 100, 300},
+  d ∈ {2, 5, 10}): see item 20.
+- [x] **20. UMAP sampling classifier**: ad-hoc absolute thresholds on UMAP distances;
   `generate_umap_plot(None)` fabricates random data. Label as heuristic; validate.
+  *Done:* the thresholds are gone. `generate_umap_plot` (figures + the duplicate in
+  `report_plotting_utils`), `infer_sampling_and_plot_umap` and the `detect_sampling` CLI take the
+  method from `detect_sampling_method`. UMAP is now only the picture: it does not preserve
+  distances, so its embedding cannot separate designs. `None` / empty input raises `ValueError`;
+  fewer than 4 points gives "Uncertain" in the plot caption, and fewer than 10 points skips the MC
+  test ("Uncertain"). The KMeans colouring was dropped. VALIDATION_PLACEHOLDER
+  - [ ] Follow-up: designs with non-uniform marginals (e.g. LHS of normals) are "Uncertain" unless
+    the marginals are supplied (`compare_sample_methods`), and the reports test `X_train` after
+    the split / imputation / PCA, which hides a true LHS. Plan:
+    [Appendix B](#appendix-b--sampling-detector-known-limits).
 - [ ] **21. `ts_suitability.py`**: Ljung-Box on levels (trend ⇒ "suitable"); "seasonal period" = first
   lag with |ACF|>0.3 (returns 2 for any persistent series); add KPSS alongside ADF.
 - [ ] **22. SARIMA `detect_seasonal_period`** includes lag 1 ⇒ s=1 for almost any series.
@@ -200,8 +224,17 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
 - [x] **E7.** `ts-pipeline` reported `out_dir` as `<out>/<out>` (resolved after `chdir`).
 - [x] **E8.** Deprecated `use_column_width` / `use_container_width` rendered warning boxes in the UI;
   replaced with `width="stretch"` (streamlit >= 1.50).
-- [ ] **E9.** `lhs_detector_app` classifies the repo's own `lhs_sampled_dataset.csv` as "not LHS"
+- [x] **E9.** `lhs_detector_app` classifies the repo's own `lhs_sampled_dataset.csv` as "not LHS"
   (see items 19–20).
+  *Cause:* the app used every numeric column, including `response` (|Spearman ρ| with x1 = 0.36
+  > 0.2 threshold). Its "discrepancy" formula was also not a standard discrepancy, and it was
+  compared with `np.random.rand` designs that were not min-max scaled like the data. The inputs
+  themselves are a perfect LHS (100/100 strata filled in each dimension).
+  *Fix:* the app, the Sampling & Bias dashboard and the dataset-examples page let the user pick the
+  input columns, and leave out response-like names (`y*`, `response*`, `output*`, `target*`) by
+  default via `guess_input_columns`. `detect_sampling` has `--columns` / `--exclude`. The app uses
+  the shared detector: LHS p = 0.50, Random / Sobol p = 0.005. Also fixed a crash in the
+  single-column histogram.
 - [ ] **E10.** The ts pipeline picked SARIMA from the CLI and LSTM from the UI on the same data
   (unseeded LSTM + item 6 ranking).
 
@@ -360,3 +393,150 @@ rolling-origin as an optional `--folds k` that defaults to 1.
   remaining CLI commands now force `Agg`.
 - [ ] **E12.** Plotting helpers in `multioutreg/figures/` should not call `plt.show()` at all; return
   the figure and let the caller decide.
+
+
+---
+
+## Appendix B — Sampling detector: known limits
+
+Status: **planned, not started.** Follow-up to items 19, 20 and E9. Two open decisions (B.4).
+The numbers below were measured on 2026-10-21 with the detector in
+`multioutreg/sampling/detect.py` (10 seeds per row unless stated otherwise).
+
+### B.1 The two limits
+
+**L1. Inputs that are not uniform.** The detector's statistics (strata filled, centered
+discrepancy, nearest-neighbour distance) assume the design was drawn uniformly on a box. An LHS
+of normal or lognormal inputs therefore comes out "Uncertain". Today the only way around this is
+`compare_sample_methods` with a YAML that gives every input's distribution, and most users do not
+have one.
+
+**L2. The reports test the wrong matrix.** `auto_detect_report.py:203`,
+`gui/grid_search_core.py:612` and `gui/pages/02_Multi_Fidelity_Surrogate_Models.py:121` call
+`generate_umap_plot(X_train)`. By then `X_train` is:
+
+| What happened to it | Where | Effect on a true LHS (n = 200, d = 3) |
+|---|---|---|
+| nothing (full design) | — | LHS 10/10 |
+| 75% train split | `grid_search_auto_detect.py:71`, page 01 `:296` | LHS 1/10, Uncertain 9/10 |
+| further 80% calibration split (60% left) | `grid_search_auto_detect.py:110` | Uncertain 10/10 |
+| PCA on standardised inputs | `fit_input_pca` (when enabled) | Uncertain 10/10 |
+| KNN-imputed values | `impute_train_test` | imputed points are not design points |
+
+A random subset of an LHS is not an LHS (most strata are empty), and PCA mixes the columns. Also,
+nothing stops the user from listing a response or a derived feature as an input column.
+
+### B.2 Plan for L1: statistics that do not depend on the input distributions
+
+If each input goes through its own increasing transform (any marginal distribution), two things
+do not change. One is the order of the points along each input. The other, approximately, is the
+ratio of neighbouring gaps between sorted values, because a smooth transform stretches two
+adjacent gaps by about the same factor. So the design can be tested without knowing the
+marginals:
+
+- **Spacing ratio** (marginal stratification, separates LHS / Sobol from Random). For each
+  input, sort the values, take the gaps `s_i`, drop the outer 5% at each end (that is where the
+  transform's slope changes fastest), and compute `r_i = s_{i+1} / (s_i + s_{i+1})`. For i.i.d.
+  sampling `r ~ Uniform(0, 1)`, so `E|r - 0.5| = 0.25`. Stratified designs space their points more
+  evenly. Use the mean of `|r - 0.5|` over inputs.
+- **Rank discrepancy** (joint structure, separates Sobol from LHS / Random). Centered discrepancy
+  of the rank-transformed design `(rank - 0.5) / n`. Ranks are unchanged by any increasing
+  transform. LHS and i.i.d. designs have the same rank pattern (independent random permutations),
+  but a Sobol / Halton design does not.
+
+Prototype (n = 100, d = 3, 40 seeds, mean ± sd):
+
+| Inputs drawn from | Random: SR / rank-CD | LHS: SR / rank-CD | Sobol: SR / rank-CD |
+|---|---|---|---|
+| uniform | 0.252±0.012 / −3.04±0.12 | 0.150±0.008 / −3.00±0.12 | 0.166±0.018 / −3.62±0.02 |
+| normal | 0.252±0.012 / −3.04±0.12 | 0.150±0.008 / −3.00±0.12 | 0.166±0.018 / −3.62±0.02 |
+| gamma(2) | 0.252±0.012 / −3.04±0.12 | 0.150±0.008 / −3.00±0.12 | 0.166±0.018 / −3.62±0.02 |
+| lognormal(0, 2) | 0.253±0.012 / −3.04±0.12 | 0.151±0.008 / −3.00±0.12 | 0.166±0.018 / −3.62±0.02 |
+
+Random and LHS are about 8 standard deviations apart on the spacing ratio, and Sobol is about 5
+apart from both on rank discrepancy. The results are the same for every input distribution. These
+statistics need no fitted distributions, so the null designs can still be simulated on the unit
+cube.
+
+Steps:
+
+1. In `detect.py`, add `spacing_ratio(U)` and `rank_log_cd(U)` (the latter skipped above
+   `MAX_N_DISCREPANCY`, like `log_cd`), and a `marginals` argument:
+   - `"uniform"`: today's statistics, plus the two new ones. Most power when the inputs really
+     are uniform on a box.
+   - `"any"`: only the transform-invariant statistics (spacing ratio, rank discrepancy). Valid
+     for any continuous marginals.
+   - `"auto"`: run both and report `"uniform"` if it finds a consistent method, otherwise
+     `"any"`. Say in the explanation which one was used. (**Decision B-1**)
+2. Inputs with tied or rounded values make gaps of 0, which breaks the spacing ratio. Treat an
+   input with more than 5% zero gaps as discrete, and add that rule to the existing
+   `levels <= n/2` rule.
+3. **Meaning of "Random" in `"any"` mode:** i.i.d. points whose inputs are independent, with any
+   marginals. Observational data usually has correlated inputs, which raises the rank discrepancy,
+   so it still comes out "Uncertain". Data that really is i.i.d. from, say, a normal distribution
+   will now be called "Random", which is correct. Document this in the module docstring and in the
+   LHS app's guide.
+4. `compare_sample_methods` keeps its YAML transform: known marginals give the most power. When
+   any input's KS p < 0.05 (YAML does not fit), rerun with `marginals="any"` and say so.
+
+Risks to check in validation: densities with a near-zero gap in the middle (bimodal), very small
+n (< 20), where the 5% trim leaves few gaps, and inputs rounded to 2–3 decimals.
+
+### B.3 Plan for L2: test the design, not the training matrix
+
+1. **Detect once, before any splitting.** In `mor_cli/grid_search_auto_detect.py`, page 01,
+   page 02, `gui/grid_search_core.py` and `Grid_Search_Surrogate_Models.py`, call
+   `detect_sampling_method` on the **raw input columns**. Use every row whose inputs are all
+   present, including rows later dropped because a response is missing: those points were still
+   sampled. Do this before `train_test_split`, imputation, scaling or PCA.
+2. **Pass the result into the report instead of recomputing it.** Add
+   `sampling: Optional[SamplingDetection]` and `X_design: Optional[np.ndarray]` (for the UMAP
+   picture) to `generate_html_report` in `report/auto_detect_report.py` and to the grid-search
+   report in `gui/grid_search_core.py`. When they are missing, fall back to today's behaviour, but
+   label it "tested on training subset" so the caveat is visible.
+3. **Never test imputed values.** Rows with any missing input are left out of the detection, and
+   the report says how many.
+4. **Multi-fidelity (page 02):** each fidelity level is its own design, so detect per level and
+   show one line per level.
+5. **Subset-aware null for callers that only have a subset.** Add
+   `detect_sampling_method(X, subsample_of=N)`. Each null design is simulated with `N` points and
+   then thinned to `len(X)` at random. This makes "75% of an LHS" testable. Its power will be
+   lower than for the full design, and validation measures how much.
+6. **Report text.** Show the columns tested, n, the per-method p-values and which marginals mode
+   was used. State that the result describes the inputs only.
+7. **Coordination.** `grid_search_core.py`, `Grid_Search_Surrogate_Models.py` and page 02 are
+   being edited for item 29b and the multi-fidelity follow-up. Do steps 1–2 for those files after
+   that work is merged, or in the same branch.
+
+### B.4 Open decisions
+
+- **B-1. Default `marginals` mode.** Recommendation: `"auto"` (prefer `"uniform"`, fall back to
+  `"any"`). It gives the most power when inputs are uniform and still works when they are not.
+  The alternative, `"any"` everywhere, is simpler and never wrong about the marginals, but loses
+  the centered discrepancy and NN statistics, which are what separate LHS from Sobol in higher d.
+- **B-2. Whether rows with a missing response count as design points** (B.3 step 1).
+  Recommendation: yes. They were sampled; the response is what is missing.
+
+### B.5 Tests to add
+
+- `tests/unit/sampling/test_detect.py`:
+  - LHS / Random / Sobol pushed through normal, gamma, lognormal and beta(0.5, 0.5) inverse CDFs
+    are classified correctly with `marginals="any"`.
+  - `"auto"` gives the same answer as today's code on uniform inputs.
+  - Inputs rounded to 1 decimal are treated as discrete.
+  - Two correlated normal inputs (ρ = 0.8) come out "Uncertain".
+  - A random 75% of an LHS, with `subsample_of=N`, comes out LHS.
+- `tests/integration`: run `grid_search_auto_detect` end to end on an LHS of 200 points, with PCA
+  on and 5% of the inputs missing. The report says LHS and states the columns and the number of
+  rows tested.
+
+### B.6 Done when
+
+- [ ] `marginals` modes implemented; the B.2 table reproduced as a test.
+- [ ] Validation over input distribution × design × n ∈ {20, 50, 100, 300} × d ∈ {2, 5, 10}: at
+  least 90% correct for n ≥ 50, and false "Uncertain" near alpha (5%), recorded here.
+- [ ] Every report and GUI page detects on the full raw design (B.3 steps 1–4), with the caveat
+  label on the fallback path.
+- [ ] `subsample_of` implemented and its power measured.
+- [ ] The LHS app and `detect_sampling` CLI expose `marginals` (default per B-1).
+

@@ -73,9 +73,8 @@ def test_generate_error_histogram(sample_regression_data):
 
 
 def test_generate_umap_plot_with_none():
-    b64_img, caption = utils.generate_umap_plot(None)
-    assert isinstance(b64_img, str)
-    assert isinstance(caption, str)
+    with pytest.raises(ValueError):
+        utils.generate_umap_plot(None)
 
 
 def test_plot_to_b64_direct():

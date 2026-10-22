@@ -5,66 +5,40 @@ import numpy as np
 from unittest.mock import patch
 
 from multioutreg.figures.umap_plot_classify import generate_umap_plot
+from multioutreg.sampling.detect import SamplingDetection
 
 
 @patch("multioutreg.figures.umap_plot_classify.plot_to_b64")
 def test_generate_umap_plot_with_input(mock_plot_to_b64):
     mock_plot_to_b64.side_effect = lambda fn: (fn() or "base64umap")
-    X = np.random.normal(loc=0.0, scale=1.0, size=(100, 5))
+    X = np.random.default_rng(0).random((100, 5))
     b64img, explanation = generate_umap_plot(X)
     assert b64img == "base64umap"
     assert isinstance(explanation, str)
-    assert "->" in explanation or "Pattern unclear" in explanation
+    assert "->" in explanation
     mock_plot_to_b64.assert_called_once()
 
 
-@patch("multioutreg.figures.umap_plot_classify.plot_to_b64")
-def test_generate_umap_plot_with_none(mock_plot_to_b64):
-    mock_plot_to_b64.side_effect = lambda fn: (fn() or "base64umap")
-    b64img, explanation = generate_umap_plot(None)
-    assert b64img == "base64umap"
-    assert isinstance(explanation, str)
-    mock_plot_to_b64.assert_called_once()
+@pytest.mark.parametrize("X", [None, np.empty((0, 5))])
+def test_generate_umap_plot_rejects_missing_data(X):
+    # It used to plot made-up random data instead.
+    with pytest.raises(ValueError):
+        generate_umap_plot(X)
 
 
 @patch("multioutreg.figures.umap_plot_classify.plot_to_b64")
-def test_generate_umap_plot_with_empty(mock_plot_to_b64):
-    mock_plot_to_b64.side_effect = lambda fn: (fn() or "base64umap")
-    b64img, explanation = generate_umap_plot(np.empty((0, 5)))
-    assert b64img == "base64umap"
-    assert isinstance(explanation, str)
-    mock_plot_to_b64.assert_called_once()
-
-
-@patch("multioutreg.figures.umap_plot_classify.plot_to_b64")
-@patch("multioutreg.figures.umap_plot_classify.entropy")
-@patch("multioutreg.figures.umap_plot_classify.silhouette_score")
-@patch("multioutreg.figures.umap_plot_classify.np.std")
-@pytest.mark.parametrize("mock_std_val, mock_sil_val, mock_ent_val, expected_keyword", [
-    (0.01, 0.9, 1.0, "Grid"),
-    (0.3, 0.2, 2.5, "Random"),
-    (0.10, 0.5, 1.5, "Sobol"),
-    (0.10, 0.5, 2.5, "LHS"),
-    (0.18, 0.4, 1.5, "Uncertain"),
-])
-def test_generate_umap_plot_explanation_paths(
-    mock_std, mock_silhouette, mock_entropy,
-    mock_plot_to_b64, mock_std_val, mock_sil_val, mock_ent_val, expected_keyword
-):
-    mock_std.return_value = mock_std_val
-    mock_silhouette.return_value = mock_sil_val
-    mock_entropy.return_value = mock_ent_val
+@patch("multioutreg.figures.umap_plot_classify.detect_sampling_method")
+@pytest.mark.parametrize("method", ["Grid", "Random", "Sobol", "LHS", "Uncertain"])
+def test_generate_umap_plot_uses_detector(mock_detect, mock_plot_to_b64, method):
+    mock_detect.return_value = SamplingDetection(method=method, explanation=f"stats -> {method}")
     mock_plot_to_b64.side_effect = lambda fn: (fn() or "base64img")
 
-    X = np.random.rand(100, 5)
-    _, explanation = generate_umap_plot(X)
+    _, explanation = generate_umap_plot(np.random.rand(30, 3))
+    assert explanation == f"stats -> {method}"
 
-    expected_explanation = {
-        "Grid": "Low std and high silhouette -> Grid",
-        "Random": "High std and low silhouette -> Random",
-        "Sobol": "Moderate spread, low entropy -> Sobol",
-        "LHS": "Moderate spread, higher entropy -> LHS",
-        "Uncertain": "Pattern unclear"
-    }[expected_keyword]
 
-    assert explanation == expected_explanation
+@patch("multioutreg.figures.umap_plot_classify.plot_to_b64")
+def test_generate_umap_plot_too_few_points(mock_plot_to_b64):
+    mock_plot_to_b64.side_effect = lambda fn: (fn() or "base64img")
+    _, explanation = generate_umap_plot(np.random.rand(3, 2))
+    assert explanation.endswith("-> Uncertain")
