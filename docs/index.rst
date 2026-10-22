@@ -33,6 +33,7 @@ Notes about project.
 
    integrated_surrogates
    surrogate_roadmap
+   parallel_computing
    references
 
 .. toctree::
