@@ -35,6 +35,8 @@ dependencies = [
   "torch>=2.1",
   "pandas>=2.0,<2.2", #==2.1.4
   "numpy>=1.26,<2.0", # ==1.26.4
+  # pyarrow (pulled in by streamlit) requires NumPy 2 from 26.0; its metadata doesn't say so.
+  "pyarrow<26",
   "statsmodels",
   "joblib",
   # "typing-extensions", # sub-dep of other package
