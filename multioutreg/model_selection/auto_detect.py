@@ -4,11 +4,16 @@
 
 from __future__ import annotations
 
+import functools
+import numbers
 from typing import Sequence
 
 import numpy as np
 from sklearn.base import BaseEstimator, RegressorMixin, clone
-from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import get_scorer
+from sklearn.model_selection import GridSearchCV, KFold, check_cv
+from sklearn.pipeline import Pipeline, make_pipeline
+from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import ExtraTreesRegressor, GradientBoostingRegressor, HistGradientBoostingRegressor, RandomForestRegressor
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.linear_model import LinearRegression, BayesianRidge
@@ -49,6 +54,8 @@ from multioutreg.surrogates.rfgp_sklearn import _RFFEstimator
 from multioutreg.surrogates.polynomial_bayesian_ridge_sklearn import _PBREstimator
 from multioutreg.surrogates.nystroem_gp_sklearn import _NystroemEstimator
 from multioutreg.surrogates.ard_gp_sklearn import _ARDGPEstimator
+from multioutreg.surrogates.conformal_network_sklearn import _CPNEstimator
+from multioutreg.surrogates.gp_sklearn import default_gp_kernel, matern_gp_kernel
 
 try:
     from ngboost import NGBRegressor as _NGBRegressor
@@ -69,6 +76,93 @@ from sklearn.linear_model import (
     QuantileRegressor as _QuantileRegressor,
 )
 
+def _clone_surrogate(surrogate):
+    """Return an unfitted copy of a surrogate (sklearn clone, else deepcopy)."""
+    try:
+        return clone(surrogate)
+    except Exception:
+        import copy
+        return copy.deepcopy(surrogate)
+
+
+# Estimator class name -> screening rule key, for pre_screen on a custom
+# estimator list (with_vendored_surrogates sets ``_model_names`` explicitly).
+_SCREENING_NAMES = {
+    "LinearRegression": "linear",
+    "GaussianProcessRegressor": "gp",
+    "RandomForestRegressor": "rf",
+    "ExtraTreesRegressor": "et",
+    "GradientBoostingRegressor": "gb",
+    "HistGradientBoostingRegressor": "hgb",
+    "SVR": "svr",
+    "KNeighborsRegressor": "knn",
+    "DecisionTreeRegressor": "dt",
+    "MLPRegressor": "mlp",
+    "_CPNEstimator": "mlp",
+    "BayesianRidge": "bayesian_ridge",
+    "ElasticNet": "elastic_net",
+    "Lasso": "lasso",
+    "QuantileRegressor": "quantile",
+    "NGBRegressor": "ngboost",
+    "LGBMRegressor": "lgbm",
+    "XGBRegressor": "xgb",
+    "CatBoostRegressor": "catboost",
+    "_RFFEstimator": "rfgp",
+    "_PBREstimator": "pbr",
+    "_NystroemEstimator": "nystroem_gp",
+    "_ARDGPEstimator": "ard_gp",
+    "_GPXEstimator": "gpx",
+    "_KPLSEstimator": "kpls",
+    "_SGPREstimator": "sgpr",
+}
+
+
+def _screening_name(est) -> str:
+    """Screening rule key for *est* (the final step of a Pipeline)."""
+    if hasattr(est, "steps"):
+        est = est.steps[-1][1]
+    name = type(est).__name__
+    return _SCREENING_NAMES.get(name, name)
+
+
+# Complexity tier per screening name for selection="one_se" (0 = simplest).
+# Names not listed count as 1; joint multi-output candidates count as 2.
+_COMPLEXITY = {
+    **dict.fromkeys(["linear", "bayesian_ridge", "elastic_net", "lasso",
+                     "quantile", "dt", "knn", "pbr"], 0),
+    **dict.fromkeys(["rf", "et", "gb", "hgb", "svr", "lgbm", "xgb", "catboost",
+                     "rfgp", "nystroem_gp"], 1),
+    **dict.fromkeys(["gp", "ard_gp", "gpx", "kpls", "sgpr", "mlp", "ngboost"], 2),
+}
+
+
+def _candidate(name: str, fold_scores, complexity: int, **payload) -> dict:
+    """CV summary of one candidate with a Nadeau–Bengio corrected standard error.
+
+    The naive SE, std/sqrt(k), assumes independent folds; K-fold training sets
+    overlap, so the variance is inflated by (1/k + n_test/n_train) instead of 1/k.
+    """
+    s = np.asarray(fold_scores, dtype=float)
+    k = len(s)
+    se = float(np.sqrt((1 / k + 1 / (k - 1)) * s.var(ddof=1))) if k > 1 else 0.0
+    return {"name": name, "mean": float(s.mean()), "se": se,
+            "complexity": complexity, **payload}
+
+
+class _OutputColumn(RegressorMixin, BaseEstimator):
+    """Expose column ``j`` of a multi-output model so sklearn scorers can use it."""
+
+    def __init__(self, model, j: int) -> None:
+        self.model = model
+        self.j = j
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        preds = np.asarray(self.model.predict(X))
+        if preds.ndim == 1:
+            preds = preds.reshape(-1, 1)
+        return preds[:, self.j]
+
+
 class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
     """Fit a separate estimator per output choosing the best via grid search.
 
@@ -87,6 +181,21 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
         output and skip models that are either computationally expensive
         without justification or unlikely to improve on a linear baseline.
         See :class:`~multioutreg.model_selection.screening.ModelScreener`.
+    selection : {"best", "one_se"}, default "best"
+        ``"best"`` picks the highest mean CV score. ``"one_se"`` picks the
+        least complex candidate whose mean score is within one standard error
+        of the best (Nadeau–Bengio corrected, since CV folds overlap), so a
+        costly model must beat a simple one by more than CV noise.
+    random_state : int | None, default 0
+        Seed for the shuffled ``KFold`` used when ``cv`` is an int.
+
+    Attributes
+    ----------
+    selection_scores_ : list of dict
+        Per output, ``{candidate: {"mean": ..., "se": ...}}`` of the CV scores
+        that drove the choice. The winner's mean is optimistically biased (it
+        is the max over many candidates); evaluate on a held-out test set for
+        an unbiased estimate.
     """
 
     def __init__(
@@ -96,14 +205,49 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
         cv: int = 3,
         scoring: str = "neg_mean_squared_error",
         pre_screen: bool = False,
+        selection: str = "best",
+        random_state: int | None = 0,
     ) -> None:
         if len(estimators) != len(param_spaces):
             raise ValueError("Each estimator must have a corresponding param space")
-        self.estimators = list(estimators)
-        self.param_spaces = list(param_spaces)
+        if selection not in ("best", "one_se"):
+            raise ValueError(f"selection must be 'best' or 'one_se', got {selection!r}")
+        # Stored unmodified: sklearn.clone checks constructor params by identity.
+        self.estimators = estimators
+        self.param_spaces = param_spaces
         self.cv = cv
         self.scoring = scoring
         self.pre_screen = pre_screen
+        self.selection = selection
+        self.random_state = random_state
+
+    def __sklearn_clone__(self) -> "AutoDetectMultiOutputRegressor":
+        # Configuration set outside __init__ (with_vendored_surrogates,
+        # register_multi_output_candidates) is not a constructor param, so the
+        # default clone would drop it.
+        new = super().__sklearn_clone__()
+        for attr in ("_model_names", "_surrogate_constructors", "fidelity_levels"):
+            if hasattr(self, attr):
+                setattr(new, attr, list(getattr(self, attr)))
+        if hasattr(self, "_multi_output_candidates"):
+            # fit() refits these in place, so clones must not share them.
+            new._multi_output_candidates = [
+                _clone_surrogate(s) for s in self._multi_output_candidates]
+        return new
+
+    def _splitter(self):
+        # An int cv means unshuffled KFold in sklearn, so ordered data (sorted
+        # by an input, or by time of collection) gives unrepresentative folds.
+        if isinstance(self.cv, numbers.Integral):
+            return KFold(self.cv, shuffle=True, random_state=self.random_state)
+        return check_cv(self.cv)
+
+    def _choose(self, candidates: list[dict]) -> dict:
+        best = max(candidates, key=lambda c: c["mean"])
+        if self.selection == "best":
+            return best
+        within = [c for c in candidates if c["mean"] >= best["mean"] - best["se"]]
+        return min(within, key=lambda c: (c["complexity"], -c["mean"]))
 
     def fit(self, X: np.ndarray, y: np.ndarray) -> "AutoDetectMultiOutputRegressor":
         y = np.asarray(y)
@@ -112,27 +256,38 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
 
         # Run statistical pre-screening once across all outputs
         _screener = None
-        if self.pre_screen and hasattr(self, "_model_names"):
+        if self.pre_screen:
             from multioutreg.model_selection.screening import ModelScreener
             _screener = ModelScreener().fit(X, y)
+        names = getattr(self, "_model_names", None) or [
+            _screening_name(est) for est in self.estimators]
+
+        # One splitter for every candidate, so all scores use the same folds.
+        splitter = self._splitter()
+        splits = list(splitter.split(X, y))
 
         # Pre-evaluate joint multi-output surrogate candidates (models with
         # _multi_output = True that cannot be wrapped in MultiOutputRegressor).
         # These are scored per output so they can compete in the per-output loop.
-        _mo_scores: list[tuple] = []  # (per_output_scores, fitted_surrogate)
-        for mo_surrogate in getattr(self, "_multi_output_candidates", []):
+        # They are scored with the same CV splitter and scorer as GridSearchCV so
+        # that the comparison against best_score_ is out-of-sample on both sides.
+        _mo_scores: list[tuple] = []  # (fold_scores (n_folds, n_outputs), fitted_surrogate)
+        _mo_candidates = getattr(self, "_multi_output_candidates", [])
+        if _mo_candidates:
+            scorer = get_scorer(self.scoring)
+        for mo_surrogate in _mo_candidates:
+            fold_scores = np.zeros((len(splits), y.shape[1]))
+            for f, (tr, te) in enumerate(splits):
+                fold_model = _clone_surrogate(mo_surrogate).fit(X[tr], y[tr])
+                for j in range(y.shape[1]):
+                    fold_scores[f, j] = scorer(
+                        _OutputColumn(fold_model, j), X[te], y[te, j]
+                    )
             mo_surrogate.fit(X, y)
-            mo_preds = np.asarray(mo_surrogate.predict(X))
-            if mo_preds.ndim == 1:
-                mo_preds = mo_preds.reshape(-1, 1)
-            # Use neg-MSE to match GridSearchCV default scoring
-            per_output_mse = [
-                -np.mean((y[:, j] - mo_preds[:, j]) ** 2)
-                for j in range(y.shape[1])
-            ]
-            _mo_scores.append((per_output_mse, mo_surrogate))
+            _mo_scores.append((fold_scores, mo_surrogate))
 
         self.models_ = []
+        self.selection_scores_: list[dict] = []
         # _model_output_col[i] = which column of models_[i].predict(X) gives output i.
         # Multi-output models store the full (n_samples, n_outputs) matrix and we
         # slice a single column per slot; single-output models always return column 0.
@@ -140,41 +295,43 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
         for i in range(y.shape[1]):
             # Determine which estimator indices to evaluate for this output
             if _screener is not None:
-                eligible = set(_screener.eligible_indices_for_output(
-                    i, self._model_names))
+                eligible = set(_screener.eligible_indices_for_output(i, names))
+                if not eligible:  # screening ruled out every candidate: try them all
+                    eligible = set(range(len(self.estimators)))
             else:
                 eligible = set(range(len(self.estimators)))
 
-            best_score = -np.inf
-            best_est = None
-            best_idx = None
-            best_params = None
+            candidates = []
             for idx, (est, params) in enumerate(zip(self.estimators, self.param_spaces)):
                 if idx not in eligible:
                     continue
-                gs = GridSearchCV(est, params, cv=self.cv, scoring=self.scoring)
+                gs = GridSearchCV(est, params, cv=splits, scoring=self.scoring)
                 gs.fit(X, y[:, i])
-                if gs.best_score_ > best_score:
-                    best_score = gs.best_score_
-                    best_est = clone(gs.best_estimator_)
-                    best_idx = idx
-                    best_params = gs.best_params_
-
-            # Check if any joint multi-output surrogate beats the single-output winner
-            best_mo_surrogate = None
-            for per_output_scores, mo_surrogate in _mo_scores:
-                if per_output_scores[i] > best_score:
-                    best_score = per_output_scores[i]
-                    best_mo_surrogate = mo_surrogate
-                    best_est = None  # signal that multi-output model won
-
-            if best_mo_surrogate is not None:
-                self.models_.append(best_mo_surrogate)
-                self._model_output_col.append(i)  # column i of the joint prediction
-            elif best_est is None:
+                folds = [gs.cv_results_[f"split{f}_test_score"][gs.best_index_]
+                         for f in range(len(splits))]
+                candidates.append(_candidate(
+                    names[idx], folds, _COMPLEXITY.get(names[idx], 1),
+                    idx=idx, est=gs.best_estimator_, params=gs.best_params_))
+            for k, (fold_scores, mo_surrogate) in enumerate(_mo_scores):
+                candidates.append(_candidate(
+                    f"{type(mo_surrogate).__name__}[{k}]", fold_scores[:, i], 2,
+                    mo=mo_surrogate))
+            if not candidates:
                 raise RuntimeError("No valid estimator found")
-            elif hasattr(self, "_surrogate_constructors") and best_idx is not None:
-                surrogate = self._surrogate_constructors[best_idx](**best_params)
+
+            self.selection_scores_.append(
+                {c["name"]: {"mean": c["mean"], "se": c["se"]} for c in candidates})
+            chosen = self._choose(candidates)
+
+            if "mo" in chosen:
+                self.models_.append(chosen["mo"])
+                self._model_output_col.append(i)  # column i of the joint prediction
+            elif hasattr(self, "_surrogate_constructors"):
+                params = chosen["params"]
+                if isinstance(self.estimators[chosen["idx"]], Pipeline):
+                    # Grid keys are "<step>__<param>"; surrogates take the bare name.
+                    params = {k.split("__", 1)[1]: v for k, v in params.items()}
+                surrogate = self._surrogate_constructors[chosen["idx"]](**params)
                 if isinstance(surrogate, MultiFidelitySurrogate):
                     surrogate.fit((X, y[:, [i]]))
                 else:
@@ -182,7 +339,7 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
                 self.models_.append(surrogate)
                 self._model_output_col.append(0)  # single-output, always column 0
             else:
-                best_est.fit(X, y[:, i])
+                best_est = clone(chosen["est"]).fit(X, y[:, i])
                 self.models_.append(best_est)
                 self._model_output_col.append(0)  # single-output, always column 0
 
@@ -277,6 +434,7 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
         scoring: str = "neg_mean_squared_error",
         fidelity_levels: Sequence[str] | None = None,
         pre_screen: bool = False,
+        selection: str = "best",
     ) -> "AutoDetectMultiOutputRegressor":
         """Return instance configured to search all vendored surrogates.
 
@@ -287,37 +445,46 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             to skip expensive models that are unlikely to help on this data.
             Computationally heavy models (GP, SVR, MLP, heteroscedastic
             ensembles) are only run when the data characteristics justify them.
+        selection : {"best", "one_se"}, default "best"
+            See the class docstring.
+
+        Scale-sensitive candidates (GP, SVR, KNN, MLP, ElasticNet, Lasso) are
+        grid-searched as ``StandardScaler`` pipelines, matching the scaling
+        their surrogates apply when deployed.
         """
+
+        def scaled(est):
+            return make_pipeline(StandardScaler(), est)
 
         estimators = [
             LinearRegression(),
-            GaussianProcessRegressor(),
+            scaled(GaussianProcessRegressor(kernel=default_gp_kernel(), normalize_y=True)),
             RandomForestRegressor(),
             ExtraTreesRegressor(),
             GradientBoostingRegressor(),
-            SVR(),
-            KNeighborsRegressor(),
+            scaled(SVR()),
+            scaled(KNeighborsRegressor()),
             DecisionTreeRegressor(),
-            MLPRegressor(max_iter=500),
+            _CPNEstimator(max_iter=500, random_state=0),
             BayesianRidge(),
             _RFFEstimator(n_components=500, length_scale=1.0),
             _PBREstimator(degree=2),
             _NystroemEstimator(n_components=100),
             _ARDGPEstimator(),
             HistGradientBoostingRegressor(),
-            _ElasticNet(),
-            _Lasso(),
+            scaled(_ElasticNet()),
+            scaled(_Lasso()),
             _QuantileRegressor(quantile=0.5),
         ]
 
         param_spaces = [
             {},
-            {"alpha": [1e-10, 1e-2]},
+            {"gaussianprocessregressor__kernel": [default_gp_kernel(), matern_gp_kernel()]},
             {"n_estimators": [50, 100], "max_depth": [3, 5, None]},
             {"n_estimators": [50, 100], "max_depth": [3, 5, None]},
             {"n_estimators": [50, 100], "max_depth": [3, 5]},
-            {"C": [1.0, 10.0], "gamma": ["scale", "auto"]},
-            {"n_neighbors": [3, 5, 7]},
+            {"svr__C": [1.0, 10.0], "svr__gamma": ["scale", "auto"]},
+            {"kneighborsregressor__n_neighbors": [3, 5, 7]},
             {"max_depth": [1, None]},
             {"hidden_layer_sizes": [(64,), (128,)], "alpha": [1e-4, 1e-3]},
             {},
@@ -326,8 +493,8 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             {"n_components": [50, 200], "gamma": [None, 0.1, 1.0]},
             {"alpha": [1e-6, 1e-2]},
             {"max_iter": [100, 200], "learning_rate": [0.05, 0.1]},
-            {"alpha": [0.01, 0.1, 1.0], "l1_ratio": [0.25, 0.5, 0.75]},
-            {"alpha": [0.01, 0.1, 1.0]},
+            {"elasticnet__alpha": [0.01, 0.1, 1.0], "elasticnet__l1_ratio": [0.25, 0.5, 0.75]},
+            {"lasso__alpha": [0.01, 0.1, 1.0]},
             {"alpha": [0.1, 1.0]},
         ]
 
@@ -343,7 +510,8 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             SVRSurrogate,
             KNeighborsSurrogate,
             DecisionTreeRegressorSurrogate,
-            ConformalPredictionNetworkSurrogate,
+            # same random_state as the _CPNEstimator that was grid-searched
+            functools.partial(ConformalPredictionNetworkSurrogate, random_state=0),
             BayesianRidgeSurrogate,
             RFFGPSurrogate,
             PolynomialBayesianRidgeSurrogate,
@@ -399,7 +567,7 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             surrogate_constructors.append(SparseGPSurrogate)
 
         instance = cls(estimators, param_spaces, cv=cv, scoring=scoring,
-                       pre_screen=pre_screen)
+                       pre_screen=pre_screen, selection=selection)
         # Short names used by ModelScreener.eligible_indices_for_output()
         instance._model_names = model_names
 

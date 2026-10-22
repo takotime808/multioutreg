@@ -284,7 +284,7 @@ def test_additive_return_std_shape(two_level_data):
 
 
 def test_additive_quadrature_std_formula(two_level_data):
-    """Combined std equals sqrt(s_lo^2 + s_delta^2) exactly."""
+    """Combined std equals sqrt(rho^2 s_lo^2 + s_delta^2) exactly."""
     m = AdditiveCorrectionVFM(
         lo_surrogate_cls=GaussianProcessSurrogate,
         hi_surrogate_cls=GaussianProcessSurrogate,
@@ -300,7 +300,7 @@ def test_additive_quadrature_std_formula(two_level_data):
         s_lo = s_lo.reshape(-1, 1)
     if s_delta.ndim == 1:
         s_delta = s_delta.reshape(-1, 1)
-    expected = np.sqrt(s_lo ** 2 + s_delta ** 2)
+    expected = np.sqrt((m.rho_ * s_lo) ** 2 + s_delta ** 2)
     np.testing.assert_allclose(s_combined, expected, atol=1e-10)
 
 

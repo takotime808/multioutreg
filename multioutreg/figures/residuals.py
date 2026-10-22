@@ -129,6 +129,7 @@ def plot_residuals_multioutput_with_regplot(
     supxlabel: str = "Predicted Value",
     supylabel: str = "Residual (Observed - Predicted)",
     target_list: list = None,
+    seed: int | None = None,
 ) -> List[plt.Axes]:
     """
     Plot residuals (Observed - Predicted) for each target in a multi-output regression problem,
@@ -156,6 +157,8 @@ def plot_residuals_multioutput_with_regplot(
         Shared y-axis label for all subplots (default is "Residual (Observed - Predicted)").
     target_list : list of str, optional
         List of titles for each target subplot (default is ["Target 1", "Target 2", ...]).
+    seed : int or None, optional
+        Seed for seaborn's bootstrap of the trend-line confidence band.
 
     Returns
     -------
@@ -194,7 +197,8 @@ def plot_residuals_multioutput_with_regplot(
         ax = axes_flat[i]
         sns.regplot(
             x=y_pred[:, i], y=residuals[:, i], ax=ax,
-            scatter_kws={'alpha': 0.7, 's': 40}, line_kws={'color': 'black', 'lw': 2}
+            scatter_kws={'alpha': 0.7, 's': 40}, line_kws={'color': 'black', 'lw': 2},
+            seed=seed,
         )
         ax.axhline(0, color="red", linestyle="--", lw=2)
         # ax.set_ylim([rmin, rmax]) # NOTE: un-comment to revert.

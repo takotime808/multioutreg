@@ -113,3 +113,56 @@ class TestCVPlusMultiOutput:
                 (y_test[:, j] >= y_lower[:, j]) & (y_test[:, j] <= y_upper[:, j])
             )
             assert coverage >= (1 - alpha) - 0.15
+
+
+def _cv_plus_reference(cp, X, alpha):
+    """Direct per-point implementation of the CV+ definition (Barber et al., 2021)."""
+    n = cp.residuals_.shape[0]
+    preds = [np.asarray(m.predict(X)).reshape(len(X), -1) for m in cp.fold_models_]
+    k_lo = int(np.floor(alpha * (n + 1)))
+    k_hi = int(np.ceil((1 - alpha) * (n + 1)))
+    lo = np.empty((len(X), cp.residuals_.shape[1]))
+    hi = np.empty_like(lo)
+    for t in range(len(X)):
+        for j in range(cp.residuals_.shape[1]):
+            lows = sorted(preds[cp.fold_ids_[i]][t, j] - cp.residuals_[i, j] for i in range(n))
+            highs = sorted(preds[cp.fold_ids_[i]][t, j] + cp.residuals_[i, j] for i in range(n))
+            lo[t, j] = lows[k_lo - 1]
+            hi[t, j] = highs[k_hi - 1]
+    return lo, hi
+
+
+def test_matches_reference_definition(multi_output_data):
+    # Regression: intervals were mean(fold preds) +/- a residual quantile, which
+    # is not CV+ and carries no coverage guarantee.
+    X_train, y_train, X_test, _ = multi_output_data
+    cp = CVPlusConformalPredictor(LinearRegression(), n_folds=5, random_state=0)
+    cp.fit(X_train, y_train)
+    lo, hi = cp.predict_interval(X_test[:20], alpha=0.1)
+    ref_lo, ref_hi = _cv_plus_reference(cp, X_test[:20], alpha=0.1)
+    np.testing.assert_allclose(lo, ref_lo)
+    np.testing.assert_allclose(hi, ref_hi)
+
+
+def test_too_few_points_gives_infinite_bounds():
+    rng = np.random.default_rng(0)
+    X, y = rng.normal(size=(8, 2)), rng.normal(size=8)
+    cp = CVPlusConformalPredictor(LinearRegression(), n_folds=4, random_state=0).fit(X, y)
+    with pytest.warns(UserWarning, match="too few"):
+        lo, hi = cp.predict_interval(X[:3], alpha=0.1)  # floor(0.1 * 9) = 0 < 1
+    assert np.all(np.isneginf(lo)) and np.all(np.isposinf(hi))
+
+
+def test_marginal_coverage_simulation():
+    # Guarantee is >= 1 - 2*alpha; in practice CV+ should be close to 1 - alpha.
+    rng = np.random.default_rng(1)
+    alpha, coverages = 0.1, []
+    for rep in range(100):
+        X = rng.uniform(-2, 2, size=(250, 1))
+        y = X[:, 0] ** 3 + rng.standard_t(3, size=250)
+        cp = CVPlusConformalPredictor(LinearRegression(), n_folds=5, random_state=rep)
+        cp.fit(X[:50], y[:50])
+        lo, hi = cp.predict_interval(X[50:], alpha=alpha)
+        coverages.append(np.mean((y[50:] >= lo) & (y[50:] <= hi)))
+    assert np.mean(coverages) >= 1 - 2 * alpha
+    assert np.mean(coverages) >= 1 - alpha - 0.03

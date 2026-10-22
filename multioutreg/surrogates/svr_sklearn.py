@@ -4,6 +4,6 @@ from sklearn.svm import SVR
 from multioutreg.surrogates.base_sklearn import BaseSurrogate
 
 class SVRSurrogate(BaseSurrogate):
-    """Support Vector Regression surrogate."""
-    def __init__(self, **kwargs):
-        super().__init__(SVR(**kwargs))
+    """Support Vector Regression surrogate (inputs standardised by default)."""
+    def __init__(self, scale_inputs=True, **kwargs):
+        super().__init__(SVR(**kwargs), scale_inputs=scale_inputs)

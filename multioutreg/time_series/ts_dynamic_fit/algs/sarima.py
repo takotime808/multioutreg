@@ -9,6 +9,8 @@ import warnings
 import logging
 from typing import Optional, Tuple, Any, Dict, Sequence, Union
 
+from multioutreg.time_series.seasonality import detect_seasonal_period
+
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
 warnings.filterwarnings("ignore")
@@ -111,6 +113,10 @@ class SARIMA:
         best_order = None
         best_model = None
 
+        # Seasonal terms need a period >= 2; statsmodels rejects them otherwise.
+        if s_value < 2:
+            P_values, Q_values = [0], [0]
+
         results = Parallel(n_jobs=-1)(
             delayed(self.fit_sarima)(p, q, P, Q, s_value)
             for p in p_values
@@ -137,16 +143,12 @@ class SARIMA:
             threshold (float): Minimum ACF value considered as a significant peak.
         
         Returns:
-            s_value (int): Most likely seasonality period (lag of first significant ACF peak).
+            s_value (int): Most likely seasonality period (lag >= 2 of the highest ACF peak),
+                or 0 if there is none. Lag 1 is never returned: the old "first lag above
+                threshold" rule gave s=1 for any autocorrelated series.
         """
-        if max_lag is None:
-            max_lag = min(len(data)//2, 100)
-        acf_vals = acf(data, nlags=max_lag, fft=True)
-        # Ignore lag=0
-        for lag in range(1, len(acf_vals)):
-            if acf_vals[lag] > threshold:
-                return lag
-        return 0  # No strong seasonality detected
+        s_value = detect_seasonal_period(data, max_lag=max_lag, threshold=threshold)
+        return s_value or 0  # 0: no strong seasonality detected
                 
     def run(self) -> Tuple[Dict[str, Any], pd.DataFrame, Any]:
         """

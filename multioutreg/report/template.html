@@ -13,6 +13,9 @@
         th, td { border: 1px solid #ddd; padding: 8px; }
         th { background: #f4f4f4; }
         .errormsg { color: #d7263d; font-size: 1.1em; text-align: center; }
+        .summary li { margin-bottom: 0.4em; }
+        tr.best td { background: #eef6ee; font-weight: bold; }
+        td.num { text-align: right; }
     </style>
 </head>
 <body>
@@ -32,6 +35,17 @@
             <b>Description:</b> {{ description or "No description provided." }}
         </p>
     </div>
+    {% if summary_points %}
+    <div class="section">
+        <h2>Summary</h2>
+        <ul class="summary">
+            {% for p in summary_points %}
+            <li>{{ p }}</li>
+            {% endfor %}
+        </ul>
+        <p><i>Generated automatically from the metrics in this report.</i></p>
+    </div>
+    {% endif %}
     {% if imputation_summary %}
     <div class="section">
         <h2>Data Imputation</h2>
@@ -67,11 +81,46 @@
         </table>
     </div>
     {% endif %}
+    {% if level_summary %}
+    <div class="section">
+        <h2>Fidelity Levels</h2>
+        <p>
+            <i>
+                Data per fidelity level (lowest to highest). Mean and std are of the training outputs.
+                <b>r</b> and <b>R²</b> come from a {{ baseline_label or "base" }} model trained on that level alone
+                and scored against the highest-fidelity test outputs: a high r with a lower R² means the level is
+                informative but biased (a multi-fidelity model can correct that), while a low r means it carries
+                little usable information. The highest level's row is the HF-only baseline.
+            </i>
+        </p>
+        <table>
+            <tr>
+                <th>Level</th><th>Output</th><th>Train n</th><th>Test n</th>
+                <th>Mean ± std</th><th>r</th><th>R²</th>
+            </tr>
+            {% for r in level_summary %}
+            <tr>
+                <td>{{ r.level }}</td>
+                <td>{{ r.output }}</td>
+                <td class="num">{{ r.n_train }}</td>
+                <td class="num">{{ r.n_test }}</td>
+                <td class="num">{{ "%.3g"|format(r.mean) }} ± {{ "%.3g"|format(r.std) }}</td>
+                {% if r.error %}
+                <td colspan="2" class="errormsg">{{ r.error }}</td>
+                {% else %}
+                <td class="num">{{ "%.3f"|format(r.r) if r.r is not none else "n/a" }}</td>
+                <td class="num">{{ "%.3f"|format(r.r2) }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
     <div class="section">
         <h2>Regression Metrics</h2>
         <p>
             <i>
-                The following table shows regression metrics (such as $R^2$, RMSE, MAE) for each output variable, quantifying model accuracy on the test data.
+                The following table shows regression metrics (such as R², RMSE, MAE) for each output variable, quantifying model accuracy on the test data.
             </i>
         </p>
         <table>
@@ -99,11 +148,64 @@
             {% endfor %}
         </table>
     </div>
+    {% if baseline_comparison %}
+    <div class="section">
+        <h2>Multi-Fidelity vs High-Fidelity-Only Baseline</h2>
+        <p>
+            <i>
+                The baseline is the same base surrogate ({{ baseline_label }}) trained only on the highest-fidelity
+                training data, scored on the same test set. A negative RMSE change means the lower-fidelity
+                data improved accuracy.
+            </i>
+        </p>
+        <table>
+            <tr>
+                <th>Output</th><th>MF RMSE</th><th>HF-only RMSE</th><th>RMSE change</th>
+                <th>MF R²</th><th>HF-only R²</th>
+            </tr>
+            {% for r in baseline_comparison %}
+            <tr>
+                <td>{{ r.output }}</td>
+                <td class="num">{{ "%.4g"|format(r.mf_rmse) }}</td>
+                <td class="num">{{ "%.4g"|format(r.hf_rmse) }}</td>
+                <td class="num">{{ "%+.1f%%"|format(r.rmse_change_pct) if r.rmse_change_pct is not none else "n/a" }}</td>
+                <td class="num">{{ "%.3f"|format(r.mf_r2) }}</td>
+                <td class="num">{{ "%.3f"|format(r.hf_r2) }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+    {% if grid_search_results %}
+    <div class="section">
+        <h2>Model Selection</h2>
+        <p>
+            <i>
+                Every candidate was fitted on the training data minus a validation split of the highest-fidelity
+                data and ranked by validation MSE. The test set was not used for selection. The selected
+                model (highlighted) was then refit on all training data.
+            </i>
+        </p>
+        <table>
+            <tr><th>#</th><th>Model</th><th>Val MSE</th><th>Val RMSE</th><th>Val R²</th><th>Status</th></tr>
+            {% for r in grid_search_results %}
+            <tr{% if r['Model'] == best_candidate_name %} class="best"{% endif %}>
+                <td class="num">{{ loop.index }}</td>
+                <td>{{ r['Model'] }}</td>
+                <td class="num">{{ "%.4g"|format(r['Val MSE']) if r['Val MSE'] is not none else "—" }}</td>
+                <td class="num">{{ "%.4g"|format(r['Val RMSE']) if r['Val RMSE'] is not none else "—" }}</td>
+                <td class="num">{{ "%.3f"|format(r['Val R²']) if r['Val R²'] is not none else "—" }}</td>
+                <td>{{ r['Status'] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
     <div class="section">
         <h2>Uncertainty Metrics</h2>
         <p>
             <i>
-                These metrics assess how well the model's predictive uncertainties reflect the actual errors. Lower NLL, sharpness, and miscoverage indicate better calibrated uncertainty estimates.
+                These metrics assess how well the model's predictive uncertainties reflect the actual errors. Lower NLL and miscoverage indicate better calibrated uncertainty estimates; lower sharpness (mean predicted std) means tighter intervals, which is only useful when coverage holds.
             </i>
         </p>
         <table>
@@ -118,7 +220,7 @@
             </tr>
             {% endfor %}
         </table>
-        <h3>Uncertainty Toolbox Plots</h3>
+        <h3>Uncertainty Plots</h3>
         <p>
             <i>
                 These plots visualize calibration, sharpness, and other aspects of model uncertainty quantification.
@@ -143,7 +245,7 @@
             <i>
                 Conformal prediction provides distribution-free prediction intervals with finite-sample coverage guarantees.
                 Unlike Gaussian confidence intervals, conformal intervals make no assumptions about error distributions
-                and are guaranteed to contain the true value with at least the specified probability.
+                and contain the true value with at least the specified probability on average (marginal coverage), provided calibration and test data are exchangeable.
             </i>
         </p>
         {% for p in conformal_plots %}
@@ -159,7 +261,7 @@
         {% endfor %}
     </div>
     {% endif %}
-    <!-- <div class="section">
+    {# <div class="section">
         <h2>Predictions vs. True Values (per output)</h2>
         <p>
             <i>
@@ -176,7 +278,7 @@
             {% endif %}
         </div>
         {% endfor %}
-    </div> -->
+    </div> #}
 <div class="section">
         <h2>Predictions vs. True Values (per output)</h2>
         <p>

@@ -33,6 +33,8 @@ def main():
     }
     if len(sys.argv) == 1:
         msg.info("Available commands", ", ".join(commands), exits=1)
+    if sys.argv[1] in ("-h", "--help"):
+        msg.info("Available commands", ", ".join(commands), exits=0)
     command = sys.argv.pop(1)
     sys.argv[0] = f"multioutreg {command}"
     if command in commands:

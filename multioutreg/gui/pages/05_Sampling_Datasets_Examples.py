@@ -2,6 +2,9 @@
 
 """Streamlit page for downloading example datasets made from different sampling methods."""
 
+import matplotlib
+matplotlib.use("Agg")  # plotting helpers call plt.show(); never open desktop windows
+
 import numpy as np
 import pandas as pd
 # import seaborn as sns
@@ -9,6 +12,7 @@ import streamlit as st
 from scipy.stats import qmc
 # import matplotlib.pyplot as plt
 
+from multioutreg.sampling.detect import guess_input_columns
 from multioutreg.sampling.infer_sampling import infer_sampling_and_plot_umap
 
 st.set_page_config(page_title="Sampling Datasets", layout="centered")
@@ -301,7 +305,7 @@ for i, (name, df) in enumerate(datasets):
     col1, col2 = st.columns([3, 2])  # Data | Visual
 
     with col1:
-        st.dataframe(df.head(), use_container_width=True)
+        st.dataframe(df.head(), width="stretch")
         csv_bytes = df.to_csv(index=False).encode("utf-8")
         filename = name.lower().replace(" ", "_").replace("-", "_") + ".csv"
         st.download_button(
@@ -313,7 +317,7 @@ for i, (name, df) in enumerate(datasets):
         )
 
     with col2:
-        numeric_cols = df.select_dtypes(include="number").columns.tolist()
+        numeric_cols = guess_input_columns(df.select_dtypes(include="number").columns.tolist())
         if len(numeric_cols) >= 2:
             X = df[numeric_cols].values
             try:

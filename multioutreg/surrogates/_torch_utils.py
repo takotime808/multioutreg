@@ -123,3 +123,47 @@ def to_tensor(X: np.ndarray, dtype=None) -> "torch.Tensor":
     if dtype is None:
         dtype = torch.float32
     return torch.tensor(X, dtype=dtype)
+
+
+_MIN_VAR = 1e-6
+
+
+def split_mean_var(out: "torch.Tensor", n_outputs: int):
+    """Split a ``(n, 2 * n_outputs)`` network output into mean and variance.
+
+    The second half is passed through softplus (plus a small floor), so the
+    variance is always positive.
+    """
+    mean = out[:, :n_outputs]
+    var = torch.nn.functional.softplus(out[:, n_outputs:]) + _MIN_VAR
+    return mean, var
+
+
+def gaussian_nll_loss(n_outputs: int):
+    """Loss for a mean/variance head: Gaussian negative log-likelihood.
+
+    Training on the NLL lets the network learn the noise variance (aleatoric
+    uncertainty) as a function of x (Nix & Weigend 1994; Lakshminarayanan
+    et al. 2017). The returned callable has the ``loss_fn(y_pred, y_true)``
+    signature expected by :func:`train_loop`.
+    """
+    require_torch()
+    nll = nn.GaussianNLLLoss(eps=_MIN_VAR)
+
+    def loss_fn(out, y):
+        mean, var = split_mean_var(out, n_outputs)
+        return nll(mean, y, var)
+
+    return loss_fn
+
+
+def mixture_mean_std(means: np.ndarray, variances: np.ndarray):
+    """Moments of an equal-weight Gaussian mixture over axis 0.
+
+    ``means`` and ``variances`` have shape ``(n_members, n_samples, n_outputs)``.
+    Total variance = mean noise variance (aleatoric) + variance of the member
+    means (epistemic).
+    """
+    mean = means.mean(axis=0)
+    var = variances.mean(axis=0) + means.var(axis=0)
+    return mean, np.sqrt(var)

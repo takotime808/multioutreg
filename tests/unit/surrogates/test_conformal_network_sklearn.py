@@ -19,7 +19,7 @@ def sample_data():
 
 def test_initialization_default():
     surrogate = ConformalPredictionNetworkSurrogate(random_state=0)
-    assert surrogate.model.estimator.__class__.__name__ == "MLPRegressor"
+    assert surrogate.model.estimator[-1].__class__.__name__ == "MLPRegressor"
 
 
 def test_fit_predict_output_shape(sample_data):
@@ -48,3 +48,13 @@ def test_invalid_conformal_params_raise():
 
     with pytest.raises(ValueError, match="conformal_quantile"):
         ConformalPredictionNetworkSurrogate(conformal_quantile=1.0)
+
+def test_predict_std_is_sigma_not_residual_quantile():
+    # Regression: std was the 90% quantile of |residual| (~1.645 * sigma for
+    # Gaussian residuals) instead of sigma itself.
+    rng = np.random.default_rng(0)
+    X = rng.uniform(size=(2000, 1))
+    Y = (X[:, 0] + rng.normal(size=2000)).reshape(-1, 1)  # sigma = 1
+    surrogate = ConformalPredictionNetworkSurrogate(random_state=0).fit(X, Y)
+    _, std = surrogate.predict(X[:10], return_std=True)
+    assert abs(std.mean() - 1.0) < 0.2

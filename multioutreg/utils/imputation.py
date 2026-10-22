@@ -4,6 +4,7 @@
 
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 from sklearn.impute import KNNImputer
 
@@ -37,6 +38,12 @@ def apply_imputation(
 ) -> pd.DataFrame:
     """Clean a DataFrame by KNN-imputing selected columns and dropping rows elsewhere.
 
+    .. note::
+        The imputer is fitted on the whole frame, so do not use this before a
+        train/test split: test rows would influence training values. For
+        modeling, use :func:`drop_unusable_rows` before splitting and
+        :func:`impute_train_test` after.
+
     Parameters
     ----------
     df : pd.DataFrame
@@ -61,3 +68,63 @@ def apply_imputation(
     if cols_to_drop_rows:
         df = df.dropna(subset=cols_to_drop_rows)
     return df
+
+
+def drop_unusable_rows(
+    df: pd.DataFrame,
+    output_cols: list[str],
+    cols_to_drop_rows: list[str],
+) -> pd.DataFrame:
+    """Drop rows that cannot be used for modeling, before any train/test split.
+
+    Rows with a missing target are always dropped: an imputed target would be
+    scored as ground truth. Rows with a missing value in ``cols_to_drop_rows``
+    are dropped as well. Both decisions depend only on the row itself, so this
+    is safe to do before splitting.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        Input DataFrame (not modified in-place).
+    output_cols : list[str]
+        Target columns; rows missing any of these are dropped.
+    cols_to_drop_rows : list[str]
+        Additional columns whose missing values cause the row to be dropped.
+
+    Returns
+    -------
+    pd.DataFrame
+        Copy of ``df`` without the unusable rows.
+    """
+    subset = list(dict.fromkeys(list(output_cols) + list(cols_to_drop_rows)))
+    return df.dropna(subset=subset) if subset else df.copy()
+
+
+def impute_train_test(
+    X_train: np.ndarray,
+    X_test: np.ndarray,
+    n_neighbors: int = 5,
+) -> tuple[np.ndarray, np.ndarray]:
+    """KNN-impute missing input values without leaking test data.
+
+    The imputer is fitted on the training inputs only and then applied to both
+    splits, so test rows never influence the values filled into training rows
+    (or each other). All input columns are used to find neighbours.
+
+    Parameters
+    ----------
+    X_train, X_test : np.ndarray
+        Input feature matrices, possibly containing NaN.
+    n_neighbors : int, optional
+        Number of nearest neighbours used by :class:`~sklearn.impute.KNNImputer`.
+
+    Returns
+    -------
+    X_train_imputed, X_test_imputed : np.ndarray
+    """
+    X_train = np.asarray(X_train, dtype=float)
+    X_test = np.asarray(X_test, dtype=float)
+    if not (np.isnan(X_train).any() or np.isnan(X_test).any()):
+        return X_train, X_test
+    imp = KNNImputer(n_neighbors=n_neighbors, keep_empty_features=True)
+    return imp.fit_transform(X_train), imp.transform(X_test)

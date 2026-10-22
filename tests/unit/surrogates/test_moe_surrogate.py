@@ -168,3 +168,41 @@ def test_get_set_params():
     assert params["gating_type"] == "mlp"
     m.set_params(n_experts=5)
     assert m.n_experts == 5
+
+
+@pytest.mark.parametrize("seed", range(5))
+def test_em_assignments_follow_expert_fit(seed):
+    # Regression: the E-step reassigned samples from the gating network's own
+    # predict_proba, never looking at expert fit, so two linear experts on
+    # y = 3|x| found the kink in only 1 of 5 seeds.
+    from multioutreg.surrogates import LinearRegressionSurrogate
+
+    rng = np.random.default_rng(seed)
+    X = rng.uniform(-2, 2, (400, 1))
+    y = 3 * np.abs(X[:, 0]) + 0.1 * rng.normal(size=400)
+    m = MixtureOfExpertsSurrogate(n_experts=2, expert_type=LinearRegressionSurrogate,
+                                  routing="hard", random_state=seed).fit(X, y)
+    Xt = np.linspace(-2, 2, 200)[:, None]
+    assert np.mean((m.predict(Xt).ravel() - 3 * np.abs(Xt[:, 0])) ** 2) < 0.01
+
+
+def test_std_includes_within_expert_variance():
+    # Regression: soft-routing std was only expert disagreement and hard
+    # routing returned zeros; both now include each expert's own std.
+    from multioutreg.surrogates import GaussianProcessSurrogate
+
+    rng = np.random.default_rng(0)
+    X = rng.uniform(-2, 2, (120, 1))
+    y = np.sin(X[:, 0]) + 0.3 * rng.normal(size=120)
+    m = MixtureOfExpertsSurrogate(n_experts=2, expert_type=GaussianProcessSurrogate,
+                                  random_state=0).fit(X, y)
+    _, std_soft = m.predict(X, return_std=True)
+    preds = np.stack([e.predict(X) for e in m.experts_])
+    w = m.get_routing_weights(X).T[:, :, None]
+    disagreement = np.sqrt((w * (preds - (w * preds).sum(0)) ** 2).sum(0))
+    assert np.all(std_soft >= disagreement - 1e-12)
+    assert std_soft.mean() > 0.15                     # noise sigma is 0.3
+
+    m.routing = "hard"
+    _, std_hard = m.predict(X, return_std=True)
+    assert np.all(std_hard > 0)

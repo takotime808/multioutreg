@@ -4,6 +4,7 @@ import pytest
 import numpy as np
 from unittest.mock import patch
 import matplotlib.pyplot as plt
+from multioutreg.sampling.detect import SamplingDetection
 from multioutreg.sampling.infer_sampling import infer_sampling_and_plot_umap
 
 
@@ -58,17 +59,19 @@ def test_umap_plot_structure(sample_data):
     assert len(ax.collections) > 0  # check scatter plot present
 
 
-@patch("multioutreg.sampling.infer_sampling.generate_umap_plot")
-def test_infer_sampling_returns_gird(mock_generate_plot):
-    """Test that 'Gird' is correctly inferred from the explanation string."""
-    # Mock return: (b64img, explanation)
-    dummy_b64 = "base64img"
-    explanation = "UMAP structure shows -> Gird"
-    mock_generate_plot.return_value = (dummy_b64, explanation)
+@patch("multioutreg.sampling.infer_sampling.detect_sampling_method")
+def test_infer_sampling_uses_detector_result(mock_detect):
+    """Method and explanation come straight from the statistical detector."""
+    mock_detect.return_value = SamplingDetection(method="Grid", explanation="levels -> Grid")
 
     X = np.random.rand(10, 5)
     method, fig, returned_explanation = infer_sampling_and_plot_umap(X, explanation_indicator=True)
-    assert method == "Gird"
-    assert returned_explanation == explanation
+    assert method == "Grid"
+    assert returned_explanation == "levels -> Grid"
     assert isinstance(fig, plt.Figure)
 
+
+def test_infer_sampling_two_clusters_is_not_a_design(sample_data):
+    """Two Gaussian blobs are not a uniform design of any kind."""
+    method, _ = infer_sampling_and_plot_umap(sample_data)
+    assert method == "Uncertain"

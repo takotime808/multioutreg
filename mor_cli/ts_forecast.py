@@ -3,6 +3,9 @@
 
 from __future__ import annotations
 
+import matplotlib
+matplotlib.use("Agg")  # plotting helpers call plt.show(); never open desktop windows
+
 import json
 from pathlib import Path
 from typing import Optional, List

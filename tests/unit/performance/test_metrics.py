@@ -39,3 +39,20 @@ def test_get_uq_performance_metrics(monkeypatch):
     assert not metrics_df.empty
     assert {'accuracy', 'avg_calibration', 'scoring_rule', 'output'} <= set(metrics_df.columns)
     assert 'accuracy' in overall
+
+def test_get_uq_performance_metrics_unmocked_argument_order():
+    # Regression: uct.get_all_metrics takes (y_pred, y_std, y_true); the
+    # arguments were previously passed as (y_true, y_pred, y_std).
+    rng = np.random.RandomState(0)
+    y_true = rng.randn(100, 2)
+    y_pred = y_true + 0.5
+    y_std = np.full_like(y_true, 0.5)
+
+    class FixedModel:
+        def predict(self, X, return_std=False):
+            return (y_pred, y_std) if return_std else y_pred
+
+    metrics_df, overall = get_uq_performance_metrics(FixedModel(), np.zeros((100, 1)), y_true)
+    for i in range(2):
+        assert metrics_df.loc[i, 'accuracy']['rmse'] == pytest.approx(0.5)
+    assert overall['accuracy']['rmse'] == pytest.approx(0.5)

@@ -2,6 +2,9 @@
 
 """Streamlit script performing a grid search over several surrogate models."""
 
+import matplotlib
+matplotlib.use("Agg")  # plotting helpers call plt.show(); never open desktop windows
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -11,7 +14,6 @@ from sklearn.model_selection import train_test_split, ParameterGrid
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, root_mean_squared_error
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, Matern
-from sklearn.decomposition import PCA
 from sklearn.ensemble import ExtraTreesRegressor, HistGradientBoostingRegressor, RandomForestRegressor, GradientBoostingRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import LinearRegression, BayesianRidge
@@ -35,8 +37,10 @@ from jinja2 import Template
 from multioutreg.figures.error_histograms import generate_error_histogram
 from multioutreg.figures.shap_multioutput import generate_shap_plot
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
+from multioutreg.utils.pca_utils import fit_input_pca
 from multioutreg.figures.pdp_plots import generate_pdp_plot
 from multioutreg.utils.figure_utils import safe_plot_b64
+from multioutreg.utils.metric_utils import gaussian_uncertainty_metrics
 from multioutreg.figures.umap_plot_classify import generate_umap_plot
 from multioutreg.figures.prediction_plots import plot_predictions_with_error_bars
 # from multioutreg.figures.shap_multioutput import plot_multioutput_shap_bar_subplots
@@ -74,481 +78,20 @@ from multioutreg.time_series.ts_suitability import check_ts_suitability
 # NOTE: NOT used...yet.
 from multioutreg.figures.doe_plots import make_doe_plot
 from multioutreg.figures.model_comparison import plot_surrogate_model_summary
-from multioutreg.utils.imputation import detect_missing, apply_imputation
+from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
 
 
-# ----- Surrogate Models with Uncertainty -----
-class RandomForestWithUncertainty(RandomForestRegressor):
-    def predict(
-        self,
-        X: np.ndarray,
-        return_std: bool = False,
-    ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
-        """
-        Predict using the random forest, optionally returning standard deviation.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Input feature array.
-        return_std : bool, optional
-            Whether to return the standard deviation of predictions.
-
-        Returns
-        -------
-        np.ndarray or Tuple[np.ndarray, np.ndarray]
-            Mean predictions or (mean, std) tuple.
-        """
-        mean = super().predict(X)
-        if not return_std:
-            return mean
-        all_preds = np.stack([tree.predict(X) for tree in self.estimators_], axis=0)
-        std = all_preds.std(axis=0)
-        return mean, std
-
-
-class ExtraTreesWithUncertainty(ExtraTreesRegressor):
-    def predict(
-        self,
-        X: np.ndarray,
-        return_std: bool = False,
-    ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
-        mean = super().predict(X)
-        if not return_std:
-            return mean
-        all_preds = np.stack([tree.predict(X) for tree in self.estimators_], axis=0)
-        std = all_preds.std(axis=0)
-        return mean, std
-
-
-class GradientBoostingWithUncertainty(BaseEstimator, RegressorMixin):
-    def __init__(self, alpha=0.95, n_estimators=100):
-        self.alpha = alpha
-        self.n_estimators = n_estimators
-        self.lower = GradientBoostingRegressor(loss="quantile", alpha=(1 - alpha) / 2, n_estimators=n_estimators)
-        self.upper = GradientBoostingRegressor(loss="quantile", alpha=1 - (1 - alpha) / 2, n_estimators=n_estimators)
-        self.mid = GradientBoostingRegressor(loss="squared_error", n_estimators=n_estimators)
-
-    def fit(self, X: np.ndarray, y: np.ndarray) -> "GradientBoostingWithUncertainty":
-        """
-        Fit the quantile and mid regressors.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Feature matrix.
-        y : np.ndarray
-            Target array.
-
-        Returns
-        -------
-        GradientBoostingWithUncertainty
-            The fitted model.
-        """
-        self.lower.fit(X, y)
-        self.upper.fit(X, y)
-        self.mid.fit(X, y)
-        return self
-
-    def predict(
-            self,
-            X: np.ndarray,
-            return_std: bool = False
-    ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
-        """
-        Predict using the model.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Input feature array.
-        return_std : bool, optional
-            Whether to return standard deviation.
-
-        Returns
-        -------
-        np.ndarray or Tuple[np.ndarray, np.ndarray]
-            Mean predictions or (mean, std) tuple.
-        """
-        y_pred = self.mid.predict(X)
-        if not return_std:
-            return y_pred
-        lower = self.lower.predict(X)
-        upper = self.upper.predict(X)
-        std = (upper - lower) / 2
-        return y_pred, std
-
-
-class KNeighborsRegressorWithUncertainty(KNeighborsRegressor):
-    def predict(self, X: np.ndarray, return_std: bool = False) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
-        """
-        Predict using KNN, optionally returning standard deviation.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Input feature array.
-        return_std : bool, optional
-            Whether to return standard deviation.
-
-        Returns
-        -------
-        np.ndarray or Tuple[np.ndarray, np.ndarray]
-            Mean predictions or (mean, std) tuple.
-        """
-        mean = super().predict(X)
-        if not return_std:
-            return mean
-        neigh_ind = self.kneighbors(X, return_distance=False)
-        y_neigh = self._y[neigh_ind]
-        std = y_neigh.std(axis=1)
-        return mean, std
-
-
-class BootstrapLinearRegression(BaseEstimator, RegressorMixin):
-    def __init__(self, n_bootstraps=20):
-        self.n_bootstraps = n_bootstraps
-
-    def fit(self, X: np.ndarray, y: np.ndarray) -> "BootstrapLinearRegression":
-        """
-        Fit bootstrapped linear regression models.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Feature matrix.
-        y : np.ndarray
-            Target array.
-
-        Returns
-        -------
-        BootstrapLinearRegression
-            The fitted model.
-        """
-        self.models_ = []
-        n = X.shape[0]
-        for _ in range(self.n_bootstraps):
-            idx = np.random.choice(n, n, replace=True)
-            model = LinearRegression().fit(X[idx], y[idx])
-            self.models_.append(model)
-        return self
-
-    def predict(
-            self,
-            X: np.ndarray,
-            return_std: bool = False,
-    ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
-        """
-        Predict using ensemble of linear models.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Input feature array.
-        return_std : bool, optional
-            Whether to return standard deviation.
-
-        Returns
-        -------
-        np.ndarray or Tuple[np.ndarray, np.ndarray]
-            Mean predictions or (mean, std) tuple.
-        """
-        all_preds = [m.predict(X).reshape(X.shape[0], -1) for m in self.models_]
-        preds = np.stack(all_preds, axis=2)
-        mean = preds.mean(axis=2)
-        if not return_std:
-            return mean
-        std = preds.std(axis=2)
-        return mean, std
-
-
-class PerTargetRegressorWithStd(BaseEstimator, RegressorMixin):
-    def __init__(self, estimators):
-        self.estimators = list(estimators)
-
-    def fit(self, X: np.ndarray, y: np.ndarray) -> "PerTargetRegressorWithStd":
-        """
-        Fit separate estimators for each output column.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Feature matrix.
-        y : np.ndarray
-            Multi-output target matrix.
-
-        Returns
-        -------
-        PerTargetRegressorWithStd
-            The fitted model.
-        """
-        self.estimators_ = []
-        y = np.asarray(y)
-        if y.ndim == 1:
-            y = y.reshape(-1, 1)
-        for est, col in zip(self.estimators, y.T):
-            est_fitted = clone(est)
-            est_fitted.fit(X, col)
-            self.estimators_.append(est_fitted)
-        return self
-
-    def predict(
-            self,
-            X: np.ndarray,
-            return_std: bool = False,
-    ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
-        """
-        Predict using individual estimators for each target dimension.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Input feature array.
-        return_std : bool, optional
-            Whether to return standard deviation.
-
-        Returns
-        -------
-        np.ndarray or Tuple[np.ndarray, np.ndarray]
-            Mean predictions or (mean, std) tuple.
-        """
-        preds, stds = [], []
-        for est in self.estimators_:
-            if return_std:
-                try:
-                    pred, std = est.predict(X, return_std=True)
-                except TypeError:
-                    pred = est.predict(X)
-                    std = np.full(pred.shape, np.nan)
-                preds.append(pred.reshape(-1, 1))
-                stds.append(std.reshape(-1, 1))
-            else:
-                pred = est.predict(X)
-                preds.append(np.asarray(pred).reshape(-1, 1))
-        if return_std:
-            return np.hstack(preds), np.hstack(stds)
-        return np.hstack(preds)
-
-
-# ----- HTML Report Generation Wrapper -----
-def generate_html_report(
-    model_type: str,
-    fidelity_levels: List[str],
-    output_names: List[str],
-    description: str,
-    metrics: Dict[str, Dict[str, float]],
-    uncertainty_metrics: Dict[str, float],
-    y_test: np.ndarray,
-    best_pred: np.ndarray,
-    best_std: np.ndarray,
-    best_model: Any,
-    X_train: np.ndarray,
-    n_train: int,
-    n_test: int,
-    cross_validation: str,
-    seed: int,
-    notes: str,
-    feature_names_pca: List[str] | None = None,
-    pca_explained_variance: List[float] | None = None,
-    pca_variance_plot: str | None = None,
-    pca_method: str | None = None,
-    pca_threshold: float | None = None,
-    pca_n_components: int | None = None,
-    kaiser_rule_suggestion: str | None = None,
-    conformal_intervals: tuple | None = None,
-    conformal_alpha: float | None = None,
-    imputation_summary: dict | None = None,
-) -> str:
-    """
-    Generate an HTML report from model training and evaluation results.
-
-    Parameters
-    ----------
-    model_type : str
-        Type of model used.
-    fidelity_levels : List[str]
-        Fidelity levels used (if any).
-    output_names : List[str]
-        Names of the output dimensions.
-    description : str
-        Description of the modeling project.
-    metrics : Dict[str, Dict[str, float]]
-        Dictionary of evaluation metrics for each output.
-    uncertainty_metrics : Dict[str, float]
-        Dictionary of uncertainty metrics.
-    y_test : np.ndarray
-        Ground truth values for test set.
-    best_pred : np.ndarray
-        Predictions from the best model.
-    best_std : np.ndarray
-        Uncertainty estimates from the best model.
-    best_model : Any
-        The best performing model.
-    X_train : np.ndarray
-        Training input features.
-    n_train : int
-        Number of training samples.
-    n_test : int
-        Number of test samples.
-    cross_validation : str
-        Description of the CV strategy.
-    seed : int
-        Random seed used.
-    notes : str
-        Additional notes.
-    feature_names_pca : List[str] | None, optional
-        Names to use for PCA.
-    pca_explained_variance : List[float] | None, optional
-        Explained variance ratios from PCA if applied.
-    pca_variance_plot : str | None, optional
-        Base64-encoded plot showing PCA variance ratios.
-    pca_method : str | None, optional
-        Method used to choose the number of PCA components.
-    pca_threshold : float | None, optional
-        Explained variance threshold if that method was used.
-    pca_n_components : int | None, optional
-        Final number of PCA components retained.
-    kaiser_rule_suggestion: str | None, optional
-        PCA explanation statement.
-
-    Returns
-    -------
-    str
-        Rendered HTML report.
-    """
-    # prediction_plots = generate_prediction_plot(y_test, best_pred, best_std, output_names)
-    # # pdp_plots = generate_pdp_plot(output_names)
-    # pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=input_cols)
-    # uncertainty_plots = generate_uncertainty_plots()
-
-    prediction_plots = {}
-    prediction_plots["all_in_one"] = safe_plot_b64(
-        plot_intervals_ordered_multi,
-        best_pred,
-        best_std,
-        y_test,
-        # max_cols=3,
-        target_list=output_names,
-    )
-    # # PREDICTION PLOTS OPTION 2
-    # prediction_plots = {}
-    for i, name in enumerate(output_names):
-        prediction_plots[name] = safe_plot_b64(
-            plot_predictions_with_error_bars,
-            y_test[:, [i]],
-            best_pred[:, [i]],
-            best_std[:, [i]],
-            output_names=[name],
-            n_cols=3
-        )
-
-    shap_plots = generate_shap_plot(best_model, X_train, output_names)
-    # shap_img = safe_plot_b64(
-    #     plot_multioutput_shap_bar_subplots,
-    #     best_model, X_train,
-    #     feature_names=input_cols, output_names=output_names
-    # )
-    # shap_plots = {name: shap_img for name in output_names}
-
-    unc_img = safe_plot_b64(
-        plot_coverage, y_test, best_pred, best_std, output_names=output_names
-    )
-    # uncertainty_plots = [{"img_b64": unc_img, "title": "Coverage Plot", "caption": "Nominal vs empirical coverage."}]
-    uncertainty_plots = [
-        {
-            "img_b64": unc_img,
-            "title": "Coverage Plot",
-            "caption": "Nominal vs empirical coverage.",
-        }
-    ]
-
-    pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=list(output_names))
-    
-    sampling_umap_plot, sampling_method_explanation = generate_umap_plot(X_train)
-    # other_plots = generate_error_histogram(y_test, best_pred, output_names)
-    other_img = safe_plot_b64(
-        plot_residuals_multioutput_with_regplot,
-        best_pred,
-        y_test,
-        target_list=output_names,
-    )
-    sampling_other_plots = [
-        {
-            "img_b64": other_img,
-            "title": "Residuals",
-            "caption": "Residual vs predicted values.",
-        }
-    ]
-
-    other_plots = generate_error_histogram(y_test, best_pred, output_names)
-
-    # Conformal prediction plots
-    conformal_plots_list = []
-    if conformal_intervals is not None and conformal_alpha is not None:
-        y_lower, y_upper = conformal_intervals
-        alpha = conformal_alpha
-
-        conformal_ordered_img = safe_plot_b64(
-            plot_conformal_intervals_ordered,
-            y_test, y_lower, y_upper,
-            y_pred=best_pred,
-            output_names=output_names,
-            alpha=alpha,
-        )
-        conformal_plots_list.append({
-            "img_b64": conformal_ordered_img,
-            "title": f"Conformal Prediction Intervals ({int((1-alpha)*100)}%)",
-            "caption": "Distribution-free prediction intervals ordered by observed value. Guaranteed marginal coverage.",
-        })
-
-        conformal_vs_gauss_img = safe_plot_b64(
-            plot_conformal_vs_gaussian,
-            y_test, best_pred, best_std,
-            np.abs(y_test - best_pred),
-            output_names=output_names,
-        )
-        conformal_plots_list.append({
-            "img_b64": conformal_vs_gauss_img,
-            "title": "Gaussian CI vs Conformal PI Coverage",
-            "caption": "Comparison of nominal vs empirical coverage for Gaussian confidence intervals and conformal prediction intervals.",
-        })
-
-    template_path = os.path.join(os.path.dirname(__file__), "../report/template.html")
-    with open(template_path, "r", encoding="utf-8") as f:
-        template_text = f.read()
-    template = Template(template_text)
-    rendered = template.render(
-        project_title="Multi-Fidelity Surrogate Modeling Report",
-        model_type=model_type,
-        fidelity_levels=fidelity_levels,
-        output_names=output_names,
-        description=description,
-        metrics=metrics,
-        uncertainty_metrics=uncertainty_metrics,
-        uncertainty_plots=uncertainty_plots,
-        prediction_plots=prediction_plots,
-        shap_plots=shap_plots,
-        pdp_plots=pdp_plots,
-        sampling_umap_plot=sampling_umap_plot,
-        sampling_method_explanation=sampling_method_explanation,
-        sampling_other_plots=sampling_other_plots,
-        other_plots=other_plots,
-        n_train=n_train,
-        n_test=n_test,
-        cross_validation=cross_validation,
-        seed=seed,
-        notes=notes,
-        feature_names_pca=feature_names_pca,
-        pca_explained_variance=pca_explained_variance,
-        pca_variance_plot=pca_variance_plot,
-        pca_method=pca_method,
-        pca_threshold=pca_threshold,
-        pca_n_components=pca_n_components,
-        kaiser_rule_suggestion=kaiser_rule_suggestion,
-        conformal_plots=conformal_plots_list,
-        imputation_summary=imputation_summary,
-    )
-    return rendered
+from multioutreg.gui.grid_search_core import (
+    RandomForestWithUncertainty,
+    ExtraTreesWithUncertainty,
+    GradientBoostingWithUncertainty,
+    KNeighborsRegressorWithUncertainty,
+    BootstrapLinearRegression,
+    PerTargetRegressorWithStd,
+    default_surrogate_defs,
+    generate_html_report,
+    select_per_target,
+)
 
 
 # ----- Streamlit App -----
@@ -573,6 +116,10 @@ if uploaded_file:
         )
         st.dataframe(_missing_summary)
         st.write("**Choose how to handle missing values per column:**")
+        st.caption(
+            "Missing target values are never imputed: those rows are always dropped. "
+            "Imputation of inputs is fitted on the training split only."
+        )
         for _col in _missing_summary.index:
             _impute_choices[_col] = st.selectbox(
                 f"`{_col}`",
@@ -743,8 +290,9 @@ if uploaded_file:
             if st.session_state.get(f"imp_{c}") == "Drop rows"
         ]
         _rows_before = len(df)
-        if _cols_to_impute or _cols_to_drop:
-            df = apply_imputation(df, _cols_to_impute, _cols_to_drop)
+        # Targets are never imputed: rows missing a target are dropped. Inputs marked
+        # "Impute (KNN)" are imputed after the train/test split (below).
+        df = drop_unusable_rows(df, list(output_cols), _cols_to_drop)
         _rows_after = len(df)
         _imputation_summary = None
         if _cols_to_impute or _cols_to_drop:
@@ -753,7 +301,10 @@ if uploaded_file:
                 if _c in _missing_summary.index:
                     _summary_cols.append({
                         "name": _c,
-                        "action": "Imputed (KNN)",
+                        "action": (
+                            "Rows dropped (missing target)" if _c in output_cols
+                            else "Imputed (KNN, fit on training split)"
+                        ),
                         "missing_count": int(_missing_summary.loc[_c, "missing_count"]),
                         "missing_pct": float(_missing_summary.loc[_c, "missing_pct"]),
                     })
@@ -774,6 +325,7 @@ if uploaded_file:
         X = df[input_cols].values
         y = df[output_cols].values
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
+        X_train, X_test = impute_train_test(X_train, X_test)
         feature_names = list(input_cols)
 
         # # Show seaborn PairGrid plot with KDE in lower triangle
@@ -794,86 +346,146 @@ if uploaded_file:
         feature_names_pca = None
         kaiser_rule_suggestion = None
         if use_pca:
-            preview_pca = PCA().fit(X_train)
-            kaiser_k = int(np.sum(preview_pca.explained_variance_ > 1))
-            if pca_method == "Manual":
-                pca_n_components = int(n_components)
-            elif pca_method == "Explained variance threshold":
-                cum = np.cumsum(preview_pca.explained_variance_ratio_)
-                pca_n_components = int(np.searchsorted(cum, pca_threshold) + 1)
-            else:  # Kaiser rule
-                pca_n_components = max(1, kaiser_k)
-            pca = PCA(n_components=pca_n_components)
-            X_train = pca.fit_transform(X_train)
-            X_test = pca.transform(X_test)
-            feature_names_pca = [f"PC{i+1}" for i in range(pca_n_components)]
+            _pca = fit_input_pca(X_train, X_test, pca_method, n_components, pca_threshold)
+            X_train, X_test = _pca.X_train, _pca.X_test
+            pca_n_components = _pca.n_components
+            feature_names_pca = _pca.feature_names
             pca_variance_plot = generate_pca_variance_plot(
-                preview_pca,
+                _pca.preview_pca,
                 n_selected=pca_n_components,
                 threshold=pca_threshold if pca_method == "Explained variance threshold" else None,
             )
-            pca_explained_variance = preview_pca.explained_variance_ratio_.tolist()
-            kaiser_rule_suggestion = f"Kaiser rule suggests **{kaiser_k}** components (eigenvalues > 1)."
+            pca_explained_variance = _pca.preview_pca.explained_variance_ratio_.tolist()
+            kaiser_rule_suggestion = (
+                f"Kaiser rule suggests **{_pca.kaiser_k}** components "
+                "(eigenvalues > 1 on standardized inputs)."
+            )
             st.markdown(kaiser_rule_suggestion)
             st.image(
                 f"data:image/png;base64,{pca_variance_plot}",
                 caption="Scree Plot",
-                use_column_width=True,
+                width="stretch",
             )
 
-        surrogate_defs = [
-            ("gpr", GaussianProcessRegressor, {"alpha": [1e-4], "kernel": [RBF(), Matern(nu=1.5)]}),
-            ("rf", RandomForestWithUncertainty, {"n_estimators": [50], "max_depth": [3, None]}),
-            ("et", ExtraTreesWithUncertainty, {"n_estimators": [50], "max_depth": [3, None]}),
-            ("gb", GradientBoostingWithUncertainty, {"alpha": [0.95], "n_estimators": [50]}),
-            ("hgb", HistGradientBoostingRegressor, {"max_iter": [100, 200], "learning_rate": [0.05, 0.1]}),
-            ("knn", KNeighborsRegressorWithUncertainty, {"n_neighbors": [3]}),
-            ("blr", BootstrapLinearRegression, {"n_bootstraps": [20]}),
-            ("svr", SVR, {"C": [1.0, 10.0], "gamma": ["scale", "auto"]}),
-            ("dt", DecisionTreeRegressor, {"max_depth": [1, None]}),
-            ("cpn", ConformalPredictionNetworkSurrogate, {"hidden_layer_sizes": [(64,), (128,)], "max_iter": [500]}),
-            (
-                "mfs_lr",
-                lambda: MultiFidelitySurrogate(LinearRegressionSurrogate, ["default"]),
-                {},
-            ),
-            ("bayesian_ridge", BayesianRidge, {}),
-            ("rfgp", _RFFEstimator, {"n_components": [100, 500], "length_scale": [0.1, 1.0, 10.0], "kernel": ["rbf", "matern52"]}),
-            ("pbr", _PBREstimator, {"degree": [2, 3], "interaction_only": [False, True]}),
-            ("sgp", _NystroemEstimator, {"n_components": [50, 200], "gamma": [None, 0.1, 1.0]}),
-            ("ard_gp", _ARDGPEstimator, {"alpha": [1e-6, 1e-2]}),
-            ("elastic_net", _ElasticNet, {"alpha": [0.01, 0.1, 1.0], "l1_ratio": [0.25, 0.5, 0.75]}),
-            ("lasso", _Lasso, {"alpha": [0.01, 0.1, 1.0]}),
-            ("quantile", _QuantileRegressor, {"alpha": [0.1, 1.0]}),
-        ]
-        if _NGBOOST_AVAILABLE:
-            surrogate_defs.append(
-                ("ngb", _NGBRegressor, {"n_estimators": [100, 200], "verbose": [False]})
+        surrogate_defs = default_surrogate_defs()
+
+        if use_screening:
+            _screener = ModelScreener().fit(X_train, y_train)
+            _eligible = _screener.screen_per_output(list(output_cols))
+            # Keep a surrogate_def if not screened or if it passes for at least one output
+            surrogate_defs = [
+                d for d in surrogate_defs
+                if d[0] not in _eligible.index or _eligible.loc[d[0]].any()
+            ]
+            skipped = [
+                d[0] for d in [
+                    ("gpr", None, None), ("rf", None, None), ("et", None, None),
+                    ("gb", None, None), ("knn", None, None), ("blr", None, None),
+                    ("svr", None, None), ("dt", None, None), ("cpn", None, None),
+                    ("mfs_lr", None, None), ("ngb", None, None),
+                    ("bayesian_ridge", None, None), ("rfgp", None, None),
+                    ("pbr", None, None), ("sgp", None, None), ("gpx", None, None),
+                    ("ard_gp", None, None), ("kpls", None, None),
+                    ("hgb", None, None), ("lgbm", None, None), ("xgb", None, None),
+                    ("elastic_net", None, None), ("lasso", None, None),
+                    ("quantile", None, None), ("catboost", None, None),
+                    ("sgpr", None, None),
+                ]
+                if d[0] in _eligible.index and not _eligible.loc[d[0]].any()
+            ]
+            if skipped:
+                st.info(
+                    f"Pre-screening skipped {len(skipped)} model(s): "
+                    + ", ".join(skipped)
+                )
+
+        _EXPENSIVE_MODELS = {"gpr", "ngb", "cpn", "ard_gp", "gpx", "kpls", "sgpr"}
+        _EXPENSIVE_DISPLAY_NAMES = {
+            "gpr": "Gaussian Process",
+            "ngb": "NGBoost",
+            "cpn": "Conformal Prediction Network",
+            "ard_gp": "ARD Gaussian Process",
+            "gpx": "GPX (Rust GP)",
+            "kpls": "KPLS (Kriging+PLS)",
+            "sgpr": "Sparse GP (GPyTorch)",
+        }
+        if skip_expensive:
+            _skipped = [d[0] for d in surrogate_defs if d[0] in _EXPENSIVE_MODELS]
+            surrogate_defs = [d for d in surrogate_defs if d[0] not in _EXPENSIVE_MODELS]
+            if _skipped:
+                st.info(
+                    f"Skipping {len(_skipped)} expensive model(s): "
+                    + ", ".join(_EXPENSIVE_DISPLAY_NAMES.get(k, k) for k in _skipped)
+                )
+
+        # Conformal calibration must use data disjoint from both training and the
+        # test set used to report coverage, so hold out part of the training split.
+        if use_conformal:
+            X_train, X_cal, y_train, y_cal = train_test_split(
+                X_train, y_train, test_size=0.2, random_state=0
             )
-        if _GPX_AVAILABLE:
-            surrogate_defs.append(
-                ("gpx", _GPXEstimator, {"corr": ["squar_exp", "matern52"], "poly": ["constant", "linear"]})
+
+        moe = None
+        if use_moe:
+            from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
+            moe = MixtureOfExpertsSurrogate(
+                n_experts=moe_n_experts, gating_type=moe_gating_type, random_state=0)
+
+        # Select on a validation split of the training data; the test set is
+        # only used for the reported metrics.
+        try:
+            result = select_per_target(surrogate_defs, X_train, y_train, moe=moe)
+        except RuntimeError as exc:
+            st.error(str(exc))
+            st.stop()
+        best_model = result.model
+        best_combo = result.combo
+        best_pred, best_std = best_model.predict(X_test, return_std=True)
+        if result.moe_selected:
+            st.info("MoE outperformed all per-target models and was selected.")
+        if result.n_failed:
+            st.caption(f"{result.n_failed} candidate fit(s) failed and were skipped.")
+
+        # # Show seaborn PairGrid plot with KDE in lower triangle
+        # if df.shape[1] >= 2:
+        #     st.write("### PairGrid Visualization (KDE Lower Triangle)")
+
+        #     numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
+        #     if len(numeric_cols) >= 2:
+        #         g = make_doe_plot(df=df, numeric_cols=numeric_cols)
+        #         st.pyplot(g.fig)
+        #     else:
+        #         st.info("Not enough numeric columns for pairwise plot.")
+
+        # PCA.
+        pca_variance_plot = None
+        pca_explained_variance = None
+        pca_n_components = None
+        feature_names_pca = None
+        kaiser_rule_suggestion = None
+        if use_pca:
+            _pca = fit_input_pca(X_train, X_test, pca_method, n_components, pca_threshold)
+            X_train, X_test = _pca.X_train, _pca.X_test
+            pca_n_components = _pca.n_components
+            feature_names_pca = _pca.feature_names
+            pca_variance_plot = generate_pca_variance_plot(
+                _pca.preview_pca,
+                n_selected=pca_n_components,
+                threshold=pca_threshold if pca_method == "Explained variance threshold" else None,
             )
-        if _KPLS_AVAILABLE:
-            surrogate_defs.append(
-                ("kpls", _KPLSEstimator, {"n_comp": [2, 4], "corr": ["squar_exp", "matern52"]})
+            pca_explained_variance = _pca.preview_pca.explained_variance_ratio_.tolist()
+            kaiser_rule_suggestion = (
+                f"Kaiser rule suggests **{_pca.kaiser_k}** components "
+                "(eigenvalues > 1 on standardized inputs)."
             )
-        if _LIGHTGBM_AVAILABLE:
-            surrogate_defs.append(
-                ("lgbm", _LGBMRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "num_leaves": [31, 63]})
+            st.markdown(kaiser_rule_suggestion)
+            st.image(
+                f"data:image/png;base64,{pca_variance_plot}",
+                caption="Scree Plot",
+                width="stretch",
             )
-        if _XGBOOST_AVAILABLE:
-            surrogate_defs.append(
-                ("xgb", _XGBRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "max_depth": [4, 6]})
-            )
-        if _CATBOOST_AVAILABLE:
-            surrogate_defs.append(
-                ("catboost", _CatBoostRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "depth": [4, 6], "verbose": [False]})
-            )
-        if _GPYTORCH_AVAILABLE:
-            surrogate_defs.append(
-                ("sgpr", _SGPREstimator, {"n_inducing": [30, 50], "learning_rate": [0.05, 0.1]})
-            )
+
+        surrogate_defs = default_surrogate_defs()
 
         if use_screening:
             _screener = ModelScreener().fit(X_train, y_train)
@@ -1012,14 +624,18 @@ if uploaded_file:
             }
         st.dataframe(pd.DataFrame(metrics).T)
 
+        uncertainty_metrics = gaussian_uncertainty_metrics(y_test, best_pred, best_std)
+        st.write("### Uncertainty Calibration (Gaussian std, test set)")
+        st.dataframe(pd.Series(uncertainty_metrics, name="value").to_frame())
+
         # Conformal prediction
         conformal_intervals = None
         if use_conformal:
             from multioutreg.conformal.base import BaseConformalPredictor
             from multioutreg.conformal.metrics import conformal_summary as _conf_summary
 
-            # Compute residuals directly on test data (no sklearn clone needed)
-            residuals = np.abs(y_test - best_pred)
+            # Calibrate on the held-out calibration split, then score on test.
+            residuals = np.abs(y_cal - np.asarray(best_model.predict(X_cal)).reshape(y_cal.shape))
             n_outputs = y_test.shape[1]
             q = np.array([
                 BaseConformalPredictor._conformal_quantile(
@@ -1045,7 +661,7 @@ if uploaded_file:
             output_names=output_cols,
             description=description,
             metrics=metrics,
-            uncertainty_metrics={"dummy_metric": 0.0},
+            uncertainty_metrics=uncertainty_metrics,
             y_test=y_test,
             best_pred=best_pred,
             best_std=best_std,
@@ -1053,7 +669,10 @@ if uploaded_file:
             X_train=X_train,
             n_train=X_train.shape[0],
             n_test=X_test.shape[0],
-            cross_validation="None",
+            cross_validation=(
+                "Model selected per output on a 20% validation split of the training data; "
+                "metrics are on the held-out test set"
+            ),
             seed=0,
             notes="Generated report.",
             pca_explained_variance=pca_explained_variance,
@@ -1064,6 +683,7 @@ if uploaded_file:
             kaiser_rule_suggestion=kaiser_rule_suggestion,
             conformal_intervals=conformal_intervals if use_conformal else None,
             conformal_alpha=conformal_alpha_sel if use_conformal else None,
+            calibration_residuals=residuals if use_conformal else None,
             imputation_summary=_imputation_summary,
         )
 

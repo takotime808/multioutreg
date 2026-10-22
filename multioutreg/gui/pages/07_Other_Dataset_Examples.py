@@ -2,6 +2,9 @@
 
 """Streamlit page for downloading example datasets with and without fidelity levels."""
 
+import matplotlib
+matplotlib.use("Agg")  # plotting helpers call plt.show(); never open desktop windows
+
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -141,7 +144,7 @@ for name, df in datasets:
     col1, col2 = st.columns([3, 2])  # 3:2 width ratio
 
     with col1:
-        st.dataframe(df.head(), use_container_width=True)
+        st.dataframe(df.head(), width="stretch")
 
         csv_bytes = df.to_csv(index=False).encode("utf-8")
         filename = name.lower().replace(" ", "_").replace("-", "_") + ".csv"

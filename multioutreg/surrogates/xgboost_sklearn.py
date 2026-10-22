@@ -9,7 +9,9 @@ from multioutreg.surrogates.base_sklearn import BaseSurrogate
 try:
     from xgboost import XGBRegressor as _XGBRegressor
     _XGBOOST_AVAILABLE = True
-except ImportError:
+# XGBoostError (not ImportError) is raised when the package is installed but its
+# native library can't load, e.g. an incompatible libomp on macOS.
+except Exception:
     _XGBRegressor = None  # type: ignore[assignment,misc]
     _XGBOOST_AVAILABLE = False
 

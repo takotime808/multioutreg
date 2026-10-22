@@ -15,9 +15,16 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      # Run every version to completion so one failure doesn't hide the others.
+      fail-fast: false
       matrix:
-        # python-version: ["3.10", "3.11", "3.12"]
-        python-version: ["3.10"]
+        # requires-python is ">=3.10"; 3.12 matches the local dev env (.venv).
+        # 3.13+ is out until the pandas<2.2 / numpy<2.0 pins are lifted.
+        python-version: ["3.10", "3.11", "3.12"]
+
+    env:
+      # Only this matrix entry publishes the coverage badge (artifact names must be unique).
+      BADGE_PYTHON: "3.12"
 
     steps:
     - name: Checkout code
@@ -28,10 +35,15 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v6
+
+    # Install the exact versions in uv.lock (what is developed and tested locally),
+    # not whatever is newest on PyPI. --locked fails if uv.lock is out of date.
     - name: Install dependencies with test extras
       run: |
-        python -m pip install --upgrade pip
-        pip install .[all]
+        uv sync --locked --extra all --python ${{ matrix.python-version }}
+        echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
     - name: Run tests with coverage
       id: tests
@@ -39,16 +51,16 @@ jobs:
       run: pytest tests --cov=multioutreg --cov-report=xml
 
     - name: Generate badge
-      if: ${{ steps.tests.outcome == 'success' }}
+      if: ${{ matrix.python-version == env.BADGE_PYTHON && steps.tests.outcome == 'success' }}
       run: coverage-badge -o coverage.svg -f
 
     # Add -99% coverage badge if tests fail, so docs still build.
     - name: Generate fallback badge when tests fail
-      if: ${{ steps.tests.outcome != 'success' }}
+      if: ${{ matrix.python-version == env.BADGE_PYTHON && steps.tests.outcome != 'success' }}
       run: curl -sSL "https://img.shields.io/badge/coverage--99%25-red.svg" -o coverage.svg
 
     - name: Upload badge artifact
-      if: ${{ always() }}
+      if: ${{ always() && matrix.python-version == env.BADGE_PYTHON }}
       uses: actions/upload-artifact@v4
       with:
         name: coverage-badge

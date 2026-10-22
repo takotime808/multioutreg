@@ -18,6 +18,7 @@ Notes about project.
 
    install
    usage
+   multi_fidelity_gui
 
 .. toctree::
    :maxdepth: 3
@@ -31,6 +32,7 @@ Notes about project.
    :caption: Resources
 
    integrated_surrogates
+   surrogate_roadmap
    references
 
 .. toctree::

@@ -42,7 +42,8 @@ def test_predict_with_return_std_flag(sample_data):
 def test_mc_samples_1_gives_zero_std(sample_data):
     X, Y = sample_data
     m = BNNSurrogate(
-        hidden_layer_sizes=(32, 16), max_epochs=20, n_mc_samples=1, random_state=0
+        hidden_layer_sizes=(32, 16), max_epochs=20, n_mc_samples=1, random_state=0,
+        loss="mse",
     )
     m.fit(X, Y)
     preds, stds = m.predict(X, return_std=True)
@@ -80,3 +81,38 @@ def test_training_losses_decrease(sample_data):
     m.fit(X, Y)
     # The loss should generally decrease over training
     assert m.training_losses_[0] > m.training_losses_[-1]
+
+
+def test_mc_samples_1_nll_gives_noise_std(sample_data):
+    """With the NLL head a single pass still returns the learned noise std."""
+    X, Y = sample_data
+    m = BNNSurrogate(
+        hidden_layer_sizes=(32, 16), max_epochs=20, n_mc_samples=1, random_state=0
+    )
+    m.fit(X, Y)
+    _, stds = m.predict(X, return_std=True)
+    assert np.all(stds > 0)
+
+
+def test_invalid_loss_raises():
+    with pytest.raises(ValueError):
+        BNNSurrogate(loss="huber")
+
+
+def test_nll_head_learns_noise_and_covers():
+    """MC spread alone under-covers on noisy data; the NLL head adds the noise."""
+    rng = np.random.default_rng(0)
+    X = rng.uniform(0, 1, (1000, 2))
+    noise = 0.1 + 0.5 * X[:, 0]
+    y = (np.sin(6 * X[:, 0]) + X[:, 1] + noise * rng.standard_normal(1000)).reshape(-1, 1)
+    X_tr, X_te, y_tr, y_te = X[:400], X[400:], y[:400], y[400:]
+    cover = {}
+    for loss in ("mse", "nll"):
+        m = BNNSurrogate(hidden_layer_sizes=(64, 32), max_epochs=300, random_state=0, loss=loss)
+        pred, std = m.fit(X_tr, y_tr).predict(X_te, return_std=True)
+        cover[loss] = np.mean(np.abs(y_te - pred) <= 1.645 * std)
+        if loss == "nll":
+            # heteroscedastic: std grows with the noise level
+            assert np.corrcoef(std[:, 0], noise[400:])[0, 1] > 0.7
+    assert cover["mse"] < 0.7
+    assert 0.8 <= cover["nll"] <= 0.99

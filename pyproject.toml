@@ -18,23 +18,25 @@ dependencies = [
   # "numpy>=1.22,<2.0",
   # "pandas>=1.5,<2.2",
   "matplotlib>=3.5,<4.0",
-  "scikit-learn>=1.2",
+  "scikit-learn>=1.4",  # root_mean_squared_error was added in 1.4 (previously was 1.2)
   "seaborn>=0.13.0,<=0.13.2",
   "uncertainty-toolbox",#>=0.1.4,<0.1.7",
   "shap>=0.48.0",
   "jinja2>=3.0",
-  "umap-learn",
+  "umap-learn>=0.5.8",  # older releases break on scikit-learn>=1.8 (force_all_finite) # no version previously specified
   # "kaleido",
   "nbformat>=4.2.0",
   # "ray[tune]>=2.30",
   # "hyperopt>=0.2",
   # "textual",
-  "streamlit",
+  "streamlit>=1.50",  # width="stretch" replaces deprecated use_column_width
   # ----- Below this line are duplicates from [ts] below...this is necessary for the
   "chronos-forecasting>=1.5.0",
   "torch>=2.1",
   "pandas>=2.0,<2.2", #==2.1.4
   "numpy>=1.26,<2.0", # ==1.26.4
+  # pyarrow (pulled in by streamlit) requires NumPy 2 from 26.0; its metadata doesn't say so.
+  "pyarrow<26",
   "statsmodels",
   "joblib",
   # "typing-extensions", # sub-dep of other package
@@ -87,9 +89,14 @@ test = [
     "pytest-sugar",
     # "pytest-xdist",
     "coverage-badge",
+    # coverage-badge imports pkg_resources, which setuptools>=81 no longer ships.
+    "setuptools<81",
 ]
 all = [
-  "multioutreg[ts,ngboost,xgboost,lightgbm,catboost,gpytorch,smt,test]",
+  # Every optional *library* feature plus the test tooling. `examples` is
+  # deliberately excluded: ray/hyperopt/plotly are only used by the example
+  # notebooks, never by the package. Use `multioutreg[all,examples]` for those.
+  "multioutreg[ts,ngboost,xgboost,lightgbm,catboost,gpytorch,smt,lstm,test]",
 ]
 examples = [
   "ray",
@@ -97,6 +104,15 @@ examples = [
   "plotly",
 ]
 
+
+[tool.uv]
+# torch >= 2.3 and llvmlite >= 0.44 publish no wheels for Intel macOS, so the
+# lockfile is unsatisfiable there without these platform-specific caps.
+constraint-dependencies = [
+  "torch<2.3; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  "llvmlite<0.44; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  "numba<0.61; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+]
 
 [tool.setuptools.packages.find]
 where = [".", "mor_cli", "multioutreg"]

@@ -30,12 +30,32 @@ def test_metrics_basic():
     w = weighted_quantile_loss(y, qs, [0.1, 0.5, 0.9])
     assert w >= 0.0
 
-# # TODO: Fix this test
-# @pytest.mark.skipif(not _CHRONOS, reason="chronos-forecasting not installed")
-# def test_chronos_shapes():
-#     # short synthetic series
-#     y = np.sin(np.linspace(0, 4*np.pi, 48)).astype(np.float32)
-#     f = ChronosForecaster("amazon/chronos-bolt-tiny").fit(y)
-#     res = f.predict(prediction_length=8, quantiles=(0.1, 0.5, 0.9))
-#     assert res.quantiles.shape == (1, 3, 8)
-#     assert list(res.q_levels) == [0.1, 0.5, 0.9]
+@pytest.mark.skipif(not _CHRONOS, reason="chronos-forecasting not installed")
+def test_chronos_shapes():
+    # short synthetic series
+    y = np.sin(np.linspace(0, 4*np.pi, 48)).astype(np.float32)
+    f = ChronosForecaster("amazon/chronos-bolt-tiny").fit(y)
+    res = f.predict(prediction_length=8, quantiles=(0.1, 0.5, 0.9))
+    assert res.quantiles.shape == (1, 3, 8)
+    assert list(res.q_levels) == [0.1, 0.5, 0.9]
+
+
+@pytest.mark.parametrize("device, expected", [
+    ("cuda", "bfloat16"),
+    ("mps", "float32"),  # MPS rejects bfloat16
+    ("cpu", "float32"),
+])
+def test_default_dtype_per_device(monkeypatch, device, expected):
+    adapter = pytest.importorskip("multioutreg.time_series.chronos_adapter")
+    if adapter.BaseChronosPipeline is None:
+        pytest.skip("chronos-forecasting not installed")
+    import torch
+    captured = {}
+
+    def fake_from_pretrained(name, device_map, torch_dtype):
+        captured["dtype"] = torch_dtype
+        return object()
+
+    monkeypatch.setattr(adapter.BaseChronosPipeline, "from_pretrained", fake_from_pretrained)
+    adapter.ChronosForecaster("amazon/chronos-bolt-tiny", device=device)
+    assert captured["dtype"] == getattr(torch, expected)

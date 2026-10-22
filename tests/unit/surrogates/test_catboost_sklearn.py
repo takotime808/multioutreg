@@ -40,6 +40,18 @@ class TestCatBoostSurrogate:
         assert preds.shape == Y.shape
         assert isinstance(preds, np.ndarray)
 
+    def test_point_predict_shape_with_uncertainty(self, sample_data):
+        """Raw RMSEWithUncertainty predict() is [mean, variance] per row; the
+        surrogate must return only the means, shaped like Y."""
+        X, Y = sample_data
+        s = CatBoostSurrogate(n_estimators=20, use_uncertainty=True, random_seed=0)
+        s.fit(X, Y)
+        preds = s.predict(X)
+        assert preds.shape == Y.shape
+        raw0 = s.model.estimators_[0].predict(X)
+        np.testing.assert_allclose(preds[:, 0], raw0[:, 0])
+        assert s._conformal_point_predict(X).shape == Y.shape
+
     def test_predict_return_std_shape(self, sample_data):
         X, Y = sample_data
         s = CatBoostSurrogate(n_estimators=20, use_uncertainty=True, random_seed=0)

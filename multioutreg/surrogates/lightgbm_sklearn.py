@@ -9,7 +9,9 @@ from multioutreg.surrogates.base_sklearn import BaseSurrogate
 try:
     from lightgbm import LGBMRegressor as _LGBMRegressor
     _LIGHTGBM_AVAILABLE = True
-except ImportError:
+# OSError (not ImportError) is raised when the package is installed but its
+# native library can't load, e.g. libomp missing on macOS.
+except Exception:
     _LGBMRegressor = None  # type: ignore[assignment,misc]
     _LIGHTGBM_AVAILABLE = False
 

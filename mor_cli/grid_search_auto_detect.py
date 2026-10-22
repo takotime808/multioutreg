@@ -4,24 +4,18 @@ import os
 import typer
 import pandas as pd
 import numpy as np
-import importlib.util
 import matplotlib
 matplotlib.use('Agg')
 from typing import Optional
 from sklearn.model_selection import train_test_split
-from sklearn.decomposition import PCA
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, root_mean_squared_error
 
 from multioutreg.model_selection import AutoDetectMultiOutputRegressor
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
-from multioutreg.utils.imputation import apply_imputation, detect_missing
+from multioutreg.utils.pca_utils import fit_input_pca
+from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
 
-# # NOTE: Module starts with numeric values, so it cannot be directly imported
-# from multioutreg.gui.pages.Use_Auto_Detect_MultiOutput_Regressor import generate_html_report
-file_path = os.path.abspath("multioutreg/gui/pages/01_Use_Auto_Detect_MultiOutput_Regressor.py")
-spec = importlib.util.spec_from_file_location("use_auto_detect", file_path)
-use_auto_detect = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(use_auto_detect)
+from multioutreg.report.auto_detect_report import generate_html_report
 
 app = typer.Typer(help="Auto-detect surrogate models and generate a report")
 
@@ -53,7 +47,8 @@ def grid_search_auto_detect(
         _impute_cols = in_cols + out_cols
         _before_missing = detect_missing(df[_impute_cols])
         _rows_before = len(df)
-        df = apply_imputation(df, cols_to_impute=_impute_cols, cols_to_drop_rows=[])
+        # Targets are never imputed; inputs are imputed after the split (below).
+        df = drop_unusable_rows(df, out_cols, cols_to_drop_rows=[])
         _rows_after = len(df)
         _imputation_summary = {
             "rows_before": _rows_before,
@@ -61,7 +56,10 @@ def grid_search_auto_detect(
             "columns": [
                 {
                     "name": c,
-                    "action": "Imputed (KNN)",
+                    "action": (
+                        "Rows dropped (missing target)" if c in out_cols
+                        else "Imputed (KNN, fit on training split)"
+                    ),
                     "missing_count": int(_before_missing.loc[c, "missing_count"]),
                     "missing_pct": float(_before_missing.loc[c, "missing_pct"]),
                 }
@@ -71,6 +69,8 @@ def grid_search_auto_detect(
     X = df[in_cols].values
     y = df[out_cols].values
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
+    if use_imputation:
+        X_train, X_test = impute_train_test(X_train, X_test)
 
     pca_variance_plot = None
     pca_explained_variance = None
@@ -79,26 +79,20 @@ def grid_search_auto_detect(
     kaiser_rule_suggestion = None
 
     if use_pca:
-        preview_pca = PCA().fit(X_train)
-        kaiser_k = int(np.sum(preview_pca.explained_variance_ > 1))
-        if pca_method == "Manual" and n_components is not None:
-            pca_n_components = int(n_components)
-        elif pca_method == "Explained variance threshold" and pca_threshold is not None:
-            cum = np.cumsum(preview_pca.explained_variance_ratio_)
-            pca_n_components = int(np.searchsorted(cum, pca_threshold) + 1)
-        else:
-            pca_n_components = max(1, kaiser_k)
-        pca = PCA(n_components=pca_n_components)
-        X_train = pca.fit_transform(X_train)
-        X_test = pca.transform(X_test)
-        feature_names_pca = [f"PC{i+1}" for i in range(pca_n_components)]
-        pca_explained_variance = preview_pca.explained_variance_ratio_.tolist()
+        _pca = fit_input_pca(X_train, X_test, pca_method, n_components, pca_threshold)
+        X_train, X_test = _pca.X_train, _pca.X_test
+        pca_n_components = _pca.n_components
+        feature_names_pca = _pca.feature_names
+        pca_explained_variance = _pca.preview_pca.explained_variance_ratio_.tolist()
         pca_variance_plot = generate_pca_variance_plot(
-            preview_pca,
+            _pca.preview_pca,
             n_selected=pca_n_components,
             threshold=pca_threshold if pca_method == "Explained variance threshold" else None,
         )
-        kaiser_rule_suggestion = f"Kaiser rule suggests **{kaiser_k}** components (eigenvalues > 1)."
+        kaiser_rule_suggestion = (
+            f"Kaiser rule suggests **{_pca.kaiser_k}** components "
+            "(eigenvalues > 1 on standardized inputs)."
+        )
 
     model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
     if use_moe:
@@ -110,6 +104,13 @@ def grid_search_auto_detect(
                 random_state=0,
             )
         ])
+    # Conformal calibration must use data disjoint from both training and the
+    # test set used to report coverage, so hold out part of the training split.
+    if conformal:
+        X_train, X_cal, y_train, y_cal = train_test_split(
+            X_train, y_train, test_size=0.2, random_state=0
+        )
+
     model.fit(X_train, y_train)
     best_pred, best_std = model.predict(X_test, return_std=True)
     best_model = model
@@ -118,7 +119,7 @@ def grid_search_auto_detect(
     conformal_summary_df = None
     conformal_intervals = None
     if conformal:
-        model.calibrate_conformal(X_test, y_test)
+        model.calibrate_conformal(X_cal, y_cal)
         y_lower, y_upper = model.predict_interval(X_test, alpha=conformal_alpha)
         conformal_intervals = (y_lower, y_upper)
         from multioutreg.conformal.metrics import conformal_summary as _conformal_summary
@@ -144,7 +145,7 @@ def grid_search_auto_detect(
                 metrics[name]["conformal_coverage"] = float(row["coverage"].iloc[0])
                 metrics[name]["conformal_interval_width"] = float(row["mean_width"].iloc[0])
 
-    html = use_auto_detect.generate_html_report(
+    html = generate_html_report(
         model_type="AutoDetectMultiOutputRegressor",
         fidelity_levels=[],
         output_names=out_cols,
