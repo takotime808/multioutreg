@@ -69,3 +69,12 @@ def test_multi_fidelity_surrogate_single_level(sample_data):
     mfs.fit((X, y))
     preds = mfs.predict(X)
     assert preds.shape == y.shape
+
+def test_gradient_boosting_with_uncertainty_std_is_sigma():
+    # Regression: std was the half-width of the 95% quantile interval
+    # (~1.96 * sigma for Gaussian noise) instead of sigma itself.
+    rng = np.random.default_rng(0)
+    X = rng.uniform(size=(2000, 1))
+    y = X[:, 0] + rng.normal(size=2000)  # sigma = 1
+    _, std = GradientBoostingWithUncertainty().fit(X, y).predict(X[:500], return_std=True)
+    assert abs(std.mean() - 1.0) < 0.2

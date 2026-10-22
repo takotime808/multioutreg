@@ -572,6 +572,7 @@ def _blr():
 def _gbq():
     from sklearn.ensemble import GradientBoostingRegressor
     from sklearn.base import BaseEstimator, RegressorMixin
+    import numpy as _np
 
     class _GBQ(BaseEstimator, RegressorMixin):
         def __init__(self, alpha=0.9, n_estimators=100):
@@ -589,7 +590,12 @@ def _gbq():
         def predict(self, X, return_std=False):
             mean = self.mid_.predict(X)
             if return_std:
-                std = (self.upper_.predict(X) - self.lower_.predict(X)) / 2
+                # The (lower, upper) quantiles span a central alpha-interval, whose
+                # half-width is z * sigma for Gaussian noise; divide by z to get sigma.
+                from scipy.stats import norm
+                z = norm.ppf(0.5 + self.alpha / 2)
+                half_width = (self.upper_.predict(X) - self.lower_.predict(X)) / 2
+                std = _np.clip(half_width / z, 0.0, None)  # quantile models can cross
                 return mean, std
             return mean
 

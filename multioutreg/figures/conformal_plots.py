@@ -10,6 +10,20 @@ from typing import List, Optional, Union
 from multioutreg.conformal.base import BaseConformalPredictor
 
 
+def _conformal_quantile_quiet(scores: np.ndarray, alpha: float) -> float:
+    """Shared conformal quantile without the small-n warning.
+
+    These plots sweep many alpha values; an infinite interval simply shows as
+    full coverage, so per-alpha warnings would only be noise.
+    """
+    import warnings
+    from multioutreg.conformal.base import BaseConformalPredictor
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)
+        return BaseConformalPredictor._conformal_quantile(scores, alpha)
+
+
 def plot_conformal_intervals(
     y_true: np.ndarray,
     y_lower: np.ndarray,
@@ -158,6 +172,14 @@ def plot_conformal_intervals_ordered(
 
         axs[i].set_title(output_names[i], fontsize=14)
         axs[i].legend()
+        if not np.all(np.isfinite(y_lower[:, i]) & np.isfinite(y_upper[:, i])):
+            # fill_between silently drops infinite bounds, which would read as "no interval"
+            axs[i].text(
+                0.5, 0.05,
+                "Interval unbounded: too few calibration points for this alpha",
+                transform=axs[i].transAxes, ha="center", va="bottom",
+                color="crimson", fontsize=11,
+            )
 
     for j in range(n_targets, n_rows * n_cols_actual):
         axs[j].set_visible(False)
@@ -214,10 +236,7 @@ def plot_conformal_coverage(
     for i in range(n_targets):
         cov = []
         for alpha in alphas:
-            n_cal = calibration_residuals.shape[0]
-            q_level = np.ceil((n_cal + 1) * (1 - alpha)) / n_cal
-            q_level = min(q_level, 1.0)
-            q = float(np.quantile(calibration_residuals[:, i], q_level))
+            q = _conformal_quantile_quiet(calibration_residuals[:, i], alpha)
             lower = y_pred[:, i] - q
             upper = y_pred[:, i] + q
             frac = np.mean((y_true[:, i] >= lower) & (y_true[:, i] <= upper))
@@ -317,11 +336,8 @@ def plot_conformal_vs_gaussian(
 
         # Conformal coverage
         conf_cov = []
-        n_cal = calibration_residuals.shape[0]
         for alpha in alphas:
-            q_level = np.ceil((n_cal + 1) * (1 - alpha)) / n_cal
-            q_level = min(q_level, 1.0)
-            q = float(np.quantile(calibration_residuals[:, i], q_level))
+            q = _conformal_quantile_quiet(calibration_residuals[:, i], alpha)
             lower = y_pred[:, i] - q
             upper = y_pred[:, i] + q
             frac = np.mean((y_true[:, i] >= lower) & (y_true[:, i] <= upper))

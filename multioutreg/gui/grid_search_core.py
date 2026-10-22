@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import os
 from typing import Dict, List, Tuple, Union, Any
+from scipy.stats import norm
 from sklearn.model_selection import train_test_split, ParameterGrid
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, root_mean_squared_error
 from sklearn.gaussian_process import GaussianProcessRegressor
@@ -177,7 +178,10 @@ class GradientBoostingWithUncertainty(BaseEstimator, RegressorMixin):
             return y_pred
         lower = self.lower.predict(X)
         upper = self.upper.predict(X)
-        std = (upper - lower) / 2
+        # The (lower, upper) quantiles span a central alpha-interval, whose
+        # half-width is z * sigma for Gaussian noise; divide by z to get sigma.
+        z = norm.ppf(0.5 + self.alpha / 2)
+        std = np.clip((upper - lower) / (2 * z), 0.0, None)  # quantile models can cross
         return y_pred, std
 
 

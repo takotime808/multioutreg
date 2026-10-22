@@ -3,6 +3,7 @@
 """Neural-network surrogate with split-conformal uncertainty estimates."""
 
 import numpy as np
+from scipy.stats import norm
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor
 
@@ -102,5 +103,8 @@ class ConformalPredictionNetworkSurrogate(BaseSurrogate):
         if not hasattr(self, "_conformal_scale"):
             raise AttributeError("Estimator not fitted")
 
-        std = np.broadcast_to(self._conformal_scale.reshape(1, -1), preds.shape).copy()
+        # _conformal_scale is the q-quantile of |residual|, i.e. z * sigma for
+        # Gaussian residuals with z = Phi^-1((1 + q) / 2); divide by z to get sigma.
+        z = norm.ppf(0.5 + self.conformal_quantile / 2)
+        std = np.broadcast_to(self._conformal_scale.reshape(1, -1) / z, preds.shape).copy()
         return preds, std
