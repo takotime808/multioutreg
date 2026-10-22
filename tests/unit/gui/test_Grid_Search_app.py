@@ -46,9 +46,13 @@ def test_app_selects_per_output_and_reports(csv_path):
                              surrogate_defs=FAST_DEFS)
     assert not at.exception, at.exception
     assert _best_models(at) == ["linear", "dt"]
-    metrics = at.dataframe[-1].value
+    metrics = at.dataframe[-2].value
     assert list(metrics.index) == ["y_lin", "y_step"]
     assert (metrics["r2"] > 0.9).all()
+    # Real calibration metrics, not the old {"dummy_metric": 0.0} placeholder (MF12).
+    uq = at.dataframe[-1].value["value"]
+    assert "dummy_metric" not in uq.index
+    assert 0.0 <= uq["Empirical coverage of 95% Gaussian interval"] <= 1.0
     assert any(b.label == "Download HTML Report" for b in at.get("download_button"))
 
 

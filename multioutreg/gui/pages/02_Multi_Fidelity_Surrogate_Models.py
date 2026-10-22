@@ -26,7 +26,6 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 from jinja2 import Template
-from scipy.stats import norm
 from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
 from sklearn.model_selection import train_test_split
@@ -60,6 +59,7 @@ from multioutreg.surrogates.sparse_gp_gpytorch import _GPYTORCH_AVAILABLE, Spars
 from multioutreg.sampling.detect import detect_sampling_method
 from multioutreg.utils.figure_utils import plot_to_b64, safe_plot_b64
 from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
+from multioutreg.utils.metric_utils import gaussian_uncertainty_metrics
 
 
 # ---------------------------------------------------------------------------
@@ -326,28 +326,7 @@ def _compute_metrics(
     return metrics
 
 
-def _compute_uncertainty_metrics(
-    y_test: np.ndarray,
-    y_pred: np.ndarray,
-    y_std: np.ndarray,
-    nominal: float = 0.95,
-) -> Dict[str, float]:
-    """Average (over outputs) calibration metrics of the Gaussian ``mean ± std``."""
-    err = np.abs(y_test - y_pred)
-    z = norm.ppf(0.5 + nominal / 2)
-    coverage = float(np.mean(err <= z * y_std))
-    pct = f"{nominal:.0%}"
-    out = {
-        "Sharpness (mean predicted std)": float(np.mean(y_std)),
-        f"Empirical coverage of {pct} Gaussian interval": coverage,
-        f"Miscoverage at {pct} (|nominal − empirical|)": abs(nominal - coverage),
-    }
-    # NLL is undefined for zero std (models without native uncertainty).
-    if np.all(y_std > 0):
-        out["Gaussian NLL (mean per point)"] = float(
-            np.mean(-norm.logpdf(y_test, loc=y_pred, scale=y_std))
-        )
-    return out
+_compute_uncertainty_metrics = gaussian_uncertainty_metrics
 
 
 def _single_level_predictions(
@@ -772,13 +751,23 @@ def _build_candidates(
             "surrogate_cls": sur_cls,
             "augment_with_std": False,
         })
-        # AdditiveCorrectionVFM — 2-level only
+        # AdditiveCorrectionVFM — 2-level only. Fitted rho is the AR1 model;
+        # rho=1 is kept as a candidate because a fitted rho also scales up
+        # the low-fidelity model's error (worse for shrunk models such as RF).
         if len(level_names) == 2:
             candidates.append({
                 "name": f"AdditiveVFM+{sur_name}",
                 "mf_type": "additive",
                 "surrogate_cls": sur_cls,
                 "augment_with_std": False,
+                "rho": "fit",
+            })
+            candidates.append({
+                "name": f"AdditiveVFM+{sur_name}+rho1",
+                "mf_type": "additive",
+                "surrogate_cls": sur_cls,
+                "augment_with_std": False,
+                "rho": 1.0,
             })
 
     return candidates
@@ -805,6 +794,7 @@ def _fit_candidate(
         model = AdditiveCorrectionVFM(
             lo_surrogate_cls=sur_cls,
             hi_surrogate_cls=sur_cls,
+            rho=cand.get("rho", "fit"),
         )
         model.fit({"lo": train_data[lo_name], "hi": train_data[hi_name]})
 

@@ -1,25 +1,17 @@
 # Copyright (c) 2026 takotime808
 
-import numpy as np
 from sklearn.ensemble import ExtraTreesRegressor
-from multioutreg.surrogates.base_sklearn import BaseSurrogate
+from multioutreg.surrogates.forest_uncertainty import ForestSurrogate
 
 
-class ExtraTreesRegressorSurrogate(BaseSurrogate):
-    """Extra-Trees surrogate using ensemble variance for uncertainty."""
+class ExtraTreesRegressorSurrogate(ForestSurrogate):
+    """Extra-Trees surrogate; std = tree spread + held-out noise estimate.
 
-    def __init__(self, **kwargs):
-        super().__init__(ExtraTreesRegressor(**kwargs))
+    Extra-Trees does not bootstrap by default, so the noise is estimated by
+    ``noise_cv``-fold refits (out-of-bag when ``bootstrap=True``).
+    ``include_noise=False`` returns the tree spread alone (epistemic only).
+    See :mod:`multioutreg.surrogates.forest_uncertainty`.
+    """
 
-    def predict(self, X, return_std=False):
-        preds = self.model.predict(X)
-        if not return_std:
-            return preds
-
-        # Estimate std across trees for each output dimension
-        stds = []
-        for estimator in self.model.estimators_:
-            output_preds = np.array([tree.predict(X) for tree in estimator.estimators_])
-            stds.append(output_preds.std(axis=0))
-        std = np.column_stack(stds)
-        return preds, std
+    def __init__(self, include_noise=True, noise_cv=5, **kwargs):
+        super().__init__(ExtraTreesRegressor(**kwargs), include_noise, noise_cv)

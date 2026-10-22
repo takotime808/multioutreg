@@ -9,9 +9,10 @@ Two classes are provided:
   lower-level surrogate predictions (and optionally their stds), enabling
   nonlinear cross-fidelity information transfer with any existing surrogate.
 
-* AdditiveCorrectionVFM — Two-level additive correction (AR1-style).
-  A correction surrogate is trained on the residual delta = Y_hi - f_lo(X_hi),
-  then combined at predict time as f_hi(x) = f_lo(x) + delta(x).
+* AdditiveCorrectionVFM — Two-level autoregressive correction (Kennedy-O'Hagan AR1).
+  A per-output scale rho is fitted by least squares of Y_hi on f_lo(X_hi), a
+  correction surrogate is trained on delta = Y_hi - rho * f_lo(X_hi), and the
+  prediction is f_hi(x) = rho * f_lo(x) + delta(x).
 
 References
 ----------
@@ -30,6 +31,82 @@ from typing import Dict, List, Literal, Optional, Tuple, Union
 import numpy as np
 
 from multioutreg.surrogates.conformal_mixin import ConformalMixin
+
+
+def _as_2d(a) -> np.ndarray:
+    a = np.asarray(a, dtype=np.float64)
+    return a.reshape(-1, 1) if a.ndim == 1 else a
+
+
+def _row_keys(X: np.ndarray) -> List[bytes]:
+    return [row.tobytes() for row in np.ascontiguousarray(X, dtype=np.float64)]
+
+
+class _OOFPredictor:
+    """Out-of-fold predictions of a model at points of its own training set.
+
+    A higher level is trained on a lower model's predictions at the higher
+    level's inputs. When those inputs are also training points of the lower
+    model (nested designs, the usual case), the full model's predictions there
+    are in-sample and much more accurate than at new points, so the higher
+    level learns to trust them too much. This class replaces those predictions
+    with K-fold out-of-fold ones; query rows the model was not trained on keep
+    the full model's prediction. Duplicate rows share a fold.
+
+    Fold models are fitted lazily, only when a query row overlaps the training
+    set.
+    """
+
+    def __init__(self, make_model, X_raw, X_fit, Y, cv, random_state):
+        self._make_model = make_model
+        self._X_fit = X_fit
+        self._Y = Y
+        keys = _row_keys(X_raw)
+        uniq = list(dict.fromkeys(keys))
+        self.n_splits = min(int(cv), len(uniq)) if cv else 0
+        self._fold_of_key: Dict[bytes, int] = {}
+        if self.n_splits >= 2:
+            perm = np.random.default_rng(random_state).permutation(len(uniq))
+            for f, idx in enumerate(np.array_split(perm, self.n_splits)):
+                for j in idx:
+                    self._fold_of_key[uniq[j]] = f
+        self._train_folds = np.array([self._fold_of_key.get(k, -1) for k in keys])
+        self._fold_models: Optional[list] = None
+
+    def predict(self, full_model, X_raw_query, X_in_query, return_std):
+        """Predict at ``X_in_query``, out-of-fold where rows overlap training."""
+        if return_std:
+            pred, std = full_model.predict(X_in_query, return_std=True)
+            pred, std = _as_2d(pred).copy(), _as_2d(std).copy()
+        else:
+            pred, std = _as_2d(full_model.predict(X_in_query)).copy(), None
+
+        if self.n_splits < 2:
+            return pred, std
+        q_folds = np.array(
+            [self._fold_of_key.get(k, -1) for k in _row_keys(X_raw_query)]
+        )
+        if not (q_folds >= 0).any():
+            return pred, std
+
+        if self._fold_models is None:
+            self._fold_models = []
+            for f in range(self.n_splits):
+                mask = self._train_folds != f
+                m = self._make_model()
+                m.fit(self._X_fit[mask], self._Y[mask])
+                self._fold_models.append(m)
+
+        for f in np.unique(q_folds[q_folds >= 0]):
+            rows = q_folds == f
+            m = self._fold_models[f]
+            if return_std:
+                p, s = m.predict(X_in_query[rows], return_std=True)
+                std[rows] = _as_2d(s)
+            else:
+                p = m.predict(X_in_query[rows])
+            pred[rows] = _as_2d(p)
+        return pred, std
 
 
 class StackedVFMSurrogate(ConformalMixin):
@@ -71,6 +148,17 @@ class StackedVFMSurrogate(ConformalMixin):
         ``"error"`` raises ValueError.
         ``"truncate"`` clips extra augmentation columns.
         ``"pad"`` zero-pads missing augmentation columns.
+    oof_cv : int or None, default 5
+        Folds used for out-of-fold lower-level predictions while fitting.
+        When a level's training inputs are also training inputs of a lower
+        level (nested designs), the lower model's predictions there are
+        in-sample and over-accurate; the higher level then over-trusts them
+        and does worse at new points. Those rows instead get predictions from
+        a lower model fitted without them. Rows that are not lower-level
+        training points use the full model, as does ``predict``. ``None`` or
+        ``0`` uses in-sample predictions (the old behaviour).
+    random_state : int or None, default 0
+        Seed for the out-of-fold split.
 
     Attributes
     ----------
@@ -113,6 +201,8 @@ class StackedVFMSurrogate(ConformalMixin):
         surrogate_params: Union[dict, List[dict], None] = None,
         augment_with_std: bool = False,
         output_dim_mismatch: Literal["error", "truncate", "pad"] = "error",
+        oof_cv: Optional[int] = 5,
+        random_state: Optional[int] = 0,
     ):
         if len(fidelity_levels) < 2:
             raise ValueError(
@@ -124,6 +214,8 @@ class StackedVFMSurrogate(ConformalMixin):
         self.surrogate_params = surrogate_params
         self.augment_with_std = augment_with_std
         self.output_dim_mismatch = output_dim_mismatch
+        self.oof_cv = oof_cv
+        self.random_state = random_state
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -171,12 +263,19 @@ class StackedVFMSurrogate(ConformalMixin):
             (n_samples, augmented_n_features_per_level_[fidelity_levels[level_idx]]).
         """
         X_current = X  # shape (n_samples, n_features_in_)
+        # Only set while fitting (see fit): out-of-fold predictors per level.
+        oof = getattr(self, "_oof_predictors", None)
 
         for i in range(level_idx):
             level_name = self.fidelity_levels[i]
             surrogate_i = self.surrogates_[level_name]
 
-            if self.augment_with_std:
+            if oof is not None:
+                pred_i, std_i = oof[level_name].predict(
+                    surrogate_i, X, X_current, self.augment_with_std
+                )
+                aug_cols = np.hstack([pred_i, std_i]) if self.augment_with_std else pred_i
+            elif self.augment_with_std:
                 pred_i, std_i = surrogate_i.predict(X_current, return_std=True)
                 pred_i = np.asarray(pred_i, dtype=np.float64)
                 std_i = np.asarray(std_i, dtype=np.float64)
@@ -268,7 +367,16 @@ class StackedVFMSurrogate(ConformalMixin):
         self.surrogates_: Dict[str, object] = {}
         self.n_outputs_per_level_: Dict[str, int] = {}
         self.augmented_n_features_per_level_: Dict[str, int] = {}
+        self._oof_predictors: Dict[str, _OOFPredictor] = {}
+        try:
+            self._fit_levels(data)
+        finally:
+            # Fold models are only needed to build training features.
+            del self._oof_predictors
+        return self
 
+    def _fit_levels(self, data: Dict[str, Tuple[np.ndarray, np.ndarray]]) -> None:
+        last = len(self.fidelity_levels) - 1
         for k_idx, level in enumerate(self.fidelity_levels):
             X_k, Y_k = data[level]
             X_k = np.asarray(X_k, dtype=np.float64)
@@ -296,8 +404,11 @@ class StackedVFMSurrogate(ConformalMixin):
             self.surrogates_[level] = surrogate_k
             self.n_outputs_per_level_[level] = Y_k.shape[1]
             self.augmented_n_features_per_level_[level] = X_aug.shape[1]
-
-        return self
+            if k_idx < last:
+                self._oof_predictors[level] = _OOFPredictor(
+                    lambda k=k_idx: self._make_surrogate(k),
+                    X_k, X_aug, Y_k, self.oof_cv, self.random_state,
+                )
 
     def predict(
         self,
@@ -373,6 +484,8 @@ class StackedVFMSurrogate(ConformalMixin):
             "surrogate_params": self.surrogate_params,
             "augment_with_std": self.augment_with_std,
             "output_dim_mismatch": self.output_dim_mismatch,
+            "oof_cv": self.oof_cv,
+            "random_state": self.random_state,
         }
 
     def set_params(self, **params) -> "StackedVFMSurrogate":
@@ -382,19 +495,23 @@ class StackedVFMSurrogate(ConformalMixin):
 
 
 class AdditiveCorrectionVFM(ConformalMixin):
-    """Two-level additive correction (Kennedy-O'Hagan AR1-style) surrogate.
+    """Two-level autoregressive correction (Kennedy-O'Hagan AR1) surrogate.
 
     The high-fidelity response is modelled as:
 
-        f_hi(x) = f_lo(x) + delta(x)
+        f_hi(x) = rho * f_lo(x) + delta(x)
 
-    where ``delta(x) = Y_hi - f_lo(X_hi)`` is the additive correction learned
-    from the high-fidelity data.  Both ``f_lo`` and ``delta`` are arbitrary
-    surrogate models, so the correction can be nonlinear.
+    ``rho`` (one per output) is the least-squares slope of ``Y_hi`` on
+    ``f_lo(X_hi)``, and ``delta`` is a surrogate fitted to
+    ``Y_hi - rho * f_lo(X_hi)``.  Both ``f_lo`` and ``delta`` are arbitrary
+    surrogate models, so the correction can be nonlinear.  With a fixed
+    ``rho=1`` the low-fidelity model is assumed to be on the same scale as the
+    high-fidelity one, and any scale difference has to be learned by ``delta``
+    from the (few) high-fidelity points.
 
     Uncertainty is combined in quadrature (assuming independence):
 
-        sigma_hi(x) = sqrt(sigma_lo(x)^2 + sigma_delta(x)^2)
+        sigma_hi(x) = sqrt(rho^2 * sigma_lo(x)^2 + sigma_delta(x)^2)
 
     Note: The independence assumption is approximate because ``delta`` is
     computed using ``f_lo``.  In practice the combined std slightly
@@ -420,6 +537,20 @@ class AdditiveCorrectionVFM(ConformalMixin):
         Constructor kwargs for the low-fidelity surrogate.
     hi_surrogate_params : dict | None
         Constructor kwargs for the correction surrogate.
+    rho : "fit" or float, default "fit"
+        Scale on the low-fidelity prediction. ``"fit"`` estimates it per output
+        by least squares (with an intercept, which ``delta`` absorbs); when the
+        low-fidelity prediction is constant on the high-fidelity inputs it
+        falls back to 1.  A number fixes it (``rho=1.0`` is the plain additive
+        correction).
+    oof_cv : int or None, default 5
+        Folds for out-of-fold ``f_lo`` predictions at high-fidelity inputs
+        that are also low-fidelity training points (nested designs).  The
+        full model is in-sample there, so ``rho`` and ``delta`` would be
+        fitted against predictions more accurate than at new points.  ``None``
+        or ``0`` uses the full model everywhere.
+    random_state : int or None, default 0
+        Seed for the out-of-fold split.
 
     Attributes
     ----------
@@ -427,6 +558,8 @@ class AdditiveCorrectionVFM(ConformalMixin):
         Fitted low-fidelity surrogate.
     surrogate_delta_ : surrogate
         Fitted correction surrogate.
+    rho_ : np.ndarray, shape (n_outputs,)
+        Scale applied to the low-fidelity prediction.
     n_outputs_ : int
         Number of outputs (must match between lo and hi data).
 
@@ -455,11 +588,17 @@ class AdditiveCorrectionVFM(ConformalMixin):
         hi_surrogate_cls=None,
         lo_surrogate_params: Optional[dict] = None,
         hi_surrogate_params: Optional[dict] = None,
+        rho: Union[Literal["fit"], float] = "fit",
+        oof_cv: Optional[int] = 5,
+        random_state: Optional[int] = 0,
     ):
         self.lo_surrogate_cls = lo_surrogate_cls
         self.hi_surrogate_cls = hi_surrogate_cls
         self.lo_surrogate_params = lo_surrogate_params
         self.hi_surrogate_params = hi_surrogate_params
+        self.rho = rho
+        self.oof_cv = oof_cv
+        self.random_state = random_state
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -478,6 +617,20 @@ class AdditiveCorrectionVFM(ConformalMixin):
         cls = self.hi_surrogate_cls if self.hi_surrogate_cls is not None else GaussianProcessSurrogate
         params = dict(self.hi_surrogate_params) if self.hi_surrogate_params else {}
         return cls(**params)
+
+    def _fit_rho(self, y_lo: np.ndarray, Y_hi: np.ndarray) -> np.ndarray:
+        """Per-output scale on ``f_lo``: fixed, or the OLS slope of Y_hi on f_lo."""
+        n_out = Y_hi.shape[1]
+        if not (isinstance(self.rho, str) and self.rho == "fit"):
+            return np.full(n_out, float(self.rho))
+        rho = np.ones(n_out)
+        yc = y_lo - y_lo.mean(axis=0)
+        var = (yc ** 2).sum(axis=0)
+        # f_lo (numerically) constant on X_hi: slope undefined, keep rho = 1.
+        ok = var > 1e-12 * np.maximum((y_lo ** 2).sum(axis=0), 1e-300)
+        cov = (yc * (Y_hi - Y_hi.mean(axis=0))).sum(axis=0)
+        rho[ok] = cov[ok] / var[ok]
+        return rho
 
     # ------------------------------------------------------------------
     # Public API
@@ -537,10 +690,12 @@ class AdditiveCorrectionVFM(ConformalMixin):
         self.surrogate_lo_ = self._make_lo_surrogate()
         self.surrogate_lo_.fit(X_lo, Y_lo)
 
-        y_lo_at_hi = np.asarray(self.surrogate_lo_.predict(X_hi), dtype=np.float64)
-        if y_lo_at_hi.ndim == 1:
-            y_lo_at_hi = y_lo_at_hi.reshape(-1, 1)
-        delta = Y_hi - y_lo_at_hi
+        oof = _OOFPredictor(
+            self._make_lo_surrogate, X_lo, X_lo, Y_lo, self.oof_cv, self.random_state
+        )
+        y_lo_at_hi, _ = oof.predict(self.surrogate_lo_, X_hi, X_hi, False)
+        self.rho_ = self._fit_rho(y_lo_at_hi, Y_hi)
+        delta = Y_hi - self.rho_ * y_lo_at_hi
 
         self.surrogate_delta_ = self._make_hi_surrogate()
         self.surrogate_delta_.fit(X_hi, delta)
@@ -552,14 +707,14 @@ class AdditiveCorrectionVFM(ConformalMixin):
         X: np.ndarray,
         return_std: bool = False,
     ) -> Union[np.ndarray, Tuple[np.ndarray, np.ndarray]]:
-        """Predict high-fidelity output as f_lo(x) + delta(x).
+        """Predict high-fidelity output as rho * f_lo(x) + delta(x).
 
         Parameters
         ----------
         X : np.ndarray, shape (n_samples, n_features)
         return_std : bool, default False
             If True, return combined predictive std in quadrature:
-            ``sigma_hi = sqrt(sigma_lo^2 + sigma_delta^2)``.
+            ``sigma_hi = sqrt(rho^2 * sigma_lo^2 + sigma_delta^2)``.
 
         Returns
         -------
@@ -596,8 +751,8 @@ class AdditiveCorrectionVFM(ConformalMixin):
             if s_delta.ndim == 1:
                 s_delta = s_delta.reshape(-1, 1)
 
-            y_pred = y_lo + delta_hat
-            y_std = np.sqrt(s_lo ** 2 + s_delta ** 2)
+            y_pred = self.rho_ * y_lo + delta_hat
+            y_std = np.sqrt((self.rho_ * s_lo) ** 2 + s_delta ** 2)
             return y_pred, y_std
 
         y_lo = np.asarray(self.surrogate_lo_.predict(X), dtype=np.float64)
@@ -608,14 +763,15 @@ class AdditiveCorrectionVFM(ConformalMixin):
         if delta_hat.ndim == 1:
             delta_hat = delta_hat.reshape(-1, 1)
 
-        return y_lo + delta_hat
+        return self.rho_ * y_lo + delta_hat
 
     def predict_components(
         self, X: np.ndarray
     ) -> Tuple[np.ndarray, np.ndarray]:
-        """Return (f_lo(x), delta(x)) separately for diagnostics.
+        """Return (rho * f_lo(x), delta(x)) separately for diagnostics.
 
-        Useful for inspecting how much correction is applied and where.
+        Useful for inspecting how much correction is applied and where.  The
+        two parts sum to ``predict(X)``; ``rho_`` holds the scale.
 
         Parameters
         ----------
@@ -624,6 +780,7 @@ class AdditiveCorrectionVFM(ConformalMixin):
         Returns
         -------
         y_lo : np.ndarray, shape (n_samples, n_outputs)
+            Scaled low-fidelity term ``rho * f_lo(x)``.
         delta : np.ndarray, shape (n_samples, n_outputs)
         """
         if not hasattr(self, "surrogate_lo_"):
@@ -641,7 +798,7 @@ class AdditiveCorrectionVFM(ConformalMixin):
         if delta.ndim == 1:
             delta = delta.reshape(-1, 1)
 
-        return y_lo, delta
+        return self.rho_ * y_lo, delta
 
     def _conformal_point_predict(self, X: np.ndarray) -> np.ndarray:
         """Called by ConformalMixin for conformal calibration."""
@@ -657,6 +814,9 @@ class AdditiveCorrectionVFM(ConformalMixin):
             "hi_surrogate_cls": self.hi_surrogate_cls,
             "lo_surrogate_params": self.lo_surrogate_params,
             "hi_surrogate_params": self.hi_surrogate_params,
+            "rho": self.rho,
+            "oof_cv": self.oof_cv,
+            "random_state": self.random_state,
         }
 
     def set_params(self, **params) -> "AdditiveCorrectionVFM":
