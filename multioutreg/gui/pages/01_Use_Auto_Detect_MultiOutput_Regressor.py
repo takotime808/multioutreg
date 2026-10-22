@@ -52,6 +52,7 @@ from multioutreg.figures.conformal_plots import (
 )
 from multioutreg.model_selection import AutoDetectMultiOutputRegressor
 from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
+from multioutreg.utils.metric_utils import gaussian_uncertainty_metrics
 from multioutreg.time_series.ts_suitability import check_ts_suitability
 
 # # NOTE: NOT used...yet.
@@ -442,6 +443,10 @@ if uploaded_file:
             }
         st.dataframe(pd.DataFrame(metrics).T)
 
+        uncertainty_metrics = gaussian_uncertainty_metrics(y_test, best_pred, best_std)
+        st.write("### Uncertainty Calibration (Gaussian std, test set)")
+        st.dataframe(pd.Series(uncertainty_metrics, name="value").to_frame())
+
         # Shap plots
         shap_img = safe_plot_b64(
             plot_multioutput_shap_bar_subplots,
@@ -463,7 +468,7 @@ if uploaded_file:
             output_names=output_cols,
             description=description,
             metrics=metrics,
-            uncertainty_metrics={"dummy_metric": 0.0},
+            uncertainty_metrics=uncertainty_metrics,
             y_test=y_test,
             best_pred=best_pred,
             best_std=best_std,
@@ -484,6 +489,7 @@ if uploaded_file:
             shap_plot=shap_img,
             conformal_intervals=conformal_intervals if use_conformal else None,
             conformal_alpha=conformal_alpha_sel if use_conformal else None,
+            calibration_residuals=model._conformal_residuals if use_conformal else None,
             imputation_summary=_imputation_summary,
         )
 

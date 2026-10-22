@@ -208,3 +208,38 @@ def test_vendored_scaled_pipeline_params_reach_surrogate():
     model.fit(X, y)
     assert model.models_[0].scale_inputs
     assert model.predict(X).shape == (60, 1)
+
+
+def test_clone_keeps_vendored_configuration():
+    # Regression: clone raised (constructor rewrapped ``estimators``) and would
+    # have dropped the surrogate constructors set by with_vendored_surrogates.
+    from sklearn.base import clone
+
+    model = AutoDetectMultiOutputRegressor.with_vendored_surrogates(
+        cv=2, fidelity_levels=["single"])
+    cloned = clone(model)
+    assert cloned._model_names == model._model_names
+    assert len(cloned._surrogate_constructors) == len(model._surrogate_constructors)
+    assert cloned.fidelity_levels == ["single"]
+
+    keep = [model._model_names.index("linear")]
+    cloned.estimators = [cloned.estimators[i] for i in keep]
+    cloned.param_spaces = [cloned.param_spaces[i] for i in keep]
+    cloned._surrogate_constructors = [cloned._surrogate_constructors[i] for i in keep]
+    cloned._model_names = ["linear"]
+    X, y = make_regression(n_samples=40, n_features=3, n_targets=2, random_state=0)
+    cloned.fit(X, y)
+    assert isinstance(cloned.models_[0], MultiFidelitySurrogate)
+
+
+def test_clone_copies_multi_output_candidates_unfitted():
+    from sklearn.base import clone
+    from sklearn.neighbors import KNeighborsRegressor
+
+    knn = KNeighborsRegressor(n_neighbors=3)
+    model = AutoDetectMultiOutputRegressor([LinearRegression()], [{}])
+    model.register_multi_output_candidates([knn])
+    cloned = clone(model)
+    assert len(cloned._multi_output_candidates) == 1
+    assert cloned._multi_output_candidates[0] is not knn
+    assert cloned._multi_output_candidates[0].get_params() == knn.get_params()

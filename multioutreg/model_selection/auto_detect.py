@@ -212,13 +212,28 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             raise ValueError("Each estimator must have a corresponding param space")
         if selection not in ("best", "one_se"):
             raise ValueError(f"selection must be 'best' or 'one_se', got {selection!r}")
-        self.estimators = list(estimators)
-        self.param_spaces = list(param_spaces)
+        # Stored unmodified: sklearn.clone checks constructor params by identity.
+        self.estimators = estimators
+        self.param_spaces = param_spaces
         self.cv = cv
         self.scoring = scoring
         self.pre_screen = pre_screen
         self.selection = selection
         self.random_state = random_state
+
+    def __sklearn_clone__(self) -> "AutoDetectMultiOutputRegressor":
+        # Configuration set outside __init__ (with_vendored_surrogates,
+        # register_multi_output_candidates) is not a constructor param, so the
+        # default clone would drop it.
+        new = super().__sklearn_clone__()
+        for attr in ("_model_names", "_surrogate_constructors", "fidelity_levels"):
+            if hasattr(self, attr):
+                setattr(new, attr, list(getattr(self, attr)))
+        if hasattr(self, "_multi_output_candidates"):
+            # fit() refits these in place, so clones must not share them.
+            new._multi_output_candidates = [
+                _clone_surrogate(s) for s in self._multi_output_candidates]
+        return new
 
     def _splitter(self):
         # An int cv means unshuffled KFold in sklearn, so ordered data (sorted

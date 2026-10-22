@@ -246,7 +246,11 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
 - [ ] **31.** `confidence_intervals.py` estimates z by Monte Carlo — use `norm.ppf`.
 - [ ] **32.** Chronos-Bolt silently drops quantiles outside 0.1–0.9; median fallback is a mean.
 - [ ] **33.** `conditional_coverage` bins on y_true; condition on X or predicted width instead.
-- [ ] **34.** `AutoDetect` private attrs (`_model_names`, `_surrogate_constructors`) are lost by `sklearn.clone`.
+- [x] **34.** `AutoDetect` private attrs (`_model_names`, `_surrogate_constructors`) are lost by `sklearn.clone`.
+  Worse in practice: `clone` raised `RuntimeError` because `__init__` rewrapped `estimators` /
+  `param_spaces` in `list()`. They are now stored as given, and `__sklearn_clone__` carries
+  `_model_names`, `_surrogate_constructors`, `fidelity_levels` and unfitted copies of the
+  registered multi-output candidates.
 - [x] **35.** `tests/unit/performance/test_metrics_generalized.py` monkeypatches uct at module level (leaks).
   Now an autouse fixture.
 - [x] **36.** Add regression tests for each critical fix (bootstrap slope, GP std > 0, conformal
@@ -320,10 +324,15 @@ report. User guide: `docs/multi_fidelity_gui.md`.
   drives all splits, each surrogate's seed argument (`_SEED_KWARG`), and the residual-plot
   bootstrap (`plot_residuals_multioutput_with_regplot(seed=...)`). Two seeded runs give a
   byte-identical report. An independent winner's baseline reuses its own per-level models.
-- [ ] **MF11.** Same test-residual leak as MF3 in `gui/grid_search_core.py` (~line 652,
-  `np.abs(y_test - best_pred)` passed to `plot_conformal_vs_gaussian`).
-- [ ] **MF12.** `gui/Grid_Search_Surrogate_Models.py` and `gui/pages/01_Use_Auto_Detect_MultiOutput_Regressor.py`
-  still pass `uncertainty_metrics={"dummy_metric": 0.0}` to the report.
+- [x] **MF11.** Same test-residual leak as MF3 in `gui/grid_search_core.py` (~line 652,
+  `np.abs(y_test - best_pred)` passed to `plot_conformal_vs_gaussian`). *Fix:* both
+  `grid_search_core.generate_html_report` and `report/auto_detect_report.generate_html_report`
+  (same leak) take `calibration_residuals` and draw the plot only when given; the grid-search
+  and auto-detect pages pass the residuals from their held-out calibration split.
+- [x] **MF12.** `gui/Grid_Search_Surrogate_Models.py` and `gui/pages/01_Use_Auto_Detect_MultiOutput_Regressor.py`
+  still passed `uncertainty_metrics={"dummy_metric": 0.0}` to the report. *Fix:* MF4's helper moved
+  to `utils.metric_utils.gaussian_uncertainty_metrics` and is used by all three pages (test set;
+  also shown in the UI).
 - [ ] **MF13.** Other pages and the CLI still build surrogates unseeded and print "Random seed: 0"
   in the report although only the splits use it (see E10 for the same issue in the ts pipeline).
 - [ ] **MF14.** Other pages still use `generate_umap_plot`'s threshold heuristic for sampling
