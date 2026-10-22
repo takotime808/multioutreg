@@ -14,7 +14,6 @@ from sklearn.model_selection import train_test_split, ParameterGrid
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, root_mean_squared_error
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, Matern
-from sklearn.decomposition import PCA
 from sklearn.ensemble import ExtraTreesRegressor, HistGradientBoostingRegressor, RandomForestRegressor, GradientBoostingRegressor
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import LinearRegression, BayesianRidge
@@ -38,6 +37,7 @@ from jinja2 import Template
 from multioutreg.figures.error_histograms import generate_error_histogram
 from multioutreg.figures.shap_multioutput import generate_shap_plot
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
+from multioutreg.utils.pca_utils import fit_input_pca
 from multioutreg.figures.pdp_plots import generate_pdp_plot
 from multioutreg.utils.figure_utils import safe_plot_b64
 from multioutreg.figures.umap_plot_classify import generate_umap_plot
@@ -77,7 +77,7 @@ from multioutreg.time_series.ts_suitability import check_ts_suitability
 # NOTE: NOT used...yet.
 from multioutreg.figures.doe_plots import make_doe_plot
 from multioutreg.figures.model_comparison import plot_surrogate_model_summary
-from multioutreg.utils.imputation import detect_missing, apply_imputation
+from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
 
 
 from multioutreg.gui.grid_search_core import (
@@ -113,6 +113,10 @@ if uploaded_file:
         )
         st.dataframe(_missing_summary)
         st.write("**Choose how to handle missing values per column:**")
+        st.caption(
+            "Missing target values are never imputed: those rows are always dropped. "
+            "Imputation of inputs is fitted on the training split only."
+        )
         for _col in _missing_summary.index:
             _impute_choices[_col] = st.selectbox(
                 f"`{_col}`",
@@ -283,8 +287,9 @@ if uploaded_file:
             if st.session_state.get(f"imp_{c}") == "Drop rows"
         ]
         _rows_before = len(df)
-        if _cols_to_impute or _cols_to_drop:
-            df = apply_imputation(df, _cols_to_impute, _cols_to_drop)
+        # Targets are never imputed: rows missing a target are dropped. Inputs marked
+        # "Impute (KNN)" are imputed after the train/test split (below).
+        df = drop_unusable_rows(df, list(output_cols), _cols_to_drop)
         _rows_after = len(df)
         _imputation_summary = None
         if _cols_to_impute or _cols_to_drop:
@@ -293,7 +298,10 @@ if uploaded_file:
                 if _c in _missing_summary.index:
                     _summary_cols.append({
                         "name": _c,
-                        "action": "Imputed (KNN)",
+                        "action": (
+                            "Rows dropped (missing target)" if _c in output_cols
+                            else "Imputed (KNN, fit on training split)"
+                        ),
                         "missing_count": int(_missing_summary.loc[_c, "missing_count"]),
                         "missing_pct": float(_missing_summary.loc[_c, "missing_pct"]),
                     })
@@ -314,6 +322,7 @@ if uploaded_file:
         X = df[input_cols].values
         y = df[output_cols].values
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
+        X_train, X_test = impute_train_test(X_train, X_test)
         feature_names = list(input_cols)
 
         # # Show seaborn PairGrid plot with KDE in lower triangle
@@ -334,26 +343,20 @@ if uploaded_file:
         feature_names_pca = None
         kaiser_rule_suggestion = None
         if use_pca:
-            preview_pca = PCA().fit(X_train)
-            kaiser_k = int(np.sum(preview_pca.explained_variance_ > 1))
-            if pca_method == "Manual":
-                pca_n_components = int(n_components)
-            elif pca_method == "Explained variance threshold":
-                cum = np.cumsum(preview_pca.explained_variance_ratio_)
-                pca_n_components = int(np.searchsorted(cum, pca_threshold) + 1)
-            else:  # Kaiser rule
-                pca_n_components = max(1, kaiser_k)
-            pca = PCA(n_components=pca_n_components)
-            X_train = pca.fit_transform(X_train)
-            X_test = pca.transform(X_test)
-            feature_names_pca = [f"PC{i+1}" for i in range(pca_n_components)]
+            _pca = fit_input_pca(X_train, X_test, pca_method, n_components, pca_threshold)
+            X_train, X_test = _pca.X_train, _pca.X_test
+            pca_n_components = _pca.n_components
+            feature_names_pca = _pca.feature_names
             pca_variance_plot = generate_pca_variance_plot(
-                preview_pca,
+                _pca.preview_pca,
                 n_selected=pca_n_components,
                 threshold=pca_threshold if pca_method == "Explained variance threshold" else None,
             )
-            pca_explained_variance = preview_pca.explained_variance_ratio_.tolist()
-            kaiser_rule_suggestion = f"Kaiser rule suggests **{kaiser_k}** components (eigenvalues > 1)."
+            pca_explained_variance = _pca.preview_pca.explained_variance_ratio_.tolist()
+            kaiser_rule_suggestion = (
+                f"Kaiser rule suggests **{_pca.kaiser_k}** components "
+                "(eigenvalues > 1 on standardized inputs)."
+            )
             st.markdown(kaiser_rule_suggestion)
             st.image(
                 f"data:image/png;base64,{pca_variance_plot}",

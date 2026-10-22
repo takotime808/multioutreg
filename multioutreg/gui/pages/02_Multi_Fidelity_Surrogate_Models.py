@@ -54,7 +54,7 @@ from multioutreg.surrogates.xgboost_sklearn import _XGBOOST_AVAILABLE, XGBoostSu
 from multioutreg.surrogates.catboost_sklearn import _CATBOOST_AVAILABLE, CatBoostSurrogate
 from multioutreg.surrogates.sparse_gp_gpytorch import _GPYTORCH_AVAILABLE, SparseGPSurrogate
 from multioutreg.utils.figure_utils import safe_plot_b64
-from multioutreg.utils.imputation import apply_imputation, detect_missing
+from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
 
 
 # ---------------------------------------------------------------------------
@@ -462,6 +462,10 @@ if uploaded_file:
         )
         st.dataframe(_missing_summary)
         st.write("**Choose how to handle missing values per column:**")
+        st.caption(
+            "Missing target values are never imputed: those rows are always dropped. "
+            "Imputation of inputs is fitted on the training split only."
+        )
         for _col in _missing_summary.index:
             _impute_choices[_col] = st.selectbox(
                 f"`{_col}`",
@@ -552,8 +556,9 @@ if uploaded_file:
             if st.session_state.get(f"imp_{c}") == "Drop rows"
         ]
         _rows_before = len(df)
-        if _cols_to_impute or _cols_to_drop:
-            df = apply_imputation(df, _cols_to_impute, _cols_to_drop)
+        # Targets are never imputed: rows missing a target are dropped. Inputs marked
+        # "Impute (KNN)" are imputed per level after the train/test split (below).
+        df = drop_unusable_rows(df, list(output_cols), _cols_to_drop)
         _rows_after = len(df)
 
         _imputation_summary = None
@@ -563,7 +568,10 @@ if uploaded_file:
                 if _c in _missing_summary.index:
                     _summary_cols.append({
                         "name": _c,
-                        "action": "Imputed (KNN)",
+                        "action": (
+                            "Rows dropped (missing target)" if _c in output_cols
+                            else "Imputed (KNN, fit on training split)"
+                        ),
                         "missing_count": int(_missing_summary.loc[_c, "missing_count"]),
                         "missing_pct": float(_missing_summary.loc[_c, "missing_pct"]),
                     })
@@ -602,6 +610,7 @@ if uploaded_file:
             X_tr, X_te, Y_tr, Y_te = train_test_split(
                 X_k, Y_k, test_size=0.25, random_state=0
             )
+            X_tr, X_te = impute_train_test(X_tr, X_te)
             train_data[lv_name] = (X_tr, Y_tr)
             test_data[lv_name] = (X_te, Y_te)
 

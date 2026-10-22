@@ -77,7 +77,6 @@ from multioutreg.time_series.ts_suitability import check_ts_suitability
 # NOTE: NOT used...yet.
 from multioutreg.figures.doe_plots import make_doe_plot
 from multioutreg.figures.model_comparison import plot_surrogate_model_summary
-from multioutreg.utils.imputation import detect_missing, apply_imputation
 
 
 # ----- Surrogate Models with Uncertainty -----
