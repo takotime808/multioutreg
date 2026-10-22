@@ -345,8 +345,10 @@ report. User guide: `docs/multi_fidelity_gui.md`.
   byte-identical report. An independent winner's baseline reuses its own per-level models.
 - [ ] **MF11.** Same test-residual leak as MF3 in `gui/grid_search_core.py` (~line 652,
   `np.abs(y_test - best_pred)` passed to `plot_conformal_vs_gaussian`).
-- [ ] **MF12.** `gui/Grid_Search_Surrogate_Models.py` and `gui/pages/01_Use_Auto_Detect_MultiOutput_Regressor.py`
-  still pass `uncertainty_metrics={"dummy_metric": 0.0}` to the report.
+- [x] **MF12.** `gui/Grid_Search_Surrogate_Models.py` and `gui/pages/01_Use_Auto_Detect_MultiOutput_Regressor.py`
+  still passed `uncertainty_metrics={"dummy_metric": 0.0}` to the report. *Fix:* MF4's helper moved
+  to `utils.metric_utils.gaussian_uncertainty_metrics` and is used by all three pages (test set;
+  also shown in the UI).
 - [ ] **MF13.** Other pages and the CLI still build surrogates unseeded and print "Random seed: 0"
   in the report although only the splits use it (see E10 for the same issue in the ts pipeline).
 - [ ] **MF14.** Other pages still use `generate_umap_plot`'s threshold heuristic for sampling

@@ -40,6 +40,7 @@ from multioutreg.figures.pca_plots import generate_pca_variance_plot
 from multioutreg.utils.pca_utils import fit_input_pca
 from multioutreg.figures.pdp_plots import generate_pdp_plot
 from multioutreg.utils.figure_utils import safe_plot_b64
+from multioutreg.utils.metric_utils import gaussian_uncertainty_metrics
 from multioutreg.figures.umap_plot_classify import generate_umap_plot
 from multioutreg.figures.prediction_plots import plot_predictions_with_error_bars
 # from multioutreg.figures.shap_multioutput import plot_multioutput_shap_bar_subplots
@@ -623,6 +624,10 @@ if uploaded_file:
             }
         st.dataframe(pd.DataFrame(metrics).T)
 
+        uncertainty_metrics = gaussian_uncertainty_metrics(y_test, best_pred, best_std)
+        st.write("### Uncertainty Calibration (Gaussian std, test set)")
+        st.dataframe(pd.Series(uncertainty_metrics, name="value").to_frame())
+
         # Conformal prediction
         conformal_intervals = None
         if use_conformal:
@@ -656,7 +661,7 @@ if uploaded_file:
             output_names=output_cols,
             description=description,
             metrics=metrics,
-            uncertainty_metrics={"dummy_metric": 0.0},
+            uncertainty_metrics=uncertainty_metrics,
             y_test=y_test,
             best_pred=best_pred,
             best_std=best_std,
