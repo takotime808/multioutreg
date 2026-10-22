@@ -674,3 +674,32 @@ def test_sampling_plot_escapes_level_names():
     rng = np.random.default_rng(0)
     _, explanation = _mf_page._sampling_plot({"<lo>": rng.random((10, 2))}, ["a", "b"])
     assert "&lt;lo&gt;" in explanation and "<lo>" not in explanation
+
+
+def test_conformal_summary_chart_in_report(tmp_path):
+    """The report's conformal section includes the summary chart."""
+    from multioutreg.surrogates import RandomForestSurrogate
+
+    rng = np.random.default_rng(0)
+    X = rng.random((30, 2))
+    Y = np.c_[X[:, 0], X[:, 1]]
+    model = RandomForestSurrogate().fit(X, Y)
+    pred = np.asarray(model.predict(X))
+    std = np.full_like(pred, 0.1)
+    template_path = tmp_path / "t.html"
+    template_path.write_text(
+        "{% for p in conformal_plots %}[{{ p.title }}]{% endfor %}", encoding="utf-8"
+    )
+    os.environ["MOR_TEMPLATE_PATH"] = str(template_path)
+    try:
+        html = generate_html_report(
+            model_type="m", fidelity_levels=["lo", "hi"], output_names=["a", "b"],
+            description="", metrics=_compute_metrics(Y, pred, std, ["a", "b"]),
+            uncertainty_metrics={}, y_test=Y, best_pred=pred, best_std=std,
+            best_model=model, X_train=X, n_train=30, n_test=30,
+            cross_validation="", seed=0, notes="",
+            conformal_intervals=(pred - 0.2, pred + 0.2), conformal_alpha=0.1,
+        )
+    finally:
+        del os.environ["MOR_TEMPLATE_PATH"]
+    assert "[Conformal Prediction Summary]" in html

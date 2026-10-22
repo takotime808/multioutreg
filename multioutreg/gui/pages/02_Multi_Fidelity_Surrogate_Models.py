@@ -202,6 +202,25 @@ def generate_html_report(
                 "exchangeable."
             ),
         })
+        from multioutreg.conformal.metrics import conformal_summary
+
+        conformal_plots_list.append({
+            "img_b64": safe_plot_b64(
+                _plot_conformal_summary,
+                conformal_summary(
+                    y_test, y_lower, y_upper, alpha=alpha, output_names=output_names
+                ),
+            ),
+            "title": "Conformal Prediction Summary",
+            "caption": (
+                "Left: share of highest-fidelity test points inside each output's "
+                f"conformal interval, against the {1 - alpha:.0%} target (dashed). The "
+                "grey band is the range expected from test-set sampling noise alone "
+                "(±1.96 binomial standard errors); a bar outside it suggests real "
+                "under- or over-coverage. Right: mean interval width, in each "
+                "output's own units; narrower at the same coverage is better."
+            ),
+        })
         if calibration_residuals is not None:
             conformal_plots_list.append({
                 "img_b64": safe_plot_b64(
@@ -543,6 +562,54 @@ def _summary_points(
             "(and the comparison above) are noisy."
         )
     return pts
+
+
+def _plot_conformal_summary(conf_df: pd.DataFrame) -> None:
+    """Draw the Conformal Prediction Summary table as two panels.
+
+    Left: empirical coverage per output vs the nominal 1 - alpha, with the
+    range expected from test-set sampling noise alone (± 1.96 binomial
+    standard errors). Right: mean interval width per output (own units).
+    """
+    names = conf_df["output"].astype(str).tolist()
+    cov = conf_df["coverage"].to_numpy(dtype=float)
+    width = conf_df["mean_width"].to_numpy(dtype=float)
+    nominal = float(conf_df["nominal_coverage"].iloc[0])
+    n = int(conf_df["n_samples"].iloc[0])
+    half = 1.96 * np.sqrt(nominal * (1 - nominal) / max(n, 1))
+    ypos = np.arange(len(names))[::-1]
+    bar, ink, muted = "#2a78d6", "#0b0b0b", "#898781"
+
+    fig, (ax_c, ax_w) = plt.subplots(
+        1, 2, figsize=(10, 2.2 + 0.5 * len(names)), sharey=True
+    )
+    ax_c.axvspan(max(nominal - half, 0), min(nominal + half, 1),
+                 color=muted, alpha=0.18, lw=0, label="Expected range (±1.96 SE)")
+    ax_c.axvline(nominal, color=muted, ls="--", lw=1.5, label=f"Target {nominal:.0%}")
+    ax_c.barh(ypos, cov, color=bar, height=0.5)
+    for y, c in zip(ypos, cov):
+        ax_c.text(min(c, 1) + 0.01, y, f"{c:.1%}", va="center", fontsize=9, color=ink,
+                  bbox=dict(facecolor="white", edgecolor="none", pad=1), zorder=5)
+    ax_c.set_xlim(0, 1.12)
+    ax_c.set_xlabel("Empirical coverage", fontsize=10)
+    ax_c.set_yticks(ypos, names)
+    ax_c.legend(loc="lower center", bbox_to_anchor=(0.5, 1.12), ncol=2,
+                fontsize=8, frameon=False)
+    ax_c.set_title("Coverage (highest-fidelity test set)", fontsize=11)
+
+    ax_w.barh(ypos, width, color=bar, height=0.5)
+    for y, w in zip(ypos, width):
+        ax_w.text(w, y, f" {w:.3g}", va="center", fontsize=9, color=ink)
+    ax_w.set_xlim(0, width.max() * 1.2 if width.max() > 0 else 1)
+    ax_w.set_xlabel("Mean width (output's own units)", fontsize=10)
+    ax_w.set_title("Interval width", fontsize=11)
+
+    for ax in (ax_c, ax_w):
+        ax.spines[["top", "right"]].set_visible(False)
+        ax.grid(axis="x", color=muted, alpha=0.25, lw=0.8)
+        ax.set_axisbelow(True)
+        ax.tick_params(labelsize=9)
+    fig.tight_layout()
 
 
 _LEVEL_MARKERS = ["o", "s", "^", "D", "v", "P", "X", "*"]
@@ -1193,6 +1260,14 @@ if uploaded_file:
                 output_names=output_names,
             )
             st.write(f"### Conformal Prediction Summary (alpha={conformal_alpha_sel})")
+            _plot_conformal_summary(conf_df)
+            st.pyplot(plt.gcf())
+            plt.close("all")
+            st.caption(
+                "Bars inside the grey band mean the coverage is consistent with the "
+                f"{1 - conformal_alpha_sel:.0%} target given {conf_df['n_samples'].iloc[0]} "
+                "test points. Narrower intervals at the same coverage are better."
+            )
             st.dataframe(conf_df)
 
         summary_points = _summary_points(
