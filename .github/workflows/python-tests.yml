@@ -35,10 +35,15 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v6
+
+    # Install the exact versions in uv.lock (what is developed and tested locally),
+    # not whatever is newest on PyPI. --locked fails if uv.lock is out of date.
     - name: Install dependencies with test extras
       run: |
-        python -m pip install --upgrade pip
-        pip install .[all]
+        uv sync --locked --extra all --python ${{ matrix.python-version }}
+        echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
     - name: Run tests with coverage
       id: tests
