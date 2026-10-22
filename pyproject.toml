@@ -89,7 +89,7 @@ test = [
     "coverage-badge",
 ]
 all = [
-  "multioutreg[ts,ngboost,xgboost,lightgbm,catboost,gpytorch,smt,test]",
+  "multioutreg[ts,ngboost,xgboost,lightgbm,catboost,gpytorch,smt,lstm,test,examples]",
 ]
 examples = [
   "ray",

@@ -18,6 +18,7 @@ Notes about project.
 
    install
    usage
+   multi_fidelity_gui
 
 .. toctree::
    :maxdepth: 3

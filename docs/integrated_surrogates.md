@@ -81,6 +81,27 @@ can be captured. These cannot be wrapped in `MultiOutputRegressor` and are not i
 standard AutoDetect grid search (they require a separate evaluation path via
 `register_multi_output_candidates`).
 
+### Random Seeds
+
+Seeds are passed through each surrogate's constructor, and the argument name differs:
+
+| Argument | Surrogates |
+|----------|-----------|
+| `random_state` | `RandomForestSurrogate`, `HistGradientBoostingSurrogate`, `GaussianProcessSurrogate`, `ElasticNetSurrogate`, `LassoSurrogate`, `LightGBMSurrogate`, `XGBoostSurrogate` (forwarded via `**kwargs` to the wrapped estimator); `SparseGPSurrogate`, `BNNSurrogate`, `DeepEnsembleSurrogate`, `MixtureOfExpertsSurrogate`, `RFFGPSurrogate`, `NystroemGPSurrogate`, `ConformalPredictionNetworkSurrogate` (explicit parameter) |
+| `random_seed` | `CatBoostSurrogate` (forwarded to `CatBoostRegressor`) |
+| _(none)_ | `LinearRegressionSurrogate` (deterministic) |
+
+Most default to `None` (unseeded). `SparseGPSurrogate` in particular returns a different model on
+every fit unless `random_state` is set. The multi-fidelity wrappers take a class or any zero-arg
+factory, so a seeded surrogate can be passed as
+`functools.partial(SparseGPSurrogate, random_state=0)`.
+
+### CatBoost point predictions
+
+With the default `use_uncertainty=True`, CatBoost trains with `RMSEWithUncertainty`, and the raw
+`CatBoostRegressor.predict` returns `[mean, variance]` per row. `CatBoostSurrogate.predict(X)`
+and `_conformal_point_predict` return only the mean column, shape `(n_samples, n_outputs)`.
+
 ### Computational Complexity Notation
 
 | Symbol | Meaning |

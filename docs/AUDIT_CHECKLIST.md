@@ -154,7 +154,7 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   method from `detect_sampling_method`. UMAP is now only the picture: it does not preserve
   distances, so its embedding cannot separate designs. `None` / empty input raises `ValueError`;
   fewer than 4 points gives "Uncertain" in the plot caption, and fewer than 10 points skips the MC
-  test ("Uncertain"). The KMeans colouring was dropped.
+  test ("Uncertain"). The KMeans coloring was dropped.
   Validation (inputs rescaled to an arbitrary box, default `n_sim`, 10 seeds per cell,
   n ∈ {20, 100, 300} × d ∈ {2, 5, 10}, 90 designs per row): Random 85/90, LHS 81/90,
   scrambled Sobol 86/90, Halton → "Sobol" 77/90, normal inputs → "Uncertain" 71/90. At n ≥ 100 every
@@ -243,6 +243,55 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   single-column histogram.
 - [ ] **E10.** The ts pipeline picked SARIMA from the CLI and LSTM from the UI on the same data
   (unseeded LSTM + item 6 ranking).
+
+## Multi-fidelity page and report review (2026-10-21/22)
+
+Found by running `gui/pages/02_Multi_Fidelity_Surrogate_Models.py` end to end (Streamlit
+`AppTest`, example 3-level dataset, conformal on) and checking every plot and caption in the
+report. User guide: `docs/multi_fidelity_gui.md`.
+
+- [x] **MF1.** SHAP explained the *lowest*-fidelity model when the winner was `MultiFidelity+…`
+  (`MultiFidelitySurrogate.predict` defaults to level 0; see 1c follow-up). [verified]
+  *Fix:* the report explains `_HighestFidelityView`, which predicts the highest level.
+- [x] **MF2.** PDPs were always "not supported" (no multi-fidelity model has `estimators_`), and
+  `feature_names` was set to the *output* names. *Fix:* `_HighestFidelityView.estimators_` are
+  per-output sklearn regressors (`_OutputColumn`, `RegressorMixin` first so sklearn ≥ 1.6 tags it
+  as a regressor); input names are passed. SHAP plots also label inputs by name now.
+- [x] **MF3.** Gaussian-vs-conformal plot used *test* residuals as calibration residuals, so the
+  conformal curve matched the diagonal by construction. *Fix:* passes the calibration residuals.
+- [x] **MF4.** Uncertainty table showed `dummy_metric: 0.0`. *Fix:* sharpness, 95% coverage,
+  miscoverage, Gaussian NLL (omitted when any std = 0); also shown in the UI.
+- [x] **MF5.** Sampling section used the UMAP threshold heuristic, which labelled the uniform
+  random example design "LHS". *Fix:* `detect_sampling_method` on the full highest-fidelity input
+  design (Random, p = 0.835); plot is a scatter for ≤ 2 inputs, UMAP otherwise.
+- [x] **MF6.** `CatBoostSurrogate.predict(X)` returned shape `(n_outputs, n, 2)` with the default
+  `use_uncertainty=True` (raw `[mean, variance]` per row), so `StackedVFM+CatBoost` crashed.
+  [verified] *Fix:* returns the mean column only (also for `_conformal_point_predict`); test added.
+- [x] **MF7.** Report text: training size counted only hi-fi rows (now per level); model type
+  now names the winning candidate; residual plot moved from the sampling section to Diagnostics
+  with a caption; coverage/conformal captions corrected; error-histogram sign stated; `$R^2$`
+  rendered literally; "lower sharpness = better calibrated" and "guaranteed" conformal wording
+  fixed in `report/template.html`.
+- [x] **MF8.** `template.html` rendered every per-output prediction plot twice (inside an HTML
+  comment, which Jinja still renders). Now a Jinja comment.
+- [x] **MF9.** Added report sections (optional in the shared template, so other pages are
+  unchanged): Summary, Fidelity Levels, Multi-Fidelity vs HF-only baseline, Model Selection.
+- [x] **MF10.** Results were not reproducible: base surrogates were built with no arguments
+  (`SparseGPSurrogate` defaults to `random_state=None`), which produced a spurious −69% MF-vs-HF
+  difference between identical models. *Fix:* "Fix random seed" control (default on, seed 0)
+  drives all splits, each surrogate's seed argument (`_SEED_KWARG`), and the residual-plot
+  bootstrap (`plot_residuals_multioutput_with_regplot(seed=...)`). Two seeded runs give a
+  byte-identical report. An independent winner's baseline reuses its own per-level models.
+- [ ] **MF11.** Same test-residual leak as MF3 in `gui/grid_search_core.py` (~line 652,
+  `np.abs(y_test - best_pred)` passed to `plot_conformal_vs_gaussian`).
+- [ ] **MF12.** `gui/Grid_Search_Surrogate_Models.py` and `gui/pages/01_Use_Auto_Detect_MultiOutput_Regressor.py`
+  still pass `uncertainty_metrics={"dummy_metric": 0.0}` to the report.
+- [ ] **MF13.** Other pages and the CLI still build surrogates unseeded and print "Random seed: 0"
+  in the report although only the splits use it (see E10 for the same issue in the ts pipeline).
+- [ ] **MF14.** Other pages still use `generate_umap_plot`'s threshold heuristic for sampling
+  inference (MF5); see Appendix B.
+- [ ] **MF15.** `template.html` overview still says results cover "all model outputs and
+  fidelities"; the multi-fidelity report evaluates only the highest fidelity.
 
 
 ---
