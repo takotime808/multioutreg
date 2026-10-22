@@ -17,6 +17,7 @@ import matplotlib
 matplotlib.use("Agg")  # plotting helpers call plt.show(); never open desktop windows
 
 import functools
+import html
 import os
 from typing import Any, Dict, List
 
@@ -87,7 +88,7 @@ def generate_html_report(
     imputation_summary: dict | None = None,
     input_names: List[str] | None = None,
     calibration_residuals: np.ndarray | None = None,
-    X_design: np.ndarray | None = None,
+    X_design: np.ndarray | Dict[str, np.ndarray] | None = None,
     summary_points: List[str] | None = None,
     level_summary: List[dict] | None = None,
     baseline_comparison: List[dict] | None = None,
@@ -101,7 +102,8 @@ def generate_html_report(
     :class:`_HighestFidelityView` to explain the level that is evaluated.
     ``calibration_residuals`` are |y_cal - y_cal_pred| from the conformal
     calibration split; the Gaussian-vs-conformal plot needs them.
-    ``X_design`` is the input design used for sampling-method inference
+    ``X_design`` is the input design used for the sampling section: a dict of
+    ``{level: X}`` shows every fidelity level, an array a single design
     (defaults to ``X_train``).
     The remaining optional arguments fill the Summary, Fidelity Levels,
     HF-only baseline and Model Selection sections; each is omitted when None.
@@ -150,8 +152,12 @@ def generate_html_report(
         best_model, X_train, output_names, feature_names=list(input_names)
     )
 
+    if X_design is None:
+        X_design = X_train
+    if not isinstance(X_design, dict):
+        X_design = {(fidelity_levels or ["design"])[-1]: X_design}
     sampling_umap_plot, sampling_method_explanation = _sampling_plot(
-        X_train if X_design is None else X_design, input_names
+        X_design, input_names
     )
 
     other_img = safe_plot_b64(
@@ -539,40 +545,85 @@ def _summary_points(
     return pts
 
 
-def _sampling_plot(X: np.ndarray, input_names: List[str]) -> tuple:
-    """Return ``(b64_png, explanation)`` for the sampling section of the report."""
-    X = np.asarray(X, dtype=np.float64)
-    X = X[np.all(np.isfinite(X), axis=1)]
-    try:
-        det = detect_sampling_method(X)
-        explanation = f"Inferred sampling method: {det.method}. {det.explanation}"
-    except ValueError as exc:
-        explanation = f"Sampling method not inferred: {exc}"
-    explanation += " (Based on the highest-fidelity input design.)"
+_LEVEL_MARKERS = ["o", "s", "^", "D", "v", "P", "X", "*"]
+
+
+def _sampling_plot(designs: Dict[str, np.ndarray], input_names: List[str]) -> tuple:
+    """Return ``(b64_png, explanation)`` for the sampling section of the report.
+
+    ``designs`` maps each fidelity level (lowest to highest) to its input
+    design. All levels are min-max scaled to [0, 1] with the bounds of their
+    union and drawn on one plot, one colour + marker per level. The sampling
+    method is inferred separately for each level.
+    """
+    designs = {
+        str(lv): np.asarray(X, dtype=np.float64) for lv, X in designs.items()
+    }
+    designs = {lv: X[np.all(np.isfinite(X), axis=1)] for lv, X in designs.items()}
+    designs = {lv: X for lv, X in designs.items() if len(X)}
+
+    lines = []
+    for lv, X in designs.items():
+        try:
+            det = detect_sampling_method(X)
+            txt = f"{det.method}. {det.explanation}"
+        except ValueError as exc:
+            txt = f"not inferred: {exc}"
+        lines.append(f"<b>{html.escape(lv)}</b> (n={len(X)}): {html.escape(txt)}")
+    explanation = (
+        "Inferred sampling method per fidelity level:<br>" + "<br>".join(lines)
+        + "<br><i>The plot scales every input to [0, 1] using the bounds of all "
+        "levels combined, so the levels can be compared directly.</i>"
+    )
+
+    if not designs:
+        return None, explanation
+
+    X_all = np.vstack(list(designs.values()))
+    lo = X_all.min(axis=0)
+    span = np.where(X_all.max(axis=0) > lo, X_all.max(axis=0) - lo, 1.0)
+    scaled = {lv: (X - lo) / span for lv, X in designs.items()}
+    n_dim = X_all.shape[1]
+    colors = plt.get_cmap("tab10").colors
 
     def plot_fn():
         plt.figure()
-        if X.shape[1] == 1:
-            plt.scatter(X[:, 0], np.zeros(len(X)), alpha=0.7)
-            plt.xlabel(input_names[0])
-            plt.yticks([])
-            plt.title("Highest-fidelity input design")
-        elif X.shape[1] == 2 or len(X) < 5:
-            plt.scatter(X[:, 0], X[:, 1], alpha=0.7)
-            plt.xlabel(input_names[0])
-            plt.ylabel(input_names[1])
-            plt.title("Highest-fidelity input design")
-        else:
+        if n_dim > 2 and len(X_all) >= 5:
             import umap
-            from sklearn.preprocessing import StandardScaler
 
-            emb = umap.UMAP(
-                n_neighbors=min(15, len(X) - 1), n_components=2, random_state=0
-            ).fit_transform(StandardScaler().fit_transform(X))
-            plt.scatter(emb[:, 0], emb[:, 1], alpha=0.7)
+            emb_all = umap.UMAP(
+                n_neighbors=min(15, len(X_all) - 1), n_components=2, random_state=0
+            ).fit_transform(np.vstack(list(scaled.values())))
+            offsets = np.cumsum([0] + [len(X) for X in scaled.values()])
+            coords = {
+                lv: emb_all[offsets[k]:offsets[k + 1]]
+                for k, lv in enumerate(scaled)
+            }
             plt.xlabel("UMAP-1")
             plt.ylabel("UMAP-2")
-            plt.title("UMAP projection of highest-fidelity input design")
+            plt.title("UMAP projection of input design, all fidelity levels")
+        elif n_dim == 1:
+            coords = {
+                lv: np.column_stack([X[:, 0], np.full(len(X), k)])
+                for k, (lv, X) in enumerate(scaled.items())
+            }
+            plt.xlabel(f"{input_names[0]} (scaled)")
+            plt.yticks(range(len(scaled)), list(scaled))
+            plt.ylim(-0.5, len(scaled) - 0.5)
+            plt.title("Input design by fidelity level")
+        else:
+            coords = {lv: X[:, :2] for lv, X in scaled.items()}
+            plt.xlabel(f"{input_names[0]} (scaled)")
+            plt.ylabel(f"{input_names[1]} (scaled)")
+            plt.title("Input design, all fidelity levels")
+        for k, (lv, C) in enumerate(coords.items()):
+            plt.scatter(
+                C[:, 0], C[:, 1],
+                color=colors[k % len(colors)],
+                marker=_LEVEL_MARKERS[k % len(_LEVEL_MARKERS)],
+                alpha=0.7, label=f"{lv} (n={len(C)})", zorder=2 + k,
+            )
+        plt.legend(title="Fidelity level", fontsize="small")
 
     return plot_to_b64(plot_fn), explanation
 
@@ -1201,7 +1252,7 @@ if uploaded_file:
                     imputation_summary=_imputation_summary,
                     input_names=list(input_cols),
                     calibration_residuals=residuals,
-                    X_design=level_data[level_names[-1]][0],
+                    X_design={lv: level_data[lv][0] for lv in level_names},
                     summary_points=summary_points,
                     level_summary=level_rows,
                     baseline_comparison=baseline_rows,

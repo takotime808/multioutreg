@@ -653,3 +653,24 @@ def test_seeded_candidates_are_reproducible():
             for _ in range(2)
         ]
         np.testing.assert_array_equal(preds[0], preds[1])
+
+
+# ---------------------------------------------------------------------------
+# Sampling section covers every fidelity level
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("n_dim", [1, 2, 3])
+def test_sampling_plot_covers_every_level(n_dim):
+    rng = np.random.default_rng(0)
+    designs = {"lo": rng.random((40, n_dim)) * 5, "mid": rng.random((20, n_dim)), "hi": rng.random((8, n_dim))}
+    img, explanation = _mf_page._sampling_plot(designs, [f"x{j}" for j in range(n_dim)])
+    assert img
+    for lv, X in designs.items():
+        assert f"<b>{lv}</b> (n={len(X)})" in explanation
+
+
+def test_sampling_plot_escapes_level_names():
+    rng = np.random.default_rng(0)
+    _, explanation = _mf_page._sampling_plot({"<lo>": rng.random((10, 2))}, ["a", "b"])
+    assert "&lt;lo&gt;" in explanation and "<lo>" not in explanation
