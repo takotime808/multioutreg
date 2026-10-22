@@ -165,9 +165,22 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
     the marginals are supplied (`compare_sample_methods`), and the reports test `X_train` after
     the split / imputation / PCA, which hides a true LHS. Plan:
     [Appendix B](#appendix-b--sampling-detector-known-limits).
-- [ ] **21. `ts_suitability.py`**: Ljung-Box on levels (trend ⇒ "suitable"); "seasonal period" = first
+- [x] **21. `ts_suitability.py`**: Ljung-Box on levels (trend ⇒ "suitable"); "seasonal period" = first
   lag with |ACF|>0.3 (returns 2 for any persistent series); add KPSS alongside ADF.
-- [ ] **22. SARIMA `detect_seasonal_period`** includes lag 1 ⇒ s=1 for almost any series.
+  *Done:* KPSS (level) runs alongside ADF; the series is stationary only when ADF rejects and KPSS
+  does not. Otherwise Ljung-Box runs on the first differences (new key `tested_on`), so a random
+  walk is no longer "suitable" (its increments are white noise). The season comes from the new
+  shared `multioutreg/time_series/seasonality.py::detect_seasonal_period`: the highest local ACF peak
+  at lag ≥ 2 above max(0.3, 1.96/√n), with a dip before it, preferring the smallest such peak
+  within 80% of the best (not a multiple of the period). Non-stationary series are scanned on the
+  linearly detrended levels, then on the differences. Validation (50 seeds, n = 200–240): white
+  noise, trends, random walks with and without drift → no period (random walk 48/50); AR(0.9) 47/50
+  none (was always 2); s = 7 → 50/50; trend + s = 12 → 50/50; random walk + s = 7 → 50/50.
+  New keys `kpss_statistic`, `kpss_pvalue`; the existing keys are unchanged.
+- [x] **22. SARIMA `detect_seasonal_period`** includes lag 1 ⇒ s=1 for almost any series.
+  *Done:* delegates to the shared detector above (returns 0 when there is no season, as before).
+  When s < 2 the grid only tries P = Q = 0: seasonal terms with s < 2 always failed in statsmodels,
+  so 12 of the 16 fits were wasted.
 - [ ] **23. ARIMA/SARIMA "MAPE" is |mean signed % error|** — use `mean(abs(...))`.
 - [ ] **24. ARIMA differencing loop** has no max d; forecasts/intervals on differenced scale.
   Fit `ARIMA(p,d,q)` directly.
@@ -179,8 +192,17 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   term ⇒ under-coverage. `_EHet` is not heteroscedastic. Document, add NLL heads, or conformalize.
 - [ ] **28. Multi-fidelity**: `MultiFidelitySurrogate` is independent per-level models;
   `StackedVFM` augments with in-sample lower-level preds (use OOF); `AdditiveCorrectionVFM` fixes rho=1.
-- [ ] **29. `metrics_generalized_api.py`**: `return_std` branch runs even when already `tried`;
+- [x] **29. `metrics_generalized_api.py`**: `return_std` branch runs even when already `tried`;
   `predict_var` branch never sets `tried=True`; "overall" metrics flatten mixed-unit outputs.
+  *Done:* `get_uq_performance_metrics_flexible` now uses `_predict_with_uncertainty` (the requested
+  API first, then return_std → return_cov → predict_std → predict_var) instead of its own copy, so
+  a successful per-estimator `MultiOutputRegressor` pass is never overwritten and each API is
+  called at most once. A plain model with `return_std` (e.g. sklearn GP) no longer raises when no
+  method is given. "Overall" metrics are computed after dividing each output by the std of its
+  `y_test` column (documented; they are now in std units and do not change when one output's units
+  change). Also fixed: `return_cov` misread sklearn's multi-target `(n, n, n_targets)` covariance.
+  Tests: `tests/unit/performance/test_metrics_generalized_fixes.py`, and for 21–22
+  `tests/unit/time_series/test_seasonality.py`.
 
 - [x] **29b. Grid-search app / `grid-search` CLI select on the test set.**
   `gui/Grid_Search_Surrogate_Models.py` and `mor_cli/grid_search.py` pick the combo with the lowest
