@@ -38,8 +38,8 @@ KNN-imputed, with the imputer fitted on each level's training split only.
 
    | Type | Candidate name | How levels are used |
    |------|----------------|---------------------|
-   | `StackedVFMSurrogate` | `StackedVFM+<base>` (`+augStd` also feeds lower-level std) | Each level's model gets the lower levels' predictions as extra inputs. Any number of levels. |
-   | `AdditiveCorrectionVFM` | `AdditiveVFM+<base>` | `f_hi = f_lo + δ`. Only offered with exactly 2 levels. |
+   | `StackedVFMSurrogate` | `StackedVFM+<base>` (`+augStd` also feeds lower-level std) | Each level's model gets the lower levels' predictions as extra inputs. Any number of levels. Where a level's training inputs are also lower-level training inputs, those inputs get out-of-fold lower-level predictions (5 folds), so the model is not trained on over-accurate in-sample predictions. |
+   | `AdditiveCorrectionVFM` | `AdditiveVFM+<base>`, `AdditiveVFM+<base>+rho1` | `f_hi = ρ·f_lo + δ`, with ρ fitted per output (Kennedy-O'Hagan AR1), or fixed at 1 (`+rho1`). A fitted ρ also scales the low-fidelity model's error, so with a biased or smoothed low-fidelity model (e.g. RF) `+rho1` can win. Only offered with exactly 2 levels. |
    | `MultiFidelitySurrogate` | `MultiFidelity+<base>` | One independent model per level. **No coupling**: the highest-level prediction ignores the lower levels. |
 
    Base surrogates: RF, HGB, Linear, ElasticNet, Lasso, GP (unless skipped), plus LightGBM,

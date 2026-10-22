@@ -772,13 +772,23 @@ def _build_candidates(
             "surrogate_cls": sur_cls,
             "augment_with_std": False,
         })
-        # AdditiveCorrectionVFM — 2-level only
+        # AdditiveCorrectionVFM — 2-level only. Fitted rho is the AR1 model;
+        # rho=1 is kept as a candidate because a fitted rho also scales up
+        # the low-fidelity model's error (worse for shrunk models such as RF).
         if len(level_names) == 2:
             candidates.append({
                 "name": f"AdditiveVFM+{sur_name}",
                 "mf_type": "additive",
                 "surrogate_cls": sur_cls,
                 "augment_with_std": False,
+                "rho": "fit",
+            })
+            candidates.append({
+                "name": f"AdditiveVFM+{sur_name}+rho1",
+                "mf_type": "additive",
+                "surrogate_cls": sur_cls,
+                "augment_with_std": False,
+                "rho": 1.0,
             })
 
     return candidates
@@ -805,6 +815,7 @@ def _fit_candidate(
         model = AdditiveCorrectionVFM(
             lo_surrogate_cls=sur_cls,
             hi_surrogate_cls=sur_cls,
+            rho=cand.get("rho", "fit"),
         )
         model.fit({"lo": train_data[lo_name], "hi": train_data[hi_name]})
 
