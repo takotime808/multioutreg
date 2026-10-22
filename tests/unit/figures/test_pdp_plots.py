@@ -57,5 +57,40 @@ def test_generate_pdp_plot_with_failure(mock_pdp_display, mock_plot_to_b64, mock
 
     assert result.keys() == set(output_names)
     assert all(val == "base64img" for val in result.values())
-    assert mock_pdp_display.call_count == 2
+    # output_0's estimator fails, so it is retried once via its predict
+    assert mock_pdp_display.call_count == 3
     assert mock_plot_to_b64.call_count == 2
+
+
+def test_generate_pdp_plot_without_estimators_uses_predict(dummy_data):
+    """Models with no estimators_ get a real PDP from column i of predict."""
+    X, feature_names, output_names = dummy_data
+
+    class NoEstimators:
+        def predict(self, X):
+            return np.c_[X[:, 0], -X[:, 1]], np.zeros((len(X), 2))
+
+    with patch("multioutreg.figures.pdp_plots.PartialDependenceDisplay.from_estimator") as pdp, \
+         patch("multioutreg.figures.pdp_plots.plot_to_b64", side_effect=lambda fn: fn() or "img"):
+        generate_pdp_plot(NoEstimators(), X, output_names, feature_names)
+
+    assert pdp.call_count == 2
+    for i, call in enumerate(pdp.call_args_list):
+        est = call.args[0]
+        np.testing.assert_allclose(est.predict(X), NoEstimators().predict(X)[0][:, i])
+
+
+def test_generate_pdp_plot_multi_fidelity_surrogate(dummy_data):
+    """A real MultiFidelitySurrogate renders a PDP, not the 'not supported' text."""
+    from multioutreg.figures import pdp_plots
+    from multioutreg.surrogates import LinearRegressionSurrogate, MultiFidelitySurrogate
+
+    X, feature_names, output_names = dummy_data
+    Y = np.c_[X[:, 0], X[:, 1]]
+    model = MultiFidelitySurrogate(LinearRegressionSurrogate, ["lo", "hi"]).fit(
+        {"lo": (X, Y), "hi": (X, Y)}
+    )
+    with patch.object(pdp_plots.plt, "text") as text:
+        plots = generate_pdp_plot(model, X, output_names, feature_names)
+    assert set(plots) == set(output_names)
+    text.assert_not_called()
