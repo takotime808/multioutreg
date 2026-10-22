@@ -15,6 +15,10 @@ Multi-Output Multi-Fidelity Surrogate Modeling with Uncertainty Quantification.
 <!-- [![Build](https://github.com/takotime808/multioutreg/actions/workflows/python-ci.yml/badge.svg)](https://github.com/takotime808/multioutreg/actions/workflows/python-ci.yml) -->
 <!-- [![Streamlit Smoke Test](https://github.com/takotime808/multioutreg/actions/workflows/streamlit-smoke.yml/badge.svg)](https://github.com/takotime808/multioutreg/actions/workflows/streamlit-smoke.yml) -->
 
+<!-- backup deployment of `main` prior to claude refactor:
+
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://multioutreg-pre-ai.streamlit.app/) -->
+
 <!-- Moo-regret deployment:
 
 [![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://multioutreg-regret.streamlit.app/) -->
@@ -27,6 +31,13 @@ Multi-Output Multi-Fidelity Surrogate Modeling with Uncertainty Quantification.
 
 <!-- New CICD -->
 <!-- ![Coverage](docs/badges/coverage.svg) -->
+
+<!-- Claude suggested badges. -->
+<!-- [![Python 3.10 | 3.11 | 3.12](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
+[![uv](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/uv/main/assets/badge/v0.json)](https://github.com/astral-sh/uv)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Last commit](https://img.shields.io/github/last-commit/takotime808/multioutreg)](https://github.com/takotime808/multioutreg/commits/main) -->
+
 
 This repository provides utilities for evaluating multi-output surrogate models
 with uncertainty estimation. Example notebooks in `examples/` demonstrate the
