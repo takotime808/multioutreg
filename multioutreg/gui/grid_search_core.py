@@ -76,6 +76,7 @@ from multioutreg.surrogates.xgboost_sklearn import _XGBOOST_AVAILABLE, _XGBRegre
 from multioutreg.surrogates.catboost_sklearn import _CATBOOST_AVAILABLE, _CatBoostRegressor
 from multioutreg.surrogates.sparse_gp_gpytorch import _GPYTORCH_AVAILABLE, _SGPREstimator
 from sklearn.linear_model import ElasticNet as _ElasticNet, Lasso as _Lasso, QuantileRegressor as _QuantileRegressor
+from multioutreg.surrogates.forest_uncertainty import estimate_noise_variance
 from multioutreg.time_series.ts_suitability import check_ts_suitability
 
 # NOTE: NOT used...yet.
@@ -85,6 +86,13 @@ from multioutreg.figures.model_comparison import plot_surrogate_model_summary
 
 # ----- Surrogate Models with Uncertainty -----
 class RandomForestWithUncertainty(RandomForestRegressor):
+    """Random forest whose std is tree spread + held-out noise (audit item 27)."""
+
+    def fit(self, X, y, sample_weight=None):
+        super().fit(X, y, sample_weight=sample_weight)
+        self.noise_var_ = estimate_noise_variance(self, X, y)
+        return self
+
     def predict(
         self,
         X: np.ndarray,
@@ -109,11 +117,18 @@ class RandomForestWithUncertainty(RandomForestRegressor):
         if not return_std:
             return mean
         all_preds = np.stack([tree.predict(X) for tree in self.estimators_], axis=0)
-        std = all_preds.std(axis=0)
+        std = np.sqrt(all_preds.var(axis=0) + getattr(self, "noise_var_", 0.0))
         return mean, std
 
 
 class ExtraTreesWithUncertainty(ExtraTreesRegressor):
+    """Extra-Trees whose std is tree spread + held-out noise (audit item 27)."""
+
+    def fit(self, X, y, sample_weight=None):
+        super().fit(X, y, sample_weight=sample_weight)
+        self.noise_var_ = estimate_noise_variance(self, X, y)
+        return self
+
     def predict(
         self,
         X: np.ndarray,
@@ -123,7 +138,7 @@ class ExtraTreesWithUncertainty(ExtraTreesRegressor):
         if not return_std:
             return mean
         all_preds = np.stack([tree.predict(X) for tree in self.estimators_], axis=0)
-        std = all_preds.std(axis=0)
+        std = np.sqrt(all_preds.var(axis=0) + getattr(self, "noise_var_", 0.0))
         return mean, std
 
 

@@ -61,7 +61,7 @@ def test_predict_consistency(sample_data):
 
 def test_std_computation_correctness(sample_data):
     X, Y = sample_data
-    surrogate = ExtraTreesRegressorSurrogate(n_estimators=5, random_state=0)
+    surrogate = ExtraTreesRegressorSurrogate(n_estimators=5, random_state=0, include_noise=False)
     surrogate.fit(X, Y)
     preds, stds = surrogate.predict(X, return_std=True)
 
@@ -85,3 +85,30 @@ def test_conformal_wrap(sample_data):
     assert lower.shape == Y_cal.shape
     assert upper.shape == Y_cal.shape
     assert np.all(upper >= lower)
+
+
+def test_std_adds_noise_variance(sample_data):
+    X, Y = sample_data
+    epistemic = ExtraTreesRegressorSurrogate(n_estimators=20, random_state=0, include_noise=False).fit(X, Y)
+    total = ExtraTreesRegressorSurrogate(n_estimators=20, random_state=0).fit(X, Y)
+    _, s_tree = epistemic.predict(X, return_std=True)
+    _, s_total = total.predict(X, return_std=True)
+    assert total.noise_var_.shape == (Y.shape[1],)
+    assert np.all(total.noise_var_ >= 0)
+    np.testing.assert_allclose(s_total, np.sqrt(s_tree ** 2 + total.noise_var_), rtol=1e-6)
+
+
+def test_noisy_data_interval_coverage():
+    """Tree spread alone under-covers on noisy data; with the extra term ~90%."""
+    rng = np.random.default_rng(0)
+    X = rng.uniform(0, 1, (700, 3))
+    y = np.sin(6 * X[:, 0]) + X[:, 1] + 0.3 * rng.standard_normal(700)
+    Y = np.column_stack([y, y])
+    X_tr, X_te, Y_tr, Y_te = X[:300], X[300:], Y[:300], Y[300:]
+    m = ExtraTreesRegressorSurrogate(n_estimators=100, random_state=0).fit(X_tr, Y_tr)
+    pred, std = m.predict(X_te, return_std=True)
+    coverage = np.mean(np.abs(Y_te - pred) <= 1.645 * std)
+    assert 0.83 <= coverage <= 0.97
+    _, std_tree = ExtraTreesRegressorSurrogate(n_estimators=100, random_state=0, include_noise=False).fit(
+        X_tr, Y_tr).predict(X_te, return_std=True)
+    assert np.mean(np.abs(Y_te - pred) <= 1.645 * std_tree) <= coverage
