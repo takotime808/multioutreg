@@ -145,13 +145,15 @@ Benjamini–Hochberg, `None` to disable).
 
 | Package | Required By | Install |
 |---------|------------|---------|
-| `torch` | `BNNSurrogate`, `DeepEnsembleSurrogate` | `pip install torch` |
-| `ngboost` | `NGBoostSurrogate` | `pip install ngboost` |
-| `smt[gpx]` | `GPXSurrogate` | `pip install smt[gpx]` |
-| `smt` | `KPLSSurrogate` | `pip install smt` |
-| `lightgbm` | `LightGBMSurrogate` | `pip install lightgbm` |
-| `xgboost` | `XGBoostSurrogate` | `pip install xgboost` |
-| `catboost` | `CatBoostSurrogate` | `pip install catboost` |
-| `gpytorch` | `SparseGPSurrogate` | `pip install gpytorch` |
+| `torch` | `BNNSurrogate`, `DeepEnsembleSurrogate` | core dependency (installed by default) |
+| `ngboost` | `NGBoostSurrogate` | `pip install "multioutreg[ngboost]"` |
+| `smt[gpx]` | `GPXSurrogate`, `KPLSSurrogate` | `pip install "multioutreg[smt]"` |
+| `lightgbm` | `LightGBMSurrogate` | `pip install "multioutreg[lightgbm]"` |
+| `xgboost` | `XGBoostSurrogate` | `pip install "multioutreg[xgboost]"` |
+| `catboost` | `CatBoostSurrogate` | `pip install "multioutreg[catboost]"` |
+| `gpytorch` | `SparseGPSurrogate` | `pip install "multioutreg[gpytorch]"` |
+
+`pip install "multioutreg[all]"` installs all of the above (see
+[Installation](install.md) for the full list of extras).
 
 All other surrogates (including `HistGradientBoostingSurrogate`, `ElasticNetSurrogate`, `LassoSurrogate`, `QuantileRegressionSurrogate`) depend only on `numpy` and `scikit-learn`.

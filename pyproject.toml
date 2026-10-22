@@ -89,7 +89,10 @@ test = [
     "coverage-badge",
 ]
 all = [
-  "multioutreg[ts,ngboost,xgboost,lightgbm,catboost,gpytorch,smt,lstm,test,examples]",
+  # Every optional *library* feature plus the test tooling. `examples` is
+  # deliberately excluded: ray/hyperopt/plotly are only used by the example
+  # notebooks, never by the package. Use `multioutreg[all,examples]` for those.
+  "multioutreg[ts,ngboost,xgboost,lightgbm,catboost,gpytorch,smt,lstm,test]",
 ]
 examples = [
   "ray",
