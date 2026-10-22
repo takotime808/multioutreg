@@ -6,7 +6,6 @@ import base64
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Callable, Dict, List, Any
-from sklearn.inspection import PartialDependenceDisplay
 # from sklearn.decomposition import PCA
 
 
@@ -83,36 +82,12 @@ def generate_pdp_plot(
     """
     Generate partial dependence plots (PDPs) for each output dimension.
 
-    Parameters
-    ----------
-    model : Any
-        Multi-output model with `estimators_` attribute.
-    X : np.ndarray
-        Input features.
-    output_names : List[str]
-        Names of output dimensions.
-    feature_names : List[str]
-        Names of the input features.
-
-    Returns
-    -------
-    Dict[str, str]
-        Dictionary mapping output names to base64-encoded PDP plots.
+    Kept for backwards compatibility; see
+    :func:`multioutreg.figures.pdp_plots.generate_pdp_plot`.
     """
-    plots = {}
-    for i, name in enumerate(output_names):
-        def plot_fn():
-            plt.figure()
-            try:
-                PartialDependenceDisplay.from_estimator(
-                    model.estimators_[i], X, range(X.shape[1]), feature_names=feature_names, ax=plt.gca()
-                )
-                plt.title(f"PDP for {name}")
-            except Exception as e:
-                plt.text(0.5, 0.5, f"PDP not supported for {type(model.estimators_[i]).__name__}", ha="center")
-                plt.axis("off")
-        plots[name] = plot_to_b64(plot_fn)
-    return plots
+    # Imported here: pdp_plots imports plot_to_b64 from this module.
+    from multioutreg.figures.pdp_plots import generate_pdp_plot as _generate_pdp_plot
+    return _generate_pdp_plot(model, X, output_names, feature_names)
 
 
 def generate_uncertainty_plots() -> List[Dict[str, str]]:
