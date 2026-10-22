@@ -9,7 +9,11 @@ from multioutreg.sampling.detect import SamplingDetection
 
 
 @patch("multioutreg.figures.umap_plot_classify.plot_to_b64")
-def test_generate_umap_plot_with_input(mock_plot_to_b64):
+def test_generate_umap_plot_with_input(mock_plot_to_b64, real_umap):
+    """The one test that runs the real umap package (catches API breaks)."""
+    from multioutreg.figures import umap_plot_classify
+
+    assert umap_plot_classify.umap is real_umap
     mock_plot_to_b64.side_effect = lambda fn: (fn() or "base64umap")
     X = np.random.default_rng(0).random((100, 5))
     b64img, explanation = generate_umap_plot(X)
