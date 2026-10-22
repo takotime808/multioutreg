@@ -8,7 +8,19 @@ from multioutreg.surrogates.base_sklearn import BaseSurrogate
 
 
 class MultiFidelitySurrogate:
-    """Manage surrogates for different fidelity levels."""
+    """Independent surrogate per fidelity level (no information transfer).
+
+    Each level's model is fitted only on that level's data, and
+    ``predict(X, level=...)`` uses only that level's model: the high-fidelity
+    prediction ignores the low-fidelity data entirely.  This is a baseline
+    (and a container for single-level use, e.g. in
+    ``AutoDetectMultiOutputRegressor``), not a multi-fidelity model.  For
+    models that use the cheaper levels to predict the expensive one, use
+    ``StackedVFMSurrogate`` (any number of levels) or
+    ``AdditiveCorrectionVFM`` (two levels, ``f_hi = rho * f_lo + delta``).
+
+    ``predict`` defaults to the *first* (lowest) level.
+    """
 
     def __init__(self, surrogate_cls, fidelity_levels: Iterable[str]):
         """Initialize the multi-fidelity surrogate.

@@ -655,6 +655,17 @@ def test_seeded_candidates_are_reproducible():
         np.testing.assert_array_equal(preds[0], preds[1])
 
 
+def test_additive_candidates_offer_fitted_and_unit_rho():
+    """Audit 28: AdditiveVFM is offered with fitted rho and with rho=1."""
+    cands = [c for c in _build_candidates(["lo", "hi"], skip_expensive=True, seed=0)
+             if c["mf_type"] == "additive"]
+    by_name = {c["name"]: c for c in cands}
+    assert by_name["AdditiveVFM+RF"]["rho"] == "fit"
+    assert by_name["AdditiveVFM+RF+rho1"]["rho"] == 1.0
+    model = _mf_page._fit_candidate(by_name["AdditiveVFM+RF+rho1"], _linear_train_data(), ["lo", "hi"])
+    np.testing.assert_array_equal(model.rho_, 1.0)
+
+
 # ---------------------------------------------------------------------------
 # Sampling section covers every fidelity level
 # ---------------------------------------------------------------------------

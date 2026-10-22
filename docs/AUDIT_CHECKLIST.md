@@ -209,8 +209,24 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   ensemble), 0.94 (MC-dropout), 0.95 (`_EHet`). Tests: coverage and heteroscedasticity tests
   in `tests/unit/surrogates/test_{rf,extra_trees}_sklearn.py`, `test_{bnn,deep_ensemble}_pytorch.py`,
   `tests/unit/model_selection/test_screening.py`, `tests/unit/gui/test_Grid_Search_Surrogate_Models.py`.
-- [ ] **28. Multi-fidelity**: `MultiFidelitySurrogate` is independent per-level models;
+- [x] **28. Multi-fidelity**: `MultiFidelitySurrogate` is independent per-level models;
   `StackedVFM` augments with in-sample lower-level preds (use OOF); `AdditiveCorrectionVFM` fixes rho=1.
+  *Done:* `StackedVFMSurrogate` (new `oof_cv=5`, `random_state=0`) trains each level on out-of-fold
+  lower-level predictions at inputs that are also lower-level training points (nested designs);
+  other inputs, and `predict`, use the full models. Duplicate rows share a fold, and fold models
+  are fitted only when inputs overlap and are dropped after `fit`. `AdditiveCorrectionVFM` is now
+  Kennedy-O'Hagan AR1: `f_hi = rho * f_lo + delta`, with `rho="fit"` (default) the per-output OLS
+  slope of `Y_hi` on out-of-fold `f_lo(X_hi)` (falls back to 1 if `f_lo` is constant there) or a
+  fixed number (`rho=1.0` is the old model). Std is `sqrt(rho^2 s_lo^2 + s_delta^2)`, and
+  `predict_components` returns `(rho * f_lo, delta)`. `MultiFidelitySurrogate` stays the uncoupled
+  baseline (auto-detect uses it as a single-level container); its docstring now says so and
+  points to the coupled models. The MF GUI page also offers `AdditiveVFM+<base>+rho1`.
+  Simulation (12 seeds, 120 lo / 25 nested hi points, GP correction): with near-noise-free lo data OOF
+  costs a little (stacked GP-lo MSE 0.0006 → 0.0008) and fitted rho cuts AR1 error ~3× with a GP lo
+  model (0.0018 → 0.0005). With noisy lo data (σ=0.5) OOF helps (stacked RF 0.17 → 0.12), and
+  fitted rho without OOF breaks (GP-lo MSE 2.48 vs 0.057 with OOF). With an RF lo model, fitted rho
+  is worse than rho=1 (it scales up RF's smoothing error), hence the `+rho1` GUI candidate.
+  Tests: `tests/unit/surrogates/test_multi_fidelity_fixes.py`.
 - [x] **29. `metrics_generalized_api.py`**: `return_std` branch runs even when already `tried`;
   `predict_var` branch never sets `tried=True`; "overall" metrics flatten mixed-unit outputs.
   *Done:* `get_uq_performance_metrics_flexible` now uses `_predict_with_uncertainty` (the requested
