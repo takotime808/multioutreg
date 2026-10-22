@@ -265,7 +265,11 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
 - [ ] **31.** `confidence_intervals.py` estimates z by Monte Carlo — use `norm.ppf`.
 - [ ] **32.** Chronos-Bolt silently drops quantiles outside 0.1–0.9; median fallback is a mean.
 - [ ] **33.** `conditional_coverage` bins on y_true; condition on X or predicted width instead.
-- [ ] **34.** `AutoDetect` private attrs (`_model_names`, `_surrogate_constructors`) are lost by `sklearn.clone`.
+- [x] **34.** `AutoDetect` private attrs (`_model_names`, `_surrogate_constructors`) are lost by `sklearn.clone`.
+  Worse in practice: `clone` raised `RuntimeError` because `__init__` rewrapped `estimators` /
+  `param_spaces` in `list()`. They are now stored as given, and `__sklearn_clone__` carries
+  `_model_names`, `_surrogate_constructors`, `fidelity_levels` and unfitted copies of the
+  registered multi-output candidates.
 - [x] **35.** `tests/unit/performance/test_metrics_generalized.py` monkeypatches uct at module level (leaks).
   Now an autouse fixture.
 - [x] **36.** Add regression tests for each critical fix (bootstrap slope, GP std > 0, conformal
