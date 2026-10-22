@@ -304,6 +304,9 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   single-column histogram.
 - [ ] **E10.** The ts pipeline picked SARIMA from the CLI and LSTM from the UI on the same data
   (unseeded LSTM + item 6 ranking).
+- [x] **E13.** CI's "Generate badge" step failed on Python 3.12: `uv sync` resolved setuptools 82,
+  which no longer ships `pkg_resources`, and coverage-badge 1.1.2 imports it. The `test` extra now pins
+  `setuptools<81`; relocked.
 
 ## Multi-fidelity page and report review (2026-10-21/22)
 
