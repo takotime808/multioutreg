@@ -15,11 +15,11 @@ OUTPUTS = "y0,y1"
 @pytest.fixture
 def csv_with_gaps(tmp_path):
     rng = np.random.default_rng(0)
-    X = rng.uniform(-1, 1, size=(120, 6))
+    X = rng.uniform(-1, 1, size=(40, 6))
     df = pd.DataFrame(X, columns=[f"x{i}" for i in range(6)])
-    df["y0"] = X[:, 0] + X[:, 1] ** 2 + 0.05 * rng.normal(size=120)
-    df["y1"] = X[:, 2] * X[:, 3] + 0.05 * rng.normal(size=120)
-    df.loc[[3, 10, 50], "x1"] = np.nan   # inputs: imputed after the split
+    df["y0"] = X[:, 0] + X[:, 1] ** 2 + 0.05 * rng.normal(size=40)
+    df["y1"] = X[:, 2] * X[:, 3] + 0.05 * rng.normal(size=40)
+    df.loc[[3, 10, 30], "x1"] = np.nan   # inputs: imputed after the split
     df.loc[[7, 20], "y0"] = np.nan       # targets: rows must be dropped
     path = tmp_path / "gaps.csv"
     df.to_csv(path, index=False)

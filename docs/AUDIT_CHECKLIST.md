@@ -80,8 +80,12 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   `best_score_` is optimistically biased (no nested CV); no test of meaningful difference
   (1-SE rule / Nadeau–Bengio). `mlp` scored as MLPRegressor on 100% but deployed as
   `ConformalPredictionNetworkSurrogate` on 80%.
-- [ ] **17. Imputation leaks targets.** `grid_search_auto_detect.py` KNN-imputes inputs *and outputs*
+- [x] **17. Imputation leaks targets.** `grid_search_auto_detect.py` KNN-imputes inputs *and outputs*
   on the full frame before the split. Split first; impute X on train only; drop rows with missing y.
+  *Done:* new `drop_unusable_rows` (before the split: rows missing a target or a "drop" column)
+  and `impute_train_test` (after the split: KNN fitted on training inputs only, using all input
+  columns) in `utils/imputation.py`. Used by both CLI commands, the main app, page 01 and page 02
+  (per fidelity level, which previously also mixed levels). `apply_imputation` is no longer called.
 - [x] **18. PCA Kaiser rule on unscaled data.** Four copies of the PCA block (`mor_cli/grid_search.py`,
   `mor_cli/grid_search_auto_detect.py`, `gui/Grid_Search_Surrogate_Models.py`, GUI page 01) ran PCA
   on raw inputs, so "eigenvalue > 1" depended on the inputs' units. All four now call
