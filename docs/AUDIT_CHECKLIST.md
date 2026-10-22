@@ -62,14 +62,31 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   True CV+ (Barber et al.) uses per-point quantiles of {mu_{-k(i)}(x) ± R_i}; guarantee is 1-2alpha.
   Implement properly or rename and drop the guarantee claim.
   *Done:* real CV+ (per-point order statistics); docstring states the 1-2alpha guarantee.
-- [ ] **10. Normality tested on raw y, not residuals.** [verified] `screening.py` `test_normality`.
-- [ ] **11. No multiple-testing correction in screening.** 3 tests × n_outputs at alpha=0.05, OR'ed
+- [x] **10. Normality tested on raw y, not residuals.** [verified] `screening.py` `test_normality`.
+  *Done:* `test_normality(X, y)` now tests OLS residuals (uniform X with y = 5x: raw y p < 1e-4,
+  residuals pass).
+- [x] **11. No multiple-testing correction in screening.** 3 tests × n_outputs at alpha=0.05, OR'ed
   together. Use Holm / Benjamini–Hochberg.
-- [ ] **12. Breusch-Pagan confounded by mean misspecification.** Run after a flexible fit or only when RESET passes.
-- [ ] **13. Screening inconsistencies.** VIF never used; `screen()` ignores `nonlinear_dep`;
+  *Done:* `ModelScreener(correction="holm" | "bh" | None)` adjusts the normality / RESET / BP
+  p-values of all outputs jointly (default Holm), stores `p_adjusted` and flips FAIL→PASS when
+  only the raw p was significant. Pure noise, 5 outputs, 40 runs: any-flag rate 20/40 → 3/40.
+- [x] **12. Breusch-Pagan confounded by mean misspecification.** Run after a flexible fit or only when RESET passes.
+  *Done:* BP only runs when RESET passes; otherwise it is reported as "not tested" (FAIL, p=None,
+  excluded from the correction) so heteroscedastic models are kept rather than ruled out.
+  Flexible fits were tried first and rejected: on constant-noise data with OOF residuals from RF,
+  HistGB, splines or nearest-neighbour differences, BP falsely rejected 15–95% of the time
+  whenever d > 1, because residual bias also varies with x.
+- [x] **13. Screening inconsistencies.** VIF never used; `screen()` ignores `nonlinear_dep`;
   rule keys mismatch model names (`sgp` vs `sgpr`; `et`, `nystroem_gp`, `elastic_net`, `lasso`,
   `quantile`, `ngboost`, `catboost` default to True); `pre_screen=True` silently ignored unless
   built via `with_vendored_surrogates()`.
+  *Done:* VIF failure adds BayesianRidge to `screen()` and notes it on LinearRegression;
+  `screen()` includes the RF–LR gain test. Rules now use canonical keys plus aliases
+  (`gpr`, `ngb`, GUI `sgp` = Nystroem, the `screen()` long names), covering every CLI/GUI name:
+  `et`/`catboost` gated on non-linearity, `ngboost` on non-linearity or heteroscedasticity,
+  `quantile` on non-normal residuals, scalable GPs (`nystroem_gp`, `sgpr`) and regularised linear
+  models always eligible. Unknown names warn. `pre_screen` on a custom estimator list maps class
+  names to rules, and falls back to all candidates if screening rules out every one.
 - [ ] **14. MoE "EM" never looks at expert fit.** Labels are reassigned from the gating net's own
   `predict_proba`. Reassign by per-sample expert residual/likelihood. Soft-routing std omits
   within-expert variance (law of total variance).

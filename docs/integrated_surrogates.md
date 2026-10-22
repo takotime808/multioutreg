@@ -95,19 +95,30 @@ standard AutoDetect grid search (they require a separate evaluation path via
 
 ### Statistical Pre-Screening Gates (`pre_screen=True`)
 
-When `AutoDetectMultiOutputRegressor.with_vendored_surrogates(pre_screen=True)` is used,
-`ModelScreener` runs inexpensive statistical tests before fitting and gates expensive or
-unlikely-to-help models per output column:
+When `AutoDetectMultiOutputRegressor(..., pre_screen=True)` (or
+`with_vendored_surrogates(pre_screen=True)`) is used, `ModelScreener` runs inexpensive
+statistical tests before fitting and gates expensive or unlikely-to-help models per output
+column. With a custom estimator list, the rule for each estimator is looked up from its class
+name; estimators with no rule are always tried (with a warning).
+
+Normality is tested on OLS residuals. Breusch–Pagan only runs when RESET passes (with a
+non-linear mean it cannot separate variance from misfit); otherwise it is reported as not tested
+and the heteroscedasticity-gated models stay eligible. The normality, RESET and Breusch–Pagan p-values
+of all outputs are corrected jointly (Holm by default; `ModelScreener(correction="bh")` for
+Benjamini–Hochberg, `None` to disable).
 
 | Gate | Condition | Models Gated |
 |------|-----------|-------------|
 | `gp_feasible` | N < 300 | `gp`, `gpx`, `ard_gp`, `kpls` |
 | `svr_feasible` | N < 2000 | `svr` |
-| `mlp_feasible` | N > 100 | `mlp`, `cpn` |
+| `mlp_feasible` | N > 100 (and non-linear) | `mlp`, `cpn` |
 | `pbr_feasible` | p < 20 | `pbr` |
 | `knn_ratio_ok` | N/p > 10 | `knn` |
-| Nonlinear detected | Ramsey RESET or RF–LR R² gain > 0.05 | `rf`, `et`, `gb`, `mlp`, `hgb`, `lgbm`, `xgb` |
-| Always eligible | — | `linear`, `dt`, `bayesian_ridge`, `rfgp`, `nystroem_gp`, `elastic_net`, `lasso`, `quantile` |
+| `bootstrap_needed` | N < 500 | `blr` |
+| Non-linear | RESET fails, non-normal residuals, or RF–LR R² gain > 0.05 | `rf`, `et`, `gb`, `hgb`, `lgbm`, `xgb`, `catboost`, `mlp`, `cpn` |
+| Non-linear or heteroscedastic | as above, or Breusch–Pagan fails / not tested | `ngboost` |
+| Non-normal residuals | normality test fails | `quantile` |
+| Always eligible | — | `linear`, `dt`, `mfs_lr`, `bayesian_ridge`, `elastic_net`, `lasso`, `rfgp`, `nystroem_gp`, `sgpr` |
 
 ### Optional Dependencies
 

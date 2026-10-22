@@ -79,6 +79,45 @@ def _clone_surrogate(surrogate):
         return copy.deepcopy(surrogate)
 
 
+# Estimator class name -> screening rule key, for pre_screen on a custom
+# estimator list (with_vendored_surrogates sets ``_model_names`` explicitly).
+_SCREENING_NAMES = {
+    "LinearRegression": "linear",
+    "GaussianProcessRegressor": "gp",
+    "RandomForestRegressor": "rf",
+    "ExtraTreesRegressor": "et",
+    "GradientBoostingRegressor": "gb",
+    "HistGradientBoostingRegressor": "hgb",
+    "SVR": "svr",
+    "KNeighborsRegressor": "knn",
+    "DecisionTreeRegressor": "dt",
+    "MLPRegressor": "mlp",
+    "BayesianRidge": "bayesian_ridge",
+    "ElasticNet": "elastic_net",
+    "Lasso": "lasso",
+    "QuantileRegressor": "quantile",
+    "NGBRegressor": "ngboost",
+    "LGBMRegressor": "lgbm",
+    "XGBRegressor": "xgb",
+    "CatBoostRegressor": "catboost",
+    "_RFFEstimator": "rfgp",
+    "_PBREstimator": "pbr",
+    "_NystroemEstimator": "nystroem_gp",
+    "_ARDGPEstimator": "ard_gp",
+    "_GPXEstimator": "gpx",
+    "_KPLSEstimator": "kpls",
+    "_SGPREstimator": "sgpr",
+}
+
+
+def _screening_name(est) -> str:
+    """Screening rule key for *est* (the final step of a Pipeline)."""
+    if hasattr(est, "steps"):
+        est = est.steps[-1][1]
+    name = type(est).__name__
+    return _SCREENING_NAMES.get(name, name)
+
+
 class _OutputColumn(RegressorMixin, BaseEstimator):
     """Expose column ``j`` of a multi-output model so sklearn scorers can use it."""
 
@@ -136,9 +175,11 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
 
         # Run statistical pre-screening once across all outputs
         _screener = None
-        if self.pre_screen and hasattr(self, "_model_names"):
+        if self.pre_screen:
             from multioutreg.model_selection.screening import ModelScreener
             _screener = ModelScreener().fit(X, y)
+            screen_names = getattr(self, "_model_names", None) or [
+                _screening_name(est) for est in self.estimators]
 
         # Pre-evaluate joint multi-output surrogate candidates (models with
         # _multi_output = True that cannot be wrapped in MultiOutputRegressor).
@@ -171,7 +212,9 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             # Determine which estimator indices to evaluate for this output
             if _screener is not None:
                 eligible = set(_screener.eligible_indices_for_output(
-                    i, self._model_names))
+                    i, screen_names))
+                if not eligible:  # screening ruled out every candidate: try them all
+                    eligible = set(range(len(self.estimators)))
             else:
                 eligible = set(range(len(self.estimators)))
 

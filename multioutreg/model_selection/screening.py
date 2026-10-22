@@ -8,12 +8,16 @@ unsuitable or computationally expensive models can be skipped.
 Six tests are provided:
 
 1. **Sample size** — rule-based thresholds gate GP (O(N³)), SVR, MLP, and bootstrap LR.
-2. **Normality** (Shapiro-Wilk / D'Agostino K²) — non-normal residuals suggest
-   tree-based or non-linear models.
+2. **Normality** (Shapiro-Wilk / D'Agostino K² on OLS residuals) — non-normal
+   residuals suggest tree-based or non-linear models.
 3. **Linearity** (Ramsey RESET) — detected non-linearity activates RF, GB, MLP, DT.
 4. **Heteroscedasticity** (Breusch-Pagan) — input-dependent variance activates quantile
-   GB and heteroscedastic ensemble wrappers.
-5. **Multicollinearity** (VIF) — flags unstable linear model fits.
+   GB and heteroscedastic ensemble wrappers. Only run when RESET passes; otherwise
+   it is reported as not tested and those models are kept.
+5. **Multicollinearity** (VIF) — flags unstable linear model fits; adds BayesianRidge.
+
+Tests 2–4 are hypothesis tests run per output; their p-values are corrected
+jointly (Holm by default, see ``ModelScreener(correction=...)``).
 6. **Non-linear dependency** (cross-validated RF–LR R² gain) — confirms whether a
    non-linear model actually outperforms linear regression on this data.
 
@@ -48,10 +52,13 @@ class TestResult:
     p_value: Optional[float]
     message: str
     alpha: float = 0.05
+    p_adjusted: Optional[float] = None  # set by ModelScreener's multiple-testing correction
 
     def __repr__(self) -> str:
         status = "✓ PASS" if self.passed else "✗ FAIL"
         p_str = f"p={self.p_value:.4f}" if self.p_value is not None else ""
+        if self.p_adjusted is not None:
+            p_str += f" p_adj={self.p_adjusted:.4f}"
         return f"[{status}] {self.name} | stat={self.statistic:.4f} {p_str} — {self.message}"
 
 
@@ -91,8 +98,17 @@ def test_sample_size(X: np.ndarray) -> Dict[str, TestResult]:
     }
 
 
-def test_normality(y: np.ndarray, alpha: float = 0.05) -> TestResult:
-    """Shapiro-Wilk (N ≤ 5000) or D'Agostino K² (N > 5000).
+def _ols_residuals(X: np.ndarray, y: np.ndarray) -> np.ndarray:
+    import statsmodels.api as sm
+
+    return np.asarray(sm.OLS(y, sm.add_constant(X)).fit().resid)
+
+
+def test_normality(X: np.ndarray, y: np.ndarray, alpha: float = 0.05) -> TestResult:
+    """Shapiro-Wilk (N ≤ 5000) or D'Agostino K² (N > 5000) on OLS residuals.
+
+    The assumption that matters is normality of the errors, not of y: a skewed
+    or multimodal y can still leave perfectly normal residuals after a linear fit.
 
     PASS = residuals are consistent with normality.
     FAIL = significant non-normality; tree/non-linear models are recommended.
@@ -100,12 +116,13 @@ def test_normality(y: np.ndarray, alpha: float = 0.05) -> TestResult:
     from scipy import stats as _stats
 
     y = np.asarray(y).ravel()
-    if len(y) <= 5000:
-        stat, p = _stats.shapiro(y)
-        name = "Normality (Shapiro-Wilk)"
+    resid = _ols_residuals(X, y)
+    if len(resid) <= 5000:
+        stat, p = _stats.shapiro(resid)
+        name = "Normality of residuals (Shapiro-Wilk)"
     else:
-        stat, p = _stats.normaltest(y)
-        name = "Normality (D'Agostino K²)"
+        stat, p = _stats.normaltest(resid)
+        name = "Normality of residuals (D'Agostino K²)"
     passed = p >= alpha
     msg = ("residuals consistent with normality"
            if passed else "significant non-normality detected")
@@ -150,7 +167,8 @@ def test_heteroscedasticity(
     """Breusch-Pagan test: regresses squared OLS residuals on features.
 
     Detects heteroscedasticity where **variance** is a linear function of the
-    regressors (e.g. ``var(e | x) = a + b·x``).
+    regressors (e.g. ``var(e | x) = a + b·x``). Only valid when the linear mean
+    is adequate -- see :func:`heteroscedasticity_not_tested`.
 
     PASS = no evidence of heteroscedasticity.
     FAIL = input-dependent variance; quantile GB or heteroscedastic ensembles are
@@ -160,9 +178,7 @@ def test_heteroscedasticity(
     from statsmodels.stats.diagnostic import het_breuschpagan
 
     y = np.asarray(y).ravel()
-    Xc = sm.add_constant(X)
-    ols = sm.OLS(y, Xc).fit()
-    lm, lm_p, _, _ = het_breuschpagan(ols.resid, Xc)
+    lm, lm_p, _, _ = het_breuschpagan(_ols_residuals(X, y), sm.add_constant(X))
     passed = lm_p >= alpha
     msg = ("homoscedastic — constant variance assumption holds"
            if passed else
@@ -171,6 +187,22 @@ def test_heteroscedasticity(
     return TestResult(
         "Heteroscedasticity (Breusch-Pagan)", passed,
         float(lm), float(lm_p), msg, alpha)
+
+
+def heteroscedasticity_not_tested(alpha: float = 0.05) -> TestResult:
+    """Placeholder result used instead of Breusch-Pagan when RESET fails.
+
+    With a misspecified mean the residuals contain the missed signal, whose
+    squares track x even under constant noise, so Breusch-Pagan rejects for the
+    wrong reason. Residuals of a flexible fit do not fix this (their bias also
+    varies with x; 15-95% false rejections in simulation). The result is
+    reported as FAIL so heteroscedastic models are kept rather than ruled out.
+    """
+    return TestResult(
+        "Heteroscedasticity (not tested)", False, float("nan"), None,
+        "not tested: mean is non-linear (RESET failed), so Breusch-Pagan cannot "
+        "separate variance from misfit; heteroscedastic models kept eligible",
+        alpha)
 
 
 def test_multicollinearity(
@@ -242,6 +274,11 @@ class ModelScreener:
         Minimum RF–LR R² gain to flag data as non-linear (default 0.05).
     vif_threshold : float
         VIF above which multicollinearity is flagged (default 10.0).
+    correction : {"holm", "bh", None}
+        Multiple-testing correction applied across the normality, linearity and
+        heteroscedasticity tests of all outputs (3 × n_outputs hypotheses).
+        ``"holm"`` controls the family-wise error rate, ``"bh"``
+        (Benjamini–Hochberg) the false discovery rate, ``None`` disables it.
 
     Examples
     --------
@@ -253,10 +290,16 @@ class ModelScreener:
     def __init__(self,
                  alpha: float = 0.05,
                  gain_threshold: float = 0.05,
-                 vif_threshold: float = 10.0) -> None:
+                 vif_threshold: float = 10.0,
+                 correction: Optional[str] = "holm") -> None:
+        if correction not in _CORRECTION_METHODS:
+            raise ValueError(
+                f"correction must be one of {sorted(k for k in _CORRECTION_METHODS if k)}"
+                f" or None, got {correction!r}")
         self.alpha = alpha
         self.gain_threshold = gain_threshold
         self.vif_threshold = vif_threshold
+        self.correction = correction
 
         self._size: Dict[str, TestResult] = {}
         self._vif: Optional[TestResult] = None
@@ -277,13 +320,21 @@ class ModelScreener:
         self._per_output = []
         for j in range(Y.shape[1]):
             y_j = Y[:, j]
+            linearity = test_linearity(X, y_j, self.alpha)
+            # Breusch-Pagan is only valid when the linear mean is adequate. Uses
+            # the uncorrected RESET decision, which errs towards not testing.
+            if linearity.passed:
+                hetero = test_heteroscedasticity(X, y_j, self.alpha)
+            else:
+                hetero = heteroscedasticity_not_tested(self.alpha)
             self._per_output.append({
-                "normality":          test_normality(y_j, self.alpha),
-                "linearity":          test_linearity(X, y_j, self.alpha),
-                "heteroscedasticity": test_heteroscedasticity(X, y_j, self.alpha),
+                "normality":          test_normality(X, y_j, self.alpha),
+                "linearity":          linearity,
+                "heteroscedasticity": hetero,
                 "nonlinear_dep":      test_nonlinear_dependency(
                     X, y_j, self.gain_threshold),
             })
+        self._apply_correction()
 
         self.global_flags_ = {
             "any_nonlinear":       any(not r["linearity"].passed
@@ -292,12 +343,40 @@ class ModelScreener:
                                        for r in self._per_output),
             "any_heteroscedastic": any(not r["heteroscedasticity"].passed
                                        for r in self._per_output),
+            "any_nonlinear_dep":   any(not r["nonlinear_dep"].passed
+                                       for r in self._per_output),
+            "multicollinear":      not self._vif.passed,
             "outputs_heterogeneous": (
                 len({r["linearity"].passed for r in self._per_output}) > 1
                 or len({r["heteroscedasticity"].passed for r in self._per_output}) > 1
             ),
         }
         return self
+
+    def _apply_correction(self) -> None:
+        """Adjust the p-values of all hypothesis tests jointly and update ``passed``.
+
+        Without this, 3 tests × n_outputs at alpha=0.05 OR'ed together flag
+        "a problem" on pure-noise data far more often than 5% of the time.
+        """
+        method = _CORRECTION_METHODS[self.correction]
+        if method is None:
+            return
+        from statsmodels.stats.multitest import multipletests
+
+        results = [r[key] for r in self._per_output for key in _HYPOTHESIS_TESTS
+                   if r[key].p_value is not None]
+        if not results:
+            return
+        reject, p_adj, _, _ = multipletests(
+            [r.p_value for r in results], alpha=self.alpha, method=method)
+        for r, rej, pa in zip(results, reject, p_adj):
+            r.p_adjusted = float(pa)
+            # Adjusted p >= raw p, so the only possible change is FAIL -> PASS.
+            if not r.passed and not rej:
+                r.passed = True
+                r.message = (f"not significant after {self.correction} correction "
+                             f"(p={r.p_value:.4f}, p_adj={pa:.4f})")
 
     # --------------------------------------------------------------- screen
     def screen(self) -> List["ModelSpec"]:
@@ -314,8 +393,21 @@ class ModelScreener:
             specs.append(ModelSpec(name, factory, cost, reason_included=reason))
 
         # always include cheap baselines
-        _add("LinearRegression",
-             lambda: _lr(), "low", "always included as cheap baseline")
+        lr_reason = "always included as cheap baseline"
+        if g["multicollinear"]:
+            lr_reason += (f"; max VIF={self._vif.statistic:.1f} — coefficients are "
+                          "unstable, compare against BayesianRidge")
+        _add("LinearRegression", lambda: _lr(), "low", lr_reason)
+        if g["multicollinear"]:
+            _add("BayesianRidge",
+                 lambda: _br(), "low",
+                 f"max VIF={self._vif.statistic:.1f} ≥ {self.vif_threshold:g} — "
+                 "regularised linear model is stable under multicollinearity")
+        else:
+            specs.append(ModelSpec(
+                "BayesianRidge", None, "low",
+                reason_excluded=f"max VIF={self._vif.statistic:.1f} — no severe "
+                                "multicollinearity, plain LR is stable"))
         _add("DecisionTree",
              lambda: _dt(), "low",
              "always included — cheap, interpretable non-linear baseline")
@@ -361,11 +453,13 @@ class ModelScreener:
                 reason_excluded=f"N={int(s['bootstrap_needed'].statistic)} ≥ 500 — plain LR sufficient"))
 
         # non-linearity gated: RF, GB, MLP
-        needs_nonlin = g["any_nonlinear"] or g["any_nonnormal"]
+        needs_nonlin = (g["any_nonlinear"] or g["any_nonnormal"]
+                        or g["any_nonlinear_dep"])
         if needs_nonlin:
             reasons = []
             if g["any_nonlinear"]: reasons.append("RESET detected non-linearity")
             if g["any_nonnormal"]: reasons.append("non-normal residuals")
+            if g["any_nonlinear_dep"]: reasons.append("RF beats LR in CV R²")
             reason_nl = "; ".join(reasons)
 
             _add("RandomForest",      lambda: _rf(),  "medium", reason_nl)
@@ -383,16 +477,22 @@ class ModelScreener:
             for m in ("RandomForest", "GradientBoosting", "MLP"):
                 specs.append(ModelSpec(
                     m, None, "medium" if m != "MLP" else "high",
-                    reason_excluded="data is linear and normal — heavy non-linear models not needed"))
+                    reason_excluded="data is linear with normal residuals and RF does "
+                                    "not beat LR — heavy non-linear models not needed"))
 
         # heteroscedasticity gated
         if g["any_heteroscedastic"]:
+            detected = any(r["heteroscedasticity"].p_value is not None
+                           and not r["heteroscedasticity"].passed
+                           for r in self._per_output)
+            why = ("Breusch-Pagan detected heteroscedasticity" if detected else
+                   "heteroscedasticity not testable (non-linear mean)")
             _add("GradientBoosting_Quantile",
                  lambda: _gbq(), "high",
-                 "Breusch-Pagan detected heteroscedasticity — quantile regression appropriate")
+                 f"{why} — quantile regression appropriate")
             _add("EnsembleHeteroscedastic",
                  lambda: _ehet(), "high",
-                 "Breusch-Pagan detected heteroscedasticity — bootstrap ensemble captures input-dependent noise")
+                 f"{why} — bootstrap ensemble captures input-dependent noise")
         else:
             for m in ("GradientBoosting_Quantile", "EnsembleHeteroscedastic"):
                 specs.append(ModelSpec(
@@ -436,64 +536,101 @@ class ModelScreener:
             raise RuntimeError("Call fit() first.")
         rules = _eligible_for_output_j(
             self._per_output[output_idx], self._size)
+        unknown = [name for name in model_names if name not in rules]
+        if unknown:
+            warnings.warn(
+                f"No screening rule for model(s) {unknown}; they are always tried.",
+                UserWarning, stacklevel=2)
         return [i for i, name in enumerate(model_names) if rules.get(name, True)]
 
 
 # ── helpers ────────────────────────────────────────────────────────────────────
 
+# Tests whose p-values are adjusted jointly by ModelScreener._apply_correction.
+_HYPOTHESIS_TESTS = ("normality", "linearity", "heteroscedasticity")
+_CORRECTION_METHODS = {"holm": "holm", "bh": "fdr_bh", None: None}
+
+# Other spellings of the canonical rule keys used by _eligible_for_output_j.
+# The CLI / AutoDetect use the canonical short names; the grid-search GUI and
+# ModelScreener.screen() use some of the others.
+_RULE_ALIASES = {
+    "gpr": "gp",
+    "ngb": "ngboost",
+    "sgp": "nystroem_gp",   # GUI name for the Nystroem GP approximation
+    "LinearRegression": "linear",
+    "DecisionTree": "dt",
+    "BootstrapLinearRegression": "blr",
+    "KNN": "knn",
+    "SVR": "svr",
+    "GaussianProcess": "gp",
+    "RandomForest": "rf",
+    "GradientBoosting": "gb",
+    "MLP": "mlp",
+    "BayesianRidge": "bayesian_ridge",
+    "GradientBoosting_Quantile": "gbq",
+    "EnsembleHeteroscedastic": "ehet",
+}
+
+
 def _eligible_for_output_j(
         tests: Dict[str, TestResult],
         size: Dict[str, TestResult]) -> Dict[str, bool]:
-    """Map test results to a {model_name: eligible} dict."""
+    """Map test results to a {model_name: eligible} dict.
+
+    Every model name used by the CLI, AutoDetect and the GUI has an explicit
+    rule here (directly or via ``_RULE_ALIASES``).
+    """
     nonlinear  = not tests["linearity"].passed
     nonnormal  = not tests["normality"].passed
     hetero     = not tests["heteroscedasticity"].passed
     nonlin_dep = not tests["nonlinear_dep"].passed
     needs_nonlin = nonlinear or nonnormal or nonlin_dep
+    gp_ok = size["gp_feasible"].passed
+    mlp_ok = needs_nonlin and size["mlp_feasible"].passed
 
-    return {
-        "LinearRegression":          True,
-        "DecisionTree":              True,
-        "BootstrapLinearRegression": size["bootstrap_needed"].passed,
-        "KNN":                       size["knn_ratio_ok"].passed,
-        "SVR":                       size["svr_feasible"].passed,
-        "GaussianProcess":           size["gp_feasible"].passed,
-        "RandomForest":              needs_nonlin,
-        "GradientBoosting":          needs_nonlin,
-        "MLP":                       needs_nonlin and size["mlp_feasible"].passed,
-        "GradientBoosting_Quantile": hetero,
-        "EnsembleHeteroscedastic":   hetero,
-        # generic fallback for any unrecognised name
+    rules = {
+        # Cheap linear baselines and regularised linear models -- always eligible
         "linear":         True,
-        "gp":             size["gp_feasible"].passed,
-        "rf":             needs_nonlin,
-        "gb":             needs_nonlin,
-        "svr":            size["svr_feasible"].passed,
-        "knn":            size["knn_ratio_ok"].passed,
         "dt":             True,
-        "mlp":            needs_nonlin and size["mlp_feasible"].passed,
-        "blr":            size["bootstrap_needed"].passed,
-        "cpn":            needs_nonlin and size["mlp_feasible"].passed,
         "mfs_lr":         True,
-        # Cheap analytic-posterior models -- always eligible
         "bayesian_ridge": True,
+        "elastic_net":    True,
+        "lasso":          True,
+        "blr":            size["bootstrap_needed"].passed,
+        # Median (L1) regression: robust to heavy-tailed / skewed residuals
+        "quantile":       nonnormal,
+        "knn":            size["knn_ratio_ok"].passed,
+        "svr":            size["svr_feasible"].passed,
+        # Exact GPs are O(n³): GP, ARD GP, GPX (Rust) and KPLS (Kriging + PLS)
+        "gp":             gp_ok,
+        "ard_gp":         gp_ok,
+        "gpx":            gp_ok,
+        "kpls":           gp_ok,
+        # Scalable GP approximations (random features, Nystroem, inducing points)
         "rfgp":           True,
-        "sgp":            True,
+        "nystroem_gp":    True,
+        "sgpr":           True,
         # PBR: polynomial feature explosion becomes expensive for many inputs
         "pbr":            size["pbr_feasible"].passed,
-        # GPX: Rust-accelerated but still O(n³) -- same gate as GP
-        "gpx":            size["gp_feasible"].passed,
-        # ARD GP: per-feature length scales, same O(n³) cost as GP
-        "ard_gp":         size["gp_feasible"].passed,
-        # KPLS: Kriging + PLS dim reduction, same O(n³) Kriging cost but
-        # designed for high-dimensional inputs (p >> n)
-        "kpls":           size["gp_feasible"].passed,
-        # Histogram-based GB: fast nonlinear booster, no extra deps
+        # Tree ensembles / boosters
+        "rf":             needs_nonlin,
+        "et":             needs_nonlin,
+        "gb":             needs_nonlin,
         "hgb":            needs_nonlin,
-        # LightGBM / XGBoost: fast gradient boosting, optional deps
         "lgbm":           needs_nonlin,
         "xgb":            needs_nonlin,
+        "catboost":       needs_nonlin,
+        # NGBoost models the noise distribution too, so heteroscedasticity alone justifies it
+        "ngboost":        needs_nonlin or hetero,
+        # Neural nets (cpn is the conformal MLP that AutoDetect deploys for "mlp")
+        "mlp":            mlp_ok,
+        "cpn":            mlp_ok,
+        # Heteroscedastic models (ModelScreener.screen() only)
+        "gbq":            hetero,
+        "ehet":           hetero,
     }
+    rules.update({alias: rules[key] for alias, key in _RULE_ALIASES.items()})
+    return rules
 
 
 # ── ModelSpec dataclass ─────────────────────────────────────────────────────────
@@ -513,6 +650,10 @@ class ModelSpec:
 def _lr():
     from sklearn.linear_model import LinearRegression
     return LinearRegression()
+
+def _br():
+    from sklearn.linear_model import BayesianRidge
+    return BayesianRidge()
 
 def _gp():
     from sklearn.gaussian_process import GaussianProcessRegressor
