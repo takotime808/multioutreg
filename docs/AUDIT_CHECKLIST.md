@@ -30,9 +30,16 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   ARIMA/SARIMA metrics are on the *differenced* series (in-sample one-step); LSTM on original
   scale (in-sample); `Ranker` averages ranks across these.
   *Fix:* hold out last H points, forecast every model on the original scale, then rank
-  (optionally Diebold–Mariano).
+  (optionally Diebold–Mariano). **Open decision: holdout size H.** Full writeup:
+  [Appendix A](#appendix-a--item-6-time-series-model-ranking).
 
 ## High (wrong statistics / assumptions)
+
+- [x] **1b. Multi-fidelity page had the same conformal bug as item 1.**
+  `gui/pages/02_Multi_Fidelity_Surrogate_Models.py` calibrated on test-set residuals and scored
+  coverage on the same test set. Now calibrates on a held-out part of the hi-fi training split.
+- [ ] **1c. Multi-fidelity page selects the best model by test-set MSE**, then reports metrics on
+  that same test set (optimistic). Select on a validation split or CV instead.
 
 - [ ] **7. "Std" is actually an interval half-width.** `screening.py` `_GBQ` [verified: 1.53 vs true 1.0],
   `gui/Grid_Search_Surrogate_Models.py` (`GradientBoostingWithUncertainty`),
@@ -97,6 +104,178 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
 - [ ] **32.** Chronos-Bolt silently drops quantiles outside 0.1–0.9; median fallback is a mean.
 - [ ] **33.** `conditional_coverage` bins on y_true; condition on X or predicted width instead.
 - [ ] **34.** `AutoDetect` private attrs (`_model_names`, `_surrogate_constructors`) are lost by `sklearn.clone`.
-- [ ] **35.** `tests/unit/performance/test_metrics_generalized.py` monkeypatches uct at module level (leaks).
-- [ ] **36.** Add regression tests for each critical fix (bootstrap slope, GP std > 0, conformal
+- [x] **35.** `tests/unit/performance/test_metrics_generalized.py` monkeypatches uct at module level (leaks).
+  Now an autouse fixture.
+- [x] **36.** Add regression tests for each critical fix (bootstrap slope, GP std > 0, conformal
   held-out coverage, unmocked uct metrics).
+
+## Environment / end-to-end (found while running the CLI and UI)
+
+- [x] **E1.** `pyproject.toml` allowed scikit-learn 1.2/1.3, but the code uses `root_mean_squared_error`
+  (1.4+). Floor raised to 1.4.
+- [x] **E2.** `uv.lock` was stale and unsatisfiable on Intel macOS (torch 2.10, llvmlite 0.46 have no
+  wheels). Added platform-specific `[tool.uv] constraint-dependencies`; relocked.
+- [x] **E3.** umap-learn < 0.5.8 crashes with scikit-learn >= 1.8 (`force_all_finite`). Floor raised.
+- [x] **E4.** CLI only worked from the repo root (loaded a GUI page by relative path) and executed
+  Streamlit app scripts on import. Report/model code moved to `multioutreg/report/auto_detect_report.py`
+  and `multioutreg/gui/grid_search_core.py`. `multioutreg --help` now lists commands.
+- [x] **E5.** `generate_html_report` ignored `template_path` / `MOR_TEMPLATE_PATH`.
+- [x] **E6.** Chronos defaulted to bfloat16 on MPS, which crashes ("BFloat16 is not supported on MPS").
+  bfloat16 is now CUDA-only. The swallowed failure had also hidden `test_chronos_shapes` (restored).
+- [x] **E7.** `ts-pipeline` reported `out_dir` as `<out>/<out>` (resolved after `chdir`).
+- [x] **E8.** Deprecated `use_column_width` / `use_container_width` rendered warning boxes in the UI;
+  replaced with `width="stretch"` (streamlit >= 1.50).
+- [ ] **E9.** `lhs_detector_app` classifies the repo's own `lhs_sampled_dataset.csv` as "not LHS"
+  (see items 19–20).
+- [ ] **E10.** The ts pipeline picked SARIMA from the CLI and LSTM from the UI on the same data
+  (unseeded LSTM + item 6 ranking).
+
+
+---
+
+## Appendix A — Item 6: time-series model ranking
+
+Status: **not started.** This is waiting on one decision, the holdout size H (see A.4).
+Everything below comes from reading the code. `ts-pipeline` has not been run on real data yet
+(see `TODO.md`), so the first step is to reproduce the problem (A.6, step 0).
+
+Paths below are relative to `multioutreg/time_series/ts_dynamic_fit/` unless they start
+with `mor_cli/` or `multioutreg/`.
+
+### A.1 What the pipeline does today
+
+`mor_cli/ts_pipeline.py` and the UI page `multioutreg/gui/pages/05_Time_Series_Forecasting.py`
+run the same steps:
+
+1. `DataProcessor.preprocess_data` resamples the target to `freq` and fills gaps with 0
+   (`data_handling/DataProcessor.py:160`).
+2. They train `ARIMA`, `SARIMA` and `LSTM` on the **whole** series. Each `.run()` returns
+   `(metadata, data, model)`, and `metadata["performance"]` holds RMSE / MAE / MAPE.
+3. `Ranker.get_best()` (`src/ranker.py:32`) ranks the three models on each of RMSE, MAE and
+   MAPE, averages the ranks, and returns the model with the lowest average rank.
+
+### A.2 Why the ranking is wrong
+
+The three models' numbers are not comparable, so the average rank means nothing:
+
+| Model  | Series the error is computed on | Kind of prediction | Code |
+|--------|-------------------------------------|--------------------|------|
+| ARIMA  | Series differenced *d* times until ADF p ≤ 0.05 | in-sample, one step ahead (`best_model.predict()`) | `algs/arima.py:137-171` |
+| SARIMA | Same, differenced | in-sample, one step ahead | `algs/sarima.py:162-199` |
+| LSTM   | Original scale (inverse-transformed) | in-sample, 10 steps ahead over every training window | `algs/lstm.py:232-253` |
+
+What this means in practice:
+
+- **Scale.** If the series is differenced, ARIMA/SARIMA errors are on changes from one step to
+  the next, not on levels. For a trending series the differences are much smaller than the
+  levels, so ARIMA/SARIMA "win" on RMSE/MAE because they are measured on a smaller number,
+  not because they forecast better.
+- **MAPE is computed differently.** ARIMA/SARIMA compute `abs(mean(signed % error))`, so
+  positive and negative errors cancel out. That is not MAPE. On a differenced series the
+  denominators are near zero, so the value blows up. LSTM computes `mean(abs(% error))` and
+  skips points where `|y| < 1`. The Ranker treats these as the same metric.
+- **No holdout.** Every model is scored on the data it was fitted on. Models with more
+  parameters are favoured. The LSTM (about 200k parameters, 200 epochs) can memorise the
+  series. The ARIMA grid picks (p, q) by AIC over 64 fits, which is fine for choosing an
+  order but does not tell you how well it forecasts.
+- **Horizon mismatch.** ARIMA/SARIMA are scored one step ahead and LSTM ten steps ahead,
+  which is a harder task.
+- **Leakage in LSTM.** The `MinMaxScaler` is fitted on the full series (`algs/lstm.py:196`).
+
+Symptom already observed: **E10.** The CLI picked SARIMA and the UI picked LSTM on the same
+data. Part of that is the unseeded LSTM, and part is that the ranking is decided by small
+artefacts.
+
+### A.3 Bugs nearby (fix them in the same PR or log them separately)
+
+You will hit these while doing item 6:
+
+- **SARIMA `diff_count` is off by one.** `algs/sarima.py:63` increments the counter on *every*
+  ADF test, including the one that passes. ARIMA (`algs/arima.py:67-68`) only increments when
+  it actually differences. So a SARIMA model on a stationary series reports `diff_count = 1`,
+  stores the *undifferenced* series as `diff_1_data`, and `src/infer.py:83` then integrates
+  its forecast one time too many.
+- **SARIMA seasonal period detection** (`algs/sarima.py:130`) returns the *first* lag with
+  ACF > 0.3. For any series with lag-1 autocorrelation that is `s = 1`, which is not a real
+  seasonal period. Use the largest significant ACF peak at lag ≥ 2, or take `s` from `freq`
+  (7 for daily data with weekly seasonality, 12 for monthly, and so on).
+- **LSTM ignores its `fut_pred` argument.** It is hard-coded to 10 (`algs/lstm.py:195`). The
+  value callers pass in is `DataProcessor.load_data()[1]`, which is the *row count*
+  (`DataProcessor.py:59`), not a horizon. Forecast dates also assume daily frequency
+  (`algs/lstm.py:229`).
+- **`time_series/metrics.py::mase`** uses the evaluation window to scale the error. It should
+  use the training series (this is item 26). Fix it before using MASE below.
+- **`ts-pipeline` never saves the best model.** It only writes `results.json`, while
+  `main.py:94-111` does save it. This is outside the scope of item 6, but it matters for A.5
+  step 5.
+
+### A.4 The decision: holdout size H
+
+All models are scored on the last H points of the series, so H decides what "best" means:
+
+| Option | Pros | Cons |
+|--------|------|------|
+| **H = forecast horizon the user cares about** (new `--horizon`) | Scores exactly the task the model will be used for | Users must pick one; a small H (1–3) gives noisy scores |
+| **H = max(seasonal period, 10% of n)** | Works with no input; a full season means SARIMA is judged fairly | Arbitrary; may not match how the model is used |
+| **Fixed H (e.g. 10 or 14)** | Simple; matches the LSTM's current 10-step output | Takes too much from short series and too little from long ones |
+| **Rolling-origin backtest** (k folds of H) | Most reliable ranking; makes Diebold–Mariano meaningful | k× training cost; LSTM training already takes 200 epochs |
+
+**Recommendation (not yet agreed):** add `--holdout H` to `ts-pipeline` and the UI. Default it
+to `--horizon` when that is given, otherwise `max(s, ceil(0.1·n))`. Enforce a minimum training
+length (A.5 step 1) and fail with a clear error if the series is too short. Leave
+rolling-origin as an optional `--folds k` that defaults to 1.
+
+### A.5 How to implement it
+
+1. **Split once, in the caller** (`mor_cli/ts_pipeline.py`, and the UI page at the same point).
+   `y = processed_data[target]`, `y_train = y[:-H]`, `y_test = y[-H:]`. Before splitting, check
+   `len(y_train) >= max(30, 2*s + 10, train_window + H + 20)`. These limits are rough: ARIMA up
+   to p = 7 needs a few dozen points, SARIMA needs at least two seasons, and the LSTM needs
+   enough training windows.
+2. **Give every model the same interface:** `fit(y_train)` and then `forecast(H) -> np.ndarray`
+   **on the original scale**. Keep `run()` as a thin wrapper for backwards compatibility.
+   - ARIMA / SARIMA: keep the ADF test to choose `d`, but fit
+     `sm.tsa.ARIMA(y_train, order=(p, d, q))` / `SARIMAX(..., order=(p, d, q), seasonal_order=(P, D, Q, s))`
+     on the **undifferenced** series, and pick (p, q) by AIC as today. With `d` passed to
+     statsmodels, `results.forecast(H)` is already on the original scale. The manual
+     un-differencing in `src/infer.py:71-85` is then no longer needed, and the SARIMA
+     `diff_count` bug goes away.
+   - LSTM: fit the scaler on `y_train` only. Set `output_size = H` (forecasting all H steps at
+     once), feed the last `train_window` training points, and inverse-transform. Seed torch and
+     numpy (this also fixes E10).
+3. **Score all models with one function** in `multioutreg/time_series/metrics.py`, applied to
+   `(y_test, y_hat)`: RMSE, MAE, MASE (scaled by `y_train`; fix item 26 first), and sMAPE
+   instead of MAPE. Delete the per-model metric code in `algs/*.py` so the three models cannot
+   drift apart again.
+4. **Ranking.** In `src/ranker.py`, rank on the holdout metrics. Use **MASE** as the main
+   metric because it does not depend on scale. Optionally keep the average rank as a
+   tie-break. When `--folds > 1`, report a Diebold–Mariano test (with the Harvey–Leybourne–Newbold
+   small-sample correction) between the best and second-best model. Report it only: with one
+   holdout of H ≈ 10 points the test has almost no power, so it must not decide the winner.
+5. **Refit the winner on the full series** before saving it or forecasting into the future.
+   Write the holdout metrics, H, and the train/test date ranges to `results.json`, so the user
+   can see what the ranking was based on.
+
+### A.6 Tests to add (`tests/unit/time_series/test_ts_ranking.py` — none exist today)
+
+0. **Reproduce first:** run `multioutreg ts-pipeline` on a trending synthetic CSV (a random
+   walk with drift, level around 1000) and record the current RMSE values. ARIMA/SARIMA should
+   show a much smaller RMSE than LSTM, because they are measured on differences.
+1. **Same target:** every model's metrics are computed against the same `y_test` array, with
+   the same length H.
+2. **Scale invariance:** multiply the series by 1000 → same winner, and MASE unchanged.
+3. **No leakage:** change the values in `y_test` → fitted parameters and the scaler do not change.
+4. **Sanity:** on an AR(1) series ARIMA beats a naive forecast on MASE. On a pure seasonal
+   series with s = 7, SARIMA finds `s = 7`.
+5. **SARIMA `diff_count`** is 0 on stationary white noise.
+6. **CLI smoke test:** run `ts-pipeline` on a series of about 120 points with LSTM epochs
+   patched down (e.g. 2) → `results.json` contains `holdout`, per-model metrics and `best_model`.
+   The command should fail cleanly when the series is too short for the requested H.
+
+### A.7 Done when
+
+- [ ] H is decided and exposed as `--holdout` (CLI) and as a UI input.
+- [ ] All models are scored out-of-sample on the original scale by one shared metric function.
+- [ ] `Ranker` uses those metrics; `results.json` records H and the metrics.
+- [ ] A.3 SARIMA bugs fixed (or logged as their own items); item 26 `mase` fixed.
+- [ ] A.6 tests pass, and the CLI and UI pick the same model on the same data (closes E10).
