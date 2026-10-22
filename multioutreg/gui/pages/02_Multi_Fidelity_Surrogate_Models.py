@@ -16,6 +16,7 @@ Example data can be downloaded from the "Other Dataset Examples" page.
 import matplotlib
 matplotlib.use("Agg")  # plotting helpers call plt.show(); never open desktop windows
 
+import functools
 import os
 from typing import Any, Dict, List
 
@@ -87,6 +88,12 @@ def generate_html_report(
     input_names: List[str] | None = None,
     calibration_residuals: np.ndarray | None = None,
     X_design: np.ndarray | None = None,
+    summary_points: List[str] | None = None,
+    level_summary: List[dict] | None = None,
+    baseline_comparison: List[dict] | None = None,
+    baseline_label: str | None = None,
+    grid_search_results: List[dict] | None = None,
+    best_candidate_name: str | None = None,
 ) -> str:
     """Render a Jinja2 HTML report from model evaluation results.
 
@@ -96,6 +103,8 @@ def generate_html_report(
     calibration split; the Gaussian-vs-conformal plot needs them.
     ``X_design`` is the input design used for sampling-method inference
     (defaults to ``X_train``).
+    The remaining optional arguments fill the Summary, Fidelity Levels,
+    HF-only baseline and Model Selection sections; each is omitted when None.
     """
     prediction_plots: Dict[str, str] = {}
     prediction_plots["all_in_one"] = safe_plot_b64(
@@ -150,6 +159,7 @@ def generate_html_report(
         best_pred,
         y_test,
         target_list=output_names,
+        seed=seed if isinstance(seed, int) else None,
     )
     other_plots = [
         {
@@ -242,6 +252,12 @@ def generate_html_report(
         kaiser_rule_suggestion=None,
         conformal_plots=conformal_plots_list,
         imputation_summary=imputation_summary,
+        summary_points=summary_points,
+        level_summary=level_summary,
+        baseline_comparison=baseline_comparison,
+        baseline_label=baseline_label,
+        grid_search_results=grid_search_results,
+        best_candidate_name=best_candidate_name,
     )
     return rendered
 
@@ -309,6 +325,220 @@ def _compute_uncertainty_metrics(
     return out
 
 
+def _single_level_predictions(
+    surrogate_cls: Any,
+    train_data: Dict[str, tuple],
+    X_test: np.ndarray,
+    fitted_models: Dict[str, Any] | None = None,
+) -> Dict[str, Any]:
+    """Fit ``surrogate_cls`` on each level alone and predict the hi-fi test inputs.
+
+    Returns ``{level: (y_pred, y_std)}``, or ``{level: "error message"}`` when
+    that level's fit fails. The highest level's entry is the HF-only baseline.
+    ``fitted_models`` (e.g. ``MultiFidelitySurrogate.models``) are reused
+    instead of refitting, so an independent winner is compared with exactly
+    its own per-level models rather than a re-randomised refit.
+    """
+    out: Dict[str, Any] = {}
+    for lv, (X_k, Y_k) in train_data.items():
+        try:
+            if fitted_models is not None and lv in fitted_models:
+                model = fitted_models[lv]
+            else:
+                model = surrogate_cls().fit(X_k, Y_k)
+            pred, std = model.predict(X_test, return_std=True)
+            pred = np.asarray(pred, dtype=np.float64).reshape(len(X_test), -1)
+            std = np.asarray(std, dtype=np.float64).reshape(len(X_test), -1)
+            out[lv] = (pred, std)
+        except Exception as exc:
+            out[lv] = f"{type(exc).__name__}: {exc}"
+    return out
+
+
+def _pearson(a: np.ndarray, b: np.ndarray) -> float | None:
+    if np.std(a) == 0 or np.std(b) == 0:
+        return None
+    return float(np.corrcoef(a, b)[0, 1])
+
+
+def _level_summary(
+    train_data: Dict[str, tuple],
+    test_data: Dict[str, tuple],
+    level_preds: Dict[str, Any],
+    y_test: np.ndarray,
+    output_names: List[str],
+) -> List[dict]:
+    """One row per (level, output): sizes, output spread, and how well a model
+    trained on that level alone tracks the highest-fidelity test outputs."""
+    rows: List[dict] = []
+    for lv, (_, Y_k) in train_data.items():
+        res = level_preds.get(lv)
+        for j, name in enumerate(output_names):
+            row = {
+                "level": lv,
+                "output": name,
+                "n_train": int(Y_k.shape[0]),
+                "n_test": int(test_data[lv][1].shape[0]),
+                "mean": float(np.mean(Y_k[:, j])),
+                "std": float(np.std(Y_k[:, j])),
+                "r": None,
+                "r2": None,
+                "error": None,
+            }
+            if isinstance(res, tuple):
+                row["r"] = _pearson(res[0][:, j], y_test[:, j])
+                row["r2"] = float(r2_score(y_test[:, j], res[0][:, j]))
+            else:
+                row["error"] = res
+            rows.append(row)
+    return rows
+
+
+def _baseline_comparison(
+    metrics: Dict[str, Dict[str, float]],
+    baseline_metrics: Dict[str, Dict[str, float]],
+) -> List[dict]:
+    """Per-output multi-fidelity vs HF-only test metrics."""
+    rows = []
+    for name, m in metrics.items():
+        b = baseline_metrics[name]
+        rows.append({
+            "output": name,
+            "mf_rmse": m["rmse"],
+            "hf_rmse": b["rmse"],
+            "rmse_change_pct": (
+                100.0 * (m["rmse"] - b["rmse"]) / b["rmse"] if b["rmse"] > 0 else None
+            ),
+            "mf_r2": m["r2"],
+            "hf_r2": b["r2"],
+        })
+    return rows
+
+
+def _summary_points(
+    best_cand: dict,
+    gs_rows: List[dict],
+    metrics: Dict[str, Dict[str, float]],
+    baseline_rows: List[dict] | None,
+    baseline_label: str,
+    level_rows: List[dict],
+    level_names: List[str],
+    uncertainty_metrics: Dict[str, float],
+    best_std: np.ndarray,
+    n_test: int,
+    conformal_coverage: float | None = None,
+    conformal_alpha: float | None = None,
+) -> List[str]:
+    """Plain-language findings derived from the computed metrics."""
+    pts: List[str] = []
+
+    ok = sorted(
+        (r for r in gs_rows if r["Val MSE"] is not None), key=lambda r: r["Val MSE"]
+    )
+    msg = (
+        f"Best configuration: {best_cand['name']} "
+        f"(validation MSE {ok[0]['Val MSE']:.4g}, chosen from {len(ok)} working "
+        f"candidates"
+    )
+    if len(ok) > 1 and ok[0]["Val MSE"] > 0:
+        gap = 100.0 * (ok[1]["Val MSE"] - ok[0]["Val MSE"]) / ok[0]["Val MSE"]
+        msg += f"; runner-up {ok[1]['Model']} is {gap:.0f}% worse"
+    n_failed = len(gs_rows) - len(ok)
+    if n_failed:
+        msg += f"; {n_failed} failed to fit"
+    pts.append(msg + ").")
+
+    r2s = [m["r2"] for m in metrics.values()]
+    pts.append(
+        f"Highest-fidelity test R² is {min(r2s):.3f}"
+        + (f" to {max(r2s):.3f} across outputs." if len(r2s) > 1 else ".")
+    )
+
+    if baseline_rows:
+        mf = float(np.mean([r["mf_rmse"] for r in baseline_rows]))
+        hf = float(np.mean([r["hf_rmse"] for r in baseline_rows]))
+        change = 100.0 * (mf - hf) / hf if hf > 0 else 0.0
+        if best_cand["mf_type"] == "independent":
+            pts.append(
+                "The winner fits each level independently, so its highest-fidelity "
+                "predictions do not use the lower-fidelity data: it is the HF-only "
+                f"{baseline_label} model (test RMSE {mf:.4g}). No coupled "
+                "multi-fidelity model beat high-fidelity data alone on validation "
+                "for this dataset."
+            )
+        elif change <= -5:
+            pts.append(
+                f"Using the lower-fidelity data reduced mean test RMSE by {-change:.0f}% "
+                f"compared with an HF-only {baseline_label} ({mf:.4g} vs {hf:.4g})."
+            )
+        elif change >= 5:
+            pts.append(
+                f"The multi-fidelity model's mean test RMSE is {change:.0f}% worse than "
+                f"an HF-only {baseline_label} ({mf:.4g} vs {hf:.4g}); the lower-fidelity "
+                "data is not helping and an HF-only model may be preferable."
+            )
+        else:
+            pts.append(
+                f"Mean test RMSE is within 5% of an HF-only {baseline_label} "
+                f"({mf:.4g} vs {hf:.4g}): no clear gain from the lower-fidelity data."
+            )
+    else:
+        pts.append(f"The HF-only {baseline_label} baseline could not be fitted.")
+
+    lower = [r for r in level_rows if r["level"] != level_names[-1]]
+    weak = sorted({
+        r["level"] for r in lower if r["r"] is None or abs(r["r"]) < 0.5
+    })
+    rs = [abs(r["r"]) for r in lower if r["r"] is not None]
+    if weak:
+        pts.append(
+            "Weakly related lower level(s): "
+            + ", ".join(f"'{lv}'" for lv in weak)
+            + " (|r| < 0.5 with the highest-fidelity test outputs for at least one "
+            "output), so they carry little usable information."
+        )
+    elif rs:
+        pts.append(
+            f"All lower levels track the highest fidelity closely (|r| ≥ {min(rs):.2f}), "
+            "so they are informative even where their R² is lower because of bias."
+        )
+
+    cov_key = next(k for k in uncertainty_metrics if k.startswith("Empirical coverage"))
+    cov = uncertainty_metrics[cov_key]
+    if not np.any(best_std > 0):
+        pts.append(
+            "The model reports no predictive uncertainty (std = 0); "
+            "use conformal intervals for error bars."
+        )
+    elif cov < 0.85:
+        pts.append(
+            f"The model's Gaussian uncertainty is overconfident: the 95% interval "
+            f"covers only {cov:.0%} of test points"
+            + (", so use the conformal intervals instead." if conformal_coverage is not None
+               else "; enable conformal intervals for calibrated error bars.")
+        )
+    elif cov > 0.99:
+        pts.append(
+            f"The 95% Gaussian interval covers {cov:.0%} of test points; the predicted "
+            "std may be conservative (intervals wider than needed)."
+        )
+    else:
+        pts.append(f"The 95% Gaussian interval covers {cov:.0%} of test points, close to nominal.")
+
+    if conformal_coverage is not None and conformal_alpha is not None:
+        pts.append(
+            f"Conformal {1 - conformal_alpha:.0%} intervals cover {conformal_coverage:.0%} "
+            "of test points."
+        )
+
+    if n_test < 30:
+        pts.append(
+            f"The test set has only {n_test} highest-fidelity points, so these metrics "
+            "(and the comparison above) are noisy."
+        )
+    return pts
+
+
 def _sampling_plot(X: np.ndarray, input_names: List[str]) -> tuple:
     """Return ``(b64_png, explanation)`` for the sampling section of the report."""
     X = np.asarray(X, dtype=np.float64)
@@ -351,13 +581,36 @@ def _sampling_plot(X: np.ndarray, input_names: List[str]) -> tuple:
 # Grid search helpers
 # ---------------------------------------------------------------------------
 
-def _build_candidates(level_names: List[str], skip_expensive: bool) -> List[dict]:
+# Constructor argument each base surrogate uses for its seed; None means the
+# model is deterministic. Anything not listed takes ``random_state``.
+_SEED_KWARG: Dict[Any, str | None] = {
+    CatBoostSurrogate: "random_seed",
+    LinearRegressionSurrogate: None,
+}
+
+
+def _seeded(surrogate_cls: Any, seed: int | None) -> Any:
+    """Return a zero-argument factory for ``surrogate_cls`` seeded with ``seed``.
+
+    With ``seed=None`` the class is returned unchanged (each model uses its own
+    default, which is unseeded for e.g. SparseGP / RF).
+    """
+    kw = _SEED_KWARG.get(surrogate_cls, "random_state")
+    if seed is None or kw is None:
+        return surrogate_cls
+    return functools.partial(surrogate_cls, **{kw: seed})
+
+
+def _build_candidates(
+    level_names: List[str], skip_expensive: bool, seed: int | None = None
+) -> List[dict]:
     """Return a list of candidate configs for the grid search.
 
     Each config is a dict with keys:
         name            display name for the results table
         mf_type         "stacked" | "additive" | "independent"
-        surrogate_cls   base surrogate class
+        surrogate_cls   base surrogate factory (class, or class seeded via
+                        :func:`_seeded` when ``seed`` is given)
         augment_with_std  bool (StackedVFM only)
     """
     surrogates: List[tuple] = [
@@ -380,6 +633,7 @@ def _build_candidates(level_names: List[str], skip_expensive: bool) -> List[dict
 
     candidates: List[dict] = []
     for sur_name, sur_cls in surrogates:
+        sur_cls = _seeded(sur_cls, seed)
         # StackedVFM — without and with std augmentation
         candidates.append({
             "name": f"StackedVFM+{sur_name}",
@@ -645,6 +899,20 @@ if uploaded_file:
                 "n > ~300.  Uncheck to include GP-based candidates in the grid search."
             ),
         )
+        fix_seed = st.checkbox(
+            "Fix random seed (reproducible results)",
+            value=True,
+            help=(
+                "When checked, the data splits and every model with randomness "
+                "(RF, SparseGP, boosting, GP optimizer restarts) use the seed below, "
+                "so re-running gives identical results. Uncheck to see run-to-run "
+                "variation."
+            ),
+        )
+        seed_value = st.number_input(
+            "Random seed", min_value=0, value=0, step=1,
+            help="Ignored when 'Fix random seed' is unchecked.",
+        )
         use_conformal = st.checkbox(
             "Compute conformal prediction intervals",
             value=False,
@@ -720,6 +988,8 @@ if uploaded_file:
                 "columns": _summary_cols,
             }
 
+        seed = int(seed_value) if fix_seed else None
+
         # Split by fidelity level
         level_names = [str(lv) for lv in ordered_levels]
         level_data = _split_by_fidelity(
@@ -739,7 +1009,7 @@ if uploaded_file:
         test_data: Dict[str, tuple] = {}
         for lv_name, (X_k, Y_k) in level_data.items():
             X_tr, X_te, Y_tr, Y_te = train_test_split(
-                X_k, Y_k, test_size=0.25, random_state=0
+                X_k, Y_k, test_size=0.25, random_state=seed
             )
             X_tr, X_te = impute_train_test(X_tr, X_te)
             train_data[lv_name] = (X_tr, Y_tr)
@@ -752,7 +1022,7 @@ if uploaded_file:
         if use_conformal:
             _X_hi, _Y_hi = train_data[level_names[-1]]
             _X_fit, X_cal, _Y_fit, y_cal = train_test_split(
-                _X_hi, _Y_hi, test_size=0.2, random_state=0
+                _X_hi, _Y_hi, test_size=0.2, random_state=seed
             )
             train_data[level_names[-1]] = (_X_fit, _Y_fit)
 
@@ -762,7 +1032,7 @@ if uploaded_file:
         # ------------------------------------------------------------------
         # Grid search
         # ------------------------------------------------------------------
-        candidates = _build_candidates(level_names, skip_expensive)
+        candidates = _build_candidates(level_names, skip_expensive, seed=seed)
 
         prog = st.progress(0, text="Running grid search…")
 
@@ -774,7 +1044,8 @@ if uploaded_file:
 
         try:
             gs_results, best_cand = _select_best_candidate(
-                candidates, train_data, level_names, on_progress=_on_progress
+                candidates, train_data, level_names, random_state=seed,
+                on_progress=_on_progress,
             )
         except ValueError as exc:
             prog.empty()
@@ -796,18 +1067,50 @@ if uploaded_file:
         best_model = _fit_candidate(best_cand, train_data, level_names)
         best_pred, best_std = _predict_highest(best_model, best_cand, X_test, level_names)
 
+        _summary_slot = st.container()  # filled once all metrics are computed
+
         st.write(f"### Grid Search Results (validation split) — best: **{best_name}**")
-        _gs_df = (
-            pd.DataFrame(gs_results)
-            .sort_values("Val MSE", na_position="last")
-            .reset_index(drop=True)
+        gs_sorted = sorted(
+            gs_results,
+            key=lambda r: (r["Val MSE"] is None, r["Val MSE"] or 0.0),
         )
-        st.dataframe(_gs_df, width="stretch")
+        st.dataframe(pd.DataFrame(gs_sorted), width="stretch")
 
         # Per-output metrics for the best model
         metrics = _compute_metrics(y_test, best_pred, best_std, output_names)
         st.write("### Best Model Metrics (highest-fidelity test set)")
         st.dataframe(pd.DataFrame(metrics).T)
+
+        # Each level fitted alone with the winner's base surrogate: shows how
+        # informative every level is, and the HF-only baseline (highest level).
+        _base_cls = best_cand["surrogate_cls"]
+        _base_label = best_name.split("+")[1]
+        with st.spinner("Fitting single-level comparison models…"):
+            level_preds = _single_level_predictions(
+                _base_cls, train_data, X_test,
+                fitted_models=(
+                    best_model.models if best_cand["mf_type"] == "independent" else None
+                ),
+            )
+        level_rows = _level_summary(
+            train_data, test_data, level_preds, y_test, output_names
+        )
+        _hf_res = level_preds[level_names[-1]]
+        baseline_rows = None
+        if isinstance(_hf_res, tuple):
+            baseline_rows = _baseline_comparison(
+                metrics, _compute_metrics(y_test, _hf_res[0], _hf_res[1], output_names)
+            )
+            st.write(f"### Multi-Fidelity vs HF-only {_base_label} (highest-fidelity test set)")
+            st.dataframe(pd.DataFrame(baseline_rows).set_index("output"))
+        else:
+            st.warning(f"HF-only baseline could not be fitted: {_hf_res}")
+        st.write("### Fidelity Levels")
+        st.caption(
+            "r and R²: a model trained on that level alone, scored against the "
+            "highest-fidelity test outputs."
+        )
+        st.dataframe(pd.DataFrame(level_rows))
 
         uncertainty_metrics = _compute_uncertainty_metrics(y_test, best_pred, best_std)
         st.write("### Uncertainty Calibration (Gaussian std, highest-fidelity test set)")
@@ -840,6 +1143,19 @@ if uploaded_file:
             )
             st.write(f"### Conformal Prediction Summary (alpha={conformal_alpha_sel})")
             st.dataframe(conf_df)
+
+        summary_points = _summary_points(
+            best_cand, gs_results, metrics, baseline_rows, _base_label,
+            level_rows, level_names, uncertainty_metrics, best_std, X_test.shape[0],
+            conformal_coverage=(
+                float(np.mean((y_test >= y_lower) & (y_test <= y_upper)))
+                if use_conformal else None
+            ),
+            conformal_alpha=conformal_alpha_sel if use_conformal else None,
+        )
+        with _summary_slot:
+            st.write("### Summary")
+            st.markdown("\n".join(f"- {p}" for p in summary_points))
 
         _n_per_level = {lv: train_data[lv][0].shape[0] for lv in level_names}
         _n_train_txt = (
@@ -878,7 +1194,7 @@ if uploaded_file:
                     n_train=_n_train_txt,
                     n_test=f"{X_test.shape[0]} (highest fidelity: {level_names[-1]})",
                     cross_validation=_cv_txt,
-                    seed=0,
+                    seed=seed if seed is not None else "not fixed (results vary between runs)",
                     notes=description or "Generated by Multi-Fidelity Surrogate Model page.",
                     conformal_intervals=conformal_intervals if use_conformal else None,
                     conformal_alpha=conformal_alpha_sel if use_conformal else None,
@@ -886,6 +1202,12 @@ if uploaded_file:
                     input_names=list(input_cols),
                     calibration_residuals=residuals,
                     X_design=level_data[level_names[-1]][0],
+                    summary_points=summary_points,
+                    level_summary=level_rows,
+                    baseline_comparison=baseline_rows,
+                    baseline_label=_base_label,
+                    grid_search_results=gs_sorted,
+                    best_candidate_name=best_name,
                 )
         except Exception as exc:
             st.error(f"Report generation failed: {exc}")
