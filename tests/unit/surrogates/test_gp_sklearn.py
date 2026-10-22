@@ -77,7 +77,7 @@ def test_default_kernel_does_not_collapse_on_noisy_data():
     y = np.sin(X[:, 0]) + 0.05 * X[:, 1] ** 2 + 0.5 * rng.normal(size=150)
     Xt = rng.uniform(0, 10, (300, 2))
     f = np.sin(Xt[:, 0]) + 0.05 * Xt[:, 1] ** 2
-    s = GaussianProcessSurrogate().fit(X, y)
+    s = GaussianProcessSurrogate().fit(X, y[:, None])
     pred, std = s.predict(Xt, return_std=True)
     assert np.mean((pred.ravel() - f) ** 2) < 0.1
     assert 0.3 < std.mean() < 1.0

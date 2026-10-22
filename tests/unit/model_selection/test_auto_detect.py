@@ -168,7 +168,7 @@ def test_one_se_prefers_simpler_model_within_noise():
 
     model = AutoDetectMultiOutputRegressor([LinearRegression()], [{}], selection="one_se")
     simple = _candidate("linear", [-1.10, -0.90, -1.00], 0)
-    costly = _candidate("gp", [-0.98, -0.92, -0.95], 2)     # better, but within 1 SE
+    costly = _candidate("gp", [-1.05, -0.85, -0.95], 2)     # better, but within 1 SE
     assert model._choose([simple, costly])["name"] == "linear"
     model.selection = "best"
     assert model._choose([simple, costly])["name"] == "gp"

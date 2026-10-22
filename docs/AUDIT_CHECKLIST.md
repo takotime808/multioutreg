@@ -87,16 +87,35 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   `quantile` on non-normal residuals, scalable GPs (`nystroem_gp`, `sgpr`) and regularised linear
   models always eligible. Unknown names warn. `pre_screen` on a custom estimator list maps class
   names to rules, and falls back to all candidates if screening rules out every one.
-- [ ] **14. MoE "EM" never looks at expert fit.** Labels are reassigned from the gating net's own
+- [x] **14. MoE "EM" never looks at expert fit.** Labels are reassigned from the gating net's own
   `predict_proba`. Reassign by per-sample expert residual/likelihood. Soft-routing std omits
   within-expert variance (law of total variance).
-- [ ] **15. Unscaled features & weak GP defaults in model selection.** Wrap SVR/KNN/MLP/GP/Lasso in
+  *Done:* E-step assigns argmax_k log π_k(x) + log N(y | μ_k(x), σ²) (σ² per output, pooled).
+  Two linear experts on y = 3|x| now find the kink in 8/8 seeds (was 1/5). Also fixed:
+  random-label init made the experts near-identical, so one took every sample; now k-means on
+  standardised (X, Y), and an emptied expert is re-seeded with the worst-fit samples instead of
+  refit on everything. Soft std = sqrt(Σ w_k (σ_k² + (μ_k − μ)²)); hard routing returns the
+  chosen expert's std instead of 0.
+- [x] **15. Unscaled features & weak GP defaults in model selection.** Wrap SVR/KNN/MLP/GP/Lasso in
   `Pipeline(StandardScaler(), ...)`. Default `GaussianProcessRegressor()` (alpha=1e-10, no WhiteKernel,
   no `normalize_y`) collapsed to `RBF(1e-5)` on noisy data [verified]. ARD GP lacks amplitude term.
-- [ ] **16. Model-selection statistics.** `GridSearchCV(cv=int)` is unshuffled KFold; winner's
+  *Done:* `BaseSurrogate(scale_inputs=...)`; GP, SVR, KNN, CPN (MLP), Lasso and ElasticNet
+  surrogates default to `scale_inputs=True`, and AutoDetect grid-searches the same models as
+  scaler pipelines (grid keys are un-prefixed before building the surrogate). GP defaults to
+  `C·RBF + White` with `normalize_y=True` (`gp_sklearn.default_gp_kernel`); AutoDetect searches
+  RBF vs Matern-5/2. On the verified case: test MSE 6.2 → 0.03. ARD GP is now `C·ARD-RBF + White`
+  on standardised inputs with `normalize_y`. Screening factories use the same.
+  - [ ] Follow-up: RFF / Nystroem GP grids (`length_scale`, `gamma`) are still in raw input units.
+- [x] **16. Model-selection statistics.** `GridSearchCV(cv=int)` is unshuffled KFold; winner's
   `best_score_` is optimistically biased (no nested CV); no test of meaningful difference
   (1-SE rule / Nadeau–Bengio). `mlp` scored as MLPRegressor on 100% but deployed as
   `ConformalPredictionNetworkSurrogate` on 80%.
+  *Done:* int `cv` → `KFold(shuffle=True, random_state=0)`, one split list shared by every
+  candidate (incl. joint MoE/BNN). `selection_scores_` records each candidate's mean CV score and
+  Nadeau–Bengio corrected SE per output. `selection="one_se"` picks the least complex candidate
+  within 1 SE of the best (default stays `"best"`). `mlp` is grid-searched as `_CPNEstimator`, i.e.
+  the deployed CPN with the same `random_state`. Not done: nested CV — the docstring says the
+  winner's CV score is optimistic; the CLI and GUI already report metrics on a held-out test set.
 - [x] **17. Imputation leaks targets.** `grid_search_auto_detect.py` KNN-imputes inputs *and outputs*
   on the full frame before the split. Split first; impute X on train only; drop rows with missing y.
   *Done:* new `drop_unusable_rows` (before the split: rows missing a target or a "drop" column)
@@ -132,6 +151,12 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   `StackedVFM` augments with in-sample lower-level preds (use OOF); `AdditiveCorrectionVFM` fixes rho=1.
 - [ ] **29. `metrics_generalized_api.py`**: `return_std` branch runs even when already `tried`;
   `predict_var` branch never sets `tried=True`; "overall" metrics flatten mixed-unit outputs.
+
+- [ ] **29b. Grid-search app / `grid-search` CLI select on the test set.**
+  `gui/Grid_Search_Surrogate_Models.py` and `mor_cli/grid_search.py` pick the combo with the lowest
+  `mean_squared_error(y_test, pred)` and then report metrics on that same test set (as 1c). They
+  also build SVR/KNN/GP/Lasso/ElasticNet directly from sklearn classes, so item 15's scaling and GP
+  kernel fixes do not reach them (`gpr` grid: RBF / Matern with alpha=1e-4, no amplitude).
 
 ## Low / hygiene
 

@@ -87,7 +87,7 @@ def test_scale_sensitive_surrogates_ignore_input_units(name):
 
     rng = np.random.default_rng(0)
     X = rng.uniform(size=(80, 2))
-    y = np.sin(3 * X[:, 0]) + X[:, 1]
+    y = (np.sin(3 * X[:, 0]) + X[:, 1])[:, None]
     X_mm = X * np.array([1.0, 1000.0])
     a = getattr(sur, name)().fit(X, y).predict(X)
     b = getattr(sur, name)().fit(X_mm, y).predict(X_mm)
