@@ -2,6 +2,7 @@
 
 """Abstract base class for conformal prediction wrappers."""
 
+import warnings
 from abc import ABC, abstractmethod
 from typing import Optional, Tuple, Union
 
@@ -77,10 +78,22 @@ class BaseConformalPredictor(ABC):
     def _conformal_quantile(scores: np.ndarray, alpha: float) -> float:
         """Compute the conformal quantile with finite-sample correction.
 
-        Uses q = ceil((n+1)(1-alpha)) / n, which guarantees
-        P(Y in interval) >= 1-alpha for exchangeable data.
+        Returns the k-th smallest score with k = ceil((n+1)(1-alpha)), which
+        guarantees P(Y in interval) >= 1-alpha for exchangeable data. When
+        k > n there are too few calibration points for that guarantee, and the
+        only valid interval is unbounded, so ``inf`` is returned.
         """
+        scores = np.asarray(scores, dtype=float)
         n = len(scores)
-        q_level = np.ceil((n + 1) * (1 - alpha)) / n
-        q_level = min(q_level, 1.0)
-        return float(np.quantile(scores, q_level))
+        k = int(np.ceil((n + 1) * (1 - alpha)))
+        if k > n:
+            n_required = int(np.ceil(1 / alpha)) - 1
+            warnings.warn(
+                f"{n} calibration points are too few for alpha={alpha}: at least "
+                f"{n_required} are needed for finite conformal intervals. "
+                "Returning an infinite interval.",
+                UserWarning,
+                stacklevel=2,
+            )
+            return float("inf")
+        return float(np.sort(scores)[k - 1])

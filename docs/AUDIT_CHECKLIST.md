@@ -38,18 +38,30 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
 - [x] **1b. Multi-fidelity page had the same conformal bug as item 1.**
   `gui/pages/02_Multi_Fidelity_Surrogate_Models.py` calibrated on test-set residuals and scored
   coverage on the same test set. Now calibrates on a held-out part of the hi-fi training split.
-- [ ] **1c. Multi-fidelity page selects the best model by test-set MSE**, then reports metrics on
-  that same test set (optimistic). Select on a validation split or CV instead.
+- [x] **1c. Multi-fidelity page selected the best model by test-set MSE**, then reported metrics on
+  that same test set (optimistic). Now `_select_best_candidate` scores candidates on a 20%
+  validation split of the hi-fi training data; the winner is refit on all training data and
+  evaluated once on the test set.
+  - Also fixed: "MultiFidelity+…" candidates were scored with their *lowest*-fidelity model,
+    because `MultiFidelitySurrogate.predict` defaults to `fidelity_levels[0]` and the page passed
+    no `level` (same for conformal calibration). The page now calls `_predict_highest`.
+  - [ ] Follow-up: the library default (`level=None` → lowest) is a trap for other callers;
+    consider defaulting to the highest level or making `level` required.
 
-- [ ] **7. "Std" is actually an interval half-width.** `screening.py` `_GBQ` [verified: 1.53 vs true 1.0],
+- [x] **7. "Std" is actually an interval half-width.** `screening.py` `_GBQ` [verified: 1.53 vs true 1.0],
   `gui/Grid_Search_Surrogate_Models.py` (`GradientBoostingWithUncertainty`),
   `ConformalPredictionNetworkSurrogate` (90% |residual| quantile). Divide by `2*norm.ppf(1-alpha/2)`.
-- [ ] **8. Conformal quantile clamps to max residual when n_cal is too small.** [verified]
+  *Done:* all three now divide by the matching z (and clip at 0 for crossed quantiles).
+- [x] **8. Conformal quantile clamps to max residual when n_cal is too small.** [verified]
   `conformal/base.py` – when ceil((n+1)(1-alpha)) > n the interval should be infinite (or warn).
   Consider `method="higher"` for the exact order statistic.
-- [ ] **9. `CVPlusConformalPredictor` is not CV+.** Uses mean(fold preds) ± quantile(OOF residuals).
+  *Done:* returns `inf` with a warning when k > n; uses the exact k-th order statistic. The two
+  copies in `figures/conformal_plots.py` now use the shared function, and the ordered-interval
+  plot labels unbounded intervals.
+- [x] **9. `CVPlusConformalPredictor` is not CV+.** Uses mean(fold preds) ± quantile(OOF residuals).
   True CV+ (Barber et al.) uses per-point quantiles of {mu_{-k(i)}(x) ± R_i}; guarantee is 1-2alpha.
   Implement properly or rename and drop the guarantee claim.
+  *Done:* real CV+ (per-point order statistics); docstring states the 1-2alpha guarantee.
 - [ ] **10. Normality tested on raw y, not residuals.** [verified] `screening.py` `test_normality`.
 - [ ] **11. No multiple-testing correction in screening.** 3 tests × n_outputs at alpha=0.05, OR'ed
   together. Use Holm / Benjamini–Hochberg.

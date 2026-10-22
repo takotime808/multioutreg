@@ -347,6 +347,84 @@ def _fit_candidate(
     return model
 
 
+def _predict_highest(
+    model: Any,
+    cand: dict,
+    X: np.ndarray,
+    level_names: List[str],
+) -> tuple:
+    """Return highest-fidelity ``(mean, std)`` predictions as 2-D float arrays."""
+    if cand["mf_type"] == "independent":
+        # MultiFidelitySurrogate.predict defaults to the *lowest* level.
+        y_pred, y_std = model.predict(X, level=level_names[-1], return_std=True)
+    else:
+        y_pred, y_std = model.predict(X, return_std=True)
+    y_pred = np.asarray(y_pred, dtype=np.float64)
+    y_std = np.asarray(y_std, dtype=np.float64)
+    if y_pred.ndim == 1:
+        y_pred = y_pred.reshape(-1, 1)
+    if y_std.ndim == 1:
+        y_std = y_std.reshape(-1, 1)
+    return y_pred, y_std
+
+
+def _select_best_candidate(
+    candidates: List[dict],
+    train_data: Dict[str, tuple],
+    level_names: List[str],
+    val_size: float = 0.2,
+    random_state: int = 0,
+    on_progress: Any = None,
+) -> tuple:
+    """Grid-search *candidates* on a validation split of the highest-fidelity
+    training data and return ``(results, best_cand)``.
+
+    The test set is never seen here, so the winner's test-set metrics are an
+    honest estimate rather than the best of N scores on the same data.
+    """
+    hi_name = level_names[-1]
+    X_hi, Y_hi = train_data[hi_name]
+    if len(X_hi) < 5:
+        raise ValueError(
+            f"Highest-fidelity level '{hi_name}' has only {len(X_hi)} training "
+            "samples; at least 5 are needed to hold out a validation split."
+        )
+    X_fit, X_val, Y_fit, Y_val = train_test_split(
+        X_hi, Y_hi, test_size=val_size, random_state=random_state
+    )
+    fit_data = {**train_data, hi_name: (X_fit, Y_fit)}
+
+    results: List[dict] = []
+    best_cand = None
+    best_mse = np.inf
+    for i, cand in enumerate(candidates):
+        if on_progress is not None:
+            on_progress(i, cand)
+        try:
+            model = _fit_candidate(cand, fit_data, level_names)
+            y_pred, _ = _predict_highest(model, cand, X_val, level_names)
+            mse = float(np.mean((Y_val - y_pred) ** 2))
+            results.append({
+                "Model": cand["name"],
+                "Val MSE": round(mse, 6),
+                "Val RMSE": round(float(np.sqrt(mse)), 6),
+                "Val R²": round(float(r2_score(Y_val.ravel(), y_pred.ravel())), 4),
+                "Status": "OK",
+            })
+            if mse < best_mse:
+                best_mse = mse
+                best_cand = cand
+        except Exception as exc:
+            results.append({
+                "Model": cand["name"],
+                "Val MSE": None,
+                "Val RMSE": None,
+                "Val R²": None,
+                "Status": f"Error: {exc}",
+            })
+    return results, best_cand
+
+
 # ---------------------------------------------------------------------------
 # Streamlit App
 # ---------------------------------------------------------------------------
@@ -357,8 +435,9 @@ st.info(
     "features and output targets.  Each unique value in that column defines one fidelity "
     "level (e.g. 0 = low, 1 = medium, 2 = high).  \n\n"
     "The page will **grid-search** over all combinations of multi-fidelity model type "
-    "and base surrogate class, scoring each on the highest-fidelity test set MSE, and "
-    "generate a report for the best configuration.\n\n"
+    "and base surrogate class, scoring each on a validation split of the highest-fidelity "
+    "training data. The best configuration is refit on all training data, evaluated once "
+    "on the held-out test set, and reported.\n\n"
     "Example data can be downloaded from the **Other Dataset Examples** page."
 )
 
@@ -544,56 +623,27 @@ if uploaded_file:
         # Grid search
         # ------------------------------------------------------------------
         candidates = _build_candidates(level_names, skip_expensive)
-        gs_results: List[dict] = []
-        best_mse = np.inf
-        best_model = None
-        best_pred: np.ndarray | None = None
-        best_std: np.ndarray | None = None
-        best_name: str | None = None
 
         prog = st.progress(0, text="Running grid search…")
-        for _i, _cand in enumerate(candidates):
+
+        def _on_progress(_i: int, _cand: dict) -> None:
             prog.progress(
                 (_i + 1) / len(candidates),
                 text=f"Fitting {_cand['name']} ({_i + 1}/{len(candidates)})…",
             )
-            try:
-                _m = _fit_candidate(_cand, train_data, level_names)
-                _yp_raw, _ys_raw = _m.predict(X_test, return_std=True)
-                _yp = np.asarray(_yp_raw, dtype=np.float64)
-                _ys = np.asarray(_ys_raw, dtype=np.float64)
-                if _yp.ndim == 1:
-                    _yp = _yp.reshape(-1, 1)
-                if _ys.ndim == 1:
-                    _ys = _ys.reshape(-1, 1)
-                _mse = float(np.mean((y_test - _yp) ** 2))
-                _r2 = float(r2_score(y_test.ravel(), _yp.ravel()))
-                _rmse = float(np.sqrt(_mse))
-                gs_results.append({
-                    "Model": _cand["name"],
-                    "MSE": round(_mse, 6),
-                    "RMSE": round(_rmse, 6),
-                    "R²": round(_r2, 4),
-                    "Status": "OK",
-                })
-                if _mse < best_mse:
-                    best_mse = _mse
-                    best_model = _m
-                    best_pred = _yp
-                    best_std = _ys
-                    best_name = _cand["name"]
-            except Exception as _exc:
-                gs_results.append({
-                    "Model": _cand["name"],
-                    "MSE": None,
-                    "RMSE": None,
-                    "R²": None,
-                    "Status": f"Error: {_exc}",
-                })
+
+        try:
+            gs_results, best_cand = _select_best_candidate(
+                candidates, train_data, level_names, on_progress=_on_progress
+            )
+        except ValueError as exc:
+            prog.empty()
+            st.error(str(exc))
+            st.stop()
 
         prog.empty()
 
-        if best_model is None:
+        if best_cand is None:
             st.error(
                 "All model candidates failed. "
                 "Check the error messages in the results table below."
@@ -601,10 +651,15 @@ if uploaded_file:
             st.dataframe(pd.DataFrame(gs_results))
             st.stop()
 
-        st.write(f"### Grid Search Results — best: **{best_name}**")
+        # Refit the winner on all training data; the test set is used only here.
+        best_name = best_cand["name"]
+        best_model = _fit_candidate(best_cand, train_data, level_names)
+        best_pred, best_std = _predict_highest(best_model, best_cand, X_test, level_names)
+
+        st.write(f"### Grid Search Results (validation split) — best: **{best_name}**")
         _gs_df = (
             pd.DataFrame(gs_results)
-            .sort_values("MSE", na_position="last")
+            .sort_values("Val MSE", na_position="last")
             .reset_index(drop=True)
         )
         st.dataframe(_gs_df, width="stretch")
@@ -620,8 +675,7 @@ if uploaded_file:
             from multioutreg.conformal.base import BaseConformalPredictor
             from multioutreg.conformal.metrics import conformal_summary as _conf_summary
 
-            _cal_pred, _ = best_model.predict(X_cal, return_std=True)
-            _cal_pred = np.asarray(_cal_pred, dtype=np.float64).reshape(len(y_cal), -1)
+            _cal_pred, _ = _predict_highest(best_model, best_cand, X_cal, level_names)
             residuals = np.abs(y_cal - _cal_pred)
             n_outputs = y_test.shape[1]
             q = np.array([
@@ -659,7 +713,7 @@ if uploaded_file:
                     X_train=X_train_hi,
                     n_train=X_train_hi.shape[0],
                     n_test=X_test.shape[0],
-                    cross_validation="None",
+                    cross_validation="Hold-out validation (20% of highest-fidelity training data)",
                     seed=0,
                     notes=description or "Generated by Multi-Fidelity Surrogate Model page.",
                     conformal_intervals=conformal_intervals if use_conformal else None,

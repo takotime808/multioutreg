@@ -159,8 +159,10 @@ class TestConformalQuantile:
         q = SplitConformalPredictor._conformal_quantile(scores, 0.1)
         assert q == 10.0
 
-    def test_quantile_capped_at_1(self):
+    def test_quantile_too_few_points_is_infinite(self):
         scores = np.array([1.0, 2.0, 3.0])
-        # For alpha=0.01, n=3: q_level = ceil(4*0.99)/3 = ceil(3.96)/3 = 4/3 > 1 -> capped to 1.0
-        q = SplitConformalPredictor._conformal_quantile(scores, 0.01)
-        assert q == 3.0
+        # For alpha=0.01, n=3: k = ceil(4*0.99) = 4 > n. Capping at the max score
+        # (the old behaviour) breaks the coverage guarantee; the valid interval is unbounded.
+        with pytest.warns(UserWarning, match="too few"):
+            q = SplitConformalPredictor._conformal_quantile(scores, 0.01)
+        assert q == np.inf

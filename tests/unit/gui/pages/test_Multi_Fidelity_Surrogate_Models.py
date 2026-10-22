@@ -352,3 +352,88 @@ def test_generate_html_report_runs(tmp_path):
 
     assert isinstance(html, str)
     assert "StackedVFMSurrogate" in html
+
+
+# ---------------------------------------------------------------------------
+# Model selection (audit 1c): pick on validation, never on the test set
+# ---------------------------------------------------------------------------
+
+_select_best_candidate = _mf_page._select_best_candidate
+_predict_highest = _mf_page._predict_highest
+
+
+class _MeanSurrogate:
+    """Predicts the training mean; also records the rows it was fitted on."""
+
+    fitted_rows: list = []
+
+    def fit(self, X, Y):
+        _MeanSurrogate.fitted_rows.append(np.asarray(X).copy())
+        self.mu = np.asarray(Y).mean(axis=0)
+        return self
+
+    def predict(self, X, return_std=False):
+        pred = np.tile(self.mu, (len(X), 1))
+        return (pred, np.zeros_like(pred)) if return_std else pred
+
+
+def _linear_train_data(n=40, seed=0):
+    rng = np.random.default_rng(seed)
+    data = {}
+    for lv, sign in (("lo", -1.0), ("hi", 1.0)):
+        X = rng.standard_normal((n, 1))
+        data[lv] = (X, sign * 3.0 * X)
+    return data
+
+
+def _independent(name, sur_cls):
+    return {"name": name, "mf_type": "independent",
+            "surrogate_cls": sur_cls, "augment_with_std": False}
+
+
+def test_select_best_candidate_scores_on_validation():
+    from multioutreg.surrogates import LinearRegressionSurrogate
+
+    train_data = _linear_train_data()
+    results, best = _select_best_candidate(
+        [_independent("mean", _MeanSurrogate),
+         _independent("linear", LinearRegressionSurrogate)],
+        train_data, ["lo", "hi"],
+    )
+    assert best["name"] == "linear"
+    assert {"Val MSE", "Val RMSE", "Val R²"} <= set(results[0])
+    assert all(r["Status"] == "OK" for r in results)
+
+
+def test_select_best_candidate_holds_out_validation_rows():
+    _MeanSurrogate.fitted_rows = []
+    train_data = _linear_train_data(n=40)
+    _select_best_candidate(
+        [_independent("mean", _MeanSurrogate)], train_data, ["lo", "hi"], val_size=0.25
+    )
+    lo_rows, hi_rows = _MeanSurrogate.fitted_rows
+    assert len(lo_rows) == 40          # lower levels use all their training data
+    assert len(hi_rows) == 30          # 25% of the hi-fi rows held out for validation
+    hi_X = train_data["hi"][0]
+    assert set(map(float, hi_rows.ravel())) < set(map(float, hi_X.ravel()))
+
+
+def test_select_best_candidate_too_few_hifi_samples():
+    train_data = _linear_train_data(n=4)
+    with pytest.raises(ValueError, match="at least 5"):
+        _select_best_candidate(
+            [_independent("mean", _MeanSurrogate)], train_data, ["lo", "hi"]
+        )
+
+
+def test_predict_highest_uses_highest_level_for_independent():
+    from multioutreg.surrogates import LinearRegressionSurrogate, MultiFidelitySurrogate
+
+    train_data = _linear_train_data()
+    cand = _independent("linear", LinearRegressionSurrogate)
+    model = MultiFidelitySurrogate(LinearRegressionSurrogate, ["lo", "hi"]).fit(train_data)
+    X = np.array([[1.0]])
+    y_pred, y_std = _predict_highest(model, cand, X, ["lo", "hi"])
+    # hi level is y = 3x; lo level (the predict() default) is y = -3x
+    assert y_pred.shape == (1, 1) and y_std.shape == (1, 1)
+    assert y_pred[0, 0] == pytest.approx(3.0, abs=1e-6)
