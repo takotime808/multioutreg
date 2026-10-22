@@ -41,6 +41,7 @@ e.g. via their CDFs (see ``mor_cli/use_ks_for_sample_bias.py``).
 
 from __future__ import annotations
 
+import re
 import warnings
 from dataclasses import dataclass, field
 from typing import Dict, Optional, Sequence, Tuple
@@ -52,6 +53,10 @@ from scipy.stats import qmc
 CANDIDATES: Tuple[str, ...] = ("Random", "LHS", "Sobol")
 # Centered discrepancy is O(n^2 d); above this many points it is skipped.
 MAX_N_DISCREPANCY = 1000
+# Below this many points the Monte Carlo tests have almost no power.
+MIN_POINTS_MC = 10
+# Column names treated as responses (not part of the design) by guess_input_columns.
+RESPONSE_NAME = re.compile(r"^(y\d*|y_.*|response.*|output.*|target.*|label)$", re.IGNORECASE)
 # Mean nearest-neighbour distance is estimated from at most this many query points.
 MAX_NN_QUERIES = 500
 
@@ -66,6 +71,15 @@ class SamplingDetection:
     p_values: Dict[str, float] = field(default_factory=dict)
     n_sim: int = 0
     columns_used: Optional[Sequence[int]] = None
+
+
+def guess_input_columns(columns: Sequence[str]) -> list:
+    """Drop columns whose names look like responses (``y``, ``y1``, ``response``, ``target``...).
+
+    Falls back to all columns when every name looks like a response.
+    """
+    inputs = [c for c in columns if not RESPONSE_NAME.match(str(c))]
+    return inputs or list(columns)
 
 
 def to_unit_cube(X: np.ndarray, bounds: Optional[Tuple[np.ndarray, np.ndarray]] = None) -> np.ndarray:
@@ -244,6 +258,17 @@ def detect_sampling_method(
     # Inputs with few repeated levels (discrete / categorical) break the
     # continuous statistics; test the continuous inputs only.
     continuous = np.where(levels > n / 2)[0]
+    discrete = np.where(levels <= n / 2)[0]
+    if discrete.size >= 2 and grid_structure(X[:, discrete])[1]:
+        return SamplingDetection(
+            method="Grid",
+            explanation=(
+                f"Columns {discrete.tolist()} form a full-factorial grid of {n} points; columns "
+                f"{continuous.tolist()} vary continuously (derived features or responses?) -> Grid"
+            ),
+            statistics={"levels_min": float(levels[discrete].min()), "levels_max": float(levels[discrete].max())},
+            columns_used=discrete.tolist(),
+        )
     if continuous.size == 0:
         return SamplingDetection(
             method="Uncertain",
@@ -270,6 +295,12 @@ def detect_sampling_method(
 
     rng = np.random.default_rng(random_state)
     n_sim = default_n_sim(n) if n_sim is None else int(n_sim)
+    if n < MIN_POINTS_MC:
+        return SamplingDetection(
+            method="Uncertain",
+            explanation=f"Only {n} points: too few to tell Random, LHS and Sobol apart{note} -> Uncertain",
+            columns_used=continuous.tolist(),
+        )
     observed = design_statistics(U, rng)
 
     p_values: Dict[str, float] = {}

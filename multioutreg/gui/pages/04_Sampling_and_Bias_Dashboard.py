@@ -15,6 +15,7 @@ from sklearn.preprocessing import StandardScaler
 
 from mor_cli.detect_sampling import app as detect_app
 from multioutreg.figures.umap_plot_classify import generate_umap_plot
+from multioutreg.sampling.detect import guess_input_columns
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
 
 
@@ -60,6 +61,14 @@ def main():
         umap_min_dist = st.sidebar.slider("UMAP: min_dist", 0.0, 1.0, 0.1)
         umap_target = st.sidebar.selectbox("Color by column (optional)", [None] + column_options)
 
+        st.sidebar.subheader("Sampling detection")
+        input_cols = st.sidebar.multiselect(
+            "Input (design) columns",
+            numeric_df.columns.tolist(),
+            default=guess_input_columns(numeric_df.columns.tolist()),
+            help="Responses are not part of the design; including them hides the sampling method.",
+        )
+
         st.sidebar.subheader("PCA")
         pca_thresh = st.sidebar.slider("PCA: Variance Threshold (optional)", 0.0, 1.0, 0.9)
 
@@ -74,7 +83,7 @@ def main():
             with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
                 df.to_csv(tmp.name, index=False)
                 runner = CliRunner()
-                result = runner.invoke(detect_app, [tmp.name])
+                result = runner.invoke(detect_app, [tmp.name, "--columns", ",".join(map(str, input_cols))])
                 st.subheader("📌 Detected Sampling Method")
                 if result.exit_code == 0:
                     st.text(result.stdout)
@@ -113,18 +122,18 @@ def main():
 
         # Tab 4: UMAP
         with tabs[3]:
-            if numeric_df.shape[1] >= 2:
+            if len(input_cols) >= 2:
                 st.subheader("🔍 UMAP Projection")
                 # label_data = df[umap_target].to_numpy() if umap_target else None
                 umap_b64, umap_explanation = generate_umap_plot(
-                    X=numeric_df.to_numpy(),
+                    X=numeric_df[input_cols].to_numpy(),
                     # n_neighbors=umap_neighbors,
                     # min_dist=umap_min_dist,
                     # labels=label_data
                 )
                 show_base64_image(umap_b64, caption=f"UMAP Projection — {umap_explanation}")
             else:
-                st.warning("⚠️ Not enough numeric features for UMAP.")
+                st.warning("⚠️ Select at least two input columns for UMAP.")
     else:
         st.info("📥 Please upload a CSV file to begin analysis.")
 
