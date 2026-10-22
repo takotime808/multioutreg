@@ -517,6 +517,7 @@ def generate_html_report(
     kaiser_rule_suggestion: str | None = None,
     conformal_intervals: tuple | None = None,
     conformal_alpha: float | None = None,
+    calibration_residuals: np.ndarray | None = None,
     imputation_summary: dict | None = None,
 ) -> str:
     """
@@ -570,6 +571,13 @@ def generate_html_report(
         Final number of PCA components retained.
     kaiser_rule_suggestion: str | None, optional
         PCA explanation statement.
+    conformal_intervals : tuple | None, optional
+        ``(y_lower, y_upper)`` conformal intervals on the test set.
+    conformal_alpha : float | None, optional
+        Miscoverage level of ``conformal_intervals``.
+    calibration_residuals : np.ndarray | None, optional
+        ``|y_cal - y_cal_pred|`` from the held-out conformal calibration set.
+        The Gaussian-vs-conformal coverage plot is drawn only when given.
 
     Returns
     -------
@@ -661,17 +669,20 @@ def generate_html_report(
             "caption": "Distribution-free prediction intervals ordered by observed value. Guaranteed marginal coverage.",
         })
 
-        conformal_vs_gauss_img = safe_plot_b64(
-            plot_conformal_vs_gaussian,
-            y_test, best_pred, best_std,
-            np.abs(y_test - best_pred),
-            output_names=output_names,
-        )
-        conformal_plots_list.append({
-            "img_b64": conformal_vs_gauss_img,
-            "title": "Gaussian CI vs Conformal PI Coverage",
-            "caption": "Comparison of nominal vs empirical coverage for Gaussian confidence intervals and conformal prediction intervals.",
-        })
+        # Conformal curves must use calibration residuals; test residuals
+        # would match the diagonal by construction.
+        if calibration_residuals is not None:
+            conformal_vs_gauss_img = safe_plot_b64(
+                plot_conformal_vs_gaussian,
+                y_test, best_pred, best_std,
+                calibration_residuals,
+                output_names=output_names,
+            )
+            conformal_plots_list.append({
+                "img_b64": conformal_vs_gauss_img,
+                "title": "Gaussian CI vs Conformal PI Coverage",
+                "caption": "Comparison of nominal vs empirical coverage for Gaussian confidence intervals and conformal prediction intervals.",
+            })
 
     template_path = os.path.join(os.path.dirname(__file__), "../report/template.html")
     with open(template_path, "r", encoding="utf-8") as f:

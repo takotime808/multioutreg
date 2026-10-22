@@ -489,6 +489,7 @@ if uploaded_file:
             shap_plot=shap_img,
             conformal_intervals=conformal_intervals if use_conformal else None,
             conformal_alpha=conformal_alpha_sel if use_conformal else None,
+            calibration_residuals=model._conformal_residuals if use_conformal else None,
             imputation_summary=_imputation_summary,
         )
 

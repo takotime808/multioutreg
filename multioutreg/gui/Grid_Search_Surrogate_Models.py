@@ -683,6 +683,7 @@ if uploaded_file:
             kaiser_rule_suggestion=kaiser_rule_suggestion,
             conformal_intervals=conformal_intervals if use_conformal else None,
             conformal_alpha=conformal_alpha_sel if use_conformal else None,
+            calibration_residuals=residuals if use_conformal else None,
             imputation_summary=_imputation_summary,
         )
 
