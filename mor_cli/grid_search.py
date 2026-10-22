@@ -6,35 +6,15 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 from typing import Optional
-from sklearn.model_selection import train_test_split, ParameterGrid
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, root_mean_squared_error
-from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, Matern
-from sklearn.linear_model import BayesianRidge
-
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
 from multioutreg.utils.pca_utils import fit_input_pca
 from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
-from multioutreg.surrogates.rfgp_sklearn import _RFFEstimator
-from multioutreg.surrogates.polynomial_bayesian_ridge_sklearn import _PBREstimator
-from multioutreg.surrogates.nystroem_gp_sklearn import _NystroemEstimator
-from multioutreg.surrogates.ard_gp_sklearn import _ARDGPEstimator
-
-from multioutreg.surrogates.gpx_smt import _GPXEstimator, _GPX_AVAILABLE
-from multioutreg.surrogates.kpls_smt import _KPLSEstimator, _KPLS_AVAILABLE
-from multioutreg.surrogates.lightgbm_sklearn import _LIGHTGBM_AVAILABLE, _LGBMRegressor
-from multioutreg.surrogates.xgboost_sklearn import _XGBOOST_AVAILABLE, _XGBRegressor
-from multioutreg.surrogates.catboost_sklearn import _CATBOOST_AVAILABLE, _CatBoostRegressor
-from multioutreg.surrogates.sparse_gp_gpytorch import _GPYTORCH_AVAILABLE, _SGPREstimator
-from sklearn.linear_model import ElasticNet as _ElasticNet, Lasso as _Lasso, QuantileRegressor as _QuantileRegressor
-from sklearn.ensemble import HistGradientBoostingRegressor
 from multioutreg.gui.grid_search_core import (
-    RandomForestWithUncertainty,
-    GradientBoostingWithUncertainty,
-    KNeighborsRegressorWithUncertainty,
-    BootstrapLinearRegression,
-    PerTargetRegressorWithStd,
+    default_surrogate_defs,
     generate_html_report,
+    select_per_target,
 )
 
 app = typer.Typer(help="Grid search surrogate models and generate a report")
@@ -112,95 +92,19 @@ def grid_search(
             "(eigenvalues > 1 on standardized inputs)."
         )
 
-    surrogate_defs = [
-        ("gpr", GaussianProcessRegressor, {"alpha": [1e-4], "kernel": [RBF(), Matern(nu=1.5)]}),
-        ("rf", RandomForestWithUncertainty, {"n_estimators": [50], "max_depth": [3, None]}),
-        ("gb", GradientBoostingWithUncertainty, {"alpha": [0.95], "n_estimators": [50]}),
-        ("hgb", HistGradientBoostingRegressor, {"max_iter": [100, 200], "learning_rate": [0.05, 0.1]}),
-        ("knn", KNeighborsRegressorWithUncertainty, {"n_neighbors": [3]}),
-        ("blr", BootstrapLinearRegression, {"n_bootstraps": [20]}),
-        ("bayesian_ridge", BayesianRidge, {}),
-        ("rfgp", _RFFEstimator, {"n_components": [100, 500], "length_scale": [0.1, 1.0, 10.0], "kernel": ["rbf", "matern52"]}),
-        ("pbr", _PBREstimator, {"degree": [2, 3], "interaction_only": [False, True]}),
-        ("sgp", _NystroemEstimator, {"n_components": [50, 200], "gamma": [None, 0.1, 1.0]}),
-        ("ard_gp", _ARDGPEstimator, {"alpha": [1e-6, 1e-2]}),
-        ("elastic_net", _ElasticNet, {"alpha": [0.01, 0.1, 1.0], "l1_ratio": [0.25, 0.5, 0.75]}),
-        ("lasso", _Lasso, {"alpha": [0.01, 0.1, 1.0]}),
-        ("quantile", _QuantileRegressor, {"alpha": [0.1, 1.0]}),
-    ]
-    if _GPX_AVAILABLE:
-        surrogate_defs.append(
-            ("gpx", _GPXEstimator, {"corr": ["squar_exp", "matern52"], "poly": ["constant", "linear"]})
-        )
-    if _KPLS_AVAILABLE:
-        surrogate_defs.append(
-            ("kpls", _KPLSEstimator, {"n_comp": [2, 4], "corr": ["squar_exp", "matern52"]})
-        )
-    if _LIGHTGBM_AVAILABLE:
-        surrogate_defs.append(
-            ("lgbm", _LGBMRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "num_leaves": [31, 63]})
-        )
-    if _XGBOOST_AVAILABLE:
-        surrogate_defs.append(
-            ("xgb", _XGBRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "max_depth": [4, 6]})
-        )
-    if _CATBOOST_AVAILABLE:
-        surrogate_defs.append(
-            ("catboost", _CatBoostRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "depth": [4, 6], "verbose": [False]})
-        )
-    if _GPYTORCH_AVAILABLE:
-        surrogate_defs.append(
-            ("sgpr", _SGPREstimator, {"n_inducing": [30, 50], "learning_rate": [0.05, 0.1]})
-        )
-
-    configs = [(name, Est, params) for name, Est, grid in surrogate_defs for params in ParameterGrid(grid)]
-
-    best_score = float("inf")
-    best_combo = None
-    best_pred = None
-    best_std = None
-    best_model = None
-
-    for est_params in ParameterGrid({"combos": [configs] * y_train.shape[1]}):
-        try:
-            combo = est_params["combos"][:y_train.shape[1]]
-            estimators = [est(**params) for (_, est, params) in combo]
-            model = PerTargetRegressorWithStd(estimators)
-            model.fit(X_train, y_train)
-            pred, std = model.predict(X_test, return_std=True)
-            score = mean_squared_error(y_test, pred)
-            if score < best_score:
-                best_score = score
-                best_combo = [dict(model=name, **params) for (name, _, params) in combo]
-                best_pred, best_std = pred, std
-                best_model = model
-        except Exception:
-            continue
-
+    moe = None
     if use_moe:
         from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
-        try:
-            moe = MixtureOfExpertsSurrogate(
-                n_experts=moe_n_experts,
-                gating_type=moe_gating_type,
-                random_state=0,
-            )
-            moe.fit(X_train, y_train)
-            moe_pred, moe_std = moe.predict(X_test, return_std=True)
-            moe_score = mean_squared_error(y_test, moe_pred)
-            if moe_score < best_score:
-                best_score = moe_score
-                best_pred = moe_pred
-                best_std = moe_std
-                best_model = moe
-                best_combo = [{
-                    "model": "MixtureOfExpertsSurrogate",
-                    "n_experts": moe_n_experts,
-                    "gating_type": moe_gating_type,
-                }]
-                typer.echo("MoE outperformed all per-target models and was selected.")
-        except Exception as exc:
-            typer.echo(f"Warning: MoE evaluation failed: {exc}", err=True)
+        moe = MixtureOfExpertsSurrogate(
+            n_experts=moe_n_experts, gating_type=moe_gating_type, random_state=0)
+
+    # Select on a validation split of the training data; the test set is only
+    # used for the metrics below.
+    result = select_per_target(default_surrogate_defs(), X_train, y_train, moe=moe)
+    best_model = result.model
+    best_pred, best_std = best_model.predict(X_test, return_std=True)
+    if result.moe_selected:
+        typer.echo("MoE outperformed all per-target models and was selected.")
 
     metrics = {}
     for i, name in enumerate(out_cols):
@@ -227,7 +131,10 @@ def grid_search(
         X_train=X_train,
         n_train=X_train.shape[0],
         n_test=X_test.shape[0],
-        cross_validation="None",
+        cross_validation=(
+            "Model selected per output on a 20% validation split of the training data; "
+            "metrics are on the held-out test set"
+        ),
         seed=0,
         notes="Generated report.",
         pca_explained_variance=pca_explained_variance,

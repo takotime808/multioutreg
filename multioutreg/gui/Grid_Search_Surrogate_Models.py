@@ -87,7 +87,9 @@ from multioutreg.gui.grid_search_core import (
     KNeighborsRegressorWithUncertainty,
     BootstrapLinearRegression,
     PerTargetRegressorWithStd,
+    default_surrogate_defs,
     generate_html_report,
+    select_per_target,
 )
 
 
@@ -364,59 +366,125 @@ if uploaded_file:
                 width="stretch",
             )
 
-        surrogate_defs = [
-            ("gpr", GaussianProcessRegressor, {"alpha": [1e-4], "kernel": [RBF(), Matern(nu=1.5)]}),
-            ("rf", RandomForestWithUncertainty, {"n_estimators": [50], "max_depth": [3, None]}),
-            ("et", ExtraTreesWithUncertainty, {"n_estimators": [50], "max_depth": [3, None]}),
-            ("gb", GradientBoostingWithUncertainty, {"alpha": [0.95], "n_estimators": [50]}),
-            ("hgb", HistGradientBoostingRegressor, {"max_iter": [100, 200], "learning_rate": [0.05, 0.1]}),
-            ("knn", KNeighborsRegressorWithUncertainty, {"n_neighbors": [3]}),
-            ("blr", BootstrapLinearRegression, {"n_bootstraps": [20]}),
-            ("svr", SVR, {"C": [1.0, 10.0], "gamma": ["scale", "auto"]}),
-            ("dt", DecisionTreeRegressor, {"max_depth": [1, None]}),
-            ("cpn", ConformalPredictionNetworkSurrogate, {"hidden_layer_sizes": [(64,), (128,)], "max_iter": [500]}),
-            (
-                "mfs_lr",
-                lambda: MultiFidelitySurrogate(LinearRegressionSurrogate, ["default"]),
-                {},
-            ),
-            ("bayesian_ridge", BayesianRidge, {}),
-            ("rfgp", _RFFEstimator, {"n_components": [100, 500], "length_scale": [0.1, 1.0, 10.0], "kernel": ["rbf", "matern52"]}),
-            ("pbr", _PBREstimator, {"degree": [2, 3], "interaction_only": [False, True]}),
-            ("sgp", _NystroemEstimator, {"n_components": [50, 200], "gamma": [None, 0.1, 1.0]}),
-            ("ard_gp", _ARDGPEstimator, {"alpha": [1e-6, 1e-2]}),
-            ("elastic_net", _ElasticNet, {"alpha": [0.01, 0.1, 1.0], "l1_ratio": [0.25, 0.5, 0.75]}),
-            ("lasso", _Lasso, {"alpha": [0.01, 0.1, 1.0]}),
-            ("quantile", _QuantileRegressor, {"alpha": [0.1, 1.0]}),
-        ]
-        if _NGBOOST_AVAILABLE:
-            surrogate_defs.append(
-                ("ngb", _NGBRegressor, {"n_estimators": [100, 200], "verbose": [False]})
+        surrogate_defs = default_surrogate_defs()
+
+        if use_screening:
+            _screener = ModelScreener().fit(X_train, y_train)
+            _eligible = _screener.screen_per_output(list(output_cols))
+            # Keep a surrogate_def if not screened or if it passes for at least one output
+            surrogate_defs = [
+                d for d in surrogate_defs
+                if d[0] not in _eligible.index or _eligible.loc[d[0]].any()
+            ]
+            skipped = [
+                d[0] for d in [
+                    ("gpr", None, None), ("rf", None, None), ("et", None, None),
+                    ("gb", None, None), ("knn", None, None), ("blr", None, None),
+                    ("svr", None, None), ("dt", None, None), ("cpn", None, None),
+                    ("mfs_lr", None, None), ("ngb", None, None),
+                    ("bayesian_ridge", None, None), ("rfgp", None, None),
+                    ("pbr", None, None), ("sgp", None, None), ("gpx", None, None),
+                    ("ard_gp", None, None), ("kpls", None, None),
+                    ("hgb", None, None), ("lgbm", None, None), ("xgb", None, None),
+                    ("elastic_net", None, None), ("lasso", None, None),
+                    ("quantile", None, None), ("catboost", None, None),
+                    ("sgpr", None, None),
+                ]
+                if d[0] in _eligible.index and not _eligible.loc[d[0]].any()
+            ]
+            if skipped:
+                st.info(
+                    f"Pre-screening skipped {len(skipped)} model(s): "
+                    + ", ".join(skipped)
+                )
+
+        _EXPENSIVE_MODELS = {"gpr", "ngb", "cpn", "ard_gp", "gpx", "kpls", "sgpr"}
+        _EXPENSIVE_DISPLAY_NAMES = {
+            "gpr": "Gaussian Process",
+            "ngb": "NGBoost",
+            "cpn": "Conformal Prediction Network",
+            "ard_gp": "ARD Gaussian Process",
+            "gpx": "GPX (Rust GP)",
+            "kpls": "KPLS (Kriging+PLS)",
+            "sgpr": "Sparse GP (GPyTorch)",
+        }
+        if skip_expensive:
+            _skipped = [d[0] for d in surrogate_defs if d[0] in _EXPENSIVE_MODELS]
+            surrogate_defs = [d for d in surrogate_defs if d[0] not in _EXPENSIVE_MODELS]
+            if _skipped:
+                st.info(
+                    f"Skipping {len(_skipped)} expensive model(s): "
+                    + ", ".join(_EXPENSIVE_DISPLAY_NAMES.get(k, k) for k in _skipped)
+                )
+
+        # Conformal calibration must use data disjoint from both training and the
+        # test set used to report coverage, so hold out part of the training split.
+        if use_conformal:
+            X_train, X_cal, y_train, y_cal = train_test_split(
+                X_train, y_train, test_size=0.2, random_state=0
             )
-        if _GPX_AVAILABLE:
-            surrogate_defs.append(
-                ("gpx", _GPXEstimator, {"corr": ["squar_exp", "matern52"], "poly": ["constant", "linear"]})
+
+        moe = None
+        if use_moe:
+            from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
+            moe = MixtureOfExpertsSurrogate(
+                n_experts=moe_n_experts, gating_type=moe_gating_type, random_state=0)
+
+        # Select on a validation split of the training data; the test set is
+        # only used for the reported metrics.
+        try:
+            result = select_per_target(surrogate_defs, X_train, y_train, moe=moe)
+        except RuntimeError as exc:
+            st.error(str(exc))
+            st.stop()
+        best_model = result.model
+        best_combo = result.combo
+        best_pred, best_std = best_model.predict(X_test, return_std=True)
+        if result.moe_selected:
+            st.info("MoE outperformed all per-target models and was selected.")
+        if result.n_failed:
+            st.caption(f"{result.n_failed} candidate fit(s) failed and were skipped.")
+
+        # # Show seaborn PairGrid plot with KDE in lower triangle
+        # if df.shape[1] >= 2:
+        #     st.write("### PairGrid Visualization (KDE Lower Triangle)")
+
+        #     numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
+        #     if len(numeric_cols) >= 2:
+        #         g = make_doe_plot(df=df, numeric_cols=numeric_cols)
+        #         st.pyplot(g.fig)
+        #     else:
+        #         st.info("Not enough numeric columns for pairwise plot.")
+
+        # PCA.
+        pca_variance_plot = None
+        pca_explained_variance = None
+        pca_n_components = None
+        feature_names_pca = None
+        kaiser_rule_suggestion = None
+        if use_pca:
+            _pca = fit_input_pca(X_train, X_test, pca_method, n_components, pca_threshold)
+            X_train, X_test = _pca.X_train, _pca.X_test
+            pca_n_components = _pca.n_components
+            feature_names_pca = _pca.feature_names
+            pca_variance_plot = generate_pca_variance_plot(
+                _pca.preview_pca,
+                n_selected=pca_n_components,
+                threshold=pca_threshold if pca_method == "Explained variance threshold" else None,
             )
-        if _KPLS_AVAILABLE:
-            surrogate_defs.append(
-                ("kpls", _KPLSEstimator, {"n_comp": [2, 4], "corr": ["squar_exp", "matern52"]})
+            pca_explained_variance = _pca.preview_pca.explained_variance_ratio_.tolist()
+            kaiser_rule_suggestion = (
+                f"Kaiser rule suggests **{_pca.kaiser_k}** components "
+                "(eigenvalues > 1 on standardized inputs)."
             )
-        if _LIGHTGBM_AVAILABLE:
-            surrogate_defs.append(
-                ("lgbm", _LGBMRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "num_leaves": [31, 63]})
+            st.markdown(kaiser_rule_suggestion)
+            st.image(
+                f"data:image/png;base64,{pca_variance_plot}",
+                caption="Scree Plot",
+                width="stretch",
             )
-        if _XGBOOST_AVAILABLE:
-            surrogate_defs.append(
-                ("xgb", _XGBRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "max_depth": [4, 6]})
-            )
-        if _CATBOOST_AVAILABLE:
-            surrogate_defs.append(
-                ("catboost", _CatBoostRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "depth": [4, 6], "verbose": [False]})
-            )
-        if _GPYTORCH_AVAILABLE:
-            surrogate_defs.append(
-                ("sgpr", _SGPREstimator, {"n_inducing": [30, 50], "learning_rate": [0.05, 0.1]})
-            )
+
+        surrogate_defs = default_surrogate_defs()
 
         if use_screening:
             _screener = ModelScreener().fit(X_train, y_train)
@@ -561,8 +629,8 @@ if uploaded_file:
             from multioutreg.conformal.base import BaseConformalPredictor
             from multioutreg.conformal.metrics import conformal_summary as _conf_summary
 
-            # Compute residuals directly on test data (no sklearn clone needed)
-            residuals = np.abs(y_test - best_pred)
+            # Calibrate on the held-out calibration split, then score on test.
+            residuals = np.abs(y_cal - np.asarray(best_model.predict(X_cal)).reshape(y_cal.shape))
             n_outputs = y_test.shape[1]
             q = np.array([
                 BaseConformalPredictor._conformal_quantile(
@@ -596,7 +664,10 @@ if uploaded_file:
             X_train=X_train,
             n_train=X_train.shape[0],
             n_test=X_test.shape[0],
-            cross_validation="None",
+            cross_validation=(
+                "Model selected per output on a 20% validation split of the training data; "
+                "metrics are on the held-out test set"
+            ),
             seed=0,
             notes="Generated report.",
             pca_explained_variance=pca_explained_variance,

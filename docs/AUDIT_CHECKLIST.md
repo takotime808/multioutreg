@@ -152,11 +152,24 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
 - [ ] **29. `metrics_generalized_api.py`**: `return_std` branch runs even when already `tried`;
   `predict_var` branch never sets `tried=True`; "overall" metrics flatten mixed-unit outputs.
 
-- [ ] **29b. Grid-search app / `grid-search` CLI select on the test set.**
+- [x] **29b. Grid-search app / `grid-search` CLI select on the test set.**
   `gui/Grid_Search_Surrogate_Models.py` and `mor_cli/grid_search.py` pick the combo with the lowest
   `mean_squared_error(y_test, pred)` and then report metrics on that same test set (as 1c). They
   also build SVR/KNN/GP/Lasso/ElasticNet directly from sklearn classes, so item 15's scaling and GP
   kernel fixes do not reach them (`gpr` grid: RBF / Matern with alpha=1e-4, no amplitude).
+  Found while fixing: the "grid search" never searched. `ParameterGrid({"combos": [configs] * n})`
+  treats the list as values of one key, so every iteration got the whole config list and
+  `combo[:n_outputs]` was always the first n configs: every output got GP-RBF, nothing else ran.
+  The GUI conformal block also calibrated on test residuals and scored coverage on them (item 1).
+  *Done:* both now use `grid_search_core.default_surrogate_defs()` (one list; the CLI had drifted
+  and lacked et/svr/dt/cpn/ngb) and `select_per_target()`: each config is scored per output on a
+  20% validation split of the training data, winners are refit on all training data, the test
+  set is used once for metrics. MoE replaces the per-output winners only if its validation MSE is
+  lower. GP/KNN/SVR/ElasticNet/Lasso are scaled pipelines; GP uses `C·RBF + White` / Matern.
+  `mfs_lr` (could never fit: `fit((X, y))`) replaced by a plain `linear` baseline. GUI conformal
+  holds out a calibration split from training, as on page 01. On
+  `example_dataset_3_outputs.csv`: test R² 0.91 / 0.82 / 0.86 (old, always GP-RBF) →
+  0.98 / 1.00 / 1.00 (ARD GP chosen per output). The Streamlit app itself was not run.
 
 ## Low / hygiene
 
