@@ -38,7 +38,8 @@ Ordered by value relative to implementation effort.
 
 - **Cost-aware choice of the next fidelity to run:** multi-fidelity expected
   improvement, max-value entropy search, or variance reduction per unit cost.
-  This would sit alongside the `multioutreg.sampling` module.
+  This would sit alongside the `multioutreg.sampling` module (see
+  [Active Learning](#active-learning)).
 - **Evaluation:** accuracy-vs-cost curves, and the value each level adds (e.g.
   high-fidelity error with and without the low-fidelity data).
 - **Model selection:** a selection path in Auto-Detect that understands
@@ -68,6 +69,64 @@ Ordered by value relative to implementation effort.
 A multi-task GP with fidelity as an additional task dimension handles both in
 one model, including outputs that only exist at some fidelity levels, which is
 common in simulation data.
+
+## Active Learning
+
+### Current State
+
+`multioutreg` does not do active learning. Every fitting path
+(`AutoDetectMultiOutputRegressor.fit`, the grid-search CLIs, the GUI pages and
+the multi-fidelity surrogates) fits once on a fixed dataset. There is no
+acquisition function and nothing that suggests the next point to sample. The
+`multioutreg.sampling` module only infers which design a dataset came from
+(Random, LHS or Sobol); its `scipy.stats.qmc` calls simulate comparison designs
+and are never used to choose new points.
+
+### What Already Exists
+
+- **Predictive uncertainty:** most surrogates (GPs, Bayesian ridge, forest
+  uncertainty, NGBoost, deep ensembles, BNN, ...) implement
+  `predict(X, return_std=True)`. `AutoDetectMultiOutputRegressor.predict`
+  combines this per output, and
+  `metrics_generalized_api._predict_with_uncertainty` also handles
+  `return_cov`, `predict_std` and `predict_var`.
+- **Adaptive conformal intervals:** `SplitConformalPredictor` with normalized
+  scores gives intervals whose width depends on `X`, a coverage-backed measure
+  of local uncertainty.
+- **QMC generators:** `scipy.stats.qmc` is already a dependency, for the
+  initial design and for candidate pools.
+- **Multi-fidelity variance:** `MultiFidelitySurrogate.predict(X, level=...,
+  return_std=True)`, `StackedVFMSurrogate` and `AdditiveCorrectionVFM` give a
+  variance for each fidelity level.
+- **Diagnostics:** the DOE pair plots, UMAP plot and sampling detector can show
+  where new points land relative to the original design.
+
+### Candidates
+
+| # | Addition | Rationale | Effort |
+|---|---|---|---|
+| 1 | **Acquisition functions** on `(mean, std)` arrays of shape `(n, n_outputs)` | Max variance (sum or max of standardized std across outputs) for global surrogate accuracy; UCB/LCB, EI and PI for optimization; conformal interval width as a coverage-backed alternative. | Low |
+| 2 | **Query-by-committee** for surrogates without `return_std` | Disagreement across a bootstrap ensemble or across the Auto-Detect candidates, so KNN, linear models and plain trees can take part. | Low |
+| 3 | **Batch selection** | Combine uncertainty with a distance penalty to points already chosen (k-means++ / maximin style) so a batch does not cluster in one region. | Low–Medium |
+| 4 | **Active-learning loop** | Initial LHS/Sobol design → fit → score a QMC candidate pool → pick a batch → call a user-supplied simulator → refit, stopping on a budget or when held-out metrics plateau. | Medium |
+| 5 | **Cost-aware multi-fidelity acquisition** | Variance reduction per unit cost, multi-fidelity EI or max-value entropy search across levels (the item under Multi-Fidelity → Supporting Methods). | Medium–High |
+| 6 | **CLI and GUI** | A `mor_cli` command that writes a CSV of the next points to run, and a Streamlit page following the existing page patterns. | Low–Medium |
+
+A new `multioutreg/active/` package (or `multioutreg/sampling/acquisition.py`)
+would hold items 1–5.
+
+### Issues to Resolve First
+
+- **Zero std read as certainty:** `AutoDetectMultiOutputRegressor.predict`
+  fills `std` with zeros when the selected model has no `return_std`. A
+  variance-based acquisition would treat those outputs as perfectly known and
+  never sample for them. It should return NaN, raise, or fall back to a
+  committee estimate.
+- **Output scaling:** raw std summed across outputs lets the largest-scale
+  output dominate, so stds need standardizing before they are combined.
+- **Sampling detection:** an adaptively built design is no longer Random, LHS
+  or Sobol and will likely be reported as "Uncertain". Reports should say when
+  a design was built adaptively.
 
 ## Recommended First Batch
 
@@ -101,3 +160,11 @@ unit tests under `tests/unit/surrogates/`.
   Learning*, 4(3).
 - Gneiting, T., & Raftery, A. E. (2007). Strictly proper scoring rules,
   prediction, and estimation. *JASA*, 102(477).
+- Jones, D. R., Schonlau, M., & Welch, W. J. (1998). Efficient global
+  optimization of expensive black-box functions. *Journal of Global
+  Optimization*, 13(4).
+- Srinivas, N., Krause, A., Kakade, S. M., & Seeger, M. (2010). Gaussian
+  process optimization in the bandit setting: no regret and experimental
+  design. *ICML*.
+- Settles, B. (2009). Active learning literature survey. *Computer Sciences
+  Technical Report 1648*, University of Wisconsin–Madison.
