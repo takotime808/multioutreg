@@ -82,7 +82,11 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   `ConformalPredictionNetworkSurrogate` on 80%.
 - [ ] **17. Imputation leaks targets.** `grid_search_auto_detect.py` KNN-imputes inputs *and outputs*
   on the full frame before the split. Split first; impute X on train only; drop rows with missing y.
-- [ ] **18. PCA Kaiser rule on unscaled data.** Standardize before PCA (CLI and GUI).
+- [x] **18. PCA Kaiser rule on unscaled data.** Four copies of the PCA block (`mor_cli/grid_search.py`,
+  `mor_cli/grid_search_auto_detect.py`, `gui/Grid_Search_Surrogate_Models.py`, GUI page 01) ran PCA
+  on raw inputs, so "eigenvalue > 1" depended on the inputs' units. All four now call
+  `multioutreg/utils/pca_utils.py::fit_input_pca`, which fits `StandardScaler` + PCA on train only
+  and clips k to `[1, n_features]` (a manual k or a threshold of 1.0 could exceed it before).
 
 ## Medium
 
