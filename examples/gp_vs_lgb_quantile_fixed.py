@@ -1,3 +1,4 @@
+# Copyright (c) 2025 takotime808
 import numpy as np
 import pandas as pd
 from sklearn.gaussian_process import GaussianProcessRegressor

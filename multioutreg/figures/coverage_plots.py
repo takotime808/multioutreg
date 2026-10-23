@@ -1,4 +1,4 @@
-# Copyright (c) 2025 takotime808 
+# Copyright (c) 2025 takotime808
 
 import numpy as np
 import matplotlib.pyplot as plt
