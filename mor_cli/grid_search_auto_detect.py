@@ -159,7 +159,7 @@ def grid_search_auto_detect(
         X_train=X_train,
         n_train=X_train.shape[0],
         n_test=X_test.shape[0],
-        cross_validation="None",
+        cross_validation=f"Model selection: {best_model.cv_description_}",
         seed=0,
         notes="Generated report.",
         pca_explained_variance=pca_explained_variance,

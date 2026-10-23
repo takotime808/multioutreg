@@ -30,6 +30,7 @@ from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
 from sklearn.model_selection import train_test_split
 
+from multioutreg.model_selection.auto_detect import describe_cv, resolve_cv
 from multioutreg.figures.conformal_plots import (
     plot_conformal_intervals_ordered,
     plot_conformal_vs_gaussian,
@@ -437,15 +438,15 @@ def _summary_points(
     pts: List[str] = []
 
     ok = sorted(
-        (r for r in gs_rows if r["Val MSE"] is not None), key=lambda r: r["Val MSE"]
+        (r for r in gs_rows if r["CV MSE"] is not None), key=lambda r: r["CV MSE"]
     )
     msg = (
         f"Best configuration: {best_cand['name']} "
-        f"(validation MSE {ok[0]['Val MSE']:.4g}, chosen from {len(ok)} working "
+        f"(CV MSE {ok[0]['CV MSE']:.4g}, chosen from {len(ok)} working "
         f"candidates"
     )
-    if len(ok) > 1 and ok[0]["Val MSE"] > 0:
-        gap = 100.0 * (ok[1]["Val MSE"] - ok[0]["Val MSE"]) / ok[0]["Val MSE"]
+    if len(ok) > 1 and ok[0]["CV MSE"] > 0:
+        gap = 100.0 * (ok[1]["CV MSE"] - ok[0]["CV MSE"]) / ok[0]["CV MSE"]
         msg += f"; runner-up {ok[1]['Model']} is {gap:.0f}% worse"
     n_failed = len(gs_rows) - len(ok)
     if n_failed:
@@ -467,7 +468,7 @@ def _summary_points(
                 "The winner fits each level independently, so its highest-fidelity "
                 "predictions do not use the lower-fidelity data: it is the HF-only "
                 f"{baseline_label} model (test RMSE {mf:.4g}). No coupled "
-                "multi-fidelity model beat high-fidelity data alone on validation "
+                "multi-fidelity model beat high-fidelity data alone in cross-validation "
                 "for this dataset."
             )
         elif change <= -5:
@@ -865,27 +866,31 @@ def _select_best_candidate(
     candidates: List[dict],
     train_data: Dict[str, tuple],
     level_names: List[str],
-    val_size: float = 0.2,
+    cv: Any = "auto",
     random_state: int = 0,
     on_progress: Any = None,
 ) -> tuple:
-    """Grid-search *candidates* on a validation split of the highest-fidelity
-    training data and return ``(results, best_cand)``.
+    """Grid-search *candidates* by cross-validation on the highest-fidelity
+    training data and return ``(results, best_cand, cv_splitter)``.
 
-    The test set is never seen here, so the winner's test-set metrics are an
-    honest estimate rather than the best of N scores on the same data.
+    ``cv="auto"`` picks the scheme from the number of highest-fidelity rows
+    (see :func:`~multioutreg.model_selection.auto_detect.select_cv_strategy`).
+    Each fold holds out highest-fidelity rows only; lower levels are always
+    fitted on all their data. The test set is never seen here, so the winner's
+    test-set metrics are an honest estimate rather than the best of N scores
+    on the same data.
     """
     hi_name = level_names[-1]
     X_hi, Y_hi = train_data[hi_name]
     if len(X_hi) < 5:
         raise ValueError(
             f"Highest-fidelity level '{hi_name}' has only {len(X_hi)} training "
-            "samples; at least 5 are needed to hold out a validation split."
+            "samples; at least 5 are needed to cross-validate model selection."
         )
-    X_fit, X_val, Y_fit, Y_val = train_test_split(
-        X_hi, Y_hi, test_size=val_size, random_state=random_state
-    )
-    fit_data = {**train_data, hi_name: (X_fit, Y_fit)}
+    splitter = resolve_cv(cv, len(X_hi), random_state)
+    splits = list(splitter.split(X_hi))
+    # Pooled R² (PRESS-style) stays defined when folds hold out a single row.
+    ss_tot = float(np.sum((Y_hi - Y_hi.mean(axis=0)) ** 2))
 
     results: List[dict] = []
     best_cand = None
@@ -894,14 +899,20 @@ def _select_best_candidate(
         if on_progress is not None:
             on_progress(i, cand)
         try:
-            model = _fit_candidate(cand, fit_data, level_names)
-            y_pred, _ = _predict_highest(model, cand, X_val, level_names)
-            mse = float(np.mean((Y_val - y_pred) ** 2))
+            fold_sse, n_val = [], 0
+            for tr, va in splits:
+                fit_data = {**train_data, hi_name: (X_hi[tr], Y_hi[tr])}
+                model = _fit_candidate(cand, fit_data, level_names)
+                y_pred, _ = _predict_highest(model, cand, X_hi[va], level_names)
+                fold_sse.append(float(np.sum((Y_hi[va] - y_pred) ** 2)))
+                n_val += len(va)
+            mse = sum(fold_sse) / (n_val * Y_hi.shape[1])
+            r2 = 1.0 - sum(fold_sse) * len(X_hi) / (n_val * ss_tot) if ss_tot > 0 else np.nan
             results.append({
                 "Model": cand["name"],
-                "Val MSE": round(mse, 6),
-                "Val RMSE": round(float(np.sqrt(mse)), 6),
-                "Val R²": round(float(r2_score(Y_val.ravel(), y_pred.ravel())), 4),
+                "CV MSE": round(mse, 6),
+                "CV RMSE": round(float(np.sqrt(mse)), 6),
+                "CV R²": round(float(r2), 4),
                 "Status": "OK",
             })
             if mse < best_mse:
@@ -910,12 +921,12 @@ def _select_best_candidate(
         except Exception as exc:
             results.append({
                 "Model": cand["name"],
-                "Val MSE": None,
-                "Val RMSE": None,
-                "Val R²": None,
+                "CV MSE": None,
+                "CV RMSE": None,
+                "CV R²": None,
                 "Status": f"Error: {exc}",
             })
-    return results, best_cand
+    return results, best_cand, splitter
 
 
 # ---------------------------------------------------------------------------
@@ -928,9 +939,11 @@ st.info(
     "features and output targets.  Each unique value in that column defines one fidelity "
     "level (e.g. 0 = low, 1 = medium, 2 = high).  \n\n"
     "The page will **grid-search** over all combinations of multi-fidelity model type "
-    "and base surrogate class, scoring each on a validation split of the highest-fidelity "
-    "training data. The best configuration is refit on all training data, evaluated once "
-    "on the held-out test set, and reported.\n\n"
+    "and base surrogate class, scoring each by cross-validation on the highest-fidelity "
+    "training data (the CV scheme is chosen from the number of highest-fidelity rows: "
+    "leave-one-out for tiny datasets up to 5-fold for large ones). The best configuration "
+    "is refit on all training data, evaluated once on the held-out test set, and "
+    "reported.\n\n"
     "Example data can be downloaded from the **Other Dataset Examples** page."
 )
 
@@ -1151,7 +1164,7 @@ if uploaded_file:
             )
 
         try:
-            gs_results, best_cand = _select_best_candidate(
+            gs_results, best_cand, cv_splitter = _select_best_candidate(
                 candidates, train_data, level_names, random_state=seed,
                 on_progress=_on_progress,
             )
@@ -1177,10 +1190,12 @@ if uploaded_file:
 
         _summary_slot = st.container()  # filled once all metrics are computed
 
-        st.write(f"### Grid Search Results (validation split) — best: **{best_name}**")
+        st.write(
+            f"### Grid Search Results ({describe_cv(cv_splitter)}) — best: **{best_name}**"
+        )
         gs_sorted = sorted(
             gs_results,
-            key=lambda r: (r["Val MSE"] is None, r["Val MSE"] or 0.0),
+            key=lambda r: (r["CV MSE"] is None, r["CV MSE"] or 0.0),
         )
         st.dataframe(pd.DataFrame(gs_sorted), width="stretch")
 
@@ -1280,8 +1295,8 @@ if uploaded_file:
             + ")"
         )
         _cv_txt = (
-            "Model selected on a hold-out validation split (20% of highest-fidelity "
-            "training data), then refit on all training data. Metrics are on a 25% "
+            f"Model selected by {describe_cv(cv_splitter)} on the highest-fidelity "
+            "training data, then refit on all training data. Metrics are on a 25% "
             "highest-fidelity test split never used for selection."
         )
         if use_conformal:

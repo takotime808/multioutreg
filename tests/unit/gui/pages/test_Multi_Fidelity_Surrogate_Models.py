@@ -397,27 +397,49 @@ def test_select_best_candidate_scores_on_validation():
     from multioutreg.surrogates import LinearRegressionSurrogate
 
     train_data = _linear_train_data()
-    results, best = _select_best_candidate(
+    results, best, _ = _select_best_candidate(
         [_independent("mean", _MeanSurrogate),
          _independent("linear", LinearRegressionSurrogate)],
         train_data, ["lo", "hi"],
     )
     assert best["name"] == "linear"
-    assert {"Val MSE", "Val RMSE", "Val R²"} <= set(results[0])
+    assert {"CV MSE", "CV RMSE", "CV R²"} <= set(results[0])
     assert all(r["Status"] == "OK" for r in results)
+    assert results[1]["CV R²"] > 0.99 and results[0]["CV R²"] < 0.1
 
 
-def test_select_best_candidate_holds_out_validation_rows():
+def test_select_best_candidate_cross_validates_hifi_rows_only():
+    from sklearn.model_selection import KFold
+
     _MeanSurrogate.fitted_rows = []
     train_data = _linear_train_data(n=40)
     _select_best_candidate(
-        [_independent("mean", _MeanSurrogate)], train_data, ["lo", "hi"], val_size=0.25
+        [_independent("mean", _MeanSurrogate)], train_data, ["lo", "hi"],
+        cv=KFold(4, shuffle=True, random_state=0),
     )
-    lo_rows, hi_rows = _MeanSurrogate.fitted_rows
-    assert len(lo_rows) == 40          # lower levels use all their training data
-    assert len(hi_rows) == 30          # 25% of the hi-fi rows held out for validation
-    hi_X = train_data["hi"][0]
-    assert set(map(float, hi_rows.ravel())) < set(map(float, hi_X.ravel()))
+    fits = _MeanSurrogate.fitted_rows
+    assert len(fits) == 8              # (lo, hi) per fold
+    lo_rows, hi_rows = fits[0::2], fits[1::2]
+    assert all(len(r) == 40 for r in lo_rows)  # lower levels use all their data
+    assert all(len(r) == 30 for r in hi_rows)  # 1/4 of hi-fi rows held out per fold
+    hi_X = set(map(float, train_data["hi"][0].ravel()))
+    held_out = [hi_X - set(map(float, r.ravel())) for r in hi_rows]
+    assert set().union(*held_out) == hi_X      # every hi-fi row validated once
+    assert sum(len(h) for h in held_out) == 40
+
+
+@pytest.mark.parametrize("n, expected", [
+    (12, "Leave-One-Out CV"),
+    (60, "Repeated 5-Fold CV (x3 repeats)"),
+])
+def test_select_best_candidate_auto_cv_depends_on_hifi_size(n, expected):
+    from multioutreg.model_selection.auto_detect import describe_cv
+
+    _, best, splitter = _select_best_candidate(
+        [_independent("mean", _MeanSurrogate)], _linear_train_data(n=n), ["lo", "hi"]
+    )
+    assert best["name"] == "mean"
+    assert describe_cv(splitter) == expected
 
 
 def test_select_best_candidate_too_few_hifi_samples():
@@ -487,9 +509,9 @@ _summary_points = _mf_page._summary_points
 
 def _gs_rows():
     return [
-        {"Model": "B", "Val MSE": 2.0, "Val RMSE": 1.41, "Val R²": 0.5, "Status": "OK"},
-        {"Model": "A", "Val MSE": 1.0, "Val RMSE": 1.0, "Val R²": 0.8, "Status": "OK"},
-        {"Model": "C", "Val MSE": None, "Val RMSE": None, "Val R²": None, "Status": "Error: x"},
+        {"Model": "B", "CV MSE": 2.0, "CV RMSE": 1.41, "CV R²": 0.5, "Status": "OK"},
+        {"Model": "A", "CV MSE": 1.0, "CV RMSE": 1.0, "CV R²": 0.8, "Status": "OK"},
+        {"Model": "C", "CV MSE": None, "CV RMSE": None, "CV R²": None, "Status": "Error: x"},
     ]
 
 
