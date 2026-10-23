@@ -35,7 +35,7 @@ jobs:
         run: |
           mkdir -p docs/_static/badges
           if [ ! -s docs/_static/badges/coverage.svg ]; then
-            curl -sSL "https://img.shields.io/badge/coverage--99%25-red.svg" -o docs/_static/badges/coverage.svg
+            curl -sSL "https://img.shields.io/badge/coverage-unknown-lightgrey.svg" -o docs/_static/badges/coverage.svg
           fi
 
       - name: Set up Python

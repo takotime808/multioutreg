@@ -54,10 +54,11 @@ jobs:
       if: ${{ matrix.python-version == env.BADGE_PYTHON && steps.tests.outcome == 'success' }}
       run: coverage-badge -o coverage.svg -f
 
-    # Add -99% coverage badge if tests fail, so docs still build.
+    # Fallback badge if any earlier step failed (install or tests), so docs still build.
+    # always() is needed: without it this is skipped when the install step fails.
     - name: Generate fallback badge when tests fail
-      if: ${{ matrix.python-version == env.BADGE_PYTHON && steps.tests.outcome != 'success' }}
-      run: curl -sSL "https://img.shields.io/badge/coverage--99%25-red.svg" -o coverage.svg
+      if: ${{ always() && matrix.python-version == env.BADGE_PYTHON && steps.tests.outcome != 'success' }}
+      run: curl -sSL "https://img.shields.io/badge/coverage-failing-red.svg" -o coverage.svg
 
     - name: Upload badge artifact
       if: ${{ always() && matrix.python-version == env.BADGE_PYTHON }}
