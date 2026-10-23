@@ -1,10 +1,9 @@
 # Copyright (c) 2025 takotime808
 import json
-from algs.arima import *
-from algs.sarima import *
-from algs.lstm import *
+from pathlib import Path
+from multioutreg.time_series.ts_dynamic_fit.algs.lstm import LSTMModel
 import pickle
-from typing import Sequence, Any
+from typing import Sequence, Any, Optional
 import numpy as np
 import torch
 import joblib
@@ -40,7 +39,9 @@ def infer(
     processed_data: pd.DataFrame, 
     feature_column: str, 
     metadata_path: str = "Model Registry/example/metadata.json", 
-    model_path: str = "Model Registry/example/LSTM.pt"
+    model_path: str = "Model Registry/example/LSTM.pt",
+    scaler: Optional[Any] = None,
+    scaler_path: Optional[str] = None,
 ) -> np.ndarray:
     """
     Runs inference using the specified model (ARIMA, SARIMA, or LSTM) and returns future predictions.
@@ -50,12 +51,16 @@ def infer(
         feature_column (str): Column name containing values for prediction.
         metadata_path (str, optional): Path to metadata JSON file. Defaults to 'Model Registry/example/metadata.json'.
         model_path (str, optional): Path to serialized model file. Defaults to 'Model Registry/example/LSTM.pt'.
+        scaler (optional): Fitted scaler for LSTM models (``LSTM.scaler_`` after ``run()``).
+        scaler_path (str, optional): joblib file holding the LSTM scaler. Used when ``scaler``
+            is not given; defaults to ``scaler.pkl`` next to ``model_path``.
 
     Returns:
         np.ndarray: Array of future predicted values.
 
     Raises:
         ValueError: If initialization values for differencing are missing.
+        FileNotFoundError: If an LSTM model is loaded without a scaler and no scaler file exists.
     """
     with open(metadata_path, 'r') as file:
         data = json.load(file)
@@ -92,7 +97,15 @@ def infer(
             output_size=data['metadata']['output_size']
         )
         model.load_state_dict(torch.load(model_path))
-        scaler = joblib.load("temp/scaler.pkl")
+        if scaler is None:
+            if scaler_path is None:
+                scaler_path = str(Path(model_path).with_name("scaler.pkl"))
+            if not Path(scaler_path).is_file():
+                raise FileNotFoundError(
+                    f"LSTM inference needs the fitted scaler: pass scaler=LSTM.scaler_ "
+                    f"or save it with joblib to {scaler_path!r}."
+                )
+            scaler = joblib.load(scaler_path)
         train_window = 10  
         test_inputs = processed_data[feature_column][-train_window:].values
         test_inputs_scaled = scaler.transform(test_inputs.reshape(-1, 1)).flatten()

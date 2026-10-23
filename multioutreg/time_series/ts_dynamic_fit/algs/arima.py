@@ -11,6 +11,7 @@ import sys
 from typing import Optional, Tuple, Any, Dict, Sequence, Union
 
 warnings.filterwarnings("ignore")
+_logger = logging.getLogger(__name__)
 
 
 class ARIMA:
@@ -25,16 +26,9 @@ class ARIMA:
         self.orig_data = df[feature_column]
         self.diff_1_data = None
         self.diff_2_data = None
-        
-        # Setup logging
-        log_handlers = []
-        # Always print to console
-        log_handlers.append(logging.StreamHandler())
 
     def log_to_file(self, log: str) -> None:
-        logging.info(log)
-        with open(f"logs/{self.log_filename}", 'a') as f:
-            f.write(log + '\n')
+        _logger.info(log)
         
     def make_stationary(self, df) -> Tuple[Any, ...]:
         """

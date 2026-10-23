@@ -186,8 +186,11 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   Fit `ARIMA(p,d,q)` directly.
 - [ ] **25. `ForecastAutoIntervals`**: quantile branch changes `quantile` without refitting
   (lower = mean = upper); bootstrap branch uses in-sample residuals and ignores horizon growth.
-- [ ] **26. `time_series/metrics.py`**: `mase` denominator should use the training series;
+- [x] **26. `time_series/metrics.py`**: `mase` denominator should use the training series;
   `weighted_quantile_loss` is mean pinball, not Chronos WQL (2·Σpinball/Σ|y|).
+  *Done:* `mase(y_true, y_pred, y_train, seasonality=1)` scales by the in-sample seasonal-naive
+  MAE of `y_train` (finite for a 1-step window; raises if `y_train` has ≤ m points).
+  `weighted_quantile_loss` now returns the mean over levels of 2·Σpinball/Σ|y|.
 - [x] **27. Epistemic-only uncertainty** (RF/ET spread, MSE deep ensemble, MC-dropout): no aleatoric
   term ⇒ under-coverage. `_EHet` is not heteroscedastic. Document, add NLL heads, or conformalize.
   *Done:* `DeepEnsembleSurrogate` and `BNNSurrogate` take `loss="nll"` (new default): each network

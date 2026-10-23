@@ -1,9 +1,4 @@
 # Copyright (c) 2025 takotime808
-try:
-    from keras.models import Sequential
-    from keras.layers import Dense, LSTM as KerasLSTM
-except ImportError:
-    pass  # keras/tensorflow not required — LSTM class uses PyTorch
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error
 import torch
@@ -13,8 +8,9 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import logging
-import joblib
 from typing import Tuple, Dict, Any, Optional
+
+_logger = logging.getLogger(__name__)
 
 class LSTMModel(nn.Module):
 
@@ -61,7 +57,7 @@ class LSTM:
 
     def log_to_file(self, log: str) -> None:
         """
-        Appends log message to file.
+        Logs a message via the module logger.
 
         Args:
             log (str): Log message.
@@ -69,9 +65,7 @@ class LSTM:
         Returns:
             None
         """
-        logging.info(log)
-        with open(f"logs/{self.log_filename}", 'a') as f:
-            f.write(log + '\n')
+        _logger.info(log)
 
     def create_inout_sequences(
         self, 
@@ -261,7 +255,7 @@ class LSTM:
         if self.verbose:
             self.visualize(self.orig_data, future_preds, fut_pred, resid_std=resid_std)
 
-        joblib.dump(scaler, "temp/scaler.pkl")
+        self.scaler_ = scaler
 
         metadata: Dict[str, Any] = {
             "performance": {

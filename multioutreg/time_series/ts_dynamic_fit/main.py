@@ -1,23 +1,26 @@
 # Copyright (c) 2025 takotime808
-# Copyright (c) 2025 takotime808
 
-from src.TSDataLoader import *
-from algs.arima import *
-from algs.sarima import *
-from algs.lstm import *
-from src.Ranker import *
-from data_handling.DataProcessor import *
-from data_handling.PullData import *
-
-from src.visualize import visualize_model
-import json
-from src.infer import infer, plot_inference
 import argparse
+import json
+import pickle
 from pathlib import Path
+
+import joblib
+import pandas as pd
+import torch
+
+from multioutreg.time_series.ts_dynamic_fit.src.TSDataLoader import TSDataLoader
+from multioutreg.time_series.ts_dynamic_fit.algs.arima import ARIMA
+from multioutreg.time_series.ts_dynamic_fit.algs.sarima import SARIMA
+from multioutreg.time_series.ts_dynamic_fit.algs.lstm import LSTM
+from multioutreg.time_series.ts_dynamic_fit.src.ranker import Ranker
+from multioutreg.time_series.ts_dynamic_fit.data_handling.DataProcessor import DataProcessor
+from multioutreg.time_series.ts_dynamic_fit.src.visualize import visualize_model
 
 def main(args):
 
     if args.pull_new_data:
+        from multioutreg.time_series.ts_dynamic_fit.data_handling.PullData import pull_data  # needs boto3
         pull_data()
 
     # To prevent confusion when reading the logs, this will erase the previous runs logs before writing new logs
@@ -106,6 +109,7 @@ def main(args):
     
     if perf_dicts[idx]['performance']["Model"] == "LSTM":
         torch.save(best_model_obj.state_dict(), "Model Registry/LSTM.pt")
+        joblib.dump(lstm.scaler_, "Model Registry/scaler.pkl")  # read by src.infer.infer
     
         with open('Model Registry/metadata.json', 'w') as f:
             json.dump(perf_dicts[idx], f)
