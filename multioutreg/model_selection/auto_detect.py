@@ -6,12 +6,19 @@ from __future__ import annotations
 
 import functools
 import numbers
+import warnings
 from typing import Sequence
 
 import numpy as np
 from sklearn.base import BaseEstimator, RegressorMixin, clone
 from sklearn.metrics import get_scorer
-from sklearn.model_selection import GridSearchCV, KFold, check_cv
+from sklearn.model_selection import (
+    GridSearchCV,
+    KFold,
+    LeaveOneOut,
+    RepeatedKFold,
+    check_cv,
+)
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import ExtraTreesRegressor, GradientBoostingRegressor, HistGradientBoostingRegressor, RandomForestRegressor
@@ -76,6 +83,89 @@ from sklearn.linear_model import (
     QuantileRegressor as _QuantileRegressor,
 )
 
+# Scorers that are undefined on a single held-out sample (R² needs a variance),
+# so LeaveOneOut cannot be used with them.
+_NEEDS_MULTI_SAMPLE_FOLDS = {"r2", "explained_variance"}
+
+
+def select_cv_strategy(n_samples: int, random_state: int | None = 0):
+    """Return a CV splitter appropriate for a dataset of *n_samples* rows.
+
+    Small datasets need low-variance error estimates and cannot spare data for
+    large validation folds; large datasets make many folds expensive and do
+    not need them.
+
+    - ``LeaveOneOut``                            when ``n_samples <= 20``
+    - ``RepeatedKFold(n_splits=5, n_repeats=3)`` when ``20 < n_samples <= 100``
+    - shuffled ``KFold(n_splits=10)``            when ``100 < n_samples <= 1000``
+    - shuffled ``KFold(n_splits=5)``             when ``n_samples > 1000``
+    """
+    if n_samples <= 20:
+        return LeaveOneOut()
+    if n_samples <= 100:
+        return RepeatedKFold(n_splits=5, n_repeats=3, random_state=random_state)
+    if n_samples <= 1000:
+        return KFold(n_splits=10, shuffle=True, random_state=random_state)
+    return KFold(n_splits=5, shuffle=True, random_state=random_state)
+
+
+def resolve_cv(cv, n_samples: int, random_state: int | None = 0, scoring=None):
+    """Resolve a ``cv`` setting to a concrete sklearn splitter.
+
+    Parameters
+    ----------
+    cv : {"auto", "loocv"} | int | CV splitter
+        ``"auto"`` picks by dataset size via :func:`select_cv_strategy`;
+        ``"loocv"`` always uses ``LeaveOneOut``; an int means a *shuffled*
+        ``KFold`` with that many splits (sklearn's int default is unshuffled,
+        which gives unrepresentative folds on ordered data); anything else is
+        passed through ``check_cv``.
+    n_samples : int
+        Number of rows the splitter will be applied to.
+    random_state : int | None
+        Seed for shuffled / repeated splitters.
+    scoring : str | None
+        Scorer name. R²-type scorers are undefined on single-sample folds, so
+        ``"auto"`` falls back from ``LeaveOneOut`` to ``RepeatedKFold`` for
+        them and ``"loocv"`` raises.
+    """
+    single_ok = scoring not in _NEEDS_MULTI_SAMPLE_FOLDS
+    if isinstance(cv, str):
+        if cv == "auto":
+            splitter = select_cv_strategy(n_samples, random_state)
+            if isinstance(splitter, LeaveOneOut) and not single_ok:
+                n_splits = max(2, min(5, n_samples // 2))
+                splitter = RepeatedKFold(n_splits=n_splits, n_repeats=3,
+                                         random_state=random_state)
+                warnings.warn(
+                    f"scoring={scoring!r} is undefined on leave-one-out folds; using "
+                    f"repeated {n_splits}-fold CV for {n_samples} samples instead.",
+                    UserWarning, stacklevel=2)
+            return splitter
+        if cv == "loocv":
+            if not single_ok:
+                raise ValueError(f"cv='loocv' cannot be used with scoring={scoring!r}: "
+                                 "the score is undefined on a single held-out sample")
+            return LeaveOneOut()
+        raise ValueError(f"cv must be 'auto', 'loocv', an int or a CV splitter, got {cv!r}")
+    if isinstance(cv, numbers.Integral):
+        return KFold(cv, shuffle=True, random_state=random_state)
+    return check_cv(cv)
+
+
+def describe_cv(cv) -> str:
+    """Human-readable description of a resolved CV splitter (for reports)."""
+    if isinstance(cv, LeaveOneOut):
+        return "Leave-One-Out CV"
+    if isinstance(cv, RepeatedKFold):
+        return f"Repeated {cv.cvargs['n_splits']}-Fold CV (x{cv.n_repeats} repeats)"
+    if isinstance(cv, KFold):
+        return f"{cv.n_splits}-Fold CV" + (" (shuffled)" if cv.shuffle else "")
+    if isinstance(cv, numbers.Integral):
+        return f"{cv}-Fold CV"
+    return type(cv).__name__
+
+
 def _clone_surrogate(surrogate):
     """Return an unfitted copy of a surrogate (sklearn clone, else deepcopy)."""
     try:
@@ -136,15 +226,20 @@ _COMPLEXITY = {
 }
 
 
-def _candidate(name: str, fold_scores, complexity: int, **payload) -> dict:
+def _candidate(name: str, fold_scores, complexity: int,
+               test_train_ratio: float | None = None, **payload) -> dict:
     """CV summary of one candidate with a Nadeau–Bengio corrected standard error.
 
     The naive SE, std/sqrt(k), assumes independent folds; K-fold training sets
     overlap, so the variance is inflated by (1/k + n_test/n_train) instead of 1/k.
+    *test_train_ratio* defaults to 1/(k-1), which is exact for plain K-fold and
+    leave-one-out; repeated K-fold has k = n_splits * n_repeats and must pass it.
     """
     s = np.asarray(fold_scores, dtype=float)
     k = len(s)
-    se = float(np.sqrt((1 / k + 1 / (k - 1)) * s.var(ddof=1))) if k > 1 else 0.0
+    if test_train_ratio is None and k > 1:
+        test_train_ratio = 1 / (k - 1)
+    se = float(np.sqrt((1 / k + test_train_ratio) * s.var(ddof=1))) if k > 1 else 0.0
     return {"name": name, "mean": float(s.mean()), "se": se,
             "complexity": complexity, **payload}
 
@@ -172,8 +267,13 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
         Candidate sklearn estimators to evaluate.
     param_spaces : sequence of dict
         Parameter grids corresponding to each estimator.
-    cv : int
-        Number of cross-validation folds used in grid search.
+    cv : {"auto", "loocv"} | int | CV splitter, default "auto"
+        Cross-validation used to score every candidate. ``"auto"`` picks the
+        scheme from the number of training rows at fit time (see
+        :func:`select_cv_strategy`): leave-one-out for tiny datasets, repeated
+        5-fold for small ones, 10-fold and then 5-fold as data grows.
+        ``"loocv"`` forces leave-one-out, an int means a shuffled ``KFold``
+        with that many splits, and any sklearn splitter is used as given.
     scoring : str
         Sklearn scoring metric for GridSearchCV.
     pre_screen : bool, default False
@@ -187,10 +287,14 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
         of the best (Nadeau–Bengio corrected, since CV folds overlap), so a
         costly model must beat a simple one by more than CV noise.
     random_state : int | None, default 0
-        Seed for the shuffled ``KFold`` used when ``cv`` is an int.
+        Seed for the shuffled / repeated splitters built from ``cv``.
 
     Attributes
     ----------
+    cv_strategy_ : CV splitter
+        The splitter ``cv`` resolved to for the training data.
+    cv_description_ : str
+        Human-readable form of ``cv_strategy_``, for reports.
     selection_scores_ : list of dict
         Per output, ``{candidate: {"mean": ..., "se": ...}}`` of the CV scores
         that drove the choice. The winner's mean is optimistically biased (it
@@ -202,7 +306,7 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
         self,
         estimators: Sequence[BaseEstimator],
         param_spaces: Sequence[dict],
-        cv: int = 3,
+        cv: int | str = "auto",
         scoring: str = "neg_mean_squared_error",
         pre_screen: bool = False,
         selection: str = "best",
@@ -235,12 +339,8 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
                 _clone_surrogate(s) for s in self._multi_output_candidates]
         return new
 
-    def _splitter(self):
-        # An int cv means unshuffled KFold in sklearn, so ordered data (sorted
-        # by an input, or by time of collection) gives unrepresentative folds.
-        if isinstance(self.cv, numbers.Integral):
-            return KFold(self.cv, shuffle=True, random_state=self.random_state)
-        return check_cv(self.cv)
+    def _splitter(self, n_samples: int):
+        return resolve_cv(self.cv, n_samples, self.random_state, self.scoring)
 
     def _choose(self, candidates: list[dict]) -> dict:
         best = max(candidates, key=lambda c: c["mean"])
@@ -263,8 +363,11 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             _screening_name(est) for est in self.estimators]
 
         # One splitter for every candidate, so all scores use the same folds.
-        splitter = self._splitter()
+        splitter = self._splitter(len(X))
+        self.cv_strategy_ = splitter
+        self.cv_description_ = describe_cv(splitter)
         splits = list(splitter.split(X, y))
+        ratio = float(np.mean([len(te) / len(tr) for tr, te in splits]))
 
         # Pre-evaluate joint multi-output surrogate candidates (models with
         # _multi_output = True that cannot be wrapped in MultiOutputRegressor).
@@ -310,12 +413,12 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
                 folds = [gs.cv_results_[f"split{f}_test_score"][gs.best_index_]
                          for f in range(len(splits))]
                 candidates.append(_candidate(
-                    names[idx], folds, _COMPLEXITY.get(names[idx], 1),
+                    names[idx], folds, _COMPLEXITY.get(names[idx], 1), ratio,
                     idx=idx, est=gs.best_estimator_, params=gs.best_params_))
             for k, (fold_scores, mo_surrogate) in enumerate(_mo_scores):
                 candidates.append(_candidate(
                     f"{type(mo_surrogate).__name__}[{k}]", fold_scores[:, i], 2,
-                    mo=mo_surrogate))
+                    ratio, mo=mo_surrogate))
             if not candidates:
                 raise RuntimeError("No valid estimator found")
 
@@ -430,7 +533,7 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
     @classmethod
     def with_vendored_surrogates(
         cls,
-        cv: int = 3,
+        cv: int | str = "auto",
         scoring: str = "neg_mean_squared_error",
         fidelity_levels: Sequence[str] | None = None,
         pre_screen: bool = False,

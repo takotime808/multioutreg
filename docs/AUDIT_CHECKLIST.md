@@ -39,9 +39,10 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   `gui/pages/02_Multi_Fidelity_Surrogate_Models.py` calibrated on test-set residuals and scored
   coverage on the same test set. Now calibrates on a held-out part of the hi-fi training split.
 - [x] **1c. Multi-fidelity page selected the best model by test-set MSE**, then reported metrics on
-  that same test set (optimistic). Now `_select_best_candidate` scores candidates on a 20%
-  validation split of the hi-fi training data; the winner is refit on all training data and
-  evaluated once on the test set.
+  that same test set (optimistic). Now `_select_best_candidate` scores candidates by
+  cross-validation over the hi-fi training rows, with the CV scheme chosen from their count
+  (`select_cv_strategy`); the winner is refit on all training data and evaluated once on the
+  test set.
   - Also fixed: "MultiFidelity+…" candidates were scored with their *lowest*-fidelity model,
     because `MultiFidelitySurrogate.predict` defaults to `fidelity_levels[0]` and the page passed
     no `level` (same for conformal calibration). The page now calls `_predict_highest`.

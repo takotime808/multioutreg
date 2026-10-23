@@ -44,8 +44,11 @@ KNN-imputed, with the imputer fitted on each level's training split only.
 
    Base surrogates: RF, HGB, Linear, ElasticNet, Lasso, GP (unless skipped), plus LightGBM,
    XGBoost, CatBoost and SparseGP when their packages are installed.
-3. **Selection.** Candidates are fitted on the training data minus a 20% validation split of the
-   highest-fidelity training data and ranked by validation MSE. The test set is not used.
+3. **Selection.** Candidates are ranked by cross-validated MSE over the highest-fidelity training
+   rows; lower-fidelity data is used in full in every fold. The CV scheme depends on the number
+   of highest-fidelity training rows (`select_cv_strategy`): leave-one-out for ≤ 20, repeated
+   5-fold (×3) for ≤ 100, shuffled 10-fold for ≤ 1000, shuffled 5-fold above that. The test set
+   is not used.
 4. **Refit and evaluate.** The winner is refit on all training data and scored once on the
    highest-fidelity test set.
 5. **Comparison models.** The winner's base surrogate is also fitted on each level alone (used

@@ -62,7 +62,7 @@ def test_init_valid_estimators():
     params = [{}, {"max_depth": [1, None]}]
     model = AutoDetectMultiOutputRegressor(est, params)
     assert isinstance(model, AutoDetectMultiOutputRegressor)
-    assert model.cv == 3
+    assert model.cv == "auto"
 
 
 def test_init_invalid_length():
@@ -148,7 +148,7 @@ def test_int_cv_uses_shuffled_folds():
     # gave folds that each covered a different input range.
     from sklearn.model_selection import KFold
 
-    splitter = AutoDetectMultiOutputRegressor([LinearRegression()], [{}], cv=3)._splitter()
+    splitter = AutoDetectMultiOutputRegressor([LinearRegression()], [{}], cv=3)._splitter(30)
     assert isinstance(splitter, KFold) and splitter.shuffle
 
 
