@@ -83,6 +83,14 @@ smt = [
 lstm = [
   "keras",
 ]
+prophet = [
+  # Used by ProphetForecaster
+  "prophet>=1.1",
+]
+neuralforecast = [
+  # Used by NeuralForecaster (N-BEATS / N-HiTS)
+  "neuralforecast>=1.7",
+]
 test = [
     "pytest",
     "pytest-cov",
@@ -96,7 +104,7 @@ all = [
   # Every optional *library* feature plus the test tooling. `examples` is
   # deliberately excluded: ray/hyperopt/plotly are only used by the example
   # notebooks, never by the package. Use `multioutreg[all,examples]` for those.
-  "multioutreg[ts,ngboost,xgboost,lightgbm,catboost,gpytorch,smt,lstm,test]",
+  "multioutreg[ts,ngboost,xgboost,lightgbm,catboost,gpytorch,smt,lstm,prophet,neuralforecast,test]",
 ]
 examples = [
   "ray",

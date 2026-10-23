@@ -1,4 +1,4 @@
-
+# Copyright (c) 2025 takotime808
 """Configuration file for the multioutreg project."""
 
 # Configuration file for the Sphinx documentation builder.

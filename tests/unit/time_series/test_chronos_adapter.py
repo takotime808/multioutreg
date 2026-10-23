@@ -59,3 +59,29 @@ def test_default_dtype_per_device(monkeypatch, device, expected):
     monkeypatch.setattr(adapter.BaseChronosPipeline, "from_pretrained", fake_from_pretrained)
     adapter.ChronosForecaster("amazon/chronos-bolt-tiny", device=device)
     assert captured["dtype"] == getattr(torch, expected)
+
+
+def test_chronos_shapes_mocked():
+    """Test output shapes without downloading a real model (uses mock pipeline)."""
+    adapter = pytest.importorskip("multioutreg.time_series.chronos_adapter")
+    if adapter.BaseChronosPipeline is None:
+        pytest.skip("chronos-forecasting not installed")
+    from unittest.mock import MagicMock, patch
+
+    # Simulate Bolt output: shape [B=1, 9_quantiles, H=8]
+    mock_output = MagicMock()
+    mock_output.detach.return_value.cpu.return_value.numpy.return_value = np.zeros(
+        (1, 9, 8), dtype=np.float32
+    )
+
+    with patch("multioutreg.time_series.chronos_adapter.BaseChronosPipeline") as MockPipeline:
+        mock_pipe_instance = MagicMock()
+        mock_pipe_instance.predict.return_value = mock_output
+        MockPipeline.from_pretrained.return_value = mock_pipe_instance
+
+        y = np.sin(np.linspace(0, 4 * np.pi, 48)).astype(np.float32)
+        f = adapter.ChronosForecaster("amazon/chronos-bolt-tiny").fit(y)
+        res = f.predict(prediction_length=8, quantiles=(0.1, 0.5, 0.9))
+
+    assert res.quantiles.shape == (1, 3, 8)
+    assert list(res.q_levels) == [0.1, 0.5, 0.9]
