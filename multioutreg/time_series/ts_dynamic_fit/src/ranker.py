@@ -5,7 +5,7 @@ import logging
 from typing import Any
 import pickle
 
-logging.basicConfig(level=logging.INFO)
+_logger = logging.getLogger(__name__)
 
 
 class Ranker:
@@ -54,7 +54,7 @@ class Ranker:
         ranking_table = df[cols].copy()
 
         if self.verbose:
-            logging.info("\n%s", df[['Model'] + self.metrics + [f'{m}_Rank' for m in self.metrics] + ['Avg_Rank']].to_string())
-            logging.info("\nBest model: %s", best_model)
+            _logger.info("\n%s", df[['Model'] + self.metrics + [f'{m}_Rank' for m in self.metrics] + ['Avg_Rank']].to_string())
+            _logger.info("\nBest model: %s", best_model)
         return best_model
 

@@ -2,9 +2,13 @@
 from pathlib import Path
 import pandas as pd
 from pandas import DataFrame
-from data_handling.DataProcessor import *
-from data_handling.ingest import *
-from data_handling.Analyzer import *
+from multioutreg.time_series.ts_dynamic_fit.data_handling.ingest import (
+    read_orders,
+    read_sales,
+    read_shifts,
+    read_time_entries,
+)
+from multioutreg.time_series.ts_dynamic_fit.data_handling.Analyzer import Analyzer, DataHolder
 
 class TSDataLoader:
     """

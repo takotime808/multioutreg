@@ -2,23 +2,11 @@
 
 import matplotlib
 matplotlib.use("Agg")  # plotting helpers call plt.show(); never open desktop windows
-import os as _os
-import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import streamlit as st
-
-# ------------------------------------------------------------------
-# sys.path injection so bare-import modules inside ts_dynamic_fit
-# resolve correctly from anywhere (GUI, tests, CLI).
-# ------------------------------------------------------------------
-_TS_DIR = _os.path.abspath(
-    _os.path.join(_os.path.dirname(__file__), "../../time_series/ts_dynamic_fit")
-)
-if _TS_DIR not in sys.path:
-    sys.path.insert(0, _TS_DIR)
 
 st.set_page_config(page_title="Time-Series Forecasting", layout="wide")
 st.title("Time-Series Forecasting")
@@ -92,12 +80,14 @@ with tab2:
     _ts_available = False
     _ts_import_error = None
     try:
-        from data_handling.DataProcessor import DataProcessor
-        from algs.arima import ARIMA
-        from algs.sarima import SARIMA
-        from algs.lstm import LSTM
-        from src.ranker import Ranker
-        from src.visualize import visualize_model
+        from multioutreg.time_series.ts_dynamic_fit import (
+            ARIMA,
+            LSTM,
+            SARIMA,
+            DataProcessor,
+            Ranker,
+            visualize_model,
+        )
         _ts_available = True
     except Exception as _e:
         _ts_import_error = _e
@@ -144,18 +134,9 @@ with tab2:
             run_btn = st.button("Run Pipeline", key="run_ts_pipeline", type="primary")
 
             if run_btn:
-                import tempfile
-
                 datetime_col_arg = None if dt_col == "<use index>" else dt_col
-                original_cwd = _os.getcwd()
-                tmp_dir = tempfile.mkdtemp(prefix="ts_pipeline_")
 
                 try:
-                    # Pre-create directories that algs write to relative to CWD
-                    _os.makedirs(_os.path.join(tmp_dir, "logs"), exist_ok=True)
-                    _os.makedirs(_os.path.join(tmp_dir, "temp"), exist_ok=True)
-                    _os.chdir(tmp_dir)
-
                     with st.spinner("Preprocessing data..."):
                         processor = DataProcessor(verbose=verbose)
                         _, future_pred = processor.load_data(df2)
@@ -224,5 +205,3 @@ with tab2:
 
                 except Exception as exc:
                     st.error(f"Pipeline error: {exc}")
-                finally:
-                    _os.chdir(original_cwd)

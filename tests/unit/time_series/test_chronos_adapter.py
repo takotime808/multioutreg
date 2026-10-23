@@ -25,7 +25,7 @@ def test_metrics_basic():
     y = np.array([1,2,3,4,5], dtype=float)
     yhat = np.array([1,2,2,5,5], dtype=float)
     assert 0 <= smape(y, yhat) <= 200
-    assert mase(y, yhat, seasonality=1) >= 0.0
+    assert mase(y, yhat, y_train=y, seasonality=1) >= 0.0
     qs = np.vstack([yhat-0.2, yhat, yhat+0.2])
     w = weighted_quantile_loss(y, qs, [0.1, 0.5, 0.9])
     assert w >= 0.0
