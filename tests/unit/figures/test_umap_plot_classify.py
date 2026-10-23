@@ -46,3 +46,33 @@ def test_generate_umap_plot_too_few_points(mock_plot_to_b64):
     mock_plot_to_b64.side_effect = lambda fn: (fn() or "base64img")
     _, explanation = generate_umap_plot(np.random.rand(3, 2))
     assert explanation.endswith("-> Uncertain")
+
+
+@patch("multioutreg.figures.umap_plot_classify.plot_to_b64")
+def test_generate_umap_plot_passes_umap_options(mock_plot_to_b64):
+    mock_plot_to_b64.side_effect = lambda fn: (fn() or "base64img")
+    with patch("multioutreg.figures.umap_plot_classify.umap.UMAP") as mock_umap:
+        mock_umap.return_value.fit_transform.side_effect = lambda X: X[:, :2]
+        generate_umap_plot(np.random.rand(10, 3), n_neighbors=30, min_dist=0.5, labels=np.arange(10))
+    kwargs = mock_umap.call_args.kwargs
+    assert kwargs["n_neighbors"] == 9  # capped at n - 1
+    assert kwargs["min_dist"] == 0.5
+
+
+@patch("multioutreg.figures.umap_plot_classify.plot_to_b64")
+def test_generate_umap_plot_falls_back_to_pca(mock_plot_to_b64):
+    titles = []
+
+    def run(fn):
+        fn()
+        import matplotlib.pyplot as plt
+        titles.append(plt.gca().get_title())
+        return "base64img"
+
+    mock_plot_to_b64.side_effect = run
+    with patch("multioutreg.figures.umap_plot_classify.umap.UMAP", side_effect=RuntimeError("boom")):
+        with pytest.warns(UserWarning, match="PCA"):
+            b64img, explanation = generate_umap_plot(np.random.rand(30, 3))
+    assert b64img == "base64img"
+    assert "->" in explanation
+    assert titles[0].startswith("PCA")

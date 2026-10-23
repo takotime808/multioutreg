@@ -97,3 +97,18 @@ def test_template_rounding_and_loops(template_env, minimal_context):
     # Metrics rounding: "0.99", "0.1", etc. should appear
     assert "0.99" in html
     assert "0.1" in html or "0.10" in html
+
+def test_template_regret_section(template_env, minimal_context):
+    template = template_env.get_template("template.html")
+    assert "Multi-Objective Regret" not in template.render(**minimal_context)
+
+    html = template.render(
+        **minimal_context,
+        regret_metrics={"hv": 0.5, "scalar": 0.1, "eps": 0.0},
+        regret_bounds={"hv": 0.25, "scalar": 0.2, "eps": None},
+        regret_settings={"hv_ref_mode": "Custom", "reference_point": [3.0, 3.0]},
+    )
+    assert "Multi-Objective Regret" in html
+    assert '<span class="fail">FAIL</span>' in html  # hv 0.5 > 0.25
+    assert '<span class="pass">PASS</span>' in html  # scalar 0.1 <= 0.2
+    assert "[3.0, 3.0]" in html
