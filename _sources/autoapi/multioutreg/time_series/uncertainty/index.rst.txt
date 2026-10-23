@@ -1,0 +1,76 @@
+multioutreg.time_series.uncertainty
+===================================
+
+.. py:module:: multioutreg.time_series.uncertainty
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.uncertainty.gaussian_quantiles
+   multioutreg.time_series.uncertainty.conformal_interval_from_residuals
+   multioutreg.time_series.uncertainty.propagate_uncertainty_recursive
+
+
+Module Contents
+---------------
+
+.. py:function:: gaussian_quantiles(mean: numpy.ndarray, std: numpy.ndarray, quantiles: Sequence[float] = (0.1, 0.5, 0.9)) -> numpy.ndarray
+
+   Convert (mean, std) arrays to a quantile array via Gaussian approximation.
+
+   :param mean:
+   :type mean: np.ndarray, shape (horizon,)
+   :param std:
+   :type std: np.ndarray, shape (horizon,)
+   :param quantiles:
+   :type quantiles: sequence of Q quantile levels in (0, 1)
+
+   :returns: Estimated quantile values assuming Gaussian predictive distribution.
+   :rtype: np.ndarray, shape (Q, horizon)
+
+
+.. py:function:: conformal_interval_from_residuals(point_pred: numpy.ndarray, cal_residuals: numpy.ndarray, alpha: float = 0.1) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+   Compute split-conformal prediction intervals from calibration residuals.
+
+   Uses the standard split-conformal quantile:
+       q = ceil((n + 1) * (1 - alpha)) / n -th quantile of |residuals|
+
+   :param point_pred: Point predictions for each future step.
+   :type point_pred: np.ndarray, shape (horizon,)
+   :param cal_residuals: Absolute residuals on the held-out calibration set.
+   :type cal_residuals: np.ndarray, shape (n_cal,)
+   :param alpha: Desired miscoverage level (e.g. 0.1 → 90% coverage).
+   :type alpha: float, default 0.1
+
+   :returns: **lower, upper**
+   :rtype: np.ndarray, each shape (horizon,)
+
+
+.. py:function:: propagate_uncertainty_recursive(single_step_std: float | numpy.ndarray, horizon: int, correlation: float = 0.0) -> numpy.ndarray
+
+   Propagate a single-step standard deviation over multiple horizons.
+
+   Assumes Gaussian errors with optional first-order autocorrelation.
+
+   For white-noise errors (correlation=0):
+       sigma_h = sigma_1 * sqrt(h)
+
+   For AR(1) errors with coefficient `rho`:
+       sigma_h^2 = sigma_1^2 * sum_{k=0}^{h-1} rho^{2k}
+                 = sigma_1^2 * (1 - rho^{2h}) / (1 - rho^2)   [rho != 1]
+
+   :param single_step_std: Standard deviation at horizon h=1.
+   :type single_step_std: float or np.ndarray
+   :param horizon: Number of steps to propagate.
+   :type horizon: int
+   :param correlation: First-order autocorrelation coefficient of the errors (rho in AR(1)).
+   :type correlation: float, default 0.0
+
+   :returns: Standard deviations at horizons 1, 2, ..., horizon.
+   :rtype: np.ndarray, shape (horizon,)
+
+

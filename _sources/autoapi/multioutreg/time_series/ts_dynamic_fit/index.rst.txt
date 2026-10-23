@@ -1,0 +1,26 @@
+multioutreg.time_series.ts_dynamic_fit
+======================================
+
+.. py:module:: multioutreg.time_series.ts_dynamic_fit
+
+.. autoapi-nested-parse::
+
+   ARIMA / SARIMA / LSTM forecasting pipeline.
+
+   Exports are resolved lazily so importing the package does not pull in
+   statsmodels or torch until one of the names below is used.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/time_series/ts_dynamic_fit/algs/index
+   /autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/index
+   /autoapi/multioutreg/time_series/ts_dynamic_fit/main/index
+   /autoapi/multioutreg/time_series/ts_dynamic_fit/src/index
+
+

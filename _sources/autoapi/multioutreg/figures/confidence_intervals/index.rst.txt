@@ -1,0 +1,163 @@
+multioutreg.figures.confidence_intervals
+========================================
+
+.. py:module:: multioutreg.figures.confidence_intervals
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.confidence_intervals.plot_intervals_ordered
+   multioutreg.figures.confidence_intervals.plot_intervals_ordered_multi
+   multioutreg.figures.confidence_intervals.plot_confidence_interval
+   multioutreg.figures.confidence_intervals.plot_multioutput_confidence_intervals
+   multioutreg.figures.confidence_intervals.plot_regressormixin_confidence_intervals
+
+
+Module Contents
+---------------
+
+.. py:function:: plot_intervals_ordered(y_pred: numpy.ndarray, y_std: numpy.ndarray, y_true: numpy.ndarray, n_subset: Optional[int] = None, ylims: Optional[Tuple[float, float]] = None, num_stds_confidence_bound: float = 2, ax: Optional[matplotlib.pyplot.Axes] = None, add_legend: bool = True) -> Tuple[matplotlib.pyplot.Line2D, matplotlib.pyplot.Line2D, matplotlib.pyplot.Axes]
+
+   Plot ordered predicted values and intervals for a single target.
+
+   :param y_pred: Predicted values, shape (n_samples,).
+   :type y_pred: np.ndarray
+   :param y_std: Predicted standard deviations, shape (n_samples,).
+   :type y_std: np.ndarray
+   :param y_true: Observed/true values, shape (n_samples,).
+   :type y_true: np.ndarray
+   :param n_subset: If provided, subsample n_subset random points.
+   :type n_subset: int, optional
+   :param ylims: Y-axis limits as (ymin, ymax).
+   :type ylims: tuple of float, optional
+   :param num_stds_confidence_bound: Number of standard deviations for error bars. Default is 2.
+   :type num_stds_confidence_bound: float, optional
+   :param ax: Matplotlib axes to plot on. If None, a new one is created.
+   :type ax: plt.Axes, optional
+   :param add_legend: Whether to add a legend to the plot.
+   :type add_legend: bool, optional
+
+   :returns: * **pred_line** (*plt.Line2D*) -- The line artist for the predicted values.
+             * **obs_line** (*plt.Line2D*) -- The line artist for the observed values.
+             * **ax** (*plt.Axes*) -- The matplotlib axes containing the plot.
+
+
+.. py:function:: plot_intervals_ordered_multi(y_pred: numpy.ndarray, y_std: numpy.ndarray, y_true: numpy.ndarray, handles: Optional[List[matplotlib.pyplot.Line2D]] = None, n_subset: Optional[int] = None, base_height: int = 7, base_width: int = 8, num_stds_confidence_bound: float = 2, max_cols: int = 3, savefig: Union[str, bool] = False, supxlabel: str = 'Index (Ordered by Observed Value)', supylabel: str = 'Predicted Values and Intervals', suptitle: str = 'Ordered Prediction Intervals', target_list: Optional[List[str]] = None) -> None
+
+   Plot ordered prediction intervals for multi-output regression.
+
+   :param y_pred: Predicted values, shape (n_samples, n_targets) or (n_targets, n_samples).
+   :type y_pred: np.ndarray
+   :param y_std: Predicted standard deviations, shape (n_samples, n_targets) or (n_targets, n_samples).
+   :type y_std: np.ndarray
+   :param y_true: Observed/true values, shape (n_samples, n_targets) or (n_targets, n_samples).
+   :type y_true: np.ndarray
+   :param handles: Handles for legend entries.
+   :type handles: list of plt.Line2D, optional
+   :param n_subset: Subsample to this many data points.
+   :type n_subset: int, optional
+   :param base_height: Height per subplot, in inches.
+   :type base_height: int, optional
+   :param base_width: Width per subplot, in inches.
+   :type base_width: int, optional
+   :param num_stds_confidence_bound: Number of standard deviations for intervals.
+   :type num_stds_confidence_bound: float, optional
+   :param max_cols: Maximum columns in grid layout.
+   :type max_cols: int, optional
+   :param savefig: Path to save the figure. If False, shows the plot.
+   :type savefig: str or bool, optional
+   :param supxlabel: Super x-axis label for the figure.
+   :type supxlabel: str, optional
+   :param supylabel: Super y-axis label for the figure.
+   :type supylabel: str, optional
+   :param suptitle: Super title for the figure.
+   :type suptitle: str, optional
+   :param target_list: Names of targets to use as subplot titles.
+   :type target_list: list of str, optional
+
+   :rtype: None
+
+
+.. py:function:: plot_confidence_interval(y_true: Union[numpy.ndarray, List[float]], preds: Union[numpy.ndarray, List[float]], std: Union[numpy.ndarray, List[float]], output_names: Optional[List[str]] = None, n_cols: int = 3, alpha: float = 0.05, plot_errorbars: bool = False, plot_ci_band: bool = True, savefig: Optional[str] = None) -> None
+
+   Plot predicted values with confidence intervals and error bars.
+
+   Handles single and multi-output regression, with error bars on predictions.
+
+   :param y_true: Ground truth values, shape (n_samples, n_outputs) or (n_samples,).
+   :type y_true: np.ndarray or list of float
+   :param preds: Predicted mean values, shape (n_samples, n_outputs) or (n_samples,).
+   :type preds: np.ndarray or list of float
+   :param std: Predicted standard deviations, shape (n_samples, n_outputs) or (n_samples,).
+   :type std: np.ndarray or list of float
+   :param output_names: Names for output variables. Default is ["Output 0", ...].
+   :type output_names: list of str, optional
+   :param n_cols: Number of subplot columns for multi-output. Default is 3.
+   :type n_cols: int, optional
+   :param alpha: Significance level for confidence interval (default 0.05 for 95% CI).
+   :type alpha: float, optional
+   :param plot_errorbars: Option to include errorbars.
+   :type plot_errorbars: bool, optional
+   :param plot_ci_band: Option to include confidence interval.
+   :type plot_ci_band: bool, optional
+   :param savefig: Path to save figure. If None, the figure is shown. Default is None.
+   :type savefig: str or None, optional
+
+   :rtype: None
+
+
+.. py:function:: plot_multioutput_confidence_intervals(X: numpy.ndarray, Y: numpy.ndarray, alpha: float = 0.05, base_estimator: Optional[object] = None, test_size: float = 0.2, random_state: int = 42, plot_errorbars: bool = False, plot_ci_band: bool = True, savefig: Optional[str] = None) -> None
+
+   Fit a MultiOutputRegressor and plot predictions with confidence intervals and error bars.
+
+   :param X: Feature matrix of shape (n_samples, n_features).
+   :type X: np.ndarray
+   :param Y: Target matrix of shape (n_samples, n_targets).
+   :type Y: np.ndarray
+   :param alpha: Significance level for confidence interval (default 0.05 for 95% CI).
+   :type alpha: float, optional
+   :param base_estimator: Regressor to use in MultiOutputRegressor (default: RandomForestRegressor).
+   :type base_estimator: sklearn.base.RegressorMixin, optional
+   :param test_size: Fraction of data to use for testing. Default is 0.2.
+   :type test_size: float, optional
+   :param random_state: Random seed for reproducibility. Default is 42.
+   :type random_state: int, optional
+   :param plot_errorbars: Option to include errorbars.
+   :type plot_errorbars: bool, optional
+   :param plot_ci_band: Option to include confidence interval.
+   :type plot_ci_band: bool, optional
+   :param savefig: Path to save figure. If None, the figure is shown. Default is None.
+   :type savefig: str or None, optional
+
+   :rtype: None
+
+
+.. py:function:: plot_regressormixin_confidence_intervals(X: numpy.ndarray, Y: numpy.ndarray, alpha: float = 0.05, base_estimator: Optional[sklearn.base.RegressorMixin] = None, test_size: float = 0.2, random_state: int = 42, plot_errorbars: bool = False, plot_ci_band: bool = True, savefig: str = False) -> None
+
+   Fit a MultiOutputRegressor and plot predictions with confidence intervals and error bars.
+
+   :param X: Feature matrix of shape (n_samples, n_features).
+   :type X: np.ndarray
+   :param Y: Target matrix of shape (n_samples, n_targets).
+   :type Y: np.ndarray
+   :param alpha: Significance level for confidence interval (default 0.05 for 95% CI).
+   :type alpha: float, optional
+   :param base_estimator: Regressor to use in MultiOutputRegressor (default: RandomForestRegressor).
+   :type base_estimator: sklearn.base.RegressorMixin, optional
+   :param test_size: Fraction of data to use for testing. Default is 0.2.
+   :type test_size: float, optional
+   :param random_state: Random seed for reproducibility. Default is 42.
+   :type random_state: int, optional
+   :param plot_errorbars: Option to include errorbars.
+   :type plot_errorbars: bool, optional
+   :param plot_ci_band: Option to include confidence interval.
+   :type plot_ci_band: bool, optional
+   :param savefig: Path to save figure. If None, the figure is shown. Default is None.
+   :type savefig: str or None, optional
+
+   :rtype: None
+
+

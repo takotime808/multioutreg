@@ -1,0 +1,72 @@
+multioutreg.sampling.pca_sampling_detector
+==========================================
+
+.. py:module:: multioutreg.sampling.pca_sampling_detector
+
+.. autoapi-nested-parse::
+
+   PCA view of a design of experiments, labelled with its inferred sampling method.
+
+   PCA is linear and deterministic, so unlike UMAP it keeps relative distances and
+   needs no extra dependency, which makes it a reasonable default picture of a
+   design. The method label still comes from
+   :func:`multioutreg.sampling.detect.detect_sampling_method`: thresholds on the
+   2-D embedding (nearest-neighbour spread, silhouette, entropy) depend on ``n``
+   and ``d`` and did not separate the designs reliably, so those numbers are
+   reported as diagnostics only.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.sampling.pca_sampling_detector.pca_embedding
+   multioutreg.sampling.pca_sampling_detector.embedding_diagnostics
+   multioutreg.sampling.pca_sampling_detector.generate_sampling_plot_and_metrics
+   multioutreg.sampling.pca_sampling_detector.label_colour_values
+
+
+Module Contents
+---------------
+
+.. py:function:: pca_embedding(X: numpy.ndarray, random_state: int = 0) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+   Standardise ``X`` and project it onto (at most) two principal components.
+
+   Returns ``(X_emb, explained_variance_ratio)``. ``X_emb`` always has two
+   columns; a single-input design is padded with zeros. Constant data embeds
+   at the origin with zero explained variance.
+
+
+.. py:function:: embedding_diagnostics(X_emb: numpy.ndarray, random_state: int = 0) -> Dict[str, float]
+
+   Structure of a 2-D embedding: nearest-neighbour spread, 2-means silhouette, entropy.
+
+   Descriptive only; see the module docstring for why they are not used to
+   classify the design.
+
+
+.. py:function:: generate_sampling_plot_and_metrics(X: numpy.ndarray, random_state: int = 42, labels: Optional[numpy.ndarray] = None) -> Tuple[matplotlib.pyplot.Figure, dict]
+
+   Plot the PCA projection of a design and infer its sampling method.
+
+   :param X: Input (design) matrix. Pass only input columns, not responses.
+   :type X: np.ndarray
+   :param random_state: Seed for PCA, the diagnostics and the simulated reference designs.
+   :type random_state: int
+   :param labels: Optional per-point values to colour the points by.
+   :type labels: array-like or None
+
+   :returns: The figure and a dict with ``method``, ``explanation``, ``projection``
+             (``"PCA"``), ``explained_variance``, ``p_values`` and the embedding
+             diagnostics ``std``, ``silhouette`` and ``entropy``.
+   :rtype: Tuple[plt.Figure, dict]
+
+
+.. py:function:: label_colour_values(labels) -> numpy.ndarray
+
+   Numeric colour values for ``labels`` (categories become their codes).
+
+

@@ -1,0 +1,35 @@
+multioutreg.sampling.infer_sampling
+===================================
+
+.. py:module:: multioutreg.sampling.infer_sampling
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.sampling.infer_sampling.infer_sampling_and_plot_umap
+
+
+Module Contents
+---------------
+
+.. py:function:: infer_sampling_and_plot_umap(X: numpy.ndarray, explanation_indicator: bool = False, random_state: int = 0) -> Tuple[str, matplotlib.pyplot.Figure] | Tuple[str, matplotlib.pyplot.Figure, str]
+
+   Infer the sampling method of ``X`` and plot its UMAP projection.
+
+   The method comes from :func:`multioutreg.sampling.detect.detect_sampling_method`;
+   the UMAP projection is for display only.
+
+   :param X: Input (design) matrix. Pass only input columns, not responses.
+   :type X: np.ndarray
+   :param explanation_indicator: If True, also return the explanation text.
+   :type explanation_indicator: bool
+   :param random_state: Seed for UMAP and for the simulated reference designs.
+   :type random_state: int
+
+   :returns: Sampling method name and matplotlib Figure (and explanation if requested).
+   :rtype: Union[Tuple[str, plt.Figure], Tuple[str, plt.Figure, str]]
+
+

@@ -1,0 +1,182 @@
+multioutreg.metrics.multiobjective_regret
+=========================================
+
+.. py:module:: multioutreg.metrics.multiobjective_regret
+
+.. autoapi-nested-parse::
+
+   Multi-objective regret utilities for evaluation and optimization loops.
+
+   Provides:
+   - pareto_mask(Y, minimize=True)
+   - hypervolume_regret(Y_true, Y_pred, reference_point=None, minimize=True)
+   - scalarized_regret(Y_true, Y_pred, weights, minimize=True, reduce="mean")
+   - epsilon_regret(Y_true, Y_pred, minimize=True)
+   - RegretTracker(...) for iterative workflows (e.g., BO).
+
+   .. admonition:: Notes
+
+      * Assumes objectives are columns in Y (shape: [n_samples, n_obj]).
+      * Accepts 1-D or 2-D arrays; 1-D is treated as (n, 1).
+      * By default, everything is oriented to **minimization**. If you have
+        maximization objectives, flip their sign before calling, or pass
+        minimize=[True/False,...] per objective (broadcasted inside).
+      * Hypervolume regret := HV(true_front) - HV(pred_front).
+        (Ref point must be "worse" than all points; for minimization,
+         larger coordinate values are worse.)
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.metrics.multiobjective_regret.RegretTracker
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.metrics.multiobjective_regret._ensure_2d
+   multioutreg.metrics.multiobjective_regret._as_minimization
+   multioutreg.metrics.multiobjective_regret.pareto_mask
+   multioutreg.metrics.multiobjective_regret._default_reference_point
+   multioutreg.metrics.multiobjective_regret._hypervolume_1d_min
+   multioutreg.metrics.multiobjective_regret._hv_2d_min
+   multioutreg.metrics.multiobjective_regret._hypervolume_min
+   multioutreg.metrics.multiobjective_regret.hypervolume_regret
+   multioutreg.metrics.multiobjective_regret.scalarized_regret
+   multioutreg.metrics.multiobjective_regret.epsilon_regret
+
+
+Module Contents
+---------------
+
+.. py:function:: _ensure_2d(Y: numpy.ndarray) -> numpy.ndarray
+
+   Coerce Y to shape (n, m). If 1-D, treat as (n, 1).
+
+
+.. py:function:: _as_minimization(Y: numpy.ndarray, minimize: Union[bool, Iterable[bool]]) -> numpy.ndarray
+
+   Return objectives in minimization convention (flip signs for maximization).
+
+
+.. py:function:: pareto_mask(Y: numpy.ndarray, minimize: Union[bool, Iterable[bool]] = True) -> numpy.ndarray
+
+   Return a boolean mask for non-dominated points (Pareto set) under minimization convention.
+
+   :param Y: Objective values.
+   :type Y: array, shape (n, m) or (n,)
+   :param minimize: True for objectives to minimize, False for maximize.
+   :type minimize: bool or array-like of bool
+
+   :returns: **mask** -- True if Y[i] is Pareto-efficient (non-dominated).
+   :rtype: array, shape (n,)
+
+
+.. py:function:: _default_reference_point(Ys: List[numpy.ndarray]) -> numpy.ndarray
+
+   Pick a safe minimization reference point slightly worse than all given points.
+
+
+.. py:function:: _hypervolume_1d_min(F: numpy.ndarray, ref: numpy.ndarray) -> float
+
+   Exact 1D hypervolume for minimization.
+   F is non-dominated front, shape (k,1). HV is max(0, ref - min(F)).
+
+
+.. py:function:: _hv_2d_min(F: numpy.ndarray, ref: numpy.ndarray) -> float
+
+   Exact 2D hypervolume for minimization. Assumes F is Pareto non-dominated.
+   Algorithm: sort by x ascending (so y decreases); sum rectangles.
+
+
+.. py:function:: _hypervolume_min(F: numpy.ndarray, reference_point: numpy.ndarray) -> float
+
+   Compute hypervolume (minimization) of a non-dominated front F given reference_point.
+   Tries pymoo if available; otherwise uses exact 1D/2D or MC fallback for m>2.
+
+
+.. py:function:: hypervolume_regret(Y_true: numpy.ndarray, Y_pred: numpy.ndarray, reference_point: Optional[numpy.ndarray] = None, minimize: Union[bool, Iterable[bool]] = True) -> float
+
+   Hypervolume regret: HV(true_front) - HV(pred_front)  (>= 0 ideally).
+
+   Y_true, Y_pred: arrays of shape (n, m) or (n,) with objective values.
+
+
+.. py:function:: scalarized_regret(Y_true: numpy.ndarray, Y_pred: numpy.ndarray, weights: numpy.ndarray, minimize: Union[bool, Iterable[bool]] = True, reduce: str = 'mean') -> Union[float, numpy.ndarray, Dict[str, float]]
+
+   Scalarized regret across weight vectors.
+
+   For each weight vector w (nonnegative, sum=1), compute:
+     r(w) = min_x w·Y_true(x) - min_x w·Y_pred(x)    (minimization)
+
+   Accepts weights in shapes:
+     - (k, m)  -> usual case
+     - (m,)    -> one weight vector
+     - (k,)    -> only valid when m == 1 (auto-expands to (k, 1))
+     - scalar  -> only valid when m == 1 (treated as weight=1.0)
+
+   Returns aggregated regret by `reduce` or per-weight array.
+
+
+.. py:function:: epsilon_regret(Y_true: numpy.ndarray, Y_pred: numpy.ndarray, minimize: Union[bool, Iterable[bool]] = True) -> float
+
+   Additive epsilon indicator I_ε(A, B) under minimization, with A=pred_front, B=true_front.
+   Smaller is better; regret is max_{b∈B} min_{a∈A} max_i (a_i - b_i).
+
+   Returns a nonnegative float (0.0 means predicted front weakly dominates B).
+
+
+.. py:class:: RegretTracker
+
+   Track regret over iterations of an optimization loop.
+
+   .. rubric:: Example
+
+   tracker = RegretTracker(minimize=[True, True, True])
+   for t in range(T):
+       # Y_true_batch, Y_pred_batch are (n_t, m)
+       tracker.step(Y_true_batch, Y_pred_batch)
+
+   hist = tracker.history  # dict of lists
+
+
+   .. py:attribute:: minimize
+      :type:  Union[bool, Iterable[bool]]
+      :value: True
+
+
+
+   .. py:attribute:: reference_point
+      :type:  Optional[numpy.ndarray]
+      :value: None
+
+
+
+   .. py:attribute:: weights
+      :type:  Optional[numpy.ndarray]
+      :value: None
+
+
+
+   .. py:attribute:: n_weight_samples
+      :type:  int
+      :value: 16
+
+
+
+   .. py:attribute:: history
+      :type:  Dict[str, List[float]]
+
+
+   .. py:method:: _maybe_init_weights(m: int)
+
+
+   .. py:method:: step(Y_true: numpy.ndarray, Y_pred: numpy.ndarray) -> Dict[str, float]
+
+

@@ -1,0 +1,1324 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html">
+        <link rel="prefetch" href="_static/favicon.ico.png" as="image">
+
+    <link rel="shortcut icon" href="_static/favicon.png"><!-- Generated with Sphinx 8.1.3 and Furo 2025.12.19 -->
+        <title>Statistical / Logic Audit Checklist - multioutreg documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Live and uncut: takotime808's <em>multioutreg</em> 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">multioutreg  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="_static/favicon.ico.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">multioutreg  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Installation and Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multi_fidelity_gui.html">Multi-Fidelity Surrogate Models page</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/forecasting_with_chronos.html">Time-Series Forecasting with Chronos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/multi_fidelity_surrogates.html">Multi-Fidelity Surrogate Modeling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/active_learning_benchmarks.html">Active Learning on Benchmark Functions</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="integrated_surrogates.html">Integrated Surrogate Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="surrogate_roadmap.html">Expanding the Surrogate Offerings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_learning.html">Active Learning Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parallel_computing.html">Parallelization and Distributed Computing Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Usage</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="autoapi/multioutreg/index.html">multioutreg</a><input aria-label="Toggle navigation of multioutreg" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/active/index.html">multioutreg.active</a><input aria-label="Toggle navigation of multioutreg.active" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/acquisition/index.html">multioutreg.active.acquisition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/batch/index.html">multioutreg.active.batch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/benchmarks/index.html">multioutreg.active.benchmarks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/loop/index.html">multioutreg.active.loop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/multi_fidelity/index.html">multioutreg.active.multi_fidelity</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/conformal/index.html">multioutreg.conformal</a><input aria-label="Toggle navigation of multioutreg.conformal" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/base/index.html">multioutreg.conformal.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/cv_plus/index.html">multioutreg.conformal.cv_plus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/metrics/index.html">multioutreg.conformal.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/split_conformal/index.html">multioutreg.conformal.split_conformal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/utils/index.html">multioutreg.conformal.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/figures/index.html">multioutreg.figures</a><input aria-label="Toggle navigation of multioutreg.figures" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/confidence_intervals/index.html">multioutreg.figures.confidence_intervals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/conformal_plots/index.html">multioutreg.figures.conformal_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/coverage_plots/index.html">multioutreg.figures.coverage_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/doe_plots/index.html">multioutreg.figures.doe_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/error_histograms/index.html">multioutreg.figures.error_histograms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/model_comparison/index.html">multioutreg.figures.model_comparison</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/pca_plots/index.html">multioutreg.figures.pca_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/pdp_plots/index.html">multioutreg.figures.pdp_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/performance_metric_figures/index.html">multioutreg.figures.performance_metric_figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/prediction_plots/index.html">multioutreg.figures.prediction_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/residuals/index.html">multioutreg.figures.residuals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/shap_multioutput/index.html">multioutreg.figures.shap_multioutput</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/uct_calibration_extension/index.html">multioutreg.figures.uct_calibration_extension</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/umap_plot_classify/index.html">multioutreg.figures.umap_plot_classify</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/uncertainty_toolbox_extension/index.html">multioutreg.figures.uncertainty_toolbox_extension</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/gui/index.html">multioutreg.gui</a><input aria-label="Toggle navigation of multioutreg.gui" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/Grid_Search_Surrogate_Models/index.html">multioutreg.gui.Grid_Search_Surrogate_Models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/grid_search_core/index.html">multioutreg.gui.grid_search_core</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="autoapi/multioutreg/gui/pages/index.html">multioutreg.gui.pages</a><input aria-label="Toggle navigation of multioutreg.gui.pages" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/01_Use_Auto_Detect_MultiOutput_Regressor/index.html">multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/02_Multi_Fidelity_Surrogate_Models/index.html">multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/03_Sample_Bias_Alert/index.html">multioutreg.gui.pages.03_Sample_Bias_Alert</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/04_Sampling_and_Bias_Dashboard/index.html">multioutreg.gui.pages.04_Sampling_and_Bias_Dashboard</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/05_Sampling_Datasets_Examples/index.html">multioutreg.gui.pages.05_Sampling_Datasets_Examples</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/05_Time_Series_Forecasting/index.html">multioutreg.gui.pages.05_Time_Series_Forecasting</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/07_Other_Dataset_Examples/index.html">multioutreg.gui.pages.07_Other_Dataset_Examples</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/Detect_Sampling/index.html">multioutreg.gui.pages.Detect_Sampling</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/PCA_Sample_detection/index.html">multioutreg.gui.pages.PCA_Sample_detection</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/lhs_detector_app/index.html">multioutreg.gui.pages.lhs_detector_app</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/sample_infer/index.html">multioutreg.gui.pages.sample_infer</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/sample_infer_dashboard/index.html">multioutreg.gui.pages.sample_infer_dashboard</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/report_plotting_utils/index.html">multioutreg.gui.report_plotting_utils</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/metrics/index.html">multioutreg.metrics</a><input aria-label="Toggle navigation of multioutreg.metrics" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/metrics/multiobjective_regret/index.html">multioutreg.metrics.multiobjective_regret</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/model_selection/index.html">multioutreg.model_selection</a><input aria-label="Toggle navigation of multioutreg.model_selection" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/model_selection/auto_detect/index.html">multioutreg.model_selection.auto_detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/model_selection/model_wrappers/index.html">multioutreg.model_selection.model_wrappers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/model_selection/screening/index.html">multioutreg.model_selection.screening</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/performance/index.html">multioutreg.performance</a><input aria-label="Toggle navigation of multioutreg.performance" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/performance/metrics/index.html">multioutreg.performance.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/performance/metrics_generalized_api/index.html">multioutreg.performance.metrics_generalized_api</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/report/index.html">multioutreg.report</a><input aria-label="Toggle navigation of multioutreg.report" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/auto_detect_report/index.html">multioutreg.report.auto_detect_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/generate_report/index.html">multioutreg.report.generate_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/generate_report1/index.html">multioutreg.report.generate_report1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/generate_report1_safe/index.html">multioutreg.report.generate_report1_safe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/template/index.html">multioutreg.report.template</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/sampling/index.html">multioutreg.sampling</a><input aria-label="Toggle navigation of multioutreg.sampling" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/sampling/detect/index.html">multioutreg.sampling.detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/sampling/infer_sampling/index.html">multioutreg.sampling.infer_sampling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/sampling/pca_sampling_detector/index.html">multioutreg.sampling.pca_sampling_detector</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/surrogates/index.html">multioutreg.surrogates</a><input aria-label="Toggle navigation of multioutreg.surrogates" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/_torch_utils/index.html">multioutreg.surrogates._torch_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/ard_gp_sklearn/index.html">multioutreg.surrogates.ard_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/base_sklearn/index.html">multioutreg.surrogates.base_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/bayesian_ridge_sklearn/index.html">multioutreg.surrogates.bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/bnn_network/index.html">multioutreg.surrogates.bnn_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/bnn_pytorch/index.html">multioutreg.surrogates.bnn_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/catboost_sklearn/index.html">multioutreg.surrogates.catboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/conformal_mixin/index.html">multioutreg.surrogates.conformal_mixin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/conformal_network_sklearn/index.html">multioutreg.surrogates.conformal_network_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/decision_tree_sklearn/index.html">multioutreg.surrogates.decision_tree_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/deep_ensemble_pytorch/index.html">multioutreg.surrogates.deep_ensemble_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/elastic_net_sklearn/index.html">multioutreg.surrogates.elastic_net_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/extra_trees_sklearn/index.html">multioutreg.surrogates.extra_trees_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/forest_uncertainty/index.html">multioutreg.surrogates.forest_uncertainty</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gating_network/index.html">multioutreg.surrogates.gating_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gp_sklearn/index.html">multioutreg.surrogates.gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gpx_smt/index.html">multioutreg.surrogates.gpx_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gradient_boosting_sklearn/index.html">multioutreg.surrogates.gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/hist_gradient_boosting_sklearn/index.html">multioutreg.surrogates.hist_gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/knn_sklearn/index.html">multioutreg.surrogates.knn_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/kpls_smt/index.html">multioutreg.surrogates.kpls_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/lightgbm_sklearn/index.html">multioutreg.surrogates.lightgbm_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/linear_sklearn/index.html">multioutreg.surrogates.linear_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/moe_surrogate/index.html">multioutreg.surrogates.moe_surrogate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/multi_fidelity/index.html">multioutreg.surrogates.multi_fidelity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/ngboost_sklearn/index.html">multioutreg.surrogates.ngboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/nystroem_gp_sklearn/index.html">multioutreg.surrogates.nystroem_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/polynomial_bayesian_ridge_sklearn/index.html">multioutreg.surrogates.polynomial_bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/quantile_sklearn/index.html">multioutreg.surrogates.quantile_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/rf_sklearn/index.html">multioutreg.surrogates.rf_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/rfgp_sklearn/index.html">multioutreg.surrogates.rfgp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/sparse_gp_gpytorch/index.html">multioutreg.surrogates.sparse_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/stacked_vfm/index.html">multioutreg.surrogates.stacked_vfm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/svr_sklearn/index.html">multioutreg.surrogates.svr_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/xgboost_sklearn/index.html">multioutreg.surrogates.xgboost_sklearn</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/index.html">multioutreg.time_series</a><input aria-label="Toggle navigation of multioutreg.time_series" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/chronos_adapter/index.html">multioutreg.time_series.chronos_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/cv/index.html">multioutreg.time_series.cv</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/figures/index.html">multioutreg.time_series.figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/financial/index.html">multioutreg.time_series.financial</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/lag_features/index.html">multioutreg.time_series.lag_features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/lag_forecaster/index.html">multioutreg.time_series.lag_forecaster</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/metrics/index.html">multioutreg.time_series.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/neuralforecast_adapter/index.html">multioutreg.time_series.neuralforecast_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/prophet_adapter/index.html">multioutreg.time_series.prophet_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/seasonality/index.html">multioutreg.time_series.seasonality</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/surrogate_forecaster/index.html">multioutreg.time_series.surrogate_forecaster</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/index.html">multioutreg.time_series.ts_dynamic_fit</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/algs/index.html">multioutreg.time_series.ts_dynamic_fit.algs</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.algs" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/algs/arima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.arima</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/algs/lstm/index.html">multioutreg.time_series.ts_dynamic_fit.algs.lstm</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/algs/sarima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.sarima</a></li>
+</ul>
+</li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.data_handling" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/Analyzer/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.Analyzer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/DataProcessor/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.DataProcessor</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/PullData/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.PullData</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/ingest/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.ingest</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/main/index.html">multioutreg.time_series.ts_dynamic_fit.main</a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/index.html">multioutreg.time_series.ts_dynamic_fit.src</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.src" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/ForecastAutoIntervals/index.html">multioutreg.time_series.ts_dynamic_fit.src.ForecastAutoIntervals</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/TSDataLoader/index.html">multioutreg.time_series.ts_dynamic_fit.src.TSDataLoader</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/infer/index.html">multioutreg.time_series.ts_dynamic_fit.src.infer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/ranker/index.html">multioutreg.time_series.ts_dynamic_fit.src.ranker</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/visualize/index.html">multioutreg.time_series.ts_dynamic_fit.src.visualize</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_suitability/index.html">multioutreg.time_series.ts_suitability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/uncertainty/index.html">multioutreg.time_series.uncertainty</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/utils/index.html">multioutreg.utils</a><input aria-label="Toggle navigation of multioutreg.utils" class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/aux_funcs/index.html">multioutreg.utils.aux_funcs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/figure_utils/index.html">multioutreg.utils.figure_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/imputation/index.html">multioutreg.utils.imputation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/metric_utils/index.html">multioutreg.utils.metric_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/pca_utils/index.html">multioutreg.utils.pca_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/surrogate_utils/index.html">multioutreg.utils.surrogate_utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/AUDIT_CHECKLIST.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="statistical-logic-audit-checklist">
+<h1>Statistical / Logic Audit Checklist<a class="headerlink" href="#statistical-logic-audit-checklist" title="Link to this heading">¶</a></h1>
+<p>Audit date: 2026-10-21. Items tagged <strong>[verified]</strong> were reproduced empirically
+(numpy&lt;2, scikit-learn, uncertainty-toolbox 0.1.x); the rest come from code review.</p>
+<section id="critical-results-are-wrong">
+<h2>Critical (results are wrong)<a class="headerlink" href="#critical-results-are-wrong" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>[x] <strong>1. Conformal coverage calibrated and scored on the same test set.</strong>
+<code class="docutils literal notranslate"><span class="pre">mor_cli/grid_search_auto_detect.py</span></code>, <code class="docutils literal notranslate"><span class="pre">multioutreg/gui/pages/01_Use_Auto_Detect_MultiOutput_Regressor.py</span></code>
+called <code class="docutils literal notranslate"><span class="pre">calibrate_conformal(X_test,</span> <span class="pre">y_test)</span></code> and then measured coverage on <code class="docutils literal notranslate"><span class="pre">X_test</span></code>,
+so the reported coverage was in-sample and trivially ~1-alpha.
+<em>Fix:</em> hold out a calibration split from the training data.</p></li>
+<li><p>[x] <strong>2. Most surrogates report std = 0 (including GP).</strong> [verified]
+<code class="docutils literal notranslate"><span class="pre">BaseSurrogate.predict</span></code> called <code class="docutils literal notranslate"><span class="pre">MultiOutputRegressor.predict(X,</span> <span class="pre">return_std=True)</span></code>, which
+raises <code class="docutils literal notranslate"><span class="pre">TypeError</span></code>; the fallback was <code class="docutils literal notranslate"><span class="pre">np.zeros_like</span></code>. GP/SVR/KNN/LR/DT/GB all claimed zero uncertainty.
+<em>Fix:</em> iterate <code class="docutils literal notranslate"><span class="pre">estimators_</span></code> so models with native uncertainty (GP, BayesianRidge, …) report it.</p>
+<ul>
+<li><p>[ ] Follow-up: models with <em>no</em> native uncertainty still return std = 0 (here, in
+<code class="docutils literal notranslate"><span class="pre">AutoDetectMultiOutputRegressor.predict</span></code>, MoE hard routing, BNN with <code class="docutils literal notranslate"><span class="pre">n_mc_samples=1</span></code>).
+<code class="docutils literal notranslate"><span class="pre">NaN</span></code> would be more honest, but the GUI/report feed <code class="docutils literal notranslate"><span class="pre">best_std</span></code> straight into
+uncertainty-toolbox plots, so those need NaN handling first.</p></li>
+</ul>
+</li>
+<li><p>[x] <strong>3. Bootstrap LR resamples X and y with different indices.</strong> [verified]
+<code class="docutils literal notranslate"><span class="pre">multioutreg/model_selection/screening.py</span></code> (<code class="docutils literal notranslate"><span class="pre">_blr</span></code>) – fitted slopes ~0 on y = 3x.</p></li>
+<li><p>[x] <strong>4. <code class="docutils literal notranslate"><span class="pre">get_uq_performance_metrics</span></code> passes args in the wrong order.</strong> [verified]
+<code class="docutils literal notranslate"><span class="pre">multioutreg/performance/metrics.py</span></code> called <code class="docutils literal notranslate"><span class="pre">uct.get_all_metrics(y_true,</span> <span class="pre">y_pred,</span> <span class="pre">y_std)</span></code>;
+the signature is <code class="docutils literal notranslate"><span class="pre">(y_pred,</span> <span class="pre">y_std,</span> <span class="pre">y_true)</span></code>. Unit test mocked uct so never caught it.</p></li>
+<li><p>[x] <strong>5. Joint multi-output candidates (MoE) scored on training data vs CV for everything else.</strong>
+<code class="docutils literal notranslate"><span class="pre">multioutreg/model_selection/auto_detect.py</span></code> compared in-sample MSE to <code class="docutils literal notranslate"><span class="pre">GridSearchCV.best_score_</span></code>.
+<em>Fix:</em> score with out-of-fold predictions on the same CV splitter.</p></li>
+<li><p>[ ] <strong>6. Time-series ranking compares different scales, all in-sample.</strong>
+ARIMA/SARIMA metrics are on the <em>differenced</em> series (in-sample one-step); LSTM on original
+scale (in-sample); <code class="docutils literal notranslate"><span class="pre">Ranker</span></code> averages ranks across these.
+<em>Fix:</em> hold out last H points, forecast every model on the original scale, then rank
+(optionally Diebold–Mariano). <strong>Open decision: holdout size H.</strong> Full writeup:
+Appendix A.</p></li>
+</ul>
+</section>
+<section id="high-wrong-statistics-assumptions">
+<h2>High (wrong statistics / assumptions)<a class="headerlink" href="#high-wrong-statistics-assumptions" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>[x] <strong>1b. Multi-fidelity page had the same conformal bug as item 1.</strong>
+<code class="docutils literal notranslate"><span class="pre">gui/pages/02_Multi_Fidelity_Surrogate_Models.py</span></code> calibrated on test-set residuals and scored
+coverage on the same test set. Now calibrates on a held-out part of the hi-fi training split.</p></li>
+<li><p>[x] <strong>1c. Multi-fidelity page selected the best model by test-set MSE</strong>, then reported metrics on
+that same test set (optimistic). Now <code class="docutils literal notranslate"><span class="pre">_select_best_candidate</span></code> scores candidates by
+cross-validation over the hi-fi training rows, with the CV scheme chosen from their count
+(<code class="docutils literal notranslate"><span class="pre">select_cv_strategy</span></code>); the winner is refit on all training data and evaluated once on the
+test set.</p>
+<ul>
+<li><p>Also fixed: “MultiFidelity+…” candidates were scored with their <em>lowest</em>-fidelity model,
+because <code class="docutils literal notranslate"><span class="pre">MultiFidelitySurrogate.predict</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">fidelity_levels[0]</span></code> and the page passed
+no <code class="docutils literal notranslate"><span class="pre">level</span></code> (same for conformal calibration). The page now calls <code class="docutils literal notranslate"><span class="pre">_predict_highest</span></code>.</p></li>
+<li><p>[ ] Follow-up: the library default (<code class="docutils literal notranslate"><span class="pre">level=None</span></code> → lowest) is a trap for other callers;
+consider defaulting to the highest level or making <code class="docutils literal notranslate"><span class="pre">level</span></code> required.</p></li>
+</ul>
+</li>
+<li><p>[x] <strong>7. “Std” is actually an interval half-width.</strong> <code class="docutils literal notranslate"><span class="pre">screening.py</span></code> <code class="docutils literal notranslate"><span class="pre">_GBQ</span></code> [verified: 1.53 vs true 1.0],
+<code class="docutils literal notranslate"><span class="pre">gui/Grid_Search_Surrogate_Models.py</span></code> (<code class="docutils literal notranslate"><span class="pre">GradientBoostingWithUncertainty</span></code>),
+<code class="docutils literal notranslate"><span class="pre">ConformalPredictionNetworkSurrogate</span></code> (90% |residual| quantile). Divide by <code class="docutils literal notranslate"><span class="pre">2*norm.ppf(1-alpha/2)</span></code>.
+<em>Done:</em> all three now divide by the matching z (and clip at 0 for crossed quantiles).</p></li>
+<li><p>[x] <strong>8. Conformal quantile clamps to max residual when n_cal is too small.</strong> [verified]
+<code class="docutils literal notranslate"><span class="pre">conformal/base.py</span></code> – when ceil((n+1)(1-alpha)) &gt; n the interval should be infinite (or warn).
+Consider <code class="docutils literal notranslate"><span class="pre">method=&quot;higher&quot;</span></code> for the exact order statistic.
+<em>Done:</em> returns <code class="docutils literal notranslate"><span class="pre">inf</span></code> with a warning when k &gt; n; uses the exact k-th order statistic. The two
+copies in <code class="docutils literal notranslate"><span class="pre">figures/conformal_plots.py</span></code> now use the shared function, and the ordered-interval
+plot labels unbounded intervals.</p></li>
+<li><p>[x] <strong>9. <code class="docutils literal notranslate"><span class="pre">CVPlusConformalPredictor</span></code> is not CV+.</strong> Uses mean(fold preds) ± quantile(OOF residuals).
+True CV+ (Barber et al.) uses per-point quantiles of {mu_{-k(i)}(x) ± R_i}; guarantee is 1-2alpha.
+Implement properly or rename and drop the guarantee claim.
+<em>Done:</em> real CV+ (per-point order statistics); docstring states the 1-2alpha guarantee.</p></li>
+<li><p>[x] <strong>10. Normality tested on raw y, not residuals.</strong> [verified] <code class="docutils literal notranslate"><span class="pre">screening.py</span></code> <code class="docutils literal notranslate"><span class="pre">test_normality</span></code>.
+<em>Done:</em> <code class="docutils literal notranslate"><span class="pre">test_normality(X,</span> <span class="pre">y)</span></code> now tests OLS residuals (uniform X with y = 5x: raw y p &lt; 1e-4,
+residuals pass).</p></li>
+<li><p>[x] <strong>11. No multiple-testing correction in screening.</strong> 3 tests × n_outputs at alpha=0.05, OR’ed
+together. Use Holm / Benjamini–Hochberg.
+<em>Done:</em> <code class="docutils literal notranslate"><span class="pre">ModelScreener(correction=&quot;holm&quot;</span> <span class="pre">|</span> <span class="pre">&quot;bh&quot;</span> <span class="pre">|</span> <span class="pre">None)</span></code> adjusts the normality / RESET / BP
+p-values of all outputs jointly (default Holm), stores <code class="docutils literal notranslate"><span class="pre">p_adjusted</span></code> and flips FAIL→PASS when
+only the raw p was significant. Pure noise, 5 outputs, 40 runs: any-flag rate 20/40 → 3/40.</p></li>
+<li><p>[x] <strong>12. Breusch-Pagan confounded by mean misspecification.</strong> Run after a flexible fit or only when RESET passes.
+<em>Done:</em> BP only runs when RESET passes; otherwise it is reported as “not tested” (FAIL, p=None,
+excluded from the correction) so heteroscedastic models are kept rather than ruled out.
+Flexible fits were tried first and rejected: on constant-noise data with OOF residuals from RF,
+HistGB, splines or nearest-neighbour differences, BP falsely rejected 15–95% of the time
+whenever d &gt; 1, because residual bias also varies with x.</p></li>
+<li><p>[x] <strong>13. Screening inconsistencies.</strong> VIF never used; <code class="docutils literal notranslate"><span class="pre">screen()</span></code> ignores <code class="docutils literal notranslate"><span class="pre">nonlinear_dep</span></code>;
+rule keys mismatch model names (<code class="docutils literal notranslate"><span class="pre">sgp</span></code> vs <code class="docutils literal notranslate"><span class="pre">sgpr</span></code>; <code class="docutils literal notranslate"><span class="pre">et</span></code>, <code class="docutils literal notranslate"><span class="pre">nystroem_gp</span></code>, <code class="docutils literal notranslate"><span class="pre">elastic_net</span></code>, <code class="docutils literal notranslate"><span class="pre">lasso</span></code>,
+<code class="docutils literal notranslate"><span class="pre">quantile</span></code>, <code class="docutils literal notranslate"><span class="pre">ngboost</span></code>, <code class="docutils literal notranslate"><span class="pre">catboost</span></code> default to True); <code class="docutils literal notranslate"><span class="pre">pre_screen=True</span></code> silently ignored unless
+built via <code class="docutils literal notranslate"><span class="pre">with_vendored_surrogates()</span></code>.
+<em>Done:</em> VIF failure adds BayesianRidge to <code class="docutils literal notranslate"><span class="pre">screen()</span></code> and notes it on LinearRegression;
+<code class="docutils literal notranslate"><span class="pre">screen()</span></code> includes the RF–LR gain test. Rules now use canonical keys plus aliases
+(<code class="docutils literal notranslate"><span class="pre">gpr</span></code>, <code class="docutils literal notranslate"><span class="pre">ngb</span></code>, GUI <code class="docutils literal notranslate"><span class="pre">sgp</span></code> = Nystroem, the <code class="docutils literal notranslate"><span class="pre">screen()</span></code> long names), covering every CLI/GUI name:
+<code class="docutils literal notranslate"><span class="pre">et</span></code>/<code class="docutils literal notranslate"><span class="pre">catboost</span></code> gated on non-linearity, <code class="docutils literal notranslate"><span class="pre">ngboost</span></code> on non-linearity or heteroscedasticity,
+<code class="docutils literal notranslate"><span class="pre">quantile</span></code> on non-normal residuals, scalable GPs (<code class="docutils literal notranslate"><span class="pre">nystroem_gp</span></code>, <code class="docutils literal notranslate"><span class="pre">sgpr</span></code>) and regularised linear
+models always eligible. Unknown names warn. <code class="docutils literal notranslate"><span class="pre">pre_screen</span></code> on a custom estimator list maps class
+names to rules, and falls back to all candidates if screening rules out every one.</p></li>
+<li><p>[x] <strong>14. MoE “EM” never looks at expert fit.</strong> Labels are reassigned from the gating net’s own
+<code class="docutils literal notranslate"><span class="pre">predict_proba</span></code>. Reassign by per-sample expert residual/likelihood. Soft-routing std omits
+within-expert variance (law of total variance).
+<em>Done:</em> E-step assigns argmax_k log π_k(x) + log N(y | μ_k(x), σ²) (σ² per output, pooled).
+Two linear experts on y = 3|x| now find the kink in 8/8 seeds (was 1/5). Also fixed:
+random-label init made the experts near-identical, so one took every sample; now k-means on
+standardised (X, Y), and an emptied expert is re-seeded with the worst-fit samples instead of
+refit on everything. Soft std = sqrt(Σ w_k (σ_k² + (μ_k − μ)²)); hard routing returns the
+chosen expert’s std instead of 0.</p></li>
+<li><p>[x] <strong>15. Unscaled features &amp; weak GP defaults in model selection.</strong> Wrap SVR/KNN/MLP/GP/Lasso in
+<code class="docutils literal notranslate"><span class="pre">Pipeline(StandardScaler(),</span> <span class="pre">...)</span></code>. Default <code class="docutils literal notranslate"><span class="pre">GaussianProcessRegressor()</span></code> (alpha=1e-10, no WhiteKernel,
+no <code class="docutils literal notranslate"><span class="pre">normalize_y</span></code>) collapsed to <code class="docutils literal notranslate"><span class="pre">RBF(1e-5)</span></code> on noisy data [verified]. ARD GP lacks amplitude term.
+<em>Done:</em> <code class="docutils literal notranslate"><span class="pre">BaseSurrogate(scale_inputs=...)</span></code>; GP, SVR, KNN, CPN (MLP), Lasso and ElasticNet
+surrogates default to <code class="docutils literal notranslate"><span class="pre">scale_inputs=True</span></code>, and AutoDetect grid-searches the same models as
+scaler pipelines (grid keys are un-prefixed before building the surrogate). GP defaults to
+<code class="docutils literal notranslate"><span class="pre">C·RBF</span> <span class="pre">+</span> <span class="pre">White</span></code> with <code class="docutils literal notranslate"><span class="pre">normalize_y=True</span></code> (<code class="docutils literal notranslate"><span class="pre">gp_sklearn.default_gp_kernel</span></code>); AutoDetect searches
+RBF vs Matern-5/2. On the verified case: test MSE 6.2 → 0.03. ARD GP is now <code class="docutils literal notranslate"><span class="pre">C·ARD-RBF</span> <span class="pre">+</span> <span class="pre">White</span></code>
+on standardised inputs with <code class="docutils literal notranslate"><span class="pre">normalize_y</span></code>. Screening factories use the same.</p>
+<ul>
+<li><p>[ ] Follow-up: RFF / Nystroem GP grids (<code class="docutils literal notranslate"><span class="pre">length_scale</span></code>, <code class="docutils literal notranslate"><span class="pre">gamma</span></code>) are still in raw input units.</p></li>
+</ul>
+</li>
+<li><p>[x] <strong>16. Model-selection statistics.</strong> <code class="docutils literal notranslate"><span class="pre">GridSearchCV(cv=int)</span></code> is unshuffled KFold; winner’s
+<code class="docutils literal notranslate"><span class="pre">best_score_</span></code> is optimistically biased (no nested CV); no test of meaningful difference
+(1-SE rule / Nadeau–Bengio). <code class="docutils literal notranslate"><span class="pre">mlp</span></code> scored as MLPRegressor on 100% but deployed as
+<code class="docutils literal notranslate"><span class="pre">ConformalPredictionNetworkSurrogate</span></code> on 80%.
+<em>Done:</em> int <code class="docutils literal notranslate"><span class="pre">cv</span></code> → <code class="docutils literal notranslate"><span class="pre">KFold(shuffle=True,</span> <span class="pre">random_state=0)</span></code>, one split list shared by every
+candidate (incl. joint MoE/BNN). <code class="docutils literal notranslate"><span class="pre">selection_scores_</span></code> records each candidate’s mean CV score and
+Nadeau–Bengio corrected SE per output. <code class="docutils literal notranslate"><span class="pre">selection=&quot;one_se&quot;</span></code> picks the least complex candidate
+within 1 SE of the best (default stays <code class="docutils literal notranslate"><span class="pre">&quot;best&quot;</span></code>). <code class="docutils literal notranslate"><span class="pre">mlp</span></code> is grid-searched as <code class="docutils literal notranslate"><span class="pre">_CPNEstimator</span></code>, i.e.
+the deployed CPN with the same <code class="docutils literal notranslate"><span class="pre">random_state</span></code>. Not done: nested CV — the docstring says the
+winner’s CV score is optimistic; the CLI and GUI already report metrics on a held-out test set.</p></li>
+<li><p>[x] <strong>17. Imputation leaks targets.</strong> <code class="docutils literal notranslate"><span class="pre">grid_search_auto_detect.py</span></code> KNN-imputes inputs <em>and outputs</em>
+on the full frame before the split. Split first; impute X on train only; drop rows with missing y.
+<em>Done:</em> new <code class="docutils literal notranslate"><span class="pre">drop_unusable_rows</span></code> (before the split: rows missing a target or a “drop” column)
+and <code class="docutils literal notranslate"><span class="pre">impute_train_test</span></code> (after the split: KNN fitted on training inputs only, using all input
+columns) in <code class="docutils literal notranslate"><span class="pre">utils/imputation.py</span></code>. Used by both CLI commands, the main app, page 01 and page 02
+(per fidelity level, which previously also mixed levels). <code class="docutils literal notranslate"><span class="pre">apply_imputation</span></code> is no longer called.</p></li>
+<li><p>[x] <strong>18. PCA Kaiser rule on unscaled data.</strong> Four copies of the PCA block (<code class="docutils literal notranslate"><span class="pre">mor_cli/grid_search.py</span></code>,
+<code class="docutils literal notranslate"><span class="pre">mor_cli/grid_search_auto_detect.py</span></code>, <code class="docutils literal notranslate"><span class="pre">gui/Grid_Search_Surrogate_Models.py</span></code>, GUI page 01) ran PCA
+on raw inputs, so “eigenvalue &gt; 1” depended on the inputs’ units. All four now call
+<code class="docutils literal notranslate"><span class="pre">multioutreg/utils/pca_utils.py::fit_input_pca</span></code>, which fits <code class="docutils literal notranslate"><span class="pre">StandardScaler</span></code> + PCA on train only
+and clips k to <code class="docutils literal notranslate"><span class="pre">[1,</span> <span class="pre">n_features]</span></code> (a manual k or a threshold of 1.0 could exceed it before).</p></li>
+</ul>
+</section>
+<section id="medium">
+<h2>Medium<a class="headerlink" href="#medium" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>[x] <strong>19. KS sampling-method detector</strong> (<code class="docutils literal notranslate"><span class="pre">mor_cli/use_ks_for_sample_bias.py</span></code>): sums per-dim D,
+no p-values, single unseeded draw, marginal KS can’t separate LHS vs random, grid uses cbrt(n)
+for any d, beta grid ignores loc. Use <code class="docutils literal notranslate"><span class="pre">qmc.discrepancy</span></code> / NN-distance stats vs a simulated null.
+<em>Done:</em> new shared detector <code class="docutils literal notranslate"><span class="pre">multioutreg/sampling/detect.py::detect_sampling_method</span></code>. It computes
+stratum occupancy, centered L2 discrepancy (<code class="docutils literal notranslate"><span class="pre">qmc.discrepancy</span></code>, n ≤ 1000) and mean NN distance,
+and compares them with the same statistics on designs simulated by Random / LHS / Sobol
+(Sobol + Halton) of the same n and d. The statistics are combined into one Mahalanobis distance
+and a Monte Carlo p-value per method; the method with the highest p wins, or “Uncertain” if
+all p &lt; 0.05. <code class="docutils literal notranslate"><span class="pre">n_sim</span></code> is 199 / 99 / 49 depending on n, so the smallest attainable p is always
+&lt; 0.05. Grids are recognised by structure (few levels per input; full factorial, including
+when extra columns are derived features), and unscrambled Sobol / Halton by exact match.
+<code class="docutils literal notranslate"><span class="pre">compare_sample_methods</span></code> now maps inputs through their YAML CDFs (probability integral
+transform) and runs the detector on known bounds, so any marginal works. It reports a per-input
+KS test with p-values as a check of the YAML marginals only, and has <code class="docutils literal notranslate"><span class="pre">--seed</span></code>. Generators take an
+<code class="docutils literal notranslate"><span class="pre">rng</span></code>; grid levels are <code class="docutils literal notranslate"><span class="pre">floor(m^(1/d))</span></code> at equal-probability stratum centres; beta uses <code class="docutils literal notranslate"><span class="pre">loc</span></code>; and
+YAML <code class="docutils literal notranslate"><span class="pre">&quot;None&quot;</span></code> strings are read as missing. Validation (10 seeded designs per cell, n ∈ {20, 100, 300},
+d ∈ {2, 5, 10}): see item 20.</p></li>
+<li><p>[x] <strong>20. UMAP sampling classifier</strong>: ad-hoc absolute thresholds on UMAP distances;
+<code class="docutils literal notranslate"><span class="pre">generate_umap_plot(None)</span></code> fabricates random data. Label as heuristic; validate.
+<em>Done:</em> the thresholds are gone. <code class="docutils literal notranslate"><span class="pre">generate_umap_plot</span></code> (figures + the duplicate in
+<code class="docutils literal notranslate"><span class="pre">report_plotting_utils</span></code>), <code class="docutils literal notranslate"><span class="pre">infer_sampling_and_plot_umap</span></code> and the <code class="docutils literal notranslate"><span class="pre">detect_sampling</span></code> CLI take the
+method from <code class="docutils literal notranslate"><span class="pre">detect_sampling_method</span></code>. UMAP is now only the picture: it does not preserve
+distances, so its embedding cannot separate designs. <code class="docutils literal notranslate"><span class="pre">None</span></code> / empty input raises <code class="docutils literal notranslate"><span class="pre">ValueError</span></code>;
+fewer than 4 points gives “Uncertain” in the plot caption, and fewer than 10 points skips the MC
+test (“Uncertain”). The KMeans coloring was dropped.
+Validation (inputs rescaled to an arbitrary box, default <code class="docutils literal notranslate"><span class="pre">n_sim</span></code>, 10 seeds per cell,
+n ∈ {20, 100, 300} × d ∈ {2, 5, 10}, 90 designs per row): Random 85/90, LHS 81/90,
+scrambled Sobol 86/90, Halton → “Sobol” 77/90, normal inputs → “Uncertain” 71/90. At n ≥ 100 every
+cell is ≥ 8/10, and most misses are “Uncertain” (about alpha = 5%). At n = 20, normal inputs are
+often called “Random” (power is low) and Halton in d = 10 is 4/10. The old UMAP rules had no
+validation; on the repo’s example datasets they called the LHS file “not LHS” (E9).</p>
+<ul>
+<li><p>[ ] Follow-up: designs with non-uniform marginals (e.g. LHS of normals) are “Uncertain” unless
+the marginals are supplied (<code class="docutils literal notranslate"><span class="pre">compare_sample_methods</span></code>), and the reports test <code class="docutils literal notranslate"><span class="pre">X_train</span></code> after
+the split / imputation / PCA, which hides a true LHS. Plan:
+Appendix B.</p></li>
+</ul>
+</li>
+<li><p>[x] <strong>21. <code class="docutils literal notranslate"><span class="pre">ts_suitability.py</span></code></strong>: Ljung-Box on levels (trend ⇒ “suitable”); “seasonal period” = first
+lag with |ACF|&gt;0.3 (returns 2 for any persistent series); add KPSS alongside ADF.
+<em>Done:</em> KPSS (level) runs alongside ADF; the series is stationary only when ADF rejects and KPSS
+does not. Otherwise Ljung-Box runs on the first differences (new key <code class="docutils literal notranslate"><span class="pre">tested_on</span></code>), so a random
+walk is no longer “suitable” (its increments are white noise). The season comes from the new
+shared <code class="docutils literal notranslate"><span class="pre">multioutreg/time_series/seasonality.py::detect_seasonal_period</span></code>: the highest local ACF peak
+at lag ≥ 2 above max(0.3, 1.96/√n), with a dip before it, preferring the smallest such peak
+within 80% of the best (not a multiple of the period). Non-stationary series are scanned on the
+linearly detrended levels, then on the differences. Validation (50 seeds, n = 200–240): white
+noise, trends, random walks with and without drift → no period (random walk 48/50); AR(0.9) 47/50
+none (was always 2); s = 7 → 50/50; trend + s = 12 → 50/50; random walk + s = 7 → 50/50.
+New keys <code class="docutils literal notranslate"><span class="pre">kpss_statistic</span></code>, <code class="docutils literal notranslate"><span class="pre">kpss_pvalue</span></code>; the existing keys are unchanged.</p></li>
+<li><p>[x] <strong>22. SARIMA <code class="docutils literal notranslate"><span class="pre">detect_seasonal_period</span></code></strong> includes lag 1 ⇒ s=1 for almost any series.
+<em>Done:</em> delegates to the shared detector above (returns 0 when there is no season, as before).
+When s &lt; 2 the grid only tries P = Q = 0: seasonal terms with s &lt; 2 always failed in statsmodels,
+so 12 of the 16 fits were wasted.</p></li>
+<li><p>[ ] <strong>23. ARIMA/SARIMA “MAPE” is |mean signed % error|</strong> — use <code class="docutils literal notranslate"><span class="pre">mean(abs(...))</span></code>.</p></li>
+<li><p>[ ] <strong>24. ARIMA differencing loop</strong> has no max d; forecasts/intervals on differenced scale.
+Fit <code class="docutils literal notranslate"><span class="pre">ARIMA(p,d,q)</span></code> directly.</p></li>
+<li><p>[ ] <strong>25. <code class="docutils literal notranslate"><span class="pre">ForecastAutoIntervals</span></code></strong>: quantile branch changes <code class="docutils literal notranslate"><span class="pre">quantile</span></code> without refitting
+(lower = mean = upper); bootstrap branch uses in-sample residuals and ignores horizon growth.</p></li>
+<li><p>[x] <strong>26. <code class="docutils literal notranslate"><span class="pre">time_series/metrics.py</span></code></strong>: <code class="docutils literal notranslate"><span class="pre">mase</span></code> denominator should use the training series;
+<code class="docutils literal notranslate"><span class="pre">weighted_quantile_loss</span></code> is mean pinball, not Chronos WQL (2·Σpinball/Σ|y|).
+<em>Done:</em> <code class="docutils literal notranslate"><span class="pre">mase(y_true,</span> <span class="pre">y_pred,</span> <span class="pre">y_train,</span> <span class="pre">seasonality=1)</span></code> scales by the in-sample seasonal-naive
+MAE of <code class="docutils literal notranslate"><span class="pre">y_train</span></code> (finite for a 1-step window; raises if <code class="docutils literal notranslate"><span class="pre">y_train</span></code> has ≤ m points).
+<code class="docutils literal notranslate"><span class="pre">weighted_quantile_loss</span></code> now returns the mean over levels of 2·Σpinball/Σ|y|.</p></li>
+<li><p>[x] <strong>27. Epistemic-only uncertainty</strong> (RF/ET spread, MSE deep ensemble, MC-dropout): no aleatoric
+term ⇒ under-coverage. <code class="docutils literal notranslate"><span class="pre">_EHet</span></code> is not heteroscedastic. Document, add NLL heads, or conformalize.
+<em>Done:</em> <code class="docutils literal notranslate"><span class="pre">DeepEnsembleSurrogate</span></code> and <code class="docutils literal notranslate"><span class="pre">BNNSurrogate</span></code> take <code class="docutils literal notranslate"><span class="pre">loss=&quot;nll&quot;</span></code> (new default): each network
+has a mean and a softplus variance head trained on the Gaussian NLL, and the std is that of the
+equal-weight mixture, sqrt(mean noise var + var of the member / MC-pass means) (Lakshminarayanan
+2017; Kendall &amp; Gal 2017). <code class="docutils literal notranslate"><span class="pre">loss=&quot;mse&quot;</span></code> keeps the old epistemic-only spread, documented as
+under-covering. RF / ET (<code class="docutils literal notranslate"><span class="pre">RandomForestSurrogate</span></code>, <code class="docutils literal notranslate"><span class="pre">ExtraTreesRegressorSurrogate</span></code>, the grid-search
+<code class="docutils literal notranslate"><span class="pre">*WithUncertainty</span></code> wrappers and the RF interval plots in <code class="docutils literal notranslate"><span class="pre">figures/confidence_intervals.py</span></code>) now
+share <code class="docutils literal notranslate"><span class="pre">surrogates/forest_uncertainty.py</span></code>: std = sqrt(tree var(x) + c), where c = max(held-out
+MSE − mean held-out tree var, 0) per output, held-out = out-of-bag trees (RF) or 5-fold refits
+(ET, <code class="docutils literal notranslate"><span class="pre">bootstrap=False</span></code>). This makes the mean predicted variance match the held-out MSE; c is
+constant in x and smaller than the noise variance, because fully grown trees already fit some of
+the noise. <code class="docutils literal notranslate"><span class="pre">include_noise=False</span></code> returns the spread alone. <code class="docutils literal notranslate"><span class="pre">_EHet</span></code> keeps its bootstrap-RF spread
+and adds an RF noise model fitted on out-of-bag <code class="docutils literal notranslate"><span class="pre">r²</span> <span class="pre">−</span> <span class="pre">v</span></code>, so its std follows the noise.
+Validation (n_train = 400, d = 3, test n = 3000, two outputs: noise 0.1–0.6 and 0.3, two seeds),
+coverage of 90% Gaussian intervals before → after: deep ensemble 0.14–0.22 → 0.80–0.87,
+MC-dropout 0.34–0.43 → 0.92–0.95, <code class="docutils literal notranslate"><span class="pre">_EHet</span></code> 0.40–0.47 → 0.88–0.93, RF 0.80–0.86 → 0.86–0.92,
+ET 0.80–0.86 → 0.85–0.92. Correlation of predicted std with the true noise std: 0.97 (deep
+ensemble), 0.94 (MC-dropout), 0.95 (<code class="docutils literal notranslate"><span class="pre">_EHet</span></code>). Tests: coverage and heteroscedasticity tests
+in <code class="docutils literal notranslate"><span class="pre">tests/unit/surrogates/test_{rf,extra_trees}_sklearn.py</span></code>, <code class="docutils literal notranslate"><span class="pre">test_{bnn,deep_ensemble}_pytorch.py</span></code>,
+<code class="docutils literal notranslate"><span class="pre">tests/unit/model_selection/test_screening.py</span></code>, <code class="docutils literal notranslate"><span class="pre">tests/unit/gui/test_Grid_Search_Surrogate_Models.py</span></code>.</p></li>
+<li><p>[x] <strong>28. Multi-fidelity</strong>: <code class="docutils literal notranslate"><span class="pre">MultiFidelitySurrogate</span></code> is independent per-level models;
+<code class="docutils literal notranslate"><span class="pre">StackedVFM</span></code> augments with in-sample lower-level preds (use OOF); <code class="docutils literal notranslate"><span class="pre">AdditiveCorrectionVFM</span></code> fixes rho=1.
+<em>Done:</em> <code class="docutils literal notranslate"><span class="pre">StackedVFMSurrogate</span></code> (new <code class="docutils literal notranslate"><span class="pre">oof_cv=5</span></code>, <code class="docutils literal notranslate"><span class="pre">random_state=0</span></code>) trains each level on out-of-fold
+lower-level predictions at inputs that are also lower-level training points (nested designs);
+other inputs, and <code class="docutils literal notranslate"><span class="pre">predict</span></code>, use the full models. Duplicate rows share a fold, and fold models
+are fitted only when inputs overlap and are dropped after <code class="docutils literal notranslate"><span class="pre">fit</span></code>. <code class="docutils literal notranslate"><span class="pre">AdditiveCorrectionVFM</span></code> is now
+Kennedy-O’Hagan AR1: <code class="docutils literal notranslate"><span class="pre">f_hi</span> <span class="pre">=</span> <span class="pre">rho</span> <span class="pre">*</span> <span class="pre">f_lo</span> <span class="pre">+</span> <span class="pre">delta</span></code>, with <code class="docutils literal notranslate"><span class="pre">rho=&quot;fit&quot;</span></code> (default) the per-output OLS
+slope of <code class="docutils literal notranslate"><span class="pre">Y_hi</span></code> on out-of-fold <code class="docutils literal notranslate"><span class="pre">f_lo(X_hi)</span></code> (falls back to 1 if <code class="docutils literal notranslate"><span class="pre">f_lo</span></code> is constant there) or a
+fixed number (<code class="docutils literal notranslate"><span class="pre">rho=1.0</span></code> is the old model). Std is <code class="docutils literal notranslate"><span class="pre">sqrt(rho^2</span> <span class="pre">s_lo^2</span> <span class="pre">+</span> <span class="pre">s_delta^2)</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">predict_components</span></code> returns <code class="docutils literal notranslate"><span class="pre">(rho</span> <span class="pre">*</span> <span class="pre">f_lo,</span> <span class="pre">delta)</span></code>. <code class="docutils literal notranslate"><span class="pre">MultiFidelitySurrogate</span></code> stays the uncoupled
+baseline (auto-detect uses it as a single-level container); its docstring now says so and
+points to the coupled models. The MF GUI page also offers <code class="docutils literal notranslate"><span class="pre">AdditiveVFM+&lt;base&gt;+rho1</span></code>.
+Simulation (12 seeds, 120 lo / 25 nested hi points, GP correction): with near-noise-free lo data OOF
+costs a little (stacked GP-lo MSE 0.0006 → 0.0008) and fitted rho cuts AR1 error ~3× with a GP lo
+model (0.0018 → 0.0005). With noisy lo data (σ=0.5) OOF helps (stacked RF 0.17 → 0.12), and
+fitted rho without OOF breaks (GP-lo MSE 2.48 vs 0.057 with OOF). With an RF lo model, fitted rho
+is worse than rho=1 (it scales up RF’s smoothing error), hence the <code class="docutils literal notranslate"><span class="pre">+rho1</span></code> GUI candidate.
+Tests: <code class="docutils literal notranslate"><span class="pre">tests/unit/surrogates/test_multi_fidelity_fixes.py</span></code>.</p></li>
+<li><p>[x] <strong>29. <code class="docutils literal notranslate"><span class="pre">metrics_generalized_api.py</span></code></strong>: <code class="docutils literal notranslate"><span class="pre">return_std</span></code> branch runs even when already <code class="docutils literal notranslate"><span class="pre">tried</span></code>;
+<code class="docutils literal notranslate"><span class="pre">predict_var</span></code> branch never sets <code class="docutils literal notranslate"><span class="pre">tried=True</span></code>; “overall” metrics flatten mixed-unit outputs.
+<em>Done:</em> <code class="docutils literal notranslate"><span class="pre">get_uq_performance_metrics_flexible</span></code> now uses <code class="docutils literal notranslate"><span class="pre">_predict_with_uncertainty</span></code> (the requested
+API first, then return_std → return_cov → predict_std → predict_var) instead of its own copy, so
+a successful per-estimator <code class="docutils literal notranslate"><span class="pre">MultiOutputRegressor</span></code> pass is never overwritten and each API is
+called at most once. A plain model with <code class="docutils literal notranslate"><span class="pre">return_std</span></code> (e.g. sklearn GP) no longer raises when no
+method is given. “Overall” metrics are computed after dividing each output by the std of its
+<code class="docutils literal notranslate"><span class="pre">y_test</span></code> column (documented; they are now in std units and do not change when one output’s units
+change). Also fixed: <code class="docutils literal notranslate"><span class="pre">return_cov</span></code> misread sklearn’s multi-target <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">n,</span> <span class="pre">n_targets)</span></code> covariance.
+Tests: <code class="docutils literal notranslate"><span class="pre">tests/unit/performance/test_metrics_generalized_fixes.py</span></code>, and for 21–22
+<code class="docutils literal notranslate"><span class="pre">tests/unit/time_series/test_seasonality.py</span></code>.</p></li>
+<li><p>[x] <strong>29b. Grid-search app / <code class="docutils literal notranslate"><span class="pre">grid-search</span></code> CLI select on the test set.</strong>
+<code class="docutils literal notranslate"><span class="pre">gui/Grid_Search_Surrogate_Models.py</span></code> and <code class="docutils literal notranslate"><span class="pre">mor_cli/grid_search.py</span></code> pick the combo with the lowest
+<code class="docutils literal notranslate"><span class="pre">mean_squared_error(y_test,</span> <span class="pre">pred)</span></code> and then report metrics on that same test set (as 1c). They
+also build SVR/KNN/GP/Lasso/ElasticNet directly from sklearn classes, so item 15’s scaling and GP
+kernel fixes do not reach them (<code class="docutils literal notranslate"><span class="pre">gpr</span></code> grid: RBF / Matern with alpha=1e-4, no amplitude).
+Found while fixing: the “grid search” never searched. <code class="docutils literal notranslate"><span class="pre">ParameterGrid({&quot;combos&quot;:</span> <span class="pre">[configs]</span> <span class="pre">*</span> <span class="pre">n})</span></code>
+treats the list as values of one key, so every iteration got the whole config list and
+<code class="docutils literal notranslate"><span class="pre">combo[:n_outputs]</span></code> was always the first n configs: every output got GP-RBF, nothing else ran.
+The GUI conformal block also calibrated on test residuals and scored coverage on them (item 1).
+<em>Done:</em> both now use <code class="docutils literal notranslate"><span class="pre">grid_search_core.default_surrogate_defs()</span></code> (one list; the CLI had drifted
+and lacked et/svr/dt/cpn/ngb) and <code class="docutils literal notranslate"><span class="pre">select_per_target()</span></code>: each config is scored per output on a
+20% validation split of the training data, winners are refit on all training data, the test
+set is used once for metrics. MoE replaces the per-output winners only if its validation MSE is
+lower. GP/KNN/SVR/ElasticNet/Lasso are scaled pipelines; GP uses <code class="docutils literal notranslate"><span class="pre">C·RBF</span> <span class="pre">+</span> <span class="pre">White</span></code> / Matern.
+<code class="docutils literal notranslate"><span class="pre">mfs_lr</span></code> (could never fit: <code class="docutils literal notranslate"><span class="pre">fit((X,</span> <span class="pre">y))</span></code>) replaced by a plain <code class="docutils literal notranslate"><span class="pre">linear</span></code> baseline. GUI conformal
+holds out a calibration split from training, as on page 01. On
+<code class="docutils literal notranslate"><span class="pre">example_dataset_3_outputs.csv</span></code>: test R² 0.91 / 0.82 / 0.86 (old, always GP-RBF) →
+0.98 / 1.00 / 1.00 (ARD GP chosen per output). The Streamlit app itself was not run.</p></li>
+</ul>
+</section>
+<section id="low-hygiene">
+<h2>Low / hygiene<a class="headerlink" href="#low-hygiene" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>[ ] <strong>30.</strong> Module-level <code class="docutils literal notranslate"><span class="pre">warnings.filterwarnings(&quot;ignore&quot;)</span></code> in <code class="docutils literal notranslate"><span class="pre">screening.py</span></code>, <code class="docutils literal notranslate"><span class="pre">arima.py</span></code>,
+<code class="docutils literal notranslate"><span class="pre">sarima.py</span></code>, <code class="docutils literal notranslate"><span class="pre">DataProcessor.py</span></code> — scope with <code class="docutils literal notranslate"><span class="pre">warnings.catch_warnings()</span></code>.</p></li>
+<li><p>[ ] <strong>31.</strong> <code class="docutils literal notranslate"><span class="pre">confidence_intervals.py</span></code> estimates z by Monte Carlo — use <code class="docutils literal notranslate"><span class="pre">norm.ppf</span></code>.</p></li>
+<li><p>[ ] <strong>32.</strong> Chronos-Bolt silently drops quantiles outside 0.1–0.9; median fallback is a mean.</p></li>
+<li><p>[ ] <strong>33.</strong> <code class="docutils literal notranslate"><span class="pre">conditional_coverage</span></code> bins on y_true; condition on X or predicted width instead.</p></li>
+<li><p>[x] <strong>34.</strong> <code class="docutils literal notranslate"><span class="pre">AutoDetect</span></code> private attrs (<code class="docutils literal notranslate"><span class="pre">_model_names</span></code>, <code class="docutils literal notranslate"><span class="pre">_surrogate_constructors</span></code>) are lost by <code class="docutils literal notranslate"><span class="pre">sklearn.clone</span></code>.
+Worse in practice: <code class="docutils literal notranslate"><span class="pre">clone</span></code> raised <code class="docutils literal notranslate"><span class="pre">RuntimeError</span></code> because <code class="docutils literal notranslate"><span class="pre">__init__</span></code> rewrapped <code class="docutils literal notranslate"><span class="pre">estimators</span></code> /
+<code class="docutils literal notranslate"><span class="pre">param_spaces</span></code> in <code class="docutils literal notranslate"><span class="pre">list()</span></code>. They are now stored as given, and <code class="docutils literal notranslate"><span class="pre">__sklearn_clone__</span></code> carries
+<code class="docutils literal notranslate"><span class="pre">_model_names</span></code>, <code class="docutils literal notranslate"><span class="pre">_surrogate_constructors</span></code>, <code class="docutils literal notranslate"><span class="pre">fidelity_levels</span></code> and unfitted copies of the
+registered multi-output candidates.</p></li>
+<li><p>[x] <strong>35.</strong> <code class="docutils literal notranslate"><span class="pre">tests/unit/performance/test_metrics_generalized.py</span></code> monkeypatches uct at module level (leaks).
+Now an autouse fixture.</p></li>
+<li><p>[x] <strong>36.</strong> Add regression tests for each critical fix (bootstrap slope, GP std &gt; 0, conformal
+held-out coverage, unmocked uct metrics).</p></li>
+</ul>
+</section>
+<section id="environment-end-to-end-found-while-running-the-cli-and-ui">
+<h2>Environment / end-to-end (found while running the CLI and UI)<a class="headerlink" href="#environment-end-to-end-found-while-running-the-cli-and-ui" title="Link to this heading">¶</a></h2>
+<ul>
+<li><p>[x] <strong>E1.</strong> <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> allowed scikit-learn 1.2/1.3, but the code uses <code class="docutils literal notranslate"><span class="pre">root_mean_squared_error</span></code>
+(1.4+). Floor raised to 1.4.</p></li>
+<li><p>[x] <strong>E2.</strong> <code class="docutils literal notranslate"><span class="pre">uv.lock</span></code> was stale and unsatisfiable on Intel macOS (torch 2.10, llvmlite 0.46 have no
+wheels). Added platform-specific <code class="docutils literal notranslate"><span class="pre">[tool.uv]</span> <span class="pre">constraint-dependencies</span></code>; relocked.</p></li>
+<li><p>[x] <strong>E3.</strong> umap-learn &lt; 0.5.8 crashes with scikit-learn &gt;= 1.8 (<code class="docutils literal notranslate"><span class="pre">force_all_finite</span></code>). Floor raised.</p></li>
+<li><p>[x] <strong>E4.</strong> CLI only worked from the repo root (loaded a GUI page by relative path) and executed
+Streamlit app scripts on import. Report/model code moved to <code class="docutils literal notranslate"><span class="pre">multioutreg/report/auto_detect_report.py</span></code>
+and <code class="docutils literal notranslate"><span class="pre">multioutreg/gui/grid_search_core.py</span></code>. <code class="docutils literal notranslate"><span class="pre">multioutreg</span> <span class="pre">--help</span></code> now lists commands.</p></li>
+<li><p>[x] <strong>E5.</strong> <code class="docutils literal notranslate"><span class="pre">generate_html_report</span></code> ignored <code class="docutils literal notranslate"><span class="pre">template_path</span></code> / <code class="docutils literal notranslate"><span class="pre">MOR_TEMPLATE_PATH</span></code>.</p></li>
+<li><p>[x] <strong>E6.</strong> Chronos defaulted to bfloat16 on MPS, which crashes (“BFloat16 is not supported on MPS”).
+bfloat16 is now CUDA-only. The swallowed failure had also hidden <code class="docutils literal notranslate"><span class="pre">test_chronos_shapes</span></code> (restored).</p></li>
+<li><p>[x] <strong>E7.</strong> <code class="docutils literal notranslate"><span class="pre">ts-pipeline</span></code> reported <code class="docutils literal notranslate"><span class="pre">out_dir</span></code> as <code class="docutils literal notranslate"><span class="pre">&lt;out&gt;/&lt;out&gt;</span></code> (resolved after <code class="docutils literal notranslate"><span class="pre">chdir</span></code>).</p></li>
+<li><p>[x] <strong>E8.</strong> Deprecated <code class="docutils literal notranslate"><span class="pre">use_column_width</span></code> / <code class="docutils literal notranslate"><span class="pre">use_container_width</span></code> rendered warning boxes in the UI;
+replaced with <code class="docutils literal notranslate"><span class="pre">width=&quot;stretch&quot;</span></code> (streamlit &gt;= 1.50).</p></li>
+<li><p>[x] <strong>E9.</strong> <code class="docutils literal notranslate"><span class="pre">lhs_detector_app</span></code> classifies the repo’s own <code class="docutils literal notranslate"><span class="pre">lhs_sampled_dataset.csv</span></code> as “not LHS”
+(see items 19–20).
+<em>Cause:</em> the app used every numeric column, including <code class="docutils literal notranslate"><span class="pre">response</span></code> (|Spearman ρ| with x1 = 0.36</p>
+<blockquote>
+<div><p>0.2 threshold). Its “discrepancy” formula was also not a standard discrepancy, and it was
+compared with <code class="docutils literal notranslate"><span class="pre">np.random.rand</span></code> designs that were not min-max scaled like the data. The inputs
+themselves are a perfect LHS (100/100 strata filled in each dimension).
+<em>Fix:</em> the app, the Sampling &amp; Bias dashboard and the dataset-examples page let the user pick the
+input columns, and leave out response-like names (<code class="docutils literal notranslate"><span class="pre">y*</span></code>, <code class="docutils literal notranslate"><span class="pre">response*</span></code>, <code class="docutils literal notranslate"><span class="pre">output*</span></code>, <code class="docutils literal notranslate"><span class="pre">target*</span></code>) by
+default via <code class="docutils literal notranslate"><span class="pre">guess_input_columns</span></code>. <code class="docutils literal notranslate"><span class="pre">detect_sampling</span></code> has <code class="docutils literal notranslate"><span class="pre">--columns</span></code> / <code class="docutils literal notranslate"><span class="pre">--exclude</span></code>. The app uses
+the shared detector: LHS p = 0.50, Random / Sobol p = 0.005. Also fixed a crash in the
+single-column histogram.</p>
+</div></blockquote>
+</li>
+<li><p>[ ] <strong>E10.</strong> The ts pipeline picked SARIMA from the CLI and LSTM from the UI on the same data
+(unseeded LSTM + item 6 ranking).</p></li>
+<li><p>[x] <strong>E13.</strong> CI’s “Generate badge” step failed on Python 3.12: <code class="docutils literal notranslate"><span class="pre">uv</span> <span class="pre">sync</span></code> resolved setuptools 82,
+which no longer ships <code class="docutils literal notranslate"><span class="pre">pkg_resources</span></code>, and coverage-badge 1.1.2 imports it. The <code class="docutils literal notranslate"><span class="pre">test</span></code> extra now pins
+<code class="docutils literal notranslate"><span class="pre">setuptools&lt;81</span></code>; relocked.</p></li>
+</ul>
+</section>
+<section id="multi-fidelity-page-and-report-review-2026-10-21-22">
+<h2>Multi-fidelity page and report review (2026-10-21/22)<a class="headerlink" href="#multi-fidelity-page-and-report-review-2026-10-21-22" title="Link to this heading">¶</a></h2>
+<p>Found by running <code class="docutils literal notranslate"><span class="pre">gui/pages/02_Multi_Fidelity_Surrogate_Models.py</span></code> end to end (Streamlit
+<code class="docutils literal notranslate"><span class="pre">AppTest</span></code>, example 3-level dataset, conformal on) and checking every plot and caption in the
+report. User guide: <code class="docutils literal notranslate"><span class="pre">docs/multi_fidelity_gui.md</span></code>.</p>
+<ul class="simple">
+<li><p>[x] <strong>MF1.</strong> SHAP explained the <em>lowest</em>-fidelity model when the winner was <code class="docutils literal notranslate"><span class="pre">MultiFidelity+…</span></code>
+(<code class="docutils literal notranslate"><span class="pre">MultiFidelitySurrogate.predict</span></code> defaults to level 0; see 1c follow-up). [verified]
+<em>Fix:</em> the report explains <code class="docutils literal notranslate"><span class="pre">_HighestFidelityView</span></code>, which predicts the highest level.</p></li>
+<li><p>[x] <strong>MF2.</strong> PDPs were always “not supported” (no multi-fidelity model has <code class="docutils literal notranslate"><span class="pre">estimators_</span></code>), and
+<code class="docutils literal notranslate"><span class="pre">feature_names</span></code> was set to the <em>output</em> names. <em>Fix:</em> <code class="docutils literal notranslate"><span class="pre">_HighestFidelityView.estimators_</span></code> are
+per-output sklearn regressors (<code class="docutils literal notranslate"><span class="pre">_OutputColumn</span></code>, <code class="docutils literal notranslate"><span class="pre">RegressorMixin</span></code> first so sklearn ≥ 1.6 tags it
+as a regressor); input names are passed. SHAP plots also label inputs by name now.</p></li>
+<li><p>[x] <strong>MF3.</strong> Gaussian-vs-conformal plot used <em>test</em> residuals as calibration residuals, so the
+conformal curve matched the diagonal by construction. <em>Fix:</em> passes the calibration residuals.</p></li>
+<li><p>[x] <strong>MF4.</strong> Uncertainty table showed <code class="docutils literal notranslate"><span class="pre">dummy_metric:</span> <span class="pre">0.0</span></code>. <em>Fix:</em> sharpness, 95% coverage,
+miscoverage, Gaussian NLL (omitted when any std = 0); also shown in the UI.</p></li>
+<li><p>[x] <strong>MF5.</strong> Sampling section used the UMAP threshold heuristic, which labelled the uniform
+random example design “LHS”. <em>Fix:</em> <code class="docutils literal notranslate"><span class="pre">detect_sampling_method</span></code> on the full highest-fidelity input
+design (Random, p = 0.835); plot is a scatter for ≤ 2 inputs, UMAP otherwise.</p></li>
+<li><p>[x] <strong>MF6.</strong> <code class="docutils literal notranslate"><span class="pre">CatBoostSurrogate.predict(X)</span></code> returned shape <code class="docutils literal notranslate"><span class="pre">(n_outputs,</span> <span class="pre">n,</span> <span class="pre">2)</span></code> with the default
+<code class="docutils literal notranslate"><span class="pre">use_uncertainty=True</span></code> (raw <code class="docutils literal notranslate"><span class="pre">[mean,</span> <span class="pre">variance]</span></code> per row), so <code class="docutils literal notranslate"><span class="pre">StackedVFM+CatBoost</span></code> crashed.
+[verified] <em>Fix:</em> returns the mean column only (also for <code class="docutils literal notranslate"><span class="pre">_conformal_point_predict</span></code>); test added.</p></li>
+<li><p>[x] <strong>MF7.</strong> Report text: training size counted only hi-fi rows (now per level); model type
+now names the winning candidate; residual plot moved from the sampling section to Diagnostics
+with a caption; coverage/conformal captions corrected; error-histogram sign stated; <code class="docutils literal notranslate"><span class="pre">$R^2$</span></code>
+rendered literally; “lower sharpness = better calibrated” and “guaranteed” conformal wording
+fixed in <code class="docutils literal notranslate"><span class="pre">report/template.html</span></code>.</p></li>
+<li><p>[x] <strong>MF8.</strong> <code class="docutils literal notranslate"><span class="pre">template.html</span></code> rendered every per-output prediction plot twice (inside an HTML
+comment, which Jinja still renders). Now a Jinja comment.</p></li>
+<li><p>[x] <strong>MF9.</strong> Added report sections (optional in the shared template, so other pages are
+unchanged): Summary, Fidelity Levels, Multi-Fidelity vs HF-only baseline, Model Selection.</p></li>
+<li><p>[x] <strong>MF10.</strong> Results were not reproducible: base surrogates were built with no arguments
+(<code class="docutils literal notranslate"><span class="pre">SparseGPSurrogate</span></code> defaults to <code class="docutils literal notranslate"><span class="pre">random_state=None</span></code>), which produced a spurious −69% MF-vs-HF
+difference between identical models. <em>Fix:</em> “Fix random seed” control (default on, seed 0)
+drives all splits, each surrogate’s seed argument (<code class="docutils literal notranslate"><span class="pre">_SEED_KWARG</span></code>), and the residual-plot
+bootstrap (<code class="docutils literal notranslate"><span class="pre">plot_residuals_multioutput_with_regplot(seed=...)</span></code>). Two seeded runs give a
+byte-identical report. An independent winner’s baseline reuses its own per-level models.</p></li>
+<li><p>[x] <strong>MF11.</strong> Same test-residual leak as MF3 in <code class="docutils literal notranslate"><span class="pre">gui/grid_search_core.py</span></code> (~line 652,
+<code class="docutils literal notranslate"><span class="pre">np.abs(y_test</span> <span class="pre">-</span> <span class="pre">best_pred)</span></code> passed to <code class="docutils literal notranslate"><span class="pre">plot_conformal_vs_gaussian</span></code>). <em>Fix:</em> both
+<code class="docutils literal notranslate"><span class="pre">grid_search_core.generate_html_report</span></code> and <code class="docutils literal notranslate"><span class="pre">report/auto_detect_report.generate_html_report</span></code>
+(same leak) take <code class="docutils literal notranslate"><span class="pre">calibration_residuals</span></code> and draw the plot only when given; the grid-search
+and auto-detect pages pass the residuals from their held-out calibration split.</p></li>
+<li><p>[x] <strong>MF12.</strong> <code class="docutils literal notranslate"><span class="pre">gui/Grid_Search_Surrogate_Models.py</span></code> and <code class="docutils literal notranslate"><span class="pre">gui/pages/01_Use_Auto_Detect_MultiOutput_Regressor.py</span></code>
+still passed <code class="docutils literal notranslate"><span class="pre">uncertainty_metrics={&quot;dummy_metric&quot;:</span> <span class="pre">0.0}</span></code> to the report. <em>Fix:</em> MF4’s helper moved
+to <code class="docutils literal notranslate"><span class="pre">utils.metric_utils.gaussian_uncertainty_metrics</span></code> and is used by all three pages (test set;
+also shown in the UI).</p></li>
+<li><p>[ ] <strong>MF13.</strong> Other pages and the CLI still build surrogates unseeded and print “Random seed: 0”
+in the report although only the splits use it (see E10 for the same issue in the ts pipeline).</p></li>
+<li><p>[ ] <strong>MF14.</strong> Other pages still use <code class="docutils literal notranslate"><span class="pre">generate_umap_plot</span></code>’s threshold heuristic for sampling
+inference (MF5); see Appendix B.</p></li>
+<li><p>[ ] <strong>MF15.</strong> <code class="docutils literal notranslate"><span class="pre">template.html</span></code> overview still says results cover “all model outputs and
+fidelities”; the multi-fidelity report evaluates only the highest fidelity.</p></li>
+</ul>
+</section>
+<hr class="docutils" />
+<section id="appendix-a-item-6-time-series-model-ranking">
+<h2>Appendix A — Item 6: time-series model ranking<a class="headerlink" href="#appendix-a-item-6-time-series-model-ranking" title="Link to this heading">¶</a></h2>
+<p>Status: <strong>not started.</strong> This is waiting on one decision, the holdout size H (see A.4).
+Everything below comes from reading the code. <code class="docutils literal notranslate"><span class="pre">ts-pipeline</span></code> has not been run on real data yet
+(see <code class="docutils literal notranslate"><span class="pre">TODO.md</span></code>), so the first step is to reproduce the problem (A.6, step 0).</p>
+<p>Paths below are relative to <code class="docutils literal notranslate"><span class="pre">multioutreg/time_series/ts_dynamic_fit/</span></code> unless they start
+with <code class="docutils literal notranslate"><span class="pre">mor_cli/</span></code> or <code class="docutils literal notranslate"><span class="pre">multioutreg/</span></code>.</p>
+<section id="a-1-what-the-pipeline-does-today">
+<h3>A.1 What the pipeline does today<a class="headerlink" href="#a-1-what-the-pipeline-does-today" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">mor_cli/ts_pipeline.py</span></code> and the UI page <code class="docutils literal notranslate"><span class="pre">multioutreg/gui/pages/05_Time_Series_Forecasting.py</span></code>
+run the same steps:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">DataProcessor.preprocess_data</span></code> resamples the target to <code class="docutils literal notranslate"><span class="pre">freq</span></code> and fills gaps with 0
+(<code class="docutils literal notranslate"><span class="pre">data_handling/DataProcessor.py:160</span></code>).</p></li>
+<li><p>They train <code class="docutils literal notranslate"><span class="pre">ARIMA</span></code>, <code class="docutils literal notranslate"><span class="pre">SARIMA</span></code> and <code class="docutils literal notranslate"><span class="pre">LSTM</span></code> on the <strong>whole</strong> series. Each <code class="docutils literal notranslate"><span class="pre">.run()</span></code> returns
+<code class="docutils literal notranslate"><span class="pre">(metadata,</span> <span class="pre">data,</span> <span class="pre">model)</span></code>, and <code class="docutils literal notranslate"><span class="pre">metadata[&quot;performance&quot;]</span></code> holds RMSE / MAE / MAPE.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Ranker.get_best()</span></code> (<code class="docutils literal notranslate"><span class="pre">src/ranker.py:32</span></code>) ranks the three models on each of RMSE, MAE and
+MAPE, averages the ranks, and returns the model with the lowest average rank.</p></li>
+</ol>
+</section>
+<section id="a-2-why-the-ranking-is-wrong">
+<h3>A.2 Why the ranking is wrong<a class="headerlink" href="#a-2-why-the-ranking-is-wrong" title="Link to this heading">¶</a></h3>
+<p>The three models’ numbers are not comparable, so the average rank means nothing:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>Series the error is computed on</p></th>
+<th class="head"><p>Kind of prediction</p></th>
+<th class="head"><p>Code</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>ARIMA</p></td>
+<td><p>Series differenced <em>d</em> times until ADF p ≤ 0.05</p></td>
+<td><p>in-sample, one step ahead (<code class="docutils literal notranslate"><span class="pre">best_model.predict()</span></code>)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">algs/arima.py:137-171</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>SARIMA</p></td>
+<td><p>Same, differenced</p></td>
+<td><p>in-sample, one step ahead</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">algs/sarima.py:162-199</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>LSTM</p></td>
+<td><p>Original scale (inverse-transformed)</p></td>
+<td><p>in-sample, 10 steps ahead over every training window</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">algs/lstm.py:232-253</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>What this means in practice:</p>
+<ul class="simple">
+<li><p><strong>Scale.</strong> If the series is differenced, ARIMA/SARIMA errors are on changes from one step to
+the next, not on levels. For a trending series the differences are much smaller than the
+levels, so ARIMA/SARIMA “win” on RMSE/MAE because they are measured on a smaller number,
+not because they forecast better.</p></li>
+<li><p><strong>MAPE is computed differently.</strong> ARIMA/SARIMA compute <code class="docutils literal notranslate"><span class="pre">abs(mean(signed</span> <span class="pre">%</span> <span class="pre">error))</span></code>, so
+positive and negative errors cancel out. That is not MAPE. On a differenced series the
+denominators are near zero, so the value blows up. LSTM computes <code class="docutils literal notranslate"><span class="pre">mean(abs(%</span> <span class="pre">error))</span></code> and
+skips points where <code class="docutils literal notranslate"><span class="pre">|y|</span> <span class="pre">&lt;</span> <span class="pre">1</span></code>. The Ranker treats these as the same metric.</p></li>
+<li><p><strong>No holdout.</strong> Every model is scored on the data it was fitted on. Models with more
+parameters are favoured. The LSTM (about 200k parameters, 200 epochs) can memorise the
+series. The ARIMA grid picks (p, q) by AIC over 64 fits, which is fine for choosing an
+order but does not tell you how well it forecasts.</p></li>
+<li><p><strong>Horizon mismatch.</strong> ARIMA/SARIMA are scored one step ahead and LSTM ten steps ahead,
+which is a harder task.</p></li>
+<li><p><strong>Leakage in LSTM.</strong> The <code class="docutils literal notranslate"><span class="pre">MinMaxScaler</span></code> is fitted on the full series (<code class="docutils literal notranslate"><span class="pre">algs/lstm.py:196</span></code>).</p></li>
+</ul>
+<p>Symptom already observed: <strong>E10.</strong> The CLI picked SARIMA and the UI picked LSTM on the same
+data. Part of that is the unseeded LSTM, and part is that the ranking is decided by small
+artefacts.</p>
+</section>
+<section id="a-3-bugs-nearby-fix-them-in-the-same-pr-or-log-them-separately">
+<h3>A.3 Bugs nearby (fix them in the same PR or log them separately)<a class="headerlink" href="#a-3-bugs-nearby-fix-them-in-the-same-pr-or-log-them-separately" title="Link to this heading">¶</a></h3>
+<p>You will hit these while doing item 6:</p>
+<ul class="simple">
+<li><p><strong>SARIMA <code class="docutils literal notranslate"><span class="pre">diff_count</span></code> is off by one.</strong> <code class="docutils literal notranslate"><span class="pre">algs/sarima.py:63</span></code> increments the counter on <em>every</em>
+ADF test, including the one that passes. ARIMA (<code class="docutils literal notranslate"><span class="pre">algs/arima.py:67-68</span></code>) only increments when
+it actually differences. So a SARIMA model on a stationary series reports <code class="docutils literal notranslate"><span class="pre">diff_count</span> <span class="pre">=</span> <span class="pre">1</span></code>,
+stores the <em>undifferenced</em> series as <code class="docutils literal notranslate"><span class="pre">diff_1_data</span></code>, and <code class="docutils literal notranslate"><span class="pre">src/infer.py:83</span></code> then integrates
+its forecast one time too many.</p></li>
+<li><p><strong>SARIMA seasonal period detection</strong> (<code class="docutils literal notranslate"><span class="pre">algs/sarima.py:130</span></code>) returns the <em>first</em> lag with
+ACF &gt; 0.3. For any series with lag-1 autocorrelation that is <code class="docutils literal notranslate"><span class="pre">s</span> <span class="pre">=</span> <span class="pre">1</span></code>, which is not a real
+seasonal period. Use the largest significant ACF peak at lag ≥ 2, or take <code class="docutils literal notranslate"><span class="pre">s</span></code> from <code class="docutils literal notranslate"><span class="pre">freq</span></code>
+(7 for daily data with weekly seasonality, 12 for monthly, and so on).</p></li>
+<li><p><strong>LSTM ignores its <code class="docutils literal notranslate"><span class="pre">fut_pred</span></code> argument.</strong> It is hard-coded to 10 (<code class="docutils literal notranslate"><span class="pre">algs/lstm.py:195</span></code>). The
+value callers pass in is <code class="docutils literal notranslate"><span class="pre">DataProcessor.load_data()[1]</span></code>, which is the <em>row count</em>
+(<code class="docutils literal notranslate"><span class="pre">DataProcessor.py:59</span></code>), not a horizon. Forecast dates also assume daily frequency
+(<code class="docutils literal notranslate"><span class="pre">algs/lstm.py:229</span></code>).</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">time_series/metrics.py::mase</span></code></strong> uses the evaluation window to scale the error. It should
+use the training series (this is item 26). Fix it before using MASE below.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">ts-pipeline</span></code> never saves the best model.</strong> It only writes <code class="docutils literal notranslate"><span class="pre">results.json</span></code>, while
+<code class="docutils literal notranslate"><span class="pre">main.py:94-111</span></code> does save it. This is outside the scope of item 6, but it matters for A.5
+step 5.</p></li>
+</ul>
+</section>
+<section id="a-4-the-decision-holdout-size-h">
+<h3>A.4 The decision: holdout size H<a class="headerlink" href="#a-4-the-decision-holdout-size-h" title="Link to this heading">¶</a></h3>
+<p>All models are scored on the last H points of the series, so H decides what “best” means:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Pros</p></th>
+<th class="head"><p>Cons</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>H = forecast horizon the user cares about</strong> (new <code class="docutils literal notranslate"><span class="pre">--horizon</span></code>)</p></td>
+<td><p>Scores exactly the task the model will be used for</p></td>
+<td><p>Users must pick one; a small H (1–3) gives noisy scores</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>H = max(seasonal period, 10% of n)</strong></p></td>
+<td><p>Works with no input; a full season means SARIMA is judged fairly</p></td>
+<td><p>Arbitrary; may not match how the model is used</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Fixed H (e.g. 10 or 14)</strong></p></td>
+<td><p>Simple; matches the LSTM’s current 10-step output</p></td>
+<td><p>Takes too much from short series and too little from long ones</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Rolling-origin backtest</strong> (k folds of H)</p></td>
+<td><p>Most reliable ranking; makes Diebold–Mariano meaningful</p></td>
+<td><p>k× training cost; LSTM training already takes 200 epochs</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Recommendation (not yet agreed):</strong> add <code class="docutils literal notranslate"><span class="pre">--holdout</span> <span class="pre">H</span></code> to <code class="docutils literal notranslate"><span class="pre">ts-pipeline</span></code> and the UI. Default it
+to <code class="docutils literal notranslate"><span class="pre">--horizon</span></code> when that is given, otherwise <code class="docutils literal notranslate"><span class="pre">max(s,</span> <span class="pre">ceil(0.1·n))</span></code>. Enforce a minimum training
+length (A.5 step 1) and fail with a clear error if the series is too short. Leave
+rolling-origin as an optional <code class="docutils literal notranslate"><span class="pre">--folds</span> <span class="pre">k</span></code> that defaults to 1.</p>
+</section>
+<section id="a-5-how-to-implement-it">
+<h3>A.5 How to implement it<a class="headerlink" href="#a-5-how-to-implement-it" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Split once, in the caller</strong> (<code class="docutils literal notranslate"><span class="pre">mor_cli/ts_pipeline.py</span></code>, and the UI page at the same point).
+<code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">=</span> <span class="pre">processed_data[target]</span></code>, <code class="docutils literal notranslate"><span class="pre">y_train</span> <span class="pre">=</span> <span class="pre">y[:-H]</span></code>, <code class="docutils literal notranslate"><span class="pre">y_test</span> <span class="pre">=</span> <span class="pre">y[-H:]</span></code>. Before splitting, check
+<code class="docutils literal notranslate"><span class="pre">len(y_train)</span> <span class="pre">&gt;=</span> <span class="pre">max(30,</span> <span class="pre">2*s</span> <span class="pre">+</span> <span class="pre">10,</span> <span class="pre">train_window</span> <span class="pre">+</span> <span class="pre">H</span> <span class="pre">+</span> <span class="pre">20)</span></code>. These limits are rough: ARIMA up
+to p = 7 needs a few dozen points, SARIMA needs at least two seasons, and the LSTM needs
+enough training windows.</p></li>
+<li><p><strong>Give every model the same interface:</strong> <code class="docutils literal notranslate"><span class="pre">fit(y_train)</span></code> and then <code class="docutils literal notranslate"><span class="pre">forecast(H)</span> <span class="pre">-&gt;</span> <span class="pre">np.ndarray</span></code>
+<strong>on the original scale</strong>. Keep <code class="docutils literal notranslate"><span class="pre">run()</span></code> as a thin wrapper for backwards compatibility.</p>
+<ul class="simple">
+<li><p>ARIMA / SARIMA: keep the ADF test to choose <code class="docutils literal notranslate"><span class="pre">d</span></code>, but fit
+<code class="docutils literal notranslate"><span class="pre">sm.tsa.ARIMA(y_train,</span> <span class="pre">order=(p,</span> <span class="pre">d,</span> <span class="pre">q))</span></code> / <code class="docutils literal notranslate"><span class="pre">SARIMAX(...,</span> <span class="pre">order=(p,</span> <span class="pre">d,</span> <span class="pre">q),</span> <span class="pre">seasonal_order=(P,</span> <span class="pre">D,</span> <span class="pre">Q,</span> <span class="pre">s))</span></code>
+on the <strong>undifferenced</strong> series, and pick (p, q) by AIC as today. With <code class="docutils literal notranslate"><span class="pre">d</span></code> passed to
+statsmodels, <code class="docutils literal notranslate"><span class="pre">results.forecast(H)</span></code> is already on the original scale. The manual
+un-differencing in <code class="docutils literal notranslate"><span class="pre">src/infer.py:71-85</span></code> is then no longer needed, and the SARIMA
+<code class="docutils literal notranslate"><span class="pre">diff_count</span></code> bug goes away.</p></li>
+<li><p>LSTM: fit the scaler on <code class="docutils literal notranslate"><span class="pre">y_train</span></code> only. Set <code class="docutils literal notranslate"><span class="pre">output_size</span> <span class="pre">=</span> <span class="pre">H</span></code> (forecasting all H steps at
+once), feed the last <code class="docutils literal notranslate"><span class="pre">train_window</span></code> training points, and inverse-transform. Seed torch and
+numpy (this also fixes E10).</p></li>
+</ul>
+</li>
+<li><p><strong>Score all models with one function</strong> in <code class="docutils literal notranslate"><span class="pre">multioutreg/time_series/metrics.py</span></code>, applied to
+<code class="docutils literal notranslate"><span class="pre">(y_test,</span> <span class="pre">y_hat)</span></code>: RMSE, MAE, MASE (scaled by <code class="docutils literal notranslate"><span class="pre">y_train</span></code>; fix item 26 first), and sMAPE
+instead of MAPE. Delete the per-model metric code in <code class="docutils literal notranslate"><span class="pre">algs/*.py</span></code> so the three models cannot
+drift apart again.</p></li>
+<li><p><strong>Ranking.</strong> In <code class="docutils literal notranslate"><span class="pre">src/ranker.py</span></code>, rank on the holdout metrics. Use <strong>MASE</strong> as the main
+metric because it does not depend on scale. Optionally keep the average rank as a
+tie-break. When <code class="docutils literal notranslate"><span class="pre">--folds</span> <span class="pre">&gt;</span> <span class="pre">1</span></code>, report a Diebold–Mariano test (with the Harvey–Leybourne–Newbold
+small-sample correction) between the best and second-best model. Report it only: with one
+holdout of H ≈ 10 points the test has almost no power, so it must not decide the winner.</p></li>
+<li><p><strong>Refit the winner on the full series</strong> before saving it or forecasting into the future.
+Write the holdout metrics, H, and the train/test date ranges to <code class="docutils literal notranslate"><span class="pre">results.json</span></code>, so the user
+can see what the ranking was based on.</p></li>
+</ol>
+</section>
+<section id="a-6-tests-to-add-tests-unit-time-series-test-ts-ranking-py-none-exist-today">
+<h3>A.6 Tests to add (<code class="docutils literal notranslate"><span class="pre">tests/unit/time_series/test_ts_ranking.py</span></code> — none exist today)<a class="headerlink" href="#a-6-tests-to-add-tests-unit-time-series-test-ts-ranking-py-none-exist-today" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple" start="0">
+<li><p><strong>Reproduce first:</strong> run <code class="docutils literal notranslate"><span class="pre">multioutreg</span> <span class="pre">ts-pipeline</span></code> on a trending synthetic CSV (a random
+walk with drift, level around 1000) and record the current RMSE values. ARIMA/SARIMA should
+show a much smaller RMSE than LSTM, because they are measured on differences.</p></li>
+<li><p><strong>Same target:</strong> every model’s metrics are computed against the same <code class="docutils literal notranslate"><span class="pre">y_test</span></code> array, with
+the same length H.</p></li>
+<li><p><strong>Scale invariance:</strong> multiply the series by 1000 → same winner, and MASE unchanged.</p></li>
+<li><p><strong>No leakage:</strong> change the values in <code class="docutils literal notranslate"><span class="pre">y_test</span></code> → fitted parameters and the scaler do not change.</p></li>
+<li><p><strong>Sanity:</strong> on an AR(1) series ARIMA beats a naive forecast on MASE. On a pure seasonal
+series with s = 7, SARIMA finds <code class="docutils literal notranslate"><span class="pre">s</span> <span class="pre">=</span> <span class="pre">7</span></code>.</p></li>
+<li><p><strong>SARIMA <code class="docutils literal notranslate"><span class="pre">diff_count</span></code></strong> is 0 on stationary white noise.</p></li>
+<li><p><strong>CLI smoke test:</strong> run <code class="docutils literal notranslate"><span class="pre">ts-pipeline</span></code> on a series of about 120 points with LSTM epochs
+patched down (e.g. 2) → <code class="docutils literal notranslate"><span class="pre">results.json</span></code> contains <code class="docutils literal notranslate"><span class="pre">holdout</span></code>, per-model metrics and <code class="docutils literal notranslate"><span class="pre">best_model</span></code>.
+The command should fail cleanly when the series is too short for the requested H.</p></li>
+</ol>
+</section>
+<section id="a-7-done-when">
+<h3>A.7 Done when<a class="headerlink" href="#a-7-done-when" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>[ ] H is decided and exposed as <code class="docutils literal notranslate"><span class="pre">--holdout</span></code> (CLI) and as a UI input.</p></li>
+<li><p>[ ] All models are scored out-of-sample on the original scale by one shared metric function.</p></li>
+<li><p>[ ] <code class="docutils literal notranslate"><span class="pre">Ranker</span></code> uses those metrics; <code class="docutils literal notranslate"><span class="pre">results.json</span></code> records H and the metrics.</p></li>
+<li><p>[ ] A.3 SARIMA bugs fixed (or logged as their own items); item 26 <code class="docutils literal notranslate"><span class="pre">mase</span></code> fixed.</p></li>
+<li><p>[ ] A.6 tests pass, and the CLI and UI pick the same model on the same data (closes E10).</p></li>
+<li><p>[x] <strong>E11.</strong> Streamlit pages never set a matplotlib backend, so on an interactive default (TkAgg)
+the plotting helpers’ <code class="docutils literal notranslate"><span class="pre">plt.show()</span></code> opened a desktop “Figure 1” window, blocked the run until it was
+closed, and then <code class="docutils literal notranslate"><span class="pre">safe_plot_b64</span></code> saved a blank figure into the report. All GUI scripts and the
+remaining CLI commands now force <code class="docutils literal notranslate"><span class="pre">Agg</span></code>.</p></li>
+<li><p>[ ] <strong>E12.</strong> Plotting helpers in <code class="docutils literal notranslate"><span class="pre">multioutreg/figures/</span></code> should not call <code class="docutils literal notranslate"><span class="pre">plt.show()</span></code> at all; return
+the figure and let the caller decide.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="appendix-b-sampling-detector-known-limits">
+<h2>Appendix B — Sampling detector: known limits<a class="headerlink" href="#appendix-b-sampling-detector-known-limits" title="Link to this heading">¶</a></h2>
+<p>Status: <strong>planned, not started.</strong> Follow-up to items 19, 20 and E9. Two open decisions (B.4).
+The numbers below were measured on 2026-10-21 with the detector in
+<code class="docutils literal notranslate"><span class="pre">multioutreg/sampling/detect.py</span></code> (10 seeds per row unless stated otherwise).</p>
+<section id="b-1-the-two-limits">
+<h3>B.1 The two limits<a class="headerlink" href="#b-1-the-two-limits" title="Link to this heading">¶</a></h3>
+<p><strong>L1. Inputs that are not uniform.</strong> The detector’s statistics (strata filled, centered
+discrepancy, nearest-neighbour distance) assume the design was drawn uniformly on a box. An LHS
+of normal or lognormal inputs therefore comes out “Uncertain”. Today the only way around this is
+<code class="docutils literal notranslate"><span class="pre">compare_sample_methods</span></code> with a YAML that gives every input’s distribution, and most users do not
+have one.</p>
+<p><strong>L2. The reports test the wrong matrix.</strong> <code class="docutils literal notranslate"><span class="pre">auto_detect_report.py:203</span></code>,
+<code class="docutils literal notranslate"><span class="pre">gui/grid_search_core.py:612</span></code> and <code class="docutils literal notranslate"><span class="pre">gui/pages/02_Multi_Fidelity_Surrogate_Models.py:121</span></code> call
+<code class="docutils literal notranslate"><span class="pre">generate_umap_plot(X_train)</span></code>. By then <code class="docutils literal notranslate"><span class="pre">X_train</span></code> is:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>What happened to it</p></th>
+<th class="head"><p>Where</p></th>
+<th class="head"><p>Effect on a true LHS (n = 200, d = 3)</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>nothing (full design)</p></td>
+<td><p>—</p></td>
+<td><p>LHS 10/10</p></td>
+</tr>
+<tr class="row-odd"><td><p>75% train split</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">grid_search_auto_detect.py:71</span></code>, page 01 <code class="docutils literal notranslate"><span class="pre">:296</span></code></p></td>
+<td><p>LHS 1/10, Uncertain 9/10</p></td>
+</tr>
+<tr class="row-even"><td><p>further 80% calibration split (60% left)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">grid_search_auto_detect.py:110</span></code></p></td>
+<td><p>Uncertain 10/10</p></td>
+</tr>
+<tr class="row-odd"><td><p>PCA on standardised inputs</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">fit_input_pca</span></code> (when enabled)</p></td>
+<td><p>Uncertain 10/10</p></td>
+</tr>
+<tr class="row-even"><td><p>KNN-imputed values</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">impute_train_test</span></code></p></td>
+<td><p>imputed points are not design points</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A random subset of an LHS is not an LHS (most strata are empty), and PCA mixes the columns. Also,
+nothing stops the user from listing a response or a derived feature as an input column.</p>
+</section>
+<section id="b-2-plan-for-l1-statistics-that-do-not-depend-on-the-input-distributions">
+<h3>B.2 Plan for L1: statistics that do not depend on the input distributions<a class="headerlink" href="#b-2-plan-for-l1-statistics-that-do-not-depend-on-the-input-distributions" title="Link to this heading">¶</a></h3>
+<p>If each input goes through its own increasing transform (any marginal distribution), two things
+do not change. One is the order of the points along each input. The other, approximately, is the
+ratio of neighbouring gaps between sorted values, because a smooth transform stretches two
+adjacent gaps by about the same factor. So the design can be tested without knowing the
+marginals:</p>
+<ul class="simple">
+<li><p><strong>Spacing ratio</strong> (marginal stratification, separates LHS / Sobol from Random). For each
+input, sort the values, take the gaps <code class="docutils literal notranslate"><span class="pre">s_i</span></code>, drop the outer 5% at each end (that is where the
+transform’s slope changes fastest), and compute <code class="docutils literal notranslate"><span class="pre">r_i</span> <span class="pre">=</span> <span class="pre">s_{i+1}</span> <span class="pre">/</span> <span class="pre">(s_i</span> <span class="pre">+</span> <span class="pre">s_{i+1})</span></code>. For i.i.d.
+sampling <code class="docutils literal notranslate"><span class="pre">r</span> <span class="pre">~</span> <span class="pre">Uniform(0,</span> <span class="pre">1)</span></code>, so <code class="docutils literal notranslate"><span class="pre">E|r</span> <span class="pre">-</span> <span class="pre">0.5|</span> <span class="pre">=</span> <span class="pre">0.25</span></code>. Stratified designs space their points more
+evenly. Use the mean of <code class="docutils literal notranslate"><span class="pre">|r</span> <span class="pre">-</span> <span class="pre">0.5|</span></code> over inputs.</p></li>
+<li><p><strong>Rank discrepancy</strong> (joint structure, separates Sobol from LHS / Random). Centered discrepancy
+of the rank-transformed design <code class="docutils literal notranslate"><span class="pre">(rank</span> <span class="pre">-</span> <span class="pre">0.5)</span> <span class="pre">/</span> <span class="pre">n</span></code>. Ranks are unchanged by any increasing
+transform. LHS and i.i.d. designs have the same rank pattern (independent random permutations),
+but a Sobol / Halton design does not.</p></li>
+</ul>
+<p>Prototype (n = 100, d = 3, 40 seeds, mean ± sd):</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Inputs drawn from</p></th>
+<th class="head"><p>Random: SR / rank-CD</p></th>
+<th class="head"><p>LHS: SR / rank-CD</p></th>
+<th class="head"><p>Sobol: SR / rank-CD</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>uniform</p></td>
+<td><p>0.252±0.012 / −3.04±0.12</p></td>
+<td><p>0.150±0.008 / −3.00±0.12</p></td>
+<td><p>0.166±0.018 / −3.62±0.02</p></td>
+</tr>
+<tr class="row-odd"><td><p>normal</p></td>
+<td><p>0.252±0.012 / −3.04±0.12</p></td>
+<td><p>0.150±0.008 / −3.00±0.12</p></td>
+<td><p>0.166±0.018 / −3.62±0.02</p></td>
+</tr>
+<tr class="row-even"><td><p>gamma(2)</p></td>
+<td><p>0.252±0.012 / −3.04±0.12</p></td>
+<td><p>0.150±0.008 / −3.00±0.12</p></td>
+<td><p>0.166±0.018 / −3.62±0.02</p></td>
+</tr>
+<tr class="row-odd"><td><p>lognormal(0, 2)</p></td>
+<td><p>0.253±0.012 / −3.04±0.12</p></td>
+<td><p>0.151±0.008 / −3.00±0.12</p></td>
+<td><p>0.166±0.018 / −3.62±0.02</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Random and LHS are about 8 standard deviations apart on the spacing ratio, and Sobol is about 5
+apart from both on rank discrepancy. The results are the same for every input distribution. These
+statistics need no fitted distributions, so the null designs can still be simulated on the unit
+cube.</p>
+<p>Steps:</p>
+<ol class="arabic simple">
+<li><p>In <code class="docutils literal notranslate"><span class="pre">detect.py</span></code>, add <code class="docutils literal notranslate"><span class="pre">spacing_ratio(U)</span></code> and <code class="docutils literal notranslate"><span class="pre">rank_log_cd(U)</span></code> (the latter skipped above
+<code class="docutils literal notranslate"><span class="pre">MAX_N_DISCREPANCY</span></code>, like <code class="docutils literal notranslate"><span class="pre">log_cd</span></code>), and a <code class="docutils literal notranslate"><span class="pre">marginals</span></code> argument:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;uniform&quot;</span></code>: today’s statistics, plus the two new ones. Most power when the inputs really
+are uniform on a box.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;any&quot;</span></code>: only the transform-invariant statistics (spacing ratio, rank discrepancy). Valid
+for any continuous marginals.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code>: run both and report <code class="docutils literal notranslate"><span class="pre">&quot;uniform&quot;</span></code> if it finds a consistent method, otherwise
+<code class="docutils literal notranslate"><span class="pre">&quot;any&quot;</span></code>. Say in the explanation which one was used. (<strong>Decision B-1</strong>)</p></li>
+</ul>
+</li>
+<li><p>Inputs with tied or rounded values make gaps of 0, which breaks the spacing ratio. Treat an
+input with more than 5% zero gaps as discrete, and add that rule to the existing
+<code class="docutils literal notranslate"><span class="pre">levels</span> <span class="pre">&lt;=</span> <span class="pre">n/2</span></code> rule.</p></li>
+<li><p><strong>Meaning of “Random” in <code class="docutils literal notranslate"><span class="pre">&quot;any&quot;</span></code> mode:</strong> i.i.d. points whose inputs are independent, with any
+marginals. Observational data usually has correlated inputs, which raises the rank discrepancy,
+so it still comes out “Uncertain”. Data that really is i.i.d. from, say, a normal distribution
+will now be called “Random”, which is correct. Document this in the module docstring and in the
+LHS app’s guide.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">compare_sample_methods</span></code> keeps its YAML transform: known marginals give the most power. When
+any input’s KS p &lt; 0.05 (YAML does not fit), rerun with <code class="docutils literal notranslate"><span class="pre">marginals=&quot;any&quot;</span></code> and say so.</p></li>
+</ol>
+<p>Risks to check in validation: densities with a near-zero gap in the middle (bimodal), very small
+n (&lt; 20), where the 5% trim leaves few gaps, and inputs rounded to 2–3 decimals.</p>
+</section>
+<section id="b-3-plan-for-l2-test-the-design-not-the-training-matrix">
+<h3>B.3 Plan for L2: test the design, not the training matrix<a class="headerlink" href="#b-3-plan-for-l2-test-the-design-not-the-training-matrix" title="Link to this heading">¶</a></h3>
+<ol class="arabic simple">
+<li><p><strong>Detect once, before any splitting.</strong> In <code class="docutils literal notranslate"><span class="pre">mor_cli/grid_search_auto_detect.py</span></code>, page 01,
+page 02, <code class="docutils literal notranslate"><span class="pre">gui/grid_search_core.py</span></code> and <code class="docutils literal notranslate"><span class="pre">Grid_Search_Surrogate_Models.py</span></code>, call
+<code class="docutils literal notranslate"><span class="pre">detect_sampling_method</span></code> on the <strong>raw input columns</strong>. Use every row whose inputs are all
+present, including rows later dropped because a response is missing: those points were still
+sampled. Do this before <code class="docutils literal notranslate"><span class="pre">train_test_split</span></code>, imputation, scaling or PCA.</p></li>
+<li><p><strong>Pass the result into the report instead of recomputing it.</strong> Add
+<code class="docutils literal notranslate"><span class="pre">sampling:</span> <span class="pre">Optional[SamplingDetection]</span></code> and <code class="docutils literal notranslate"><span class="pre">X_design:</span> <span class="pre">Optional[np.ndarray]</span></code> (for the UMAP
+picture) to <code class="docutils literal notranslate"><span class="pre">generate_html_report</span></code> in <code class="docutils literal notranslate"><span class="pre">report/auto_detect_report.py</span></code> and to the grid-search
+report in <code class="docutils literal notranslate"><span class="pre">gui/grid_search_core.py</span></code>. When they are missing, fall back to today’s behaviour, but
+label it “tested on training subset” so the caveat is visible.</p></li>
+<li><p><strong>Never test imputed values.</strong> Rows with any missing input are left out of the detection, and
+the report says how many.</p></li>
+<li><p><strong>Multi-fidelity (page 02):</strong> each fidelity level is its own design, so detect per level and
+show one line per level.</p></li>
+<li><p><strong>Subset-aware null for callers that only have a subset.</strong> Add
+<code class="docutils literal notranslate"><span class="pre">detect_sampling_method(X,</span> <span class="pre">subsample_of=N)</span></code>. Each null design is simulated with <code class="docutils literal notranslate"><span class="pre">N</span></code> points and
+then thinned to <code class="docutils literal notranslate"><span class="pre">len(X)</span></code> at random. This makes “75% of an LHS” testable. Its power will be
+lower than for the full design, and validation measures how much.</p></li>
+<li><p><strong>Report text.</strong> Show the columns tested, n, the per-method p-values and which marginals mode
+was used. State that the result describes the inputs only.</p></li>
+<li><p><strong>Coordination.</strong> <code class="docutils literal notranslate"><span class="pre">grid_search_core.py</span></code>, <code class="docutils literal notranslate"><span class="pre">Grid_Search_Surrogate_Models.py</span></code> and page 02 are
+being edited for item 29b and the multi-fidelity follow-up. Do steps 1–2 for those files after
+that work is merged, or in the same branch.</p></li>
+</ol>
+</section>
+<section id="b-4-open-decisions">
+<h3>B.4 Open decisions<a class="headerlink" href="#b-4-open-decisions" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>B-1. Default <code class="docutils literal notranslate"><span class="pre">marginals</span></code> mode.</strong> Recommendation: <code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code> (prefer <code class="docutils literal notranslate"><span class="pre">&quot;uniform&quot;</span></code>, fall back to
+<code class="docutils literal notranslate"><span class="pre">&quot;any&quot;</span></code>). It gives the most power when inputs are uniform and still works when they are not.
+The alternative, <code class="docutils literal notranslate"><span class="pre">&quot;any&quot;</span></code> everywhere, is simpler and never wrong about the marginals, but loses
+the centered discrepancy and NN statistics, which are what separate LHS from Sobol in higher d.</p></li>
+<li><p><strong>B-2. Whether rows with a missing response count as design points</strong> (B.3 step 1).
+Recommendation: yes. They were sampled; the response is what is missing.</p></li>
+</ul>
+</section>
+<section id="b-5-tests-to-add">
+<h3>B.5 Tests to add<a class="headerlink" href="#b-5-tests-to-add" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/unit/sampling/test_detect.py</span></code>:</p>
+<ul>
+<li><p>LHS / Random / Sobol pushed through normal, gamma, lognormal and beta(0.5, 0.5) inverse CDFs
+are classified correctly with <code class="docutils literal notranslate"><span class="pre">marginals=&quot;any&quot;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;auto&quot;</span></code> gives the same answer as today’s code on uniform inputs.</p></li>
+<li><p>Inputs rounded to 1 decimal are treated as discrete.</p></li>
+<li><p>Two correlated normal inputs (ρ = 0.8) come out “Uncertain”.</p></li>
+<li><p>A random 75% of an LHS, with <code class="docutils literal notranslate"><span class="pre">subsample_of=N</span></code>, comes out LHS.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tests/integration</span></code>: run <code class="docutils literal notranslate"><span class="pre">grid_search_auto_detect</span></code> end to end on an LHS of 200 points, with PCA
+on and 5% of the inputs missing. The report says LHS and states the columns and the number of
+rows tested.</p></li>
+</ul>
+</section>
+<section id="b-6-done-when">
+<h3>B.6 Done when<a class="headerlink" href="#b-6-done-when" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>[ ] <code class="docutils literal notranslate"><span class="pre">marginals</span></code> modes implemented; the B.2 table reproduced as a test.</p></li>
+<li><p>[ ] Validation over input distribution × design × n ∈ {20, 50, 100, 300} × d ∈ {2, 5, 10}: at
+least 90% correct for n ≥ 50, and false “Uncertain” near alpha (5%), recorded here.</p></li>
+<li><p>[ ] Every report and GUI page detects on the full raw design (B.3 steps 1–4), with the caveat
+label on the fallback path.</p></li>
+<li><p>[ ] <code class="docutils literal notranslate"><span class="pre">subsample_of</span></code> implemented and its power measured.</p></li>
+<li><p>[ ] The LHS app and <code class="docutils literal notranslate"><span class="pre">detect_sampling</span></code> CLI expose <code class="docutils literal notranslate"><span class="pre">marginals</span></code> (default per B-1).</p></li>
+</ul>
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          
+          
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, takotime808
+            </div>
+            Made with 
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Statistical / Logic Audit Checklist</a><ul>
+<li><a class="reference internal" href="#critical-results-are-wrong">Critical (results are wrong)</a></li>
+<li><a class="reference internal" href="#high-wrong-statistics-assumptions">High (wrong statistics / assumptions)</a></li>
+<li><a class="reference internal" href="#medium">Medium</a></li>
+<li><a class="reference internal" href="#low-hygiene">Low / hygiene</a></li>
+<li><a class="reference internal" href="#environment-end-to-end-found-while-running-the-cli-and-ui">Environment / end-to-end (found while running the CLI and UI)</a></li>
+<li><a class="reference internal" href="#multi-fidelity-page-and-report-review-2026-10-21-22">Multi-fidelity page and report review (2026-10-21/22)</a></li>
+<li><a class="reference internal" href="#appendix-a-item-6-time-series-model-ranking">Appendix A — Item 6: time-series model ranking</a><ul>
+<li><a class="reference internal" href="#a-1-what-the-pipeline-does-today">A.1 What the pipeline does today</a></li>
+<li><a class="reference internal" href="#a-2-why-the-ranking-is-wrong">A.2 Why the ranking is wrong</a></li>
+<li><a class="reference internal" href="#a-3-bugs-nearby-fix-them-in-the-same-pr-or-log-them-separately">A.3 Bugs nearby (fix them in the same PR or log them separately)</a></li>
+<li><a class="reference internal" href="#a-4-the-decision-holdout-size-h">A.4 The decision: holdout size H</a></li>
+<li><a class="reference internal" href="#a-5-how-to-implement-it">A.5 How to implement it</a></li>
+<li><a class="reference internal" href="#a-6-tests-to-add-tests-unit-time-series-test-ts-ranking-py-none-exist-today">A.6 Tests to add (<code class="docutils literal notranslate"><span class="pre">tests/unit/time_series/test_ts_ranking.py</span></code> — none exist today)</a></li>
+<li><a class="reference internal" href="#a-7-done-when">A.7 Done when</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#appendix-b-sampling-detector-known-limits">Appendix B — Sampling detector: known limits</a><ul>
+<li><a class="reference internal" href="#b-1-the-two-limits">B.1 The two limits</a></li>
+<li><a class="reference internal" href="#b-2-plan-for-l1-statistics-that-do-not-depend-on-the-input-distributions">B.2 Plan for L1: statistics that do not depend on the input distributions</a></li>
+<li><a class="reference internal" href="#b-3-plan-for-l2-test-the-design-not-the-training-matrix">B.3 Plan for L2: test the design, not the training matrix</a></li>
+<li><a class="reference internal" href="#b-4-open-decisions">B.4 Open decisions</a></li>
+<li><a class="reference internal" href="#b-5-tests-to-add">B.5 Tests to add</a></li>
+<li><a class="reference internal" href="#b-6-done-when">B.6 Done when</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>

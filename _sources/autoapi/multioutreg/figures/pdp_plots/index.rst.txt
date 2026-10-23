@@ -1,0 +1,81 @@
+multioutreg.figures.pdp_plots
+=============================
+
+.. py:module:: multioutreg.figures.pdp_plots
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.figures.pdp_plots._OutputColumn
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.pdp_plots._pdp_candidates
+   multioutreg.figures.pdp_plots.generate_pdp_plot
+
+
+Module Contents
+---------------
+
+.. py:class:: _OutputColumn(model: Any = None, index: int = 0)
+
+   Bases: :py:obj:`sklearn.base.RegressorMixin`, :py:obj:`sklearn.base.BaseEstimator`
+
+
+   Already-fitted single-output view of one column of ``model.predict``.
+
+   Lets sklearn's PDP explain models that have no ``estimators_`` (e.g.
+   MultiFidelitySurrogate, MixtureOfExpertsSurrogate, BNNSurrogate), or whose
+   per-output estimators sklearn rejects. ``predict`` may return
+   ``(mean, std)``; only the mean is used.
+
+
+   .. py:attribute:: model
+      :value: None
+
+
+
+   .. py:attribute:: index
+      :value: 0
+
+
+
+   .. py:method:: fit(X, y=None)
+
+
+   .. py:method:: predict(X)
+
+
+   .. py:method:: __sklearn_is_fitted__()
+
+
+.. py:function:: _pdp_candidates(model: Any, i: int) -> List[Any]
+
+   Estimators to try, in order, for PDP of output ``i``.
+
+
+.. py:function:: generate_pdp_plot(model: Any, X: numpy.ndarray, output_names: List[str], feature_names: List[str]) -> Dict[str, str]
+
+   Generate partial dependence plots (PDPs) for each output dimension.
+
+   :param model: Fitted multi-output model. Uses ``model.estimators_[i]`` when present,
+                 and otherwise column ``i`` of ``model.predict``.
+   :type model: Any
+   :param X: Input features.
+   :type X: np.ndarray
+   :param output_names: Names of output dimensions.
+   :type output_names: List[str]
+   :param feature_names: Names of the input features.
+   :type feature_names: List[str]
+
+   :returns: Dictionary mapping output names to base64-encoded PDP plots.
+   :rtype: Dict[str, str]
+
+

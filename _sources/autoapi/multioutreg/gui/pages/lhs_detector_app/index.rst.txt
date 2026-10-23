@@ -1,0 +1,38 @@
+multioutreg.gui.pages.lhs_detector_app
+======================================
+
+.. py:module:: multioutreg.gui.pages.lhs_detector_app
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.lhs_detector_app.uploaded_file
+   multioutreg.gui.pages.lhs_detector_app.df
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.lhs_detector_app.plot_pairwise
+   multioutreg.gui.pages.lhs_detector_app.plot_histograms
+   multioutreg.gui.pages.lhs_detector_app.plot_correlation_matrix
+
+
+Module Contents
+---------------
+
+.. py:function:: plot_pairwise(df)
+
+.. py:function:: plot_histograms(df)
+
+.. py:function:: plot_correlation_matrix(df)
+
+.. py:data:: uploaded_file
+
+.. py:data:: df
+

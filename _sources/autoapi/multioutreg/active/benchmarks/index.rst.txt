@@ -1,0 +1,201 @@
+multioutreg.active.benchmarks
+=============================
+
+.. py:module:: multioutreg.active.benchmarks
+
+.. autoapi-nested-parse::
+
+   Analytic benchmark functions for active learning, with fidelity variants.
+
+   Definitions follow the Virtual Library of Simulation Experiments
+   (Surjanovic & Bingham, https://www.sfu.ca/~ssurjano/). Every function takes
+   ``X`` of shape ``(n, d)`` in its own bounds and returns ``(n, n_outputs)``.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.active.benchmarks._H3_ALPHA
+   multioutreg.active.benchmarks._H3_A
+   multioutreg.active.benchmarks._H3_P
+   multioutreg.active.benchmarks._BOREHOLE_BOUNDS
+   multioutreg.active.benchmarks.BENCHMARKS
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.active.benchmarks.Benchmark
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.active.benchmarks._col
+   multioutreg.active.benchmarks.forrester
+   multioutreg.active.benchmarks.forrester_lo
+   multioutreg.active.benchmarks.branin
+   multioutreg.active.benchmarks.currin
+   multioutreg.active.benchmarks.currin_lo
+   multioutreg.active.benchmarks.branin_currin
+   multioutreg.active.benchmarks.ishigami
+   multioutreg.active.benchmarks.hartmann3
+   multioutreg.active.benchmarks.park
+   multioutreg.active.benchmarks.park_lo
+   multioutreg.active.benchmarks._borehole
+   multioutreg.active.benchmarks.borehole
+   multioutreg.active.benchmarks.borehole_lo
+   multioutreg.active.benchmarks.get_benchmark
+
+
+Module Contents
+---------------
+
+.. py:function:: _col(y) -> numpy.ndarray
+
+.. py:function:: forrester(X)
+
+   Forrester et al. (2008): ``(6x - 2)^2 sin(12x - 4)`` on [0, 1].
+
+
+.. py:function:: forrester_lo(X)
+
+   Low-fidelity Forrester: ``0.5 f(x) + 10 (x - 0.5) - 5``.
+
+
+.. py:function:: branin(X)
+
+   Branin-Hoo on [-5, 10] x [0, 15]; global minimum 0.397887.
+
+
+.. py:function:: currin(X)
+
+   Currin et al. (1988) exponential function on [0, 1]^2.
+
+
+.. py:function:: currin_lo(X)
+
+   Low-fidelity Currin (Xiong et al. 2013): average of four shifted copies.
+
+
+.. py:function:: branin_currin(X)
+
+   Two-output Branin (rescaled to [0, 1]^2) and Currin, as in BoTorch.
+
+
+.. py:function:: ishigami(X, a: float = 7.0, b: float = 0.1)
+
+   Ishigami & Homma (1990) on [-pi, pi]^3.
+
+
+.. py:data:: _H3_ALPHA
+
+.. py:data:: _H3_A
+
+.. py:data:: _H3_P
+
+.. py:function:: hartmann3(X)
+
+   Hartmann 3-D on [0, 1]^3; global minimum -3.86278 at (0.1146, 0.5556, 0.8525).
+
+
+.. py:function:: park(X)
+
+   Park (1991) first function on [0, 1]^4 (x1 is kept away from 0).
+
+
+.. py:function:: park_lo(X)
+
+   Low-fidelity Park (Xiong et al. 2013).
+
+
+.. py:function:: _borehole(X, numerator: float, offset: float)
+
+.. py:function:: borehole(X)
+
+   Borehole water flow (Morris et al. 1993), 8 inputs in physical units.
+
+
+.. py:function:: borehole_lo(X)
+
+   Low-fidelity borehole (Xiong et al. 2013).
+
+
+.. py:class:: Benchmark
+
+   An analytic test problem with bounds and, optionally, fidelity levels.
+
+   ``functions`` and ``costs`` are keyed by level, ordered cheapest first;
+   the last level is the high fidelity.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: bounds
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: functions
+      :type:  Dict[str, Callable[[numpy.ndarray], numpy.ndarray]]
+
+
+   .. py:attribute:: costs
+      :type:  Dict[str, float]
+
+
+   .. py:attribute:: minimum
+      :type:  Optional[float]
+      :value: None
+
+
+
+   .. py:method:: __post_init__()
+
+
+   .. py:property:: levels
+
+
+   .. py:property:: high
+      :type: str
+
+
+
+   .. py:property:: n_features
+      :type: int
+
+
+
+   .. py:method:: __call__(X, level: Optional[str] = None) -> numpy.ndarray
+
+
+   .. py:method:: sample(n: int, method: str = 'sobol', seed=None) -> numpy.ndarray
+
+      Space-filling (``"sobol"``, ``"lhs"``) or ``"random"`` points in bounds.
+
+
+
+.. py:data:: _BOREHOLE_BOUNDS
+   :value: [[0.05, 0.15], [100, 50000], [63070, 115600], [990, 1110], [63.1, 116], [700, 820], [1120,...
+
+
+.. py:function:: get_benchmark(name: str, cost_ratio: float = 10.0) -> Benchmark
+
+   Return a :class:`Benchmark` by name.
+
+   Multi-fidelity benchmarks have levels ``"lo"`` and ``"hi"`` with costs
+   ``1`` and ``cost_ratio``.
+
+
+.. py:data:: BENCHMARKS
+   :value: ('forrester', 'branin', 'currin', 'branin_currin', 'ishigami', 'hartmann3', 'park', 'borehole')
+
+

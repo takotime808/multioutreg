@@ -1,0 +1,63 @@
+multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor
+==============================================================
+
+.. py:module:: multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor
+
+.. autoapi-nested-parse::
+
+   Streamlit script performing a grid search over several surrogate models.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor._torch_available
+   multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor.uploaded_file
+   multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor.df
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor._serialize_model
+   multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor._parse_optional_float
+   multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor._parse_csv_floats
+   multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor._parse_weight_matrix
+   multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor._auto_reference_point
+   multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor._regret_status_line
+
+
+Module Contents
+---------------
+
+.. py:data:: _torch_available
+   :value: True
+
+
+.. py:function:: _serialize_model(model: Any) -> bytes
+
+.. py:function:: _parse_optional_float(txt: Optional[str]) -> Optional[float]
+
+.. py:function:: _parse_csv_floats(txt: str) -> List[float]
+
+.. py:function:: _parse_weight_matrix(txt: str, m: int) -> Optional[numpy.ndarray]
+
+   One weight vector per line (comma/space separated). Returns (k, m) rows on the simplex, or None if invalid.
+
+
+.. py:function:: _auto_reference_point(Y_true: numpy.ndarray, Y_pred: numpy.ndarray, margin_pct: float) -> numpy.ndarray
+
+   Minimization reference point: worst + margin_pct% of span (1.0 fallback when span == 0).
+
+
+.. py:function:: _regret_status_line(label: str, value: Optional[float], bound: Optional[float]) -> str
+
+.. py:data:: uploaded_file
+
+.. py:data:: df
+

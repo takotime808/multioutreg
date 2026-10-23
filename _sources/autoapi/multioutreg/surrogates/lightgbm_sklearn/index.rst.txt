@@ -1,0 +1,102 @@
+multioutreg.surrogates.lightgbm_sklearn
+=======================================
+
+.. py:module:: multioutreg.surrogates.lightgbm_sklearn
+
+.. autoapi-nested-parse::
+
+   LightGBM surrogate — optional dependency ``pip install lightgbm``.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.lightgbm_sklearn._LIGHTGBM_AVAILABLE
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.lightgbm_sklearn.LightGBMSurrogate
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.lightgbm_sklearn._require_lightgbm
+
+
+Module Contents
+---------------
+
+.. py:data:: _LIGHTGBM_AVAILABLE
+   :value: True
+
+
+.. py:function:: _require_lightgbm() -> None
+
+.. py:class:: LightGBMSurrogate(n_estimators: int = 200, learning_rate: float = 0.05, num_leaves: int = 31, verbose: int = -1, **kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   LightGBM regression surrogate.
+
+   Wraps :class:`lightgbm.LGBMRegressor` in a ``MultiOutputRegressor``.
+   Typically 10–20× faster than sklearn ``GradientBoostingRegressor`` at
+   comparable accuracy; supports GPU acceleration via ``device="gpu"``.
+
+   Requires the optional ``lightgbm`` package::
+
+       pip install lightgbm
+
+   Uncertainty is not natively returned; use :meth:`wrap_conformal` /
+   :meth:`conformal_predict` for distribution-free prediction intervals.
+
+   :param n_estimators: Number of boosting rounds.
+   :type n_estimators: int, default 200
+   :param learning_rate: Shrinkage applied to each tree.
+   :type learning_rate: float, default 0.05
+   :param num_leaves: Maximum number of leaves per tree (main complexity control in LightGBM).
+   :type num_leaves: int, default 31
+   :param verbose: Verbosity level.  ``-1`` suppresses all output.
+   :type verbose: int, default -1
+   :param \*\*kwargs: Additional keyword arguments forwarded to ``LGBMRegressor``.
+
+
+   .. py:attribute:: n_estimators
+      :value: 200
+
+
+
+   .. py:attribute:: learning_rate
+      :value: 0.05
+
+
+
+   .. py:attribute:: num_leaves
+      :value: 31
+
+
+
+   .. py:attribute:: verbose
+      :value: -1
+
+
+
+   .. py:attribute:: _extra_kwargs
+
+
+   .. py:method:: get_params(deep: bool = True) -> dict
+
+
+   .. py:method:: set_params(**params) -> LightGBMSurrogate
+
+

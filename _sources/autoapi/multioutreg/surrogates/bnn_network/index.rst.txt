@@ -1,0 +1,54 @@
+multioutreg.surrogates.bnn_network
+==================================
+
+.. py:module:: multioutreg.surrogates.bnn_network
+
+.. autoapi-nested-parse::
+
+   PyTorch network definitions for BNNSurrogate (MC Dropout variant).
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.bnn_network.MCDropoutNet
+
+
+Module Contents
+---------------
+
+.. py:class:: MCDropoutNet(n_features: int, n_outputs: int, hidden_layer_sizes: tuple = (128, 64), dropout_p: float = 0.1)
+
+   Bases: :py:obj:`torch.nn.Module`
+
+
+   Fully-connected network with dropout kept active at inference time.
+
+   Running N stochastic forward passes with dropout active approximates
+   the posterior predictive distribution (MC Dropout, Gal & Ghahramani 2016).
+
+   :param n_features:
+   :type n_features: int
+   :param n_outputs:
+   :type n_outputs: int
+   :param hidden_layer_sizes:
+   :type hidden_layer_sizes: tuple[int, ...]
+   :param dropout_p: Dropout probability applied after every hidden layer.
+   :type dropout_p: float
+
+
+   .. py:attribute:: net
+
+
+   .. py:method:: forward(x: torch.Tensor) -> torch.Tensor
+
+
+   .. py:method:: enable_dropout()
+
+      Set all Dropout layers to training mode (active at inference).
+
+
+

@@ -1,0 +1,35 @@
+multioutreg.gui.pages.sample_infer
+==================================
+
+.. py:module:: multioutreg.gui.pages.sample_infer
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.sample_infer.uploaded_file
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.sample_infer.plot_pairgrid_with_kde
+   multioutreg.gui.pages.sample_infer.infer_sampling
+   multioutreg.gui.pages.sample_infer.main
+
+
+Module Contents
+---------------
+
+.. py:data:: uploaded_file
+
+.. py:function:: plot_pairgrid_with_kde(df, num_cols)
+
+.. py:function:: infer_sampling(df, num_cols)
+
+.. py:function:: main()
+

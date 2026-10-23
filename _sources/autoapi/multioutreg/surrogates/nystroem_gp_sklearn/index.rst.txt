@@ -1,0 +1,117 @@
+multioutreg.surrogates.nystroem_gp_sklearn
+==========================================
+
+.. py:module:: multioutreg.surrogates.nystroem_gp_sklearn
+
+.. autoapi-nested-parse::
+
+   Nyström Sparse GP surrogate.
+
+   Approximates a kernel GP using the Nyström method (Williams & Seeger, 2001):
+   m data-adaptive landmark points are selected at fit time, the kernel is
+   approximated as K ≈ K_nm K_mm⁻¹ K_mn, then BayesianRidge is fit in the
+   m-dimensional lifted space.
+
+   Training cost is O(m²n + m³), prediction O(m) — the same asymptotic class
+   as RFGP but with data-driven landmarks rather than random frequencies.
+   This makes it superior to RFGP when m << n and the data has structure.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.nystroem_gp_sklearn._NystroemEstimator
+   multioutreg.surrogates.nystroem_gp_sklearn.NystroemGPSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: _NystroemEstimator(n_components=100, gamma=None, kernel='rbf', random_state=None)
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`, :py:obj:`sklearn.base.RegressorMixin`
+
+
+   Single-output Nyström GP estimator (sklearn-compatible, used by GridSearchCV).
+
+
+   .. py:attribute:: n_components
+      :value: 100
+
+
+
+   .. py:attribute:: gamma
+      :value: None
+
+
+
+   .. py:attribute:: kernel
+      :value: 'rbf'
+
+
+
+   .. py:attribute:: random_state
+      :value: None
+
+
+
+   .. py:method:: fit(X, y)
+
+
+   .. py:method:: predict(X, return_std=False)
+
+
+.. py:class:: NystroemGPSurrogate(n_components=100, gamma=None, kernel='rbf', random_state=None)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Nyström Sparse GP surrogate.
+
+   Fits one :class:`_NystroemEstimator` per output column.  Data-adaptive
+   landmark points give a better kernel approximation than random Fourier
+   features when the number of landmarks m is small relative to n.
+
+   :param n_components: Number of landmark points m. Higher = better approximation.
+   :type n_components: int
+   :param gamma: Kernel bandwidth parameter. None uses sklearn's default (1/n_features).
+   :type gamma: float or None
+   :param kernel: Kernel type passed to :class:`sklearn.kernel_approximation.Nystroem`.
+                  Defaults to ``"rbf"``.
+   :type kernel: str
+   :param random_state: Seed for reproducible landmark selection.
+   :type random_state: int or None
+
+
+   .. py:attribute:: n_components
+      :value: 100
+
+
+
+   .. py:attribute:: gamma
+      :value: None
+
+
+
+   .. py:attribute:: kernel
+      :value: 'rbf'
+
+
+
+   .. py:attribute:: random_state
+      :value: None
+
+
+
+   .. py:method:: fit(X, Y)
+
+
+   .. py:method:: predict(X, return_std=False)
+
+
+   .. py:method:: _conformal_point_predict(X)
+
+

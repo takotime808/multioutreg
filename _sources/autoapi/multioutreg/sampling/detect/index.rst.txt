@@ -1,0 +1,212 @@
+multioutreg.sampling.detect
+===========================
+
+.. py:module:: multioutreg.sampling.detect
+
+.. autoapi-nested-parse::
+
+   Infer how a design of experiments was sampled (grid, LHS, Sobol, random).
+
+   The observed design is summarised by three statistics, and each is compared
+   with the same statistics computed on designs simulated by every candidate
+   method with the same ``n`` and ``d`` (a parametric bootstrap / Monte Carlo
+   null). This replaces ad-hoc absolute thresholds, which cannot be valid for
+   every ``n`` and ``d``.
+
+   Statistics (on inputs mapped to the unit cube):
+
+   - ``strata``: mean over dimensions of the fraction of the ``n`` equal-width
+     strata that contain a point. LHS fills all of them; i.i.d. uniform fills
+     about ``1 - 1/e`` (0.63).
+   - ``log_cd``: log10 of the centered L2 discrepancy (``scipy.stats.qmc``), which
+     measures joint uniformity. Sobol < LHS < random. Skipped for large ``n``
+     (cost is O(n^2 d)).
+   - ``nn``: mean nearest-neighbour distance (from a random subset of query
+     points when ``n`` is large). Space-filling designs spread their
+     points out more than random ones do.
+
+   Candidates: ``Random`` (i.i.d. uniform), ``LHS`` and ``Sobol``, where "Sobol"
+   means the low-discrepancy family (the null mixes scrambled Sobol and Halton).
+   Unscrambled Sobol / Halton sequences are deterministic and are matched
+   exactly. Grids are recognised structurally (few distinct levels per input).
+
+   For each candidate the statistics are combined into one Mahalanobis distance
+   from the simulated designs' mean (using their covariance), and the Monte Carlo
+   p-value is the fraction of simulated designs at least as far away. A method is
+   "consistent" with the data when its p-value is at least ``alpha``; the reported method is the one with the largest p-value,
+   or ``"Uncertain"`` when no candidate is consistent (e.g. observational data or
+   non-uniform marginals).
+
+   Limitations: the tests assume the design was drawn on a box with uniform
+   marginals. When bounds are not given they are estimated from the data's
+   min/max (the simulated designs go through the same transform, so the null is
+   matched). Designs with other marginals must be mapped to the unit cube first,
+   e.g. via their CDFs (see ``mor_cli/use_ks_for_sample_bias.py``).
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.sampling.detect.CANDIDATES
+   multioutreg.sampling.detect.MAX_N_DISCREPANCY
+   multioutreg.sampling.detect.MIN_POINTS_MC
+   multioutreg.sampling.detect.RESPONSE_NAME
+   multioutreg.sampling.detect.MAX_NN_QUERIES
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.sampling.detect.SamplingDetection
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.sampling.detect.guess_input_columns
+   multioutreg.sampling.detect.to_unit_cube
+   multioutreg.sampling.detect.design_statistics
+   multioutreg.sampling.detect._simulate
+   multioutreg.sampling.detect.default_n_sim
+   multioutreg.sampling.detect._mc_p_value
+   multioutreg.sampling.detect.matches_unscrambled_qmc
+   multioutreg.sampling.detect.grid_structure
+   multioutreg.sampling.detect.detect_sampling_method
+
+
+Module Contents
+---------------
+
+.. py:data:: CANDIDATES
+   :type:  Tuple[str, ...]
+   :value: ('Random', 'LHS', 'Sobol')
+
+
+.. py:data:: MAX_N_DISCREPANCY
+   :value: 1000
+
+
+.. py:data:: MIN_POINTS_MC
+   :value: 10
+
+
+.. py:data:: RESPONSE_NAME
+
+.. py:data:: MAX_NN_QUERIES
+   :value: 500
+
+
+.. py:class:: SamplingDetection
+
+   Result of :func:`detect_sampling_method`.
+
+
+   .. py:attribute:: method
+      :type:  str
+
+
+   .. py:attribute:: explanation
+      :type:  str
+
+
+   .. py:attribute:: statistics
+      :type:  Dict[str, float]
+
+
+   .. py:attribute:: p_values
+      :type:  Dict[str, float]
+
+
+   .. py:attribute:: n_sim
+      :type:  int
+      :value: 0
+
+
+
+   .. py:attribute:: columns_used
+      :type:  Optional[Sequence[int]]
+      :value: None
+
+
+
+.. py:function:: guess_input_columns(columns: Sequence[str]) -> list
+
+   Drop columns whose names look like responses (``y``, ``y1``, ``response``, ``target``...).
+
+   Falls back to all columns when every name looks like a response.
+
+
+.. py:function:: to_unit_cube(X: numpy.ndarray, bounds: Optional[Tuple[numpy.ndarray, numpy.ndarray]] = None) -> numpy.ndarray
+
+   Map ``X`` to [0, 1]^d.
+
+   With ``bounds=(lower, upper)`` this is a plain affine map. Without bounds the
+   sample min/max are placed at ``0.5/n`` and ``1 - 0.5/n``, i.e. the centres of
+   the outermost strata, which is where an LHS puts them on average.
+
+
+.. py:function:: design_statistics(U: numpy.ndarray, rng: Optional[numpy.random.Generator] = None) -> Dict[str, float]
+
+   Statistics of a design already on the unit cube (see module docstring).
+
+
+.. py:function:: _simulate(method: str, n: int, d: int, rng: numpy.random.Generator) -> numpy.ndarray
+
+.. py:function:: default_n_sim(n: int) -> int
+
+   Number of simulated designs per candidate, fewer for large ``n`` to bound runtime.
+
+   The statistics are more concentrated for large ``n``, and 49 simulations
+   still give a smallest attainable p-value of 0.02.
+
+
+.. py:function:: _mc_p_value(observed: numpy.ndarray, simulated: numpy.ndarray) -> float
+
+   Monte Carlo p-value of a statistic vector against simulated ones.
+
+   Distance is Mahalanobis from the simulated mean; the covariance gets a small
+   ridge because some statistics are (nearly) constant under a method, e.g. an
+   LHS on known bounds always fills every stratum. Uses the (count + 1) / (B + 1)
+   correction, so the smallest attainable p-value is 1 / (B + 1).
+
+
+.. py:function:: matches_unscrambled_qmc(U: numpy.ndarray, bounds_known: bool) -> Optional[str]
+
+   Name of the unscrambled QMC sequence whose first ``n`` points equal ``U`` (row order ignored).
+
+   Unscrambled sequences are deterministic, so they cannot be represented by a
+   Monte Carlo null; they are recognised exactly instead.
+
+
+.. py:function:: grid_structure(X: numpy.ndarray) -> Tuple[bool, bool, numpy.ndarray]
+
+   Check for grid structure.
+
+   Returns ``(grid_like, full_factorial, levels)``: ``grid_like`` when every
+   column takes at most ``n / 2`` distinct values (continuous designs have
+   ``n``); ``full_factorial`` when the rows are exactly the Cartesian product
+   of those levels.
+
+
+.. py:function:: detect_sampling_method(X: numpy.ndarray, bounds: Optional[Tuple[numpy.ndarray, numpy.ndarray]] = None, n_sim: Optional[int] = None, alpha: float = 0.05, candidates: Sequence[str] = CANDIDATES, random_state: Optional[int] = 0) -> SamplingDetection
+
+   Infer the sampling method of a design ``X`` (rows = points, columns = inputs).
+
+   Pass only the *input* columns; responses are not part of the design and
+   distort every statistic. ``bounds=(lower, upper)`` should be given when the
+   design region is known (e.g. ``(0, 1)`` after a probability integral
+   transform); otherwise it is estimated from the data. ``n_sim`` simulated
+   designs are drawn per candidate (default :func:`default_n_sim`).
+
+   The result is a statistical statement, not proof: "consistent with LHS"
+   means LHS-simulated designs of the same size look like this one, and with
+   few points several methods can be consistent at once.
+
+

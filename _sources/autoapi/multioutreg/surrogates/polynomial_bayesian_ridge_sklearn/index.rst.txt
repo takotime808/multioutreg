@@ -1,0 +1,83 @@
+multioutreg.surrogates.polynomial_bayesian_ridge_sklearn
+========================================================
+
+.. py:module:: multioutreg.surrogates.polynomial_bayesian_ridge_sklearn
+
+.. autoapi-nested-parse::
+
+   Polynomial Bayesian Ridge surrogate.
+
+   Lifts inputs to a polynomial feature space then fits BayesianRidge, giving
+   an analytic posterior over a nonlinear function class at no extra sampling cost.
+   Training is O((p^d)³) in the lifted feature dimension, so it stays cheap for
+   low-dimensional inputs (p < ~15) at degree d=2.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.polynomial_bayesian_ridge_sklearn._PBREstimator
+   multioutreg.surrogates.polynomial_bayesian_ridge_sklearn.PolynomialBayesianRidgeSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: _PBREstimator(degree=2, interaction_only=False)
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`, :py:obj:`sklearn.base.RegressorMixin`
+
+
+   Single-output Polynomial Bayesian Ridge estimator (sklearn-compatible).
+
+
+   .. py:attribute:: degree
+      :value: 2
+
+
+
+   .. py:attribute:: interaction_only
+      :value: False
+
+
+
+   .. py:method:: fit(X, y)
+
+
+   .. py:method:: predict(X, return_std=False)
+
+
+.. py:class:: PolynomialBayesianRidgeSurrogate(degree=2, interaction_only=False, **kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   Polynomial Bayesian Ridge surrogate with analytic posterior uncertainty.
+
+   Applies a polynomial feature expansion to the inputs before fitting
+   BayesianRidge.  This gives an analytic Gaussian posterior over a
+   nonlinear hypothesis class without any sampling overhead.
+
+   :param degree: Degree of the polynomial expansion (default 2).
+   :type degree: int
+   :param interaction_only: If True, only interaction terms are produced (no x²-style terms).
+                            Reduces the feature count significantly for higher-degree expansions.
+   :type interaction_only: bool
+
+
+   .. py:attribute:: degree
+      :value: 2
+
+
+
+   .. py:attribute:: interaction_only
+      :value: False
+
+
+
+   .. py:method:: predict(X, return_std=False)
+
+

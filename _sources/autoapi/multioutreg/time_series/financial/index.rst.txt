@@ -1,0 +1,41 @@
+multioutreg.time_series.financial
+=================================
+
+.. py:module:: multioutreg.time_series.financial
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.financial.load_financial_csv
+   multioutreg.time_series.financial.forecast_with_chronos
+
+
+Module Contents
+---------------
+
+.. py:function:: load_financial_csv(path: str | pathlib.Path, column: str = 'Close') -> pandas.Series
+
+   Load a financial time series from a CSV file.
+
+   The CSV is expected to have a date column as the first column and the
+   specified price column. Dates are parsed and used as the index.
+
+   :param path: File path to the CSV file.
+   :param column: Name of the column to extract. Default is ``"Close"``.
+
+
+.. py:function:: forecast_with_chronos(series: pandas.Series, horizon: int, forecaster: Optional[multioutreg.time_series.chronos_adapter.ChronosForecaster] = None, **kwargs) -> multioutreg.time_series.chronos_adapter.ForecastResult
+
+   Forecast a financial series using :class:`ChronosForecaster`.
+
+   :param series: Historical price series.
+   :param horizon: Number of future steps to forecast.
+   :param forecaster: Optional pre-configured ``ChronosForecaster``. If ``None``, one is
+                      created using ``kwargs``.
+   :param \*\*kwargs: Additional keyword arguments passed to ``ChronosForecaster`` when the
+                      ``forecaster`` is ``None``.
+
+

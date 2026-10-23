@@ -1,0 +1,1340 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="References" href="references.html"><link rel="prev" title="Active Learning Plan" href="active_learning.html">
+        <link rel="prefetch" href="_static/favicon.ico.png" as="image">
+
+    <link rel="shortcut icon" href="_static/favicon.png"><!-- Generated with Sphinx 8.1.3 and Furo 2025.12.19 -->
+        <title>Parallelization and Distributed Computing Plan - multioutreg documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Live and uncut: takotime808's <em>multioutreg</em> 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">multioutreg  documentation</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="_static/favicon.ico.png" alt="Logo"/>
+  </div>
+  
+  <span class="sidebar-brand-text">multioutreg  documentation</span>
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Installation and Usage</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multi_fidelity_gui.html">Multi-Fidelity Surrogate Models page</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/forecasting_with_chronos.html">Time-Series Forecasting with Chronos</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/multi_fidelity_surrogates.html">Multi-Fidelity Surrogate Modeling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/active_learning_benchmarks.html">Active Learning on Benchmark Functions</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Resources</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="integrated_surrogates.html">Integrated Surrogate Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="surrogate_roadmap.html">Expanding the Surrogate Offerings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_learning.html">Active Learning Plan</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Parallelization and Distributed Computing Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Usage</span></p>
+<ul>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="autoapi/multioutreg/index.html">multioutreg</a><input aria-label="Toggle navigation of multioutreg" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/active/index.html">multioutreg.active</a><input aria-label="Toggle navigation of multioutreg.active" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/acquisition/index.html">multioutreg.active.acquisition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/batch/index.html">multioutreg.active.batch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/benchmarks/index.html">multioutreg.active.benchmarks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/loop/index.html">multioutreg.active.loop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/multi_fidelity/index.html">multioutreg.active.multi_fidelity</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/conformal/index.html">multioutreg.conformal</a><input aria-label="Toggle navigation of multioutreg.conformal" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/base/index.html">multioutreg.conformal.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/cv_plus/index.html">multioutreg.conformal.cv_plus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/metrics/index.html">multioutreg.conformal.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/split_conformal/index.html">multioutreg.conformal.split_conformal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/utils/index.html">multioutreg.conformal.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/figures/index.html">multioutreg.figures</a><input aria-label="Toggle navigation of multioutreg.figures" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/confidence_intervals/index.html">multioutreg.figures.confidence_intervals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/conformal_plots/index.html">multioutreg.figures.conformal_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/coverage_plots/index.html">multioutreg.figures.coverage_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/doe_plots/index.html">multioutreg.figures.doe_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/error_histograms/index.html">multioutreg.figures.error_histograms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/model_comparison/index.html">multioutreg.figures.model_comparison</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/pca_plots/index.html">multioutreg.figures.pca_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/pdp_plots/index.html">multioutreg.figures.pdp_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/performance_metric_figures/index.html">multioutreg.figures.performance_metric_figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/prediction_plots/index.html">multioutreg.figures.prediction_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/residuals/index.html">multioutreg.figures.residuals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/shap_multioutput/index.html">multioutreg.figures.shap_multioutput</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/uct_calibration_extension/index.html">multioutreg.figures.uct_calibration_extension</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/umap_plot_classify/index.html">multioutreg.figures.umap_plot_classify</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/uncertainty_toolbox_extension/index.html">multioutreg.figures.uncertainty_toolbox_extension</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/gui/index.html">multioutreg.gui</a><input aria-label="Toggle navigation of multioutreg.gui" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/Grid_Search_Surrogate_Models/index.html">multioutreg.gui.Grid_Search_Surrogate_Models</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/grid_search_core/index.html">multioutreg.gui.grid_search_core</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="autoapi/multioutreg/gui/pages/index.html">multioutreg.gui.pages</a><input aria-label="Toggle navigation of multioutreg.gui.pages" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/01_Use_Auto_Detect_MultiOutput_Regressor/index.html">multioutreg.gui.pages.01_Use_Auto_Detect_MultiOutput_Regressor</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/02_Multi_Fidelity_Surrogate_Models/index.html">multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/03_Sample_Bias_Alert/index.html">multioutreg.gui.pages.03_Sample_Bias_Alert</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/04_Sampling_and_Bias_Dashboard/index.html">multioutreg.gui.pages.04_Sampling_and_Bias_Dashboard</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/05_Sampling_Datasets_Examples/index.html">multioutreg.gui.pages.05_Sampling_Datasets_Examples</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/05_Time_Series_Forecasting/index.html">multioutreg.gui.pages.05_Time_Series_Forecasting</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/07_Other_Dataset_Examples/index.html">multioutreg.gui.pages.07_Other_Dataset_Examples</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/Detect_Sampling/index.html">multioutreg.gui.pages.Detect_Sampling</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/PCA_Sample_detection/index.html">multioutreg.gui.pages.PCA_Sample_detection</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/lhs_detector_app/index.html">multioutreg.gui.pages.lhs_detector_app</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/sample_infer/index.html">multioutreg.gui.pages.sample_infer</a></li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/gui/pages/sample_infer_dashboard/index.html">multioutreg.gui.pages.sample_infer_dashboard</a></li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/report_plotting_utils/index.html">multioutreg.gui.report_plotting_utils</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/metrics/index.html">multioutreg.metrics</a><input aria-label="Toggle navigation of multioutreg.metrics" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/metrics/multiobjective_regret/index.html">multioutreg.metrics.multiobjective_regret</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/model_selection/index.html">multioutreg.model_selection</a><input aria-label="Toggle navigation of multioutreg.model_selection" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/model_selection/auto_detect/index.html">multioutreg.model_selection.auto_detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/model_selection/model_wrappers/index.html">multioutreg.model_selection.model_wrappers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/model_selection/screening/index.html">multioutreg.model_selection.screening</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/performance/index.html">multioutreg.performance</a><input aria-label="Toggle navigation of multioutreg.performance" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/performance/metrics/index.html">multioutreg.performance.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/performance/metrics_generalized_api/index.html">multioutreg.performance.metrics_generalized_api</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/report/index.html">multioutreg.report</a><input aria-label="Toggle navigation of multioutreg.report" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/auto_detect_report/index.html">multioutreg.report.auto_detect_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/generate_report/index.html">multioutreg.report.generate_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/generate_report1/index.html">multioutreg.report.generate_report1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/generate_report1_safe/index.html">multioutreg.report.generate_report1_safe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/template/index.html">multioutreg.report.template</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/sampling/index.html">multioutreg.sampling</a><input aria-label="Toggle navigation of multioutreg.sampling" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/sampling/detect/index.html">multioutreg.sampling.detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/sampling/infer_sampling/index.html">multioutreg.sampling.infer_sampling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/sampling/pca_sampling_detector/index.html">multioutreg.sampling.pca_sampling_detector</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/surrogates/index.html">multioutreg.surrogates</a><input aria-label="Toggle navigation of multioutreg.surrogates" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/_torch_utils/index.html">multioutreg.surrogates._torch_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/ard_gp_sklearn/index.html">multioutreg.surrogates.ard_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/base_sklearn/index.html">multioutreg.surrogates.base_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/bayesian_ridge_sklearn/index.html">multioutreg.surrogates.bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/bnn_network/index.html">multioutreg.surrogates.bnn_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/bnn_pytorch/index.html">multioutreg.surrogates.bnn_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/catboost_sklearn/index.html">multioutreg.surrogates.catboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/conformal_mixin/index.html">multioutreg.surrogates.conformal_mixin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/conformal_network_sklearn/index.html">multioutreg.surrogates.conformal_network_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/decision_tree_sklearn/index.html">multioutreg.surrogates.decision_tree_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/deep_ensemble_pytorch/index.html">multioutreg.surrogates.deep_ensemble_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/elastic_net_sklearn/index.html">multioutreg.surrogates.elastic_net_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/extra_trees_sklearn/index.html">multioutreg.surrogates.extra_trees_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/forest_uncertainty/index.html">multioutreg.surrogates.forest_uncertainty</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gating_network/index.html">multioutreg.surrogates.gating_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gp_sklearn/index.html">multioutreg.surrogates.gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gpx_smt/index.html">multioutreg.surrogates.gpx_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gradient_boosting_sklearn/index.html">multioutreg.surrogates.gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/hist_gradient_boosting_sklearn/index.html">multioutreg.surrogates.hist_gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/knn_sklearn/index.html">multioutreg.surrogates.knn_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/kpls_smt/index.html">multioutreg.surrogates.kpls_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/lightgbm_sklearn/index.html">multioutreg.surrogates.lightgbm_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/linear_sklearn/index.html">multioutreg.surrogates.linear_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/moe_surrogate/index.html">multioutreg.surrogates.moe_surrogate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/multi_fidelity/index.html">multioutreg.surrogates.multi_fidelity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/ngboost_sklearn/index.html">multioutreg.surrogates.ngboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/nystroem_gp_sklearn/index.html">multioutreg.surrogates.nystroem_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/polynomial_bayesian_ridge_sklearn/index.html">multioutreg.surrogates.polynomial_bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/quantile_sklearn/index.html">multioutreg.surrogates.quantile_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/rf_sklearn/index.html">multioutreg.surrogates.rf_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/rfgp_sklearn/index.html">multioutreg.surrogates.rfgp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/sparse_gp_gpytorch/index.html">multioutreg.surrogates.sparse_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/stacked_vfm/index.html">multioutreg.surrogates.stacked_vfm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/svr_sklearn/index.html">multioutreg.surrogates.svr_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/xgboost_sklearn/index.html">multioutreg.surrogates.xgboost_sklearn</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/index.html">multioutreg.time_series</a><input aria-label="Toggle navigation of multioutreg.time_series" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/chronos_adapter/index.html">multioutreg.time_series.chronos_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/cv/index.html">multioutreg.time_series.cv</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/figures/index.html">multioutreg.time_series.figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/financial/index.html">multioutreg.time_series.financial</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/lag_features/index.html">multioutreg.time_series.lag_features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/lag_forecaster/index.html">multioutreg.time_series.lag_forecaster</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/metrics/index.html">multioutreg.time_series.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/neuralforecast_adapter/index.html">multioutreg.time_series.neuralforecast_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/prophet_adapter/index.html">multioutreg.time_series.prophet_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/seasonality/index.html">multioutreg.time_series.seasonality</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/surrogate_forecaster/index.html">multioutreg.time_series.surrogate_forecaster</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/index.html">multioutreg.time_series.ts_dynamic_fit</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/algs/index.html">multioutreg.time_series.ts_dynamic_fit.algs</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.algs" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/algs/arima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.arima</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/algs/lstm/index.html">multioutreg.time_series.ts_dynamic_fit.algs.lstm</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/algs/sarima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.sarima</a></li>
+</ul>
+</li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.data_handling" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/Analyzer/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.Analyzer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/DataProcessor/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.DataProcessor</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/PullData/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.PullData</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/ingest/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.ingest</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/main/index.html">multioutreg.time_series.ts_dynamic_fit.main</a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/index.html">multioutreg.time_series.ts_dynamic_fit.src</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.src" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/ForecastAutoIntervals/index.html">multioutreg.time_series.ts_dynamic_fit.src.ForecastAutoIntervals</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/TSDataLoader/index.html">multioutreg.time_series.ts_dynamic_fit.src.TSDataLoader</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/infer/index.html">multioutreg.time_series.ts_dynamic_fit.src.infer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/ranker/index.html">multioutreg.time_series.ts_dynamic_fit.src.ranker</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/visualize/index.html">multioutreg.time_series.ts_dynamic_fit.src.visualize</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_suitability/index.html">multioutreg.time_series.ts_suitability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/uncertainty/index.html">multioutreg.time_series.uncertainty</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/utils/index.html">multioutreg.utils</a><input aria-label="Toggle navigation of multioutreg.utils" class="toctree-checkbox" id="toctree-checkbox-19" name="toctree-checkbox-19" role="switch" type="checkbox"/><label for="toctree-checkbox-19"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/aux_funcs/index.html">multioutreg.utils.aux_funcs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/figure_utils/index.html">multioutreg.utils.figure_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/imputation/index.html">multioutreg.utils.imputation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/metric_utils/index.html">multioutreg.utils.metric_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/pca_utils/index.html">multioutreg.utils.pca_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/surrogate_utils/index.html">multioutreg.utils.surrogate_utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="_sources/parallel_computing.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="parallelization-and-distributed-computing-plan">
+<h1>Parallelization and Distributed Computing Plan<a class="headerlink" href="#parallelization-and-distributed-computing-plan" title="Link to this heading">¶</a></h1>
+<p>How <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> will spend less wall-clock time per run: first by removing
+work it does not need to do, then by running the remaining independent fits in
+parallel, and finally by moving heavy jobs off the web app onto more compute.
+The public GUI runs on <strong>Streamlit Community Cloud</strong>
+(<a class="reference external" href="https://multioutreg.streamlit.app/">multioutreg.streamlit.app</a>), so most of
+this page is about getting the best out of a small, shared container. The last
+sections cover what more compute would unlock.</p>
+<section id="goals-and-non-goals">
+<h2>Goals and Non-Goals<a class="headerlink" href="#goals-and-non-goals" title="Link to this heading">¶</a></h2>
+<p><strong>Goals</strong></p>
+<ol class="arabic simple">
+<li><p>Every GUI page finishes a typical run (≤ 2 000 rows, ≤ 10 inputs, ≤ 5
+outputs) on Streamlit Community Cloud without hitting the resource limits.</p></li>
+<li><p>One place to control parallelism (<code class="docutils literal notranslate"><span class="pre">n_jobs</span></code>), so library code, the CLI and
+the GUI all respect the same CPU and memory budget.</p></li>
+<li><p>Parallel results are <strong>identical</strong> to serial results for the same seed.</p></li>
+<li><p>A clear path to bigger hardware (workstation, cloud VM, GPU, cluster)
+without rewriting the model-selection code.</p></li>
+</ol>
+<p><strong>Non-goals (for now)</strong></p>
+<ul class="simple">
+<li><p>Multi-node training of a single model (data-parallel neural nets, distributed
+GP solvers).</p></li>
+<li><p>A paid hosting migration. Hosting alternatives are listed so the decision
+can be made later.</p></li>
+<li><p>Real-time multi-user scaling of the public demo beyond what Community Cloud
+provides.</p></li>
+</ul>
+</section>
+<section id="deployment-target-streamlit-community-cloud">
+<h2>Deployment Target: Streamlit Community Cloud<a class="headerlink" href="#deployment-target-streamlit-community-cloud" title="Link to this heading">¶</a></h2>
+<p>Approximate limits from the Streamlit docs (stated as of February 2024; they
+“may change at any time without notice”):</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Resource</p></th>
+<th class="head"><p>Minimum</p></th>
+<th class="head"><p>Maximum</p></th>
+<th class="head"><p>What it means for us</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>CPU</p></td>
+<td><p>0.078 cores</p></td>
+<td><p>2 cores</p></td>
+<td><p>The best possible speed-up from parallelism is <strong>about 2×</strong>, and less under load. Removing work matters more than parallelizing it.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Memory</p></td>
+<td><p>690 MB</p></td>
+<td><p>2.7 GB</p></td>
+<td><p>Process-based workers each re-import numpy, sklearn, torch and shap. Two or three of them can use up the whole budget.</p></td>
+</tr>
+<tr class="row-even"><td><p>Storage</p></td>
+<td><p>none</p></td>
+<td><p>50 GB</p></td>
+<td><p>Enough for the dependencies. Large wheels (CUDA builds of <code class="docutils literal notranslate"><span class="pre">torch</span></code>) slow down cold starts.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sleep</p></td>
+<td><p>12 hours without traffic</p></td>
+<td><p>n/a</p></td>
+<td><p>First visit after sleep pays a full cold start (dependency import plus any warm-up).</p></td>
+</tr>
+<tr class="row-even"><td><p>Paid upgrade</p></td>
+<td><p>None</p></td>
+<td><p>n/a</p></td>
+<td><p>Streamlit has said there are no plans for paid Community Cloud tiers. More compute means hosting somewhere else.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Sources: <a class="reference external" href="https://docs.streamlit.io/deploy/streamlit-community-cloud/manage-your-app">Streamlit docs: Manage your app</a>,
+<a class="reference external" href="https://blog.streamlit.io/common-app-problems-resource-limits">Common app problems: Resource limits</a>,
+<a class="reference external" href="https://discuss.streamlit.io/t/faq-this-app-has-gone-over-its-resource-limits/62973">forum FAQ: “This app has gone over its resource limits”</a>.</p>
+<p>Other Streamlit behaviour that affects runtime:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Behaviour</p></th>
+<th class="head"><p>Effect today</p></th>
+<th class="head"><p>Mitigation</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>The whole script reruns on every widget interaction</p></td>
+<td><p>A download click or expander toggle can rebuild results that were already computed</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">st.session_state</span></code> for results, <code class="docutils literal notranslate"><span class="pre">st.cache_data</span></code> / <code class="docutils literal notranslate"><span class="pre">st.cache_resource</span></code> for pure functions and fitted models</p></td>
+</tr>
+<tr class="row-odd"><td><p>One Python process serves all sessions</p></td>
+<td><p>Two users running a grid search at once share the same 2 cores and 2.7 GB</p></td>
+<td><p>Cap <code class="docutils literal notranslate"><span class="pre">n_jobs</span></code> per session; refuse or queue oversized jobs</p></td>
+</tr>
+<tr class="row-even"><td><p>Container CPU count is not the host CPU count</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">os.cpu_count()</span></code> can report the host’s cores, far more than 2</p></td>
+<td><p>Size pools with <code class="docutils literal notranslate"><span class="pre">joblib.cpu_count()</span></code> (which respects cgroup quotas) or an explicit setting, never <code class="docutils literal notranslate"><span class="pre">os.cpu_count()</span></code> or <code class="docutils literal notranslate"><span class="pre">n_jobs=-1</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>No background workers</p></td>
+<td><p>Long jobs block the session until they finish</p></td>
+<td><p>Progress bars now. A job queue on separate compute later (see <a class="reference internal" href="#distributed-options"><span class="std std-ref">Distributed Options</span></a>)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="current-state">
+<h2>Current State<a class="headerlink" href="#current-state" title="Link to this heading">¶</a></h2>
+<p>Joblib appears in exactly one compute path, and nothing in the GUI is cached.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Area</p></th>
+<th class="head"><p>Where</p></th>
+<th class="head"><p>Parallel today?</p></th>
+<th class="head"><p>Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>SARIMA order search</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">time_series/ts_dynamic_fit/algs/sarima.py:120</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Parallel(n_jobs=-1)</span></code></p></td>
+<td><p>The only explicit parallel loop. <code class="docutils literal notranslate"><span class="pre">-1</span></code> means “all cores”, which is risky on a shared container</p></td>
+</tr>
+<tr class="row-odd"><td><p>Auto-detect model selection</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">model_selection/auto_detect.py:305-308</span></code></p></td>
+<td><p>No</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">GridSearchCV(...)</span></code> without <code class="docutils literal notranslate"><span class="pre">n_jobs</span></code>, one output and one estimator at a time</p></td>
+</tr>
+<tr class="row-even"><td><p>Grid Search page</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gui/grid_search_core.py::select_per_target</span></code></p></td>
+<td><p>No</p></td>
+<td><p>Loops over configs × outputs</p></td>
+</tr>
+<tr class="row-odd"><td><p>Multi-fidelity page</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gui/pages/02_Multi_Fidelity_Surrogate_Models.py::_select_best_candidate</span></code></p></td>
+<td><p>No</p></td>
+<td><p>One candidate at a time, with a progress bar</p></td>
+</tr>
+<tr class="row-even"><td><p>CV+ conformal</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">conformal/cv_plus.py</span></code></p></td>
+<td><p>No</p></td>
+<td><p>K fold models fitted one after another</p></td>
+</tr>
+<tr class="row-odd"><td><p>Forest noise estimate</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">surrogates/forest_uncertainty.py:72</span></code></p></td>
+<td><p>No</p></td>
+<td><p>K-fold refits of the forest</p></td>
+</tr>
+<tr class="row-even"><td><p>Deep ensembles</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">surrogates/deep_ensemble_pytorch.py:144</span></code></p></td>
+<td><p>No</p></td>
+<td><p>Members trained in sequence; torch uses its own intra-op threads</p></td>
+</tr>
+<tr class="row-odd"><td><p>Sampling-method detection</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sampling/detect.py:307-309</span></code></p></td>
+<td><p>No</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">n_sim</span></code> simulated designs (199 for n ≤ 500) per candidate method</p></td>
+</tr>
+<tr class="row-even"><td><p>Active-learning committee</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">active/acquisition.py::CommitteeSurrogate</span></code></p></td>
+<td><p>No</p></td>
+<td><p>Members fitted in sequence</p></td>
+</tr>
+<tr class="row-odd"><td><p>Streamlit caching</p></td>
+<td><p>all GUI pages</p></td>
+<td><p>No <code class="docutils literal notranslate"><span class="pre">st.cache_data</span></code> / <code class="docutils literal notranslate"><span class="pre">st.cache_resource</span></code> anywhere</p></td>
+<td><p>Results live only in local variables for the current rerun</p></td>
+</tr>
+<tr class="row-even"><td><p>Native threads</p></td>
+<td><p>LightGBM, XGBoost, CatBoost, torch, BLAS</p></td>
+<td><p>Implicit</p></td>
+<td><p>Each library picks its own thread count. Combined with joblib this oversubscribes the CPU. On macOS it can also deadlock (see the OpenMP note in the test instructions)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="fix-first-the-grid-search-page-selects-twice">
+<h3>Fix first: the Grid Search page selects twice<a class="headerlink" href="#fix-first-the-grid-search-page-selects-twice" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">gui/Grid_Search_Surrogate_Models.py</span></code> contains a duplicated block. After
+<code class="docutils literal notranslate"><span class="pre">select_per_target</span></code> picks a model on a validation split (line ~437), the page
+runs the following again (lines ~461–590):</p>
+<ol class="arabic simple">
+<li><p><strong>PCA a second time</strong> on inputs that were already PCA-transformed (line ~467).</p></li>
+<li><p><strong>A Cartesian search over every combination of configs across outputs</strong>
+(<code class="docutils literal notranslate"><span class="pre">ParameterGrid({&quot;combos&quot;:</span> <span class="pre">[configs]</span> <span class="pre">*</span> <span class="pre">n_outputs})</span></code>, line ~547). It scores
+each combination on the <strong>test set</strong> and overwrites the first result.</p></li>
+</ol>
+<p>The second search grows exponentially with the number of outputs. It also
+undoes the leakage fix that <code class="docutils literal notranslate"><span class="pre">select_per_target</span></code> was written for. Deleting the
+duplicated block is the largest runtime win on this page, and it is a
+correctness fix as well.</p>
+</section>
+</section>
+<section id="where-the-time-goes">
+<h2>Where the Time Goes<a class="headerlink" href="#where-the-time-goes" title="Link to this heading">¶</a></h2>
+<p>Fit counts for one run, measured from the default candidate lists in this
+environment. Adding LightGBM, XGBoost or CatBoost increases them. <code class="docutils literal notranslate"><span class="pre">C</span></code> is the
+number of grid configs, <code class="docutils literal notranslate"><span class="pre">k</span></code> the number of CV folds and <code class="docutils literal notranslate"><span class="pre">m</span></code> the number of outputs.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Workload</p></th>
+<th class="head"><p>Formula</p></th>
+<th class="head"><p>m = 1</p></th>
+<th class="head"><p>m = 3</p></th>
+<th class="head"><p>m = 5</p></th>
+<th class="head"><p>Independent units</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Grid Search page, <code class="docutils literal notranslate"><span class="pre">select_per_target</span></code> (C = 77)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">C·m</span> <span class="pre">+</span> <span class="pre">m</span></code></p></td>
+<td><p>78</p></td>
+<td><p>234</p></td>
+<td><p>390</p></td>
+<td><p>every (config, output) pair</p></td>
+</tr>
+<tr class="row-odd"><td><p>Grid Search page, duplicated Cartesian block</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">m·Cᵐ</span></code></p></td>
+<td><p>77</p></td>
+<td><p>≈ 1.37 M</p></td>
+<td><p>≈ 1.4 × 10¹⁰</p></td>
+<td><p>every combination (should be deleted)</p></td>
+</tr>
+<tr class="row-even"><td><p>Auto-detect (21 estimators, 93 grid points, k = 3)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">(93·k</span> <span class="pre">+</span> <span class="pre">21)·m</span></code></p></td>
+<td><p>300</p></td>
+<td><p>900</p></td>
+<td><p>1 500</p></td>
+<td><p>every (estimator, params, fold, output)</p></td>
+</tr>
+<tr class="row-odd"><td><p>Multi-fidelity page, 2 levels, 6 base surrogates</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">5·6</span></code> candidates × levels (+ stacked out-of-fold fits)</p></td>
+<td><p>≈ 30 candidates</p></td>
+<td><p>same</p></td>
+<td><p>same</p></td>
+<td><p>every candidate</p></td>
+</tr>
+<tr class="row-even"><td><p>Sampling detection (n ≤ 500)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">199</span> <span class="pre">×</span> <span class="pre">candidate</span> <span class="pre">methods</span></code></p></td>
+<td><p>199 per method</p></td>
+<td><p>same</p></td>
+<td><p>same</p></td>
+<td><p>every simulated design</p></td>
+</tr>
+<tr class="row-odd"><td><p>SARIMA order search</p></td>
+<td><p>product of the p, q, P, Q range sizes</p></td>
+<td><p>grid size</p></td>
+<td><p>—</p></td>
+<td><p>—</p></td>
+<td><p>every order</p></td>
+</tr>
+<tr class="row-even"><td><p>CV+ conformal</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">k</span></code> (+1 refit)</p></td>
+<td><p>6 for k = 5</p></td>
+<td><p>same</p></td>
+<td><p>same</p></td>
+<td><p>every fold</p></td>
+</tr>
+<tr class="row-odd"><td><p>Deep ensemble</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">n_estimators</span></code> networks</p></td>
+<td><p>5</p></td>
+<td><p>same</p></td>
+<td><p>same</p></td>
+<td><p>every member</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Almost every hot loop is <strong>embarrassingly parallel</strong>: the units do not share
+state, and the results are reduced with a simple <code class="docutils literal notranslate"><span class="pre">min</span></code> or <code class="docutils literal notranslate"><span class="pre">mean</span></code> at the end.
+This makes them good candidates for <code class="docutils literal notranslate"><span class="pre">joblib</span></code>.</p>
+</section>
+<section id="parallelization-options">
+<h2>Parallelization Options<a class="headerlink" href="#parallelization-options" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Option</p></th>
+<th class="head"><p>Granularity</p></th>
+<th class="head"><p>Memory cost</p></th>
+<th class="head"><p>Fits Community Cloud?</p></th>
+<th class="head"><p>Good for</p></th>
+<th class="head"><p>Watch out for</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Remove or cache work</strong> (delete duplicate block, <code class="docutils literal notranslate"><span class="pre">st.cache_*</span></code>, smaller grids)</p></td>
+<td><p>n/a</p></td>
+<td><p>Saves memory</p></td>
+<td><p><strong>Yes, the best value</strong></p></td>
+<td><p>Everything</p></td>
+<td><p>Cache keys must include the data hash and every setting</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>joblib, <code class="docutils literal notranslate"><span class="pre">loky</span></code> (processes)</strong></p></td>
+<td><p>one fit per task</p></td>
+<td><p><strong>High</strong>: each worker re-imports the stack (hundreds of MB with torch, shap)</p></td>
+<td><p>Only with <code class="docutils literal notranslate"><span class="pre">n_jobs=2</span></code> and lazy imports</p></td>
+<td><p>Pure-Python or GIL-holding fits (GP optimizer restarts, statsmodels)</p></td>
+<td><p>Pickling cost for large <code class="docutils literal notranslate"><span class="pre">X</span></code>; workers outlive the request</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>joblib, <code class="docutils literal notranslate"><span class="pre">threading</span></code></strong></p></td>
+<td><p>one fit per task</p></td>
+<td><p>Low (shared memory)</p></td>
+<td><p><strong>Yes</strong></p></td>
+<td><p>Fits that release the GIL: sklearn trees, LightGBM, XGBoost, numpy/BLAS-heavy code</p></td>
+<td><p>No gain for code that holds the GIL</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Native library threads</strong> (<code class="docutils literal notranslate"><span class="pre">n_jobs</span></code> on RF/ET, <code class="docutils literal notranslate"><span class="pre">nthread</span></code> in LightGBM/XGBoost, <code class="docutils literal notranslate"><span class="pre">torch.set_num_threads</span></code>)</p></td>
+<td><p>inside one fit</p></td>
+<td><p>Low</p></td>
+<td><p>Yes</p></td>
+<td><p>Large single models</p></td>
+<td><p>Multiplies with joblib workers. Set one level, not both</p></td>
+</tr>
+<tr class="row-even"><td><p><strong><code class="docutils literal notranslate"><span class="pre">threadpoolctl</span></code></strong></p></td>
+<td><p>caps BLAS/OpenMP pools</p></td>
+<td><p>none</p></td>
+<td><p>Yes</p></td>
+<td><p>Preventing oversubscription</p></td>
+<td><p>Must wrap the parallel region</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Dask (<code class="docutils literal notranslate"><span class="pre">joblib</span></code> backend or <code class="docutils literal notranslate"><span class="pre">dask.distributed</span></code>)</strong></p></td>
+<td><p>task graph, multi-node</p></td>
+<td><p>Scheduler and workers on separate machines</p></td>
+<td><p>No (needs external workers)</p></td>
+<td><p>Large grids on a cluster, data larger than memory</p></td>
+<td><p>Ops overhead; a separate service to run</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Ray (<code class="docutils literal notranslate"><span class="pre">ray.util.joblib</span></code>, Ray Tune)</strong></p></td>
+<td><p>task / trial, multi-node</p></td>
+<td><p>Separate cluster</p></td>
+<td><p>No</p></td>
+<td><p>Hyper-parameter search at scale, AL loops with many simulators</p></td>
+<td><p>Heavy install (already only an <code class="docutils literal notranslate"><span class="pre">examples</span></code> extra)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Job queue (RQ, Celery, Cloud Tasks) + workers</strong></p></td>
+<td><p>one whole run per job</p></td>
+<td><p>Separate compute</p></td>
+<td><p><strong>Front-end only</strong>: Streamlit submits, workers compute</p></td>
+<td><p>Long reports and big grid searches without blocking the UI</p></td>
+<td><p>Needs storage for results and a job-status page</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Serverless fan-out (Modal, AWS Lambda, Cloud Run jobs)</strong></p></td>
+<td><p>one fit or one run per call</p></td>
+<td><p>Pay per use</p></td>
+<td><p>Front-end only</p></td>
+<td><p>Bursty, occasional heavy jobs</p></td>
+<td><p>Cold starts; package size limits</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>GPU</strong> (XGBoost <code class="docutils literal notranslate"><span class="pre">device=&quot;cuda&quot;</span></code>, LightGBM <code class="docutils literal notranslate"><span class="pre">device=&quot;gpu&quot;</span></code>, torch, GPyTorch)</p></td>
+<td><p>inside one fit</p></td>
+<td><p>GPU memory</p></td>
+<td><p>No GPU on Community Cloud</p></td>
+<td><p>Deep ensembles, BNN, SGPR, large boosting</p></td>
+<td><p>Small data (&lt; ~10k rows) is often faster on CPU</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="plan-for-streamlit-community-cloud">
+<h2>Plan for Streamlit Community Cloud<a class="headerlink" href="#plan-for-streamlit-community-cloud" title="Link to this heading">¶</a></h2>
+<p>With at most 2 cores, the order of the work matters: <strong>remove work, then
+cache, then parallelize at one level</strong>.</p>
+<section id="phase-0-remove-work-no-new-dependencies">
+<h3>Phase 0: Remove work (no new dependencies)<a class="headerlink" href="#phase-0-remove-work-no-new-dependencies" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Item</p></th>
+<th class="head"><p>Where</p></th>
+<th class="head"><p>Expected effect</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Delete the duplicated PCA and Cartesian selection block</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gui/Grid_Search_Surrogate_Models.py</span></code> ~461–590</p></td>
+<td><p>From exponential to linear in outputs; restores the validation-split selection</p></td>
+</tr>
+<tr class="row-odd"><td><p>Default <code class="docutils literal notranslate"><span class="pre">skip_expensive=True</span></code> on the hosted app, off locally</p></td>
+<td><p>GUI sidebars</p></td>
+<td><p>Drops exact GP, ARD GP, GPX, KPLS, SGPR from the default run</p></td>
+</tr>
+<tr class="row-even"><td><p>Size guards: warn above N rows / m outputs / C configs, offer to subsample</p></td>
+<td><p>GUI pages</p></td>
+<td><p>Prevents runs that cannot finish within the limits</p></td>
+</tr>
+<tr class="row-odd"><td><p>Lazy-import heavy optional libraries (<code class="docutils literal notranslate"><span class="pre">torch</span></code>, <code class="docutils literal notranslate"><span class="pre">shap</span></code>, <code class="docutils literal notranslate"><span class="pre">umap</span></code>, <code class="docutils literal notranslate"><span class="pre">chronos</span></code>) inside the functions that use them</p></td>
+<td><p>figures, surrogates, pages</p></td>
+<td><p>Lower baseline memory, faster cold start, cheaper process workers</p></td>
+</tr>
+<tr class="row-even"><td><p>Bound SHAP cost: summarize the background with <code class="docutils literal notranslate"><span class="pre">shap.sample</span></code> / <code class="docutils literal notranslate"><span class="pre">shap.kmeans</span></code> and explain at most ~200 rows</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">figures/shap_multioutput.py</span></code></p></td>
+<td><p>Model-agnostic <code class="docutils literal notranslate"><span class="pre">shap.Explainer</span></code> cost no longer grows with <code class="docutils literal notranslate"><span class="pre">n²</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Use a CPU-only <code class="docutils literal notranslate"><span class="pre">torch</span></code> wheel for the hosted build, if the build tool allows it</p></td>
+<td><p>deployment requirements</p></td>
+<td><p>Smaller install, faster cold start after sleep</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="phase-1-caching-and-session-state">
+<h3>Phase 1: Caching and session state<a class="headerlink" href="#phase-1-caching-and-session-state" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>What</p></th>
+<th class="head"><p>Streamlit API</p></th>
+<th class="head"><p>Cache key</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Parsed upload and missing-value summary</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">st.cache_data</span></code></p></td>
+<td><p>file bytes hash</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">ModelScreener</span></code> results and sampling-method detection</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">st.cache_data</span></code></p></td>
+<td><p>data hash + settings</p></td>
+</tr>
+<tr class="row-even"><td><p>Fitted best model and its predictions</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">st.cache_resource</span></code> (or <code class="docutils literal notranslate"><span class="pre">st.session_state</span></code>)</p></td>
+<td><p>data hash + every sidebar setting + seed</p></td>
+</tr>
+<tr class="row-odd"><td><p>Report HTML / figures</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">st.session_state</span></code></p></td>
+<td><p>set once per run, reused by download buttons</p></td>
+</tr>
+<tr class="row-even"><td><p>Re-rendering only the report area</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">st.fragment</span></code></p></td>
+<td><p>n/a</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Use a size bound (<code class="docutils literal notranslate"><span class="pre">max_entries</span></code>) and a TTL on the caches, so memory stays
+under 2.7 GB when several users upload different datasets.</p>
+</section>
+<section id="phase-2-one-parallelism-setting-used-everywhere">
+<h3>Phase 2: One parallelism setting, used everywhere<a class="headerlink" href="#phase-2-one-parallelism-setting-used-everywhere" title="Link to this heading">¶</a></h3>
+<p>Add <code class="docutils literal notranslate"><span class="pre">multioutreg/utils/parallel.py</span></code> with a single source of truth:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">get_n_jobs</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Explicit argument &gt; MULTIOUTREG_N_JOBS env var &gt; joblib.cpu_count(), capped at 2 on Streamlit Cloud."""</span>
+</pre></div>
+</div>
+<p>and a context manager that caps native thread pools inside parallel regions:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">parallel_region</span><span class="p">(</span><span class="n">n_jobs</span><span class="p">)</span> <span class="k">as</span> <span class="n">n</span><span class="p">:</span>     <span class="c1"># threadpoolctl.threadpool_limits(1) for BLAS/OpenMP</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">Parallel</span><span class="p">(</span><span class="n">n_jobs</span><span class="o">=</span><span class="n">n</span><span class="p">,</span> <span class="n">prefer</span><span class="o">=</span><span class="s2">"threads"</span><span class="p">)(</span><span class="n">delayed</span><span class="p">(</span><span class="n">fit_one</span><span class="p">)(</span><span class="o">...</span><span class="p">)</span> <span class="k">for</span> <span class="o">...</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Call site</p></th>
+<th class="head"><p>Change</p></th>
+<th class="head"><p>Backend on Cloud</p></th>
+<th class="head"><p>Why</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">AutoDetectMultiOutputRegressor</span></code></p></td>
+<td><p>new <code class="docutils literal notranslate"><span class="pre">n_jobs</span></code> parameter, passed to <code class="docutils literal notranslate"><span class="pre">GridSearchCV(n_jobs=...)</span></code>; outer loop over outputs stays serial</p></td>
+<td><p>threads</p></td>
+<td><p>sklearn already parallelizes over (params, fold); one level only</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">select_per_target</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Parallel</span></code> over (config, output) pairs; inner <code class="docutils literal notranslate"><span class="pre">n_jobs=1</span></code></p></td>
+<td><p>threads</p></td>
+<td><p>234 independent fits for m = 3</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">_select_best_candidate</span></code> (multi-fidelity)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Parallel</span></code> over candidates; progress updated as results arrive (<code class="docutils literal notranslate"><span class="pre">return_as=&quot;generator_unordered&quot;</span></code>)</p></td>
+<td><p>threads</p></td>
+<td><p>about 30 independent candidates</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">CVPlusConformalPredictor.fit</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Parallel</span></code> over folds</p></td>
+<td><p>threads</p></td>
+<td><p>k independent fold models</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">estimate_noise_variance</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Parallel</span></code> over folds, or rely on forest <code class="docutils literal notranslate"><span class="pre">n_jobs</span></code></p></td>
+<td><p>threads</p></td>
+<td><p>do not use both levels</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">detect_sampling_method</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">Parallel</span></code> over simulated designs, vectorize the statistics where possible</p></td>
+<td><p>processes locally, threads on Cloud</p></td>
+<td><p>pure numpy/scipy, cheap to pickle</p></td>
+</tr>
+<tr class="row-even"><td><p>SARIMA <code class="docutils literal notranslate"><span class="pre">Parallel(n_jobs=-1)</span></code></p></td>
+<td><p>replace with <code class="docutils literal notranslate"><span class="pre">get_n_jobs()</span></code></p></td>
+<td><p>processes</p></td>
+<td><p>statsmodels holds the GIL; <code class="docutils literal notranslate"><span class="pre">-1</span></code> is unsafe on shared hosts</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">DeepEnsembleSurrogate</span></code>, <code class="docutils literal notranslate"><span class="pre">CommitteeSurrogate</span></code></p></td>
+<td><p>optional <code class="docutils literal notranslate"><span class="pre">n_jobs</span></code> over members; <code class="docutils literal notranslate"><span class="pre">torch.set_num_threads(1)</span></code> inside workers</p></td>
+<td><p>processes (local / VM only)</p></td>
+<td><p>members are independent</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Rules</strong></p>
+<ul class="simple">
+<li><p>Parallelize at <strong>one level only</strong>. When the outer loop is parallel, inner
+estimators get <code class="docutils literal notranslate"><span class="pre">n_jobs=1</span></code> and native thread pools are capped at 1.</p></li>
+<li><p>Default to the <code class="docutils literal notranslate"><span class="pre">threading</span></code> backend on Community Cloud. Use <code class="docutils literal notranslate"><span class="pre">loky</span></code> only where
+profiling shows the GIL is the bottleneck, and only once Phase 0’s lazy
+imports keep each worker small.</p></li>
+<li><p>Keep results reproducible: derive every task’s seed from the parent seed
+(<code class="docutils literal notranslate"><span class="pre">np.random.SeedSequence(seed).spawn(n)</span></code>), never from worker order.</p></li>
+<li><p>Keep the macOS OpenMP rule: set <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS=1</span></code> and import <code class="docutils literal notranslate"><span class="pre">lightgbm</span></code>
+before other OpenMP libraries in tests and workers.</p></li>
+</ul>
+</section>
+<section id="phase-3-measure">
+<h3>Phase 3: Measure<a class="headerlink" href="#phase-3-measure" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Benchmark</p></th>
+<th class="head"><p>Dataset</p></th>
+<th class="head"><p>Metric</p></th>
+<th class="head"><p>Target on Community Cloud</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Grid Search page, default settings</p></td>
+<td><p>500 rows × 5 inputs × 3 outputs</p></td>
+<td><p>wall time, peak RSS</p></td>
+<td><p>&lt; 60 s, &lt; 1.5 GB</p></td>
+</tr>
+<tr class="row-odd"><td><p>Auto-detect page</p></td>
+<td><p>same</p></td>
+<td><p>wall time, peak RSS</p></td>
+<td><p>&lt; 90 s, &lt; 1.5 GB</p></td>
+</tr>
+<tr class="row-even"><td><p>Multi-fidelity page, 2 levels</p></td>
+<td><p>400 low + 80 high rows</p></td>
+<td><p>wall time</p></td>
+<td><p>&lt; 60 s</p></td>
+</tr>
+<tr class="row-odd"><td><p>Cold start after sleep</p></td>
+<td><p>none</p></td>
+<td><p>time to first render</p></td>
+<td><p>&lt; 30 s</p></td>
+</tr>
+<tr class="row-even"><td><p>Serial vs parallel equality</p></td>
+<td><p>all of the above</p></td>
+<td><p>chosen model and metrics</p></td>
+<td><p>identical for a fixed seed</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Add a <code class="docutils literal notranslate"><span class="pre">benchmarks/</span></code> script that records these numbers per commit (locally and
+on a CI runner sized like the Cloud container: 2 vCPU, ~2.5 GB). The CI check
+should fail on a &gt; 25 % regression.</p>
+</section>
+</section>
+<section id="what-more-compute-would-unlock">
+<h2>What More Compute Would Unlock<a class="headerlink" href="#what-more-compute-would-unlock" title="Link to this heading">¶</a></h2>
+<section id="by-hardware-tier">
+<h3>By hardware tier<a class="headerlink" href="#by-hardware-tier" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Tier</p></th>
+<th class="head"><p>Typical resources</p></th>
+<th class="head"><p>Practical parallelism</p></th>
+<th class="head"><p>Grid Search (m = 3) wall time vs Cloud</p></th>
+<th class="head"><p>What becomes reasonable</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><strong>Streamlit Community Cloud</strong></p></td>
+<td><p>≤ 2 cores, ≤ 2.7 GB, no GPU</p></td>
+<td><p>threads, <code class="docutils literal notranslate"><span class="pre">n_jobs</span> <span class="pre">≤</span> <span class="pre">2</span></code></p></td>
+<td><p>1× (baseline)</p></td>
+<td><p>≤ ~2 000 rows, <code class="docutils literal notranslate"><span class="pre">skip_expensive</span></code>, small grids, single split validation</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>Laptop / workstation</strong></p></td>
+<td><p>8–16 cores, 16–64 GB</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">loky</span></code>, <code class="docutils literal notranslate"><span class="pre">n_jobs</span> <span class="pre">=</span> <span class="pre">cores</span></code></p></td>
+<td><p>~4–8× faster</p></td>
+<td><p>Exact GP up to a few thousand rows, full default grids, k-fold selection, all report figures</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Single cloud VM</strong></p></td>
+<td><p>32–96 cores, 128–384 GB</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">loky</span></code>, <code class="docutils literal notranslate"><span class="pre">n_jobs</span> <span class="pre">=</span> <span class="pre">cores</span></code></p></td>
+<td><p>~15–40× faster</p></td>
+<td><p>Nested CV, repeated seeds for stable model ranking, larger grids (e.g. <code class="docutils literal notranslate"><span class="pre">RandomizedSearchCV</span></code> with hundreds of draws)</p></td>
+</tr>
+<tr class="row-odd"><td><p><strong>GPU VM</strong></p></td>
+<td><p>1–8 GPUs + CPU cores</p></td>
+<td><p>torch / GPyTorch / XGBoost on GPU, CPU pool for sklearn</p></td>
+<td><p>large gains for neural and GP models only</p></td>
+<td><p>Deep ensembles and BNNs with many members, SGPR with more inducing points, n ≈ 10⁴–10⁵</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Cluster (Ray / Dask)</strong></p></td>
+<td><p>many nodes</p></td>
+<td><p>distributed tasks</p></td>
+<td><p>scales with grid size until per-task overhead dominates</p></td>
+<td><p>Hyper-parameter search at scale, many-dataset batch runs, active learning with parallel simulator calls</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Speed-ups are upper bounds for the embarrassingly parallel selection loops.
+Single-model fits (one exact GP, one SARIMA) do not get faster from more
+workers, only from faster cores or a GPU.</p>
+</section>
+<section id="by-feature">
+<h3>By feature<a class="headerlink" href="#by-feature" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Feature</p></th>
+<th class="head"><p>On Community Cloud</p></th>
+<th class="head"><p>With more compute</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Model selection</p></td>
+<td><p>Single validation split, default grids, expensive models skipped</p></td>
+<td><p>k-fold or nested CV, repeated over seeds, one-standard-error rule on stable scores</p></td>
+</tr>
+<tr class="row-odd"><td><p>Grid size</p></td>
+<td><p>Tens of configs per model family</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RandomizedSearchCV</span></code> / Bayesian search (Optuna, Ray Tune) over hundreds of configs</p></td>
+</tr>
+<tr class="row-even"><td><p>Gaussian processes</p></td>
+<td><p>Exact GP only for small n; RFF / Nyström approximations otherwise</p></td>
+<td><p>Exact GP to a few thousand rows; SGPR on GPU beyond that</p></td>
+</tr>
+<tr class="row-odd"><td><p>Uncertainty</p></td>
+<td><p>Split conformal</p></td>
+<td><p>CV+ / jackknife+ conformal (k extra fits), larger deep ensembles</p></td>
+</tr>
+<tr class="row-even"><td><p>Multi-fidelity</p></td>
+<td><p>2–3 levels, about 30 candidates</p></td>
+<td><p>Every model-type × base-surrogate × level combination, with per-candidate hyper-parameter search</p></td>
+</tr>
+<tr class="row-odd"><td><p>Explanations</p></td>
+<td><p>SHAP on a sample of rows</p></td>
+<td><p>Full-data SHAP, PDP/ICE on every feature pair</p></td>
+</tr>
+<tr class="row-even"><td><p>Sampling detection</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">n_sim</span></code> reduced for large n</p></td>
+<td><p>Full <code class="docutils literal notranslate"><span class="pre">n_sim</span></code> at every n; tighter p-values</p></td>
+</tr>
+<tr class="row-odd"><td><p>Time series</p></td>
+<td><p>Narrow (p, q, P, Q) ranges</p></td>
+<td><p>Wider SARIMA grids, LSTM / Chronos on GPU</p></td>
+</tr>
+<tr class="row-even"><td><p>Active learning</p></td>
+<td><p>Small candidate pools, sequential simulator calls</p></td>
+<td><p>Large candidate pools, batch acquisition (<code class="docutils literal notranslate"><span class="pre">active/batch.py</span></code>) with the batch evaluated in parallel on the simulator side</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="distributed-options">
+<h2>Distributed Options<a class="headerlink" href="#distributed-options" title="Link to this heading">¶</a></h2>
+<p>When runs outgrow one container, the GUI should stay a thin front end and hand
+the compute to workers:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Streamlit page  --submit(job spec, data ref)--&gt;  queue  --&gt;  worker pool (VM / cluster / serverless)
+      ^                                                            |
+      +------- poll job status / fetch results &lt;-- object store &lt;--+
+</pre></div>
+</div>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Approach</p></th>
+<th class="head"><p>Effort</p></th>
+<th class="head"><p>Running cost</p></th>
+<th class="head"><p>Best fit</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Run the GUI on a larger VM (Docker image, same code)</p></td>
+<td><p>Low</p></td>
+<td><p>VM cost, always on</p></td>
+<td><p>Internal use, predictable load</p></td>
+</tr>
+<tr class="row-odd"><td><p>Job queue (RQ + Redis, or Celery) + worker VM</p></td>
+<td><p>Medium</p></td>
+<td><p>Redis + workers</p></td>
+<td><p>Long reports and grid searches without blocking the UI</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">joblib</span></code> with a Dask or Ray backend</p></td>
+<td><p>Low code change, medium ops</p></td>
+<td><p>Cluster cost</p></td>
+<td><p>Scaling the existing <code class="docutils literal notranslate"><span class="pre">Parallel</span></code> loops unchanged</p></td>
+</tr>
+<tr class="row-odd"><td><p>Ray Tune / Optuna for model selection</p></td>
+<td><p>Medium</p></td>
+<td><p>Cluster cost</p></td>
+<td><p>Replacing exhaustive grids with adaptive search</p></td>
+</tr>
+<tr class="row-even"><td><p>Serverless fan-out (Modal, Cloud Run jobs, Lambda)</p></td>
+<td><p>Medium</p></td>
+<td><p>Pay per call</p></td>
+<td><p>Occasional heavy jobs from a free front end</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Because Phase 2 routes every loop through <code class="docutils literal notranslate"><span class="pre">joblib.Parallel</span></code>, moving to a Dask
+or Ray cluster is mostly a backend switch
+(<code class="docutils literal notranslate"><span class="pre">with</span> <span class="pre">joblib.parallel_config(backend=&quot;ray&quot;)</span></code>) rather than a rewrite.</p>
+<p>Hosting the GUI elsewhere (a larger VM, a container platform, Snowflake-hosted
+Streamlit, Hugging Face Spaces) should be compared on CPU, memory, sleep
+policy and cost when the need arises. Check each provider’s current limits
+before choosing, because they change often.</p>
+</section>
+<section id="delivery-plan">
+<h2>Delivery Plan<a class="headerlink" href="#delivery-plan" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Phase</p></th>
+<th class="head"><p>Work</p></th>
+<th class="head"><p>Effort</p></th>
+<th class="head"><p>Depends on</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>0</p></td>
+<td><p>Delete the duplicated selection block; size guards; <code class="docutils literal notranslate"><span class="pre">skip_expensive</span></code> default on Cloud; lazy imports; bounded SHAP</p></td>
+<td><p>Low</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-odd"><td><p>1</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">st.cache_data</span></code> / <code class="docutils literal notranslate"><span class="pre">st.cache_resource</span></code> / <code class="docutils literal notranslate"><span class="pre">st.session_state</span></code> on all heavy pages</p></td>
+<td><p>Low</p></td>
+<td><p>0</p></td>
+</tr>
+<tr class="row-even"><td><p>2a</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">utils/parallel.py</span></code> (<code class="docutils literal notranslate"><span class="pre">get_n_jobs</span></code>, <code class="docutils literal notranslate"><span class="pre">parallel_region</span></code>); replace SARIMA <code class="docutils literal notranslate"><span class="pre">n_jobs=-1</span></code></p></td>
+<td><p>Low</p></td>
+<td><p>—</p></td>
+</tr>
+<tr class="row-odd"><td><p>2b</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">n_jobs</span></code> in <code class="docutils literal notranslate"><span class="pre">AutoDetectMultiOutputRegressor</span></code>, <code class="docutils literal notranslate"><span class="pre">select_per_target</span></code>, multi-fidelity candidates, CV+</p></td>
+<td><p>Medium</p></td>
+<td><p>2a</p></td>
+</tr>
+<tr class="row-even"><td><p>2c</p></td>
+<td><p>Parallel sampling-detection simulations; optional <code class="docutils literal notranslate"><span class="pre">n_jobs</span></code> on ensembles and committees</p></td>
+<td><p>Medium</p></td>
+<td><p>2a</p></td>
+</tr>
+<tr class="row-odd"><td><p>3</p></td>
+<td><p>Benchmarks script, CI runner sized like Community Cloud, regression check</p></td>
+<td><p>Medium</p></td>
+<td><p>0–2</p></td>
+</tr>
+<tr class="row-even"><td><p>4</p></td>
+<td><p>Optional job queue + worker deployment for heavy runs</p></td>
+<td><p>High</p></td>
+<td><p>3</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="testing">
+<h2>Testing<a class="headerlink" href="#testing" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Equality:</strong> for each parallelized function, <code class="docutils literal notranslate"><span class="pre">n_jobs=1</span></code> and <code class="docutils literal notranslate"><span class="pre">n_jobs=2</span></code> give
+the same chosen models, scores and predictions for a fixed seed.</p></li>
+<li><p><strong>Thread caps:</strong> a test asserts that BLAS/OpenMP pools are limited to 1
+inside <code class="docutils literal notranslate"><span class="pre">parallel_region</span></code> (via <code class="docutils literal notranslate"><span class="pre">threadpoolctl.threadpool_info()</span></code>).</p></li>
+<li><p><strong>Memory:</strong> a smoke test runs the default Grid Search on the benchmark
+dataset under a 2.5 GB limit (e.g. <code class="docutils literal notranslate"><span class="pre">ulimit</span> <span class="pre">-v</span></code> or a container limit in CI).</p></li>
+<li><p><strong>No <code class="docutils literal notranslate"><span class="pre">n_jobs=-1</span></code> in library code:</strong> a lint/grep check, so new code goes
+through <code class="docutils literal notranslate"><span class="pre">get_n_jobs()</span></code>.</p></li>
+</ul>
+</section>
+<section id="open-questions">
+<h2>Open Questions<a class="headerlink" href="#open-questions" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Should the hosted app expose an “advanced compute” switch that is disabled on
+Community Cloud and enabled when <code class="docutils literal notranslate"><span class="pre">MULTIOUTREG_N_JOBS</span></code> is set?</p></li>
+<li><p>Which page is the priority for a background-job version: Grid Search, Auto-detect
+or Multi-fidelity?</p></li>
+<li><p>Is there a budget for a small always-on VM, or should heavy runs stay local
+(CLI) and the hosted app remain a demo?</p></li>
+</ol>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="references.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">References</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="active_learning.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">Active Learning Plan</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2025, takotime808
+            </div>
+            Made with 
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Parallelization and Distributed Computing Plan</a><ul>
+<li><a class="reference internal" href="#goals-and-non-goals">Goals and Non-Goals</a></li>
+<li><a class="reference internal" href="#deployment-target-streamlit-community-cloud">Deployment Target: Streamlit Community Cloud</a></li>
+<li><a class="reference internal" href="#current-state">Current State</a><ul>
+<li><a class="reference internal" href="#fix-first-the-grid-search-page-selects-twice">Fix first: the Grid Search page selects twice</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#where-the-time-goes">Where the Time Goes</a></li>
+<li><a class="reference internal" href="#parallelization-options">Parallelization Options</a></li>
+<li><a class="reference internal" href="#plan-for-streamlit-community-cloud">Plan for Streamlit Community Cloud</a><ul>
+<li><a class="reference internal" href="#phase-0-remove-work-no-new-dependencies">Phase 0: Remove work (no new dependencies)</a></li>
+<li><a class="reference internal" href="#phase-1-caching-and-session-state">Phase 1: Caching and session state</a></li>
+<li><a class="reference internal" href="#phase-2-one-parallelism-setting-used-everywhere">Phase 2: One parallelism setting, used everywhere</a></li>
+<li><a class="reference internal" href="#phase-3-measure">Phase 3: Measure</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#what-more-compute-would-unlock">What More Compute Would Unlock</a><ul>
+<li><a class="reference internal" href="#by-hardware-tier">By hardware tier</a></li>
+<li><a class="reference internal" href="#by-feature">By feature</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#distributed-options">Distributed Options</a></li>
+<li><a class="reference internal" href="#delivery-plan">Delivery Plan</a></li>
+<li><a class="reference internal" href="#testing">Testing</a></li>
+<li><a class="reference internal" href="#open-questions">Open Questions</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>

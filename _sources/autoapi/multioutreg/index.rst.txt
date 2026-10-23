@@ -1,0 +1,360 @@
+multioutreg
+===========
+
+.. py:module:: multioutreg
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/active/index
+   /autoapi/multioutreg/conformal/index
+   /autoapi/multioutreg/figures/index
+   /autoapi/multioutreg/gui/index
+   /autoapi/multioutreg/metrics/index
+   /autoapi/multioutreg/model_selection/index
+   /autoapi/multioutreg/performance/index
+   /autoapi/multioutreg/report/index
+   /autoapi/multioutreg/sampling/index
+   /autoapi/multioutreg/surrogates/index
+   /autoapi/multioutreg/time_series/index
+   /autoapi/multioutreg/utils/index
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg._TS_EXPORTS
+   multioutreg.__all__
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.AutoDetectMultiOutputRegressor
+   multioutreg.SplitConformalPredictor
+   multioutreg.CVPlusConformalPredictor
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.__getattr__
+   multioutreg.__dir__
+
+
+Package Contents
+----------------
+
+.. py:class:: AutoDetectMultiOutputRegressor(estimators: Sequence[sklearn.base.BaseEstimator], param_spaces: Sequence[dict], cv: int | str = 'auto', scoring: str = 'neg_mean_squared_error', pre_screen: bool = False, selection: str = 'best', random_state: int | None = 0)
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`, :py:obj:`sklearn.base.RegressorMixin`
+
+
+   Fit a separate estimator per output choosing the best via grid search.
+
+   :param estimators: Candidate sklearn estimators to evaluate.
+   :type estimators: sequence of BaseEstimator
+   :param param_spaces: Parameter grids corresponding to each estimator.
+   :type param_spaces: sequence of dict
+   :param cv: Cross-validation used to score every candidate. ``"auto"`` picks the
+              scheme from the number of training rows at fit time (see
+              :func:`select_cv_strategy`): leave-one-out for tiny datasets, repeated
+              5-fold for small ones, 10-fold and then 5-fold as data grows.
+              ``"loocv"`` forces leave-one-out, an int means a shuffled ``KFold``
+              with that many splits, and any sklearn splitter is used as given.
+   :type cv: {"auto", "loocv"} | int | CV splitter, default "auto"
+   :param scoring: Sklearn scoring metric for GridSearchCV.
+   :type scoring: str
+   :param pre_screen: When True, run statistical pre-screening tests before fitting each
+                      output and skip models that are either computationally expensive
+                      without justification or unlikely to improve on a linear baseline.
+                      See :class:`~multioutreg.model_selection.screening.ModelScreener`.
+   :type pre_screen: bool, default False
+   :param selection: ``"best"`` picks the highest mean CV score. ``"one_se"`` picks the
+                     least complex candidate whose mean score is within one standard error
+                     of the best (Nadeau–Bengio corrected, since CV folds overlap), so a
+                     costly model must beat a simple one by more than CV noise.
+   :type selection: {"best", "one_se"}, default "best"
+   :param random_state: Seed for the shuffled / repeated splitters built from ``cv``.
+   :type random_state: int | None, default 0
+
+   .. attribute:: cv_strategy_
+
+      The splitter ``cv`` resolved to for the training data.
+
+      :type: CV splitter
+
+   .. attribute:: cv_description_
+
+      Human-readable form of ``cv_strategy_``, for reports.
+
+      :type: str
+
+   .. attribute:: selection_scores_
+
+      Per output, ``{candidate: {"mean": ..., "se": ...}}`` of the CV scores
+      that drove the choice. The winner's mean is optimistically biased (it
+      is the max over many candidates); evaluate on a held-out test set for
+      an unbiased estimate.
+
+      :type: list of dict
+
+
+   .. py:attribute:: estimators
+
+
+   .. py:attribute:: param_spaces
+
+
+   .. py:attribute:: cv
+      :value: 'auto'
+
+
+
+   .. py:attribute:: scoring
+      :value: 'neg_mean_squared_error'
+
+
+
+   .. py:attribute:: pre_screen
+      :value: False
+
+
+
+   .. py:attribute:: selection
+      :value: 'best'
+
+
+
+   .. py:attribute:: random_state
+      :value: 0
+
+
+
+   .. py:method:: __sklearn_clone__() -> AutoDetectMultiOutputRegressor
+
+
+   .. py:method:: _splitter(n_samples: int)
+
+
+   .. py:method:: _choose(candidates: list[dict]) -> dict
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> AutoDetectMultiOutputRegressor
+
+
+   .. py:method:: register_multi_output_candidates(surrogates: list) -> AutoDetectMultiOutputRegressor
+
+      Register joint multi-output surrogate candidates.
+
+      These surrogates predict all outputs simultaneously (i.e. they set
+      ``_multi_output = True``). They are evaluated once on the full Y matrix
+      during ``fit()`` and each output's score is compared against the
+      per-output GridSearchCV winners.
+
+      :param surrogates: Fitted or unfitted surrogate instances with ``fit(X, Y)`` and
+                         ``predict(X)`` that return an ``(n_samples, n_outputs)`` array.
+      :type surrogates: list
+
+      :rtype: self
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> numpy.ndarray
+
+
+   .. py:method:: with_vendored_surrogates(cv: int | str = 'auto', scoring: str = 'neg_mean_squared_error', fidelity_levels: Sequence[str] | None = None, pre_screen: bool = False, selection: str = 'best') -> AutoDetectMultiOutputRegressor
+      :classmethod:
+
+
+      Return instance configured to search all vendored surrogates.
+
+      :param pre_screen: When True, statistical tests are run at the start of ``fit()``
+                         to skip expensive models that are unlikely to help on this data.
+                         Computationally heavy models (GP, SVR, MLP, heteroscedastic
+                         ensembles) are only run when the data characteristics justify them.
+      :type pre_screen: bool, default False
+      :param selection: See the class docstring.
+      :type selection: {"best", "one_se"}, default "best"
+      :param Scale-sensitive candidates (GP:
+      :param SVR:
+      :param KNN:
+      :param MLP:
+      :param ElasticNet:
+      :param Lasso) are:
+      :param grid-searched as ``StandardScaler`` pipelines:
+      :param matching the scaling:
+      :param their surrogates apply when deployed.:
+
+
+
+   .. py:method:: calibrate_conformal(X_cal: numpy.ndarray, y_cal: numpy.ndarray, **kwargs) -> AutoDetectMultiOutputRegressor
+
+      Calibrate conformal prediction intervals using held-out data.
+
+      Computes absolute residuals on the calibration set using the
+      already-fitted model. These residuals are used at prediction time
+      to construct distribution-free intervals with coverage guarantees.
+
+      :param X_cal: Calibration features (must NOT overlap with training data).
+      :type X_cal: np.ndarray
+      :param y_cal: Calibration targets.
+      :type y_cal: np.ndarray
+
+      :rtype: self
+
+
+
+   .. py:method:: predict_interval(X: numpy.ndarray, alpha: float = 0.1) -> tuple
+
+      Return conformal prediction intervals.
+
+      :param X:
+      :type X: np.ndarray
+      :param alpha: Miscoverage level. Intervals target 1-alpha coverage.
+      :type alpha: float
+
+      :returns: **y_lower, y_upper**
+      :rtype: np.ndarray
+
+
+
+.. py:class:: SplitConformalPredictor(estimator, calibration_size: float = 0.2, adaptive: bool = False, random_state: Optional[int] = None)
+
+   Bases: :py:obj:`multioutreg.conformal.base.BaseConformalPredictor`
+
+
+   Split (inductive) conformal prediction.
+
+   Splits training data into a proper training set and a calibration set.
+   The model is fitted on the training set, and nonconformity scores
+   (absolute residuals) are computed on the calibration set. At prediction
+   time, the conformal quantile of these scores determines the interval width.
+
+   Coverage guarantee: P(Y in [y_lower, y_upper]) >= 1 - alpha
+   for exchangeable data.
+
+   :param estimator: Any regressor with fit/predict. Will be cloned internally.
+   :type estimator: sklearn-compatible regressor
+   :param calibration_size: Fraction of training data reserved for calibration (default 0.2).
+   :type calibration_size: float
+   :param adaptive: If True, uses normalized residuals |y - y_hat| / y_std for
+                    locally-adaptive intervals. Requires the estimator to support
+                    predict(X, return_std=True).
+   :type adaptive: bool
+   :param random_state: Seed for reproducible calibration splits.
+   :type random_state: int, optional
+
+
+   .. py:attribute:: calibration_size
+      :value: 0.2
+
+
+
+   .. py:attribute:: adaptive
+      :value: False
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> SplitConformalPredictor
+
+      Fit model on training split and compute calibration scores.
+
+      :param X:
+      :type X: (n_samples, n_features)
+      :param y:
+      :type y: (n_samples,) or (n_samples, n_outputs)
+
+
+
+   .. py:method:: predict_interval(X: numpy.ndarray, alpha: float = 0.1) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+      Compute prediction intervals.
+
+      :param X:
+      :type X: (n_samples, n_features)
+      :param alpha: Miscoverage level. Intervals target 1-alpha coverage.
+      :type alpha: float
+
+      :returns: **y_lower, y_upper** -- Shape (n_samples,) for single output or (n_samples, n_outputs).
+      :rtype: np.ndarray
+
+
+
+.. py:class:: CVPlusConformalPredictor(estimator, n_folds: int = 5, random_state: Optional[int] = None)
+
+   Bases: :py:obj:`multioutreg.conformal.base.BaseConformalPredictor`
+
+
+   CV+ conformal prediction (Barber et al., 2021).
+
+   Uses K-fold cross-validation to compute out-of-fold residuals R_i for every
+   training point, avoiding the data-splitting inefficiency of split conformal.
+   All data is used for both training and calibration.
+
+   For a test point x, with mu_{-k(i)} the model fitted without the fold
+   containing training point i, the interval is::
+
+       lower = floor(alpha (n+1))-th smallest of { mu_{-k(i)}(x) - R_i }
+       upper = ceil((1-alpha)(n+1))-th smallest of { mu_{-k(i)}(x) + R_i }
+
+   Coverage guarantee: P(Y in interval) >= 1 - 2*alpha for exchangeable data
+   (in practice usually close to 1 - alpha). Intervals are unbounded when n is
+   too small for the requested alpha.
+
+   :param estimator: Any regressor with fit/predict. Will be cloned for each fold.
+   :type estimator: sklearn-compatible regressor
+   :param n_folds: Number of cross-validation folds (default 5).
+   :type n_folds: int
+   :param random_state: Seed for reproducible fold splits.
+   :type random_state: int, optional
+
+
+   .. py:attribute:: n_folds
+      :value: 5
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> CVPlusConformalPredictor
+
+      Fit fold models and compute out-of-fold calibration scores.
+
+      :param X:
+      :type X: (n_samples, n_features)
+      :param y:
+      :type y: (n_samples,) or (n_samples, n_outputs)
+
+
+
+   .. py:method:: predict_interval(X: numpy.ndarray, alpha: float = 0.1) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+      CV+ prediction intervals.
+
+      :param X:
+      :type X: (n_samples, n_features)
+      :param alpha: Miscoverage level. Guaranteed coverage is >= 1 - 2*alpha.
+      :type alpha: float
+
+      :returns: **y_lower, y_upper**
+      :rtype: np.ndarray
+
+
+
+.. py:data:: _TS_EXPORTS
+
+.. py:data:: __all__
+
+.. py:function:: __getattr__(name)
+
+.. py:function:: __dir__()
+

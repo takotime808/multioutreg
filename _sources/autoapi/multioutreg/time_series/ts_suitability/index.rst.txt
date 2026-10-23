@@ -1,0 +1,55 @@
+multioutreg.time_series.ts_suitability
+======================================
+
+.. py:module:: multioutreg.time_series.ts_suitability
+
+.. autoapi-nested-parse::
+
+   Statistical tests to determine whether uploaded data is suitable for time series modeling.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_suitability.check_ts_suitability
+
+
+Module Contents
+---------------
+
+.. py:function:: check_ts_suitability(df: pandas.DataFrame, target_col: str, datetime_col: str | None = None, min_length: int = 30) -> dict
+
+   Run statistical tests to determine if data is suitable for time series modeling.
+
+   Runs four tests:
+   - ADF (Augmented Dickey-Fuller): null = unit root. KPSS: null = level
+     stationary. The series counts as stationary only when ADF rejects and
+     KPSS does not; otherwise it is differenced once for the next two tests.
+   - Ljung-Box: checks for significant autocorrelation (serial dependence)
+     in the stationary series. On levels, any trend or random walk would pass,
+     though a naive forecast is already optimal for a random walk.
+   - ACF seasonality scan: estimates a dominant seasonal period if present
+     (see :func:`multioutreg.time_series.seasonality.detect_seasonal_period`),
+     on the linearly detrended levels and then the differences when the
+     series is not stationary.
+
+   :param df: Input data.
+   :type df: pd.DataFrame
+   :param target_col: Column to analyse.
+   :type target_col: str
+   :param datetime_col: If provided, data is sorted by this column before testing.
+   :type datetime_col: str | None
+   :param min_length: Minimum number of non-null observations required to run tests (default 30).
+   :type min_length: int
+
+   :returns: n_obs, adf_statistic, adf_pvalue, kpss_statistic, kpss_pvalue,
+             is_stationary, tested_on ("levels" or "first differences"),
+             ljungbox_pvalue, has_autocorrelation, seasonal_period,
+             min_length_ok, suitable, recommendation.
+             On error: suitable=False, error=<message>.
+   :rtype: dict with keys
+
+

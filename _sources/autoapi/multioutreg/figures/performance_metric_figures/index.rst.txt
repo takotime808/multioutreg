@@ -1,0 +1,32 @@
+multioutreg.figures.performance_metric_figures
+==============================================
+
+.. py:module:: multioutreg.figures.performance_metric_figures
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.performance_metric_figures.plot_uq_metrics_bar
+
+
+Module Contents
+---------------
+
+.. py:function:: plot_uq_metrics_bar(metrics_df: pandas.DataFrame, metrics: Optional[Iterable[str]] = None, ax: Optional[matplotlib.pyplot.Axes] = None) -> matplotlib.pyplot.Axes
+
+   Plot bar chart of per-output uncertainty metrics.
+
+   :param metrics_df: DataFrame returned by ``get_uq_performance_metrics_flexible`` containing
+                      one row per output.
+   :param metrics: Iterable of metric column names to plot. If ``None``, the function will
+                   try to plot commonly used metrics such as ``rmse`` and ``mae`` if they
+                   are present in ``metrics_df``.
+   :param ax: Optional :class:`matplotlib.axes.Axes` to draw on.
+
+   :returns: The axes containing the bar plot.
+   :rtype: matplotlib.axes.Axes
+
+

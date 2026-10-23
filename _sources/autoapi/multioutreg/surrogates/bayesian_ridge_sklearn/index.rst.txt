@@ -1,0 +1,33 @@
+multioutreg.surrogates.bayesian_ridge_sklearn
+=============================================
+
+.. py:module:: multioutreg.surrogates.bayesian_ridge_sklearn
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.bayesian_ridge_sklearn.BayesianRidgeSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: BayesianRidgeSurrogate(**kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   Bayesian Ridge Regression surrogate with analytic posterior uncertainty.
+
+   Wraps sklearn's BayesianRidge, which computes an exact Gaussian posterior
+   over weights.  Training is O(p³) in feature dimension -- orders of magnitude
+   cheaper than a GP for large datasets while still providing principled
+   uncertainty estimates without any sampling.
+
+
+   .. py:method:: predict(X, return_std=False)
+
+

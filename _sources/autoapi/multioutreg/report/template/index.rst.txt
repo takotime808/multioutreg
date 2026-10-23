@@ -1,0 +1,19 @@
+multioutreg.report.template
+===========================
+
+.. py:module:: multioutreg.report.template
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.report.template.template
+
+
+Module Contents
+---------------
+
+.. py:data:: template
+

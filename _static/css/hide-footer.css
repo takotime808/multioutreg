@@ -1,0 +1,5 @@
+/* Remove footer from bottom of Sphinx pages */
+
+.bottom-of-page {
+    visibility: hidden;
+}

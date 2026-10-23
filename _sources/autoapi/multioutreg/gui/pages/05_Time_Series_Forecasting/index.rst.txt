@@ -1,0 +1,134 @@
+multioutreg.gui.pages.05_Time_Series_Forecasting
+================================================
+
+.. py:module:: multioutreg.gui.pages.05_Time_Series_Forecasting
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.05_Time_Series_Forecasting.SURROGATE_DISPLAY_NAMES
+   multioutreg.gui.pages.05_Time_Series_Forecasting.uploaded
+   multioutreg.gui.pages.05_Time_Series_Forecasting.uploaded2
+   multioutreg.gui.pages.05_Time_Series_Forecasting.uploaded3
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.05_Time_Series_Forecasting._run_ts_pipeline
+   multioutreg.gui.pages.05_Time_Series_Forecasting._run_surrogate_forecast
+   multioutreg.gui.pages.05_Time_Series_Forecasting._run_chronos_forecast
+   multioutreg.gui.pages.05_Time_Series_Forecasting._run_prophet_forecast
+   multioutreg.gui.pages.05_Time_Series_Forecasting._run_neural_forecast
+   multioutreg.gui.pages.05_Time_Series_Forecasting._build_surrogate
+
+
+Module Contents
+---------------
+
+.. py:function:: _run_ts_pipeline(df: pandas.DataFrame, target_col: str, datetime_col: str | None, freq: str, verbose: bool) -> dict
+
+   Run ARIMA / SARIMA / LSTM pipeline on df.
+
+   :returns: "perf_df"    : pd.DataFrame of per-model performance metrics
+             "best_model" : str name of the best model
+             "results"    : list of (metadata_dict, data_series, model_obj)
+             "validation" : dict returned by DataProcessor.validate_data
+             "failures"   : dict mapping model label -> error message
+             "error"      : str (only present if a fatal error occurred)
+   :rtype: dict with keys
+
+
+.. py:function:: _run_surrogate_forecast(df: pandas.DataFrame, target_col: str, n_lags: int, horizon: int, uncertainty: str, surrogate_name: str) -> dict
+
+   Fit a LagFeatureForecaster with the chosen surrogate and run walk-forward CV.
+
+   :param df:
+   :type df: pd.DataFrame — must contain ``target_col``
+   :param target_col:
+   :type target_col: str
+   :param n_lags:
+   :type n_lags: int
+   :param horizon:
+   :type horizon: int
+   :param uncertainty:
+   :type uncertainty: str — "conformal", "return_std", or "none"
+   :param surrogate_name:
+   :type surrogate_name: str — key in SURROGATE_OPTIONS
+
+   :returns: "forecast_result" : ForecastResult
+             "cv_summary"      : dict from WalkForwardCV.summary()
+             "error"           : str (only present on failure)
+   :rtype: dict with keys
+
+
+.. py:function:: _run_chronos_forecast(series_dict: dict, model_name: str, horizon: int, quantiles: list[float]) -> ForecastResult
+
+   Run ChronosForecaster.fit().predict() — pure function for testability.
+
+   :param series_dict:
+   :type series_dict: dict mapping series name → np.ndarray
+   :param model_name:
+   :type model_name: str (e.g., "amazon/chronos-bolt-tiny")
+   :param horizon:
+   :type horizon: int
+   :param quantiles:
+   :type quantiles: list of float
+
+   :rtype: ForecastResult
+
+
+.. py:function:: _run_prophet_forecast(series: numpy.ndarray, horizon: int, quantiles: list[float], seasonality_mode: str = 'additive') -> ForecastResult
+
+   Fit ProphetForecaster and return a ForecastResult — pure function for testability.
+
+   :param series:
+   :type series: 1D np.ndarray of float values
+   :param horizon:
+   :type horizon: int — prediction horizon in steps
+   :param quantiles:
+   :type quantiles: list of float quantile levels
+   :param seasonality_mode:
+   :type seasonality_mode: str — "additive" or "multiplicative"
+
+   :rtype: ForecastResult
+
+
+.. py:function:: _run_neural_forecast(series: numpy.ndarray, model_type: str, horizon: int, quantiles: list[float], input_size: int = 24, max_steps: int = 200) -> ForecastResult
+
+   Fit NeuralForecaster (N-BEATS / N-HiTS) — pure function for testability.
+
+   :param series:
+   :type series: 1D np.ndarray of float values
+   :param model_type:
+   :type model_type: str — "nbeats" or "nhits"
+   :param horizon:
+   :type horizon: int
+   :param quantiles:
+   :type quantiles: list of float
+   :param input_size:
+   :type input_size: int
+   :param max_steps:
+   :type max_steps: int — reduced default for GUI responsiveness
+
+   :rtype: ForecastResult
+
+
+.. py:function:: _build_surrogate(name: str)
+
+   Instantiate a surrogate by short name.
+
+
+.. py:data:: SURROGATE_DISPLAY_NAMES
+
+.. py:data:: uploaded
+
+.. py:data:: uploaded2
+
+.. py:data:: uploaded3
+

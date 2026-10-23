@@ -1,0 +1,32 @@
+multioutreg.figures.error_histograms
+====================================
+
+.. py:module:: multioutreg.figures.error_histograms
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.error_histograms.generate_error_histogram
+
+
+Module Contents
+---------------
+
+.. py:function:: generate_error_histogram(y_true: numpy.ndarray, y_pred: numpy.ndarray, output_names: List[str]) -> List[Dict[str, str]]
+
+   Generate error histograms for each output dimension.
+
+   :param y_true: Ground truth values.
+   :type y_true: np.ndarray
+   :param y_pred: Predicted values.
+   :type y_pred: np.ndarray
+   :param output_names: Names of output dimensions.
+   :type output_names: List[str]
+
+   :returns: List of dictionaries containing base64-encoded histograms and metadata.
+   :rtype: List[Dict[str, str]]
+
+

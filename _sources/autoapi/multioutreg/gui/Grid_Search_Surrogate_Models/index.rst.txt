@@ -1,0 +1,32 @@
+multioutreg.gui.Grid_Search_Surrogate_Models
+============================================
+
+.. py:module:: multioutreg.gui.Grid_Search_Surrogate_Models
+
+.. autoapi-nested-parse::
+
+   Streamlit script performing a grid search over several surrogate models.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.Grid_Search_Surrogate_Models._NGBOOST_AVAILABLE
+   multioutreg.gui.Grid_Search_Surrogate_Models.uploaded_file
+   multioutreg.gui.Grid_Search_Surrogate_Models.df
+
+
+Module Contents
+---------------
+
+.. py:data:: _NGBOOST_AVAILABLE
+   :value: True
+
+
+.. py:data:: uploaded_file
+
+.. py:data:: df
+

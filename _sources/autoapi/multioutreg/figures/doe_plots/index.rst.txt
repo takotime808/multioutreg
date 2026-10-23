@@ -1,0 +1,40 @@
+multioutreg.figures.doe_plots
+=============================
+
+.. py:module:: multioutreg.figures.doe_plots
+
+.. autoapi-nested-parse::
+
+   DoE Pair Plots: Visualization utility for generating PairGrid plots of numerical variables from a DataFrame.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.doe_plots.make_doe_plot
+
+
+Module Contents
+---------------
+
+.. py:function:: make_doe_plot(df: pandas.DataFrame, numeric_cols: List[str]) -> seaborn.PairGrid
+
+   Generate a Seaborn PairGrid plot for the selected numeric columns of a DataFrame.
+
+   The plot includes:
+       - Scatter plots in the upper triangle
+       - Kernel density estimates in the lower triangle
+       - Histograms with KDE on the diagonal
+
+   :param df: Input DataFrame containing the data.
+   :type df: pd.DataFrame
+   :param numeric_cols: List of column names to include in the pair plot.
+   :type numeric_cols: List[str]
+
+   :returns: A Seaborn PairGrid object for further customization or rendering.
+   :rtype: PairGrid
+
+

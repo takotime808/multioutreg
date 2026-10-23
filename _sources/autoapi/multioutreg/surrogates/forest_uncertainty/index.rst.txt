@@ -1,0 +1,120 @@
+multioutreg.surrogates.forest_uncertainty
+=========================================
+
+.. py:module:: multioutreg.surrogates.forest_uncertainty
+
+.. autoapi-nested-parse::
+
+   Predictive std for tree-ensemble surrogates: tree spread + noise.
+
+   The spread of the trees' predictions measures how unsure the forest is about
+   the mean (epistemic). It does not include the noise in y (aleatoric), so on
+   noisy data intervals built from it alone are too narrow. ``ForestSurrogate``
+   adds a noise variance per output, estimated on held-out points:
+
+       noise_var = max(mean((y_i - m_i)^2) - mean(v_i), 0)
+
+   where ``m_i`` and ``v_i`` are the mean and variance of the trees that did not
+   see point i (out-of-bag trees when the forest bootstraps, otherwise K-fold
+   refits). This matches the average predicted variance to the held-out mean
+   squared error. The predictive std is ``sqrt(tree_var(x) + noise_var)``.
+
+   ``noise_var`` is the part of the error the tree spread misses, not an estimate
+   of the noise variance itself: fully grown trees fit the noise, so their spread
+   already carries some of it, and ``noise_var`` is usually below the true noise.
+   It is constant in x; for input-dependent noise wrap the surrogate with
+   conformal prediction or use a model with a variance head.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.forest_uncertainty.ForestSurrogate
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.forest_uncertainty.tree_predictions
+   multioutreg.surrogates.forest_uncertainty._tree_predictions_3d
+   multioutreg.surrogates.forest_uncertainty._oob_mean_var
+   multioutreg.surrogates.forest_uncertainty._plain_forest
+   multioutreg.surrogates.forest_uncertainty._kfold_mean_var
+   multioutreg.surrogates.forest_uncertainty.estimate_noise_variance
+
+
+Module Contents
+---------------
+
+.. py:function:: tree_predictions(forest, X)
+
+   Per-tree predictions, shape ``(n_trees, n_samples)``.
+
+
+.. py:function:: _tree_predictions_3d(forest, X)
+
+   Per-tree predictions, shape ``(n_trees, n_samples, n_outputs)``.
+
+
+.. py:function:: _oob_mean_var(forest, X, min_trees=2)
+
+   Out-of-bag mean and variance of the tree predictions at each training point.
+
+
+.. py:function:: _plain_forest(forest)
+
+   Unfitted copy of the nearest scikit-learn class of *forest*.
+
+   Subclasses whose ``fit`` estimates the noise (e.g. the grid-search wrappers)
+   would recurse if refitted here, so refit the plain scikit-learn forest.
+
+
+.. py:function:: _kfold_mean_var(forest, X, y, cv)
+
+   K-fold mean and variance of the tree predictions at each training point.
+
+
+.. py:function:: estimate_noise_variance(forest, X, y, cv=5)
+
+   Noise variance for a fitted forest (see module docstring).
+
+   Returns a float for 1-D ``y`` and one value per column for 2-D ``y``.
+
+
+.. py:class:: ForestSurrogate(forest, include_noise=True, noise_cv=5)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   Multi-output tree-ensemble surrogate with tree spread + noise std.
+
+   :param forest: Unfitted single-output forest, wrapped per output.
+   :type forest: RandomForestRegressor | ExtraTreesRegressor
+   :param include_noise: Add the held-out noise variance to the tree variance. ``False`` gives
+                         the tree spread alone (epistemic only; under-covers on noisy data).
+   :type include_noise: bool, default True
+   :param noise_cv: Folds used to estimate the noise when the forest does not bootstrap.
+   :type noise_cv: int, default 5
+
+
+   .. py:attribute:: include_noise
+      :value: True
+
+
+
+   .. py:attribute:: noise_cv
+      :value: 5
+
+
+
+   .. py:method:: fit(X, Y)
+
+
+   .. py:method:: predict(X, return_std=False)
+
+

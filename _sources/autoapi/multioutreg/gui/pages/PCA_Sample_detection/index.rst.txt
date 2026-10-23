@@ -1,0 +1,25 @@
+multioutreg.gui.pages.PCA_Sample_detection
+==========================================
+
+.. py:module:: multioutreg.gui.pages.PCA_Sample_detection
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.PCA_Sample_detection.random_state
+   multioutreg.gui.pages.PCA_Sample_detection.uploaded_file
+   multioutreg.gui.pages.PCA_Sample_detection.df
+
+
+Module Contents
+---------------
+
+.. py:data:: random_state
+
+.. py:data:: uploaded_file
+
+.. py:data:: df
+

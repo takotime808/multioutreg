@@ -1,0 +1,142 @@
+multioutreg.surrogates.quantile_sklearn
+=======================================
+
+.. py:module:: multioutreg.surrogates.quantile_sklearn
+
+.. autoapi-nested-parse::
+
+   Quantile Regression surrogate — asymmetric, heteroscedastic prediction intervals.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.quantile_sklearn.QuantileRegressionSurrogate
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.quantile_sklearn._norm_ppf
+   multioutreg.surrogates.quantile_sklearn._erfinv
+
+
+Module Contents
+---------------
+
+.. py:function:: _norm_ppf(p: float) -> float
+
+   Inverse normal CDF via erfinv (no scipy required).
+
+
+.. py:function:: _erfinv(x: float) -> float
+
+   Rational approximation of erfinv for |x| < 1.
+
+
+.. py:class:: QuantileRegressionSurrogate(alpha: float = 1.0, miscoverage: float = 0.1, solver: str = 'highs', solver_options: dict | None = None)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Quantile Regression surrogate with native asymmetric prediction intervals.
+
+   Fits three :class:`sklearn.linear_model.QuantileRegressor` models per output:
+   the median (q=0.5) for point predictions, and lower / upper quantiles
+   ``(miscoverage/2, 1 - miscoverage/2)`` for heteroscedastic intervals.
+   Produces asymmetric intervals that adapt to the local noise level without
+   assuming a symmetric error distribution — complementary to (not a replacement
+   for) conformal wrapping.
+
+   Use :meth:`predict_intervals` to retrieve raw (lower, upper) quantile bounds
+   directly.  :meth:`predict(return_std=True)` returns a pseudo-std approximated
+   as ``(upper - lower) / (2 * z_alpha)`` where ``z_alpha`` is the normal quantile,
+   enabling drop-in compatibility with the standard surrogate uncertainty API.
+
+   :param alpha: L1 regularisation strength for ``QuantileRegressor`` (larger → more
+                 shrinkage).  Corresponds to ``QuantileRegressor.alpha``.
+   :type alpha: float, default 1.0
+   :param miscoverage: Target miscoverage rate.  ``miscoverage=0.1`` fits q=0.05 / q=0.5 / q=0.95
+                       and targets 90 % prediction intervals.
+   :type miscoverage: float, default 0.1
+   :param solver: Linear programming solver (``"highs"`` is the recommended default).
+   :type solver: str, default "highs"
+   :param solver_options: Additional options forwarded to the LP solver (e.g. ``{"max_iter": 1000}``).
+   :type solver_options: dict | None, default None
+
+
+   .. py:attribute:: alpha
+      :value: 1.0
+
+
+
+   .. py:attribute:: miscoverage
+      :value: 0.1
+
+
+
+   .. py:attribute:: solver
+      :value: 'highs'
+
+
+
+   .. py:attribute:: solver_options
+      :value: None
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, Y: numpy.ndarray) -> QuantileRegressionSurrogate
+
+      Fit median, lower, and upper quantile models per output.
+
+      :param X:
+      :type X: np.ndarray, shape (n_samples, n_features)
+      :param Y:
+      :type Y: np.ndarray, shape (n_samples,) or (n_samples, n_outputs)
+
+      :rtype: self
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> numpy.ndarray | tuple[np.ndarray, np.ndarray]
+
+      Predict median outputs, optionally returning pseudo-std.
+
+      :param X:
+      :type X: np.ndarray
+      :param return_std: If True, returns a pseudo-std approximated from the interval width
+                         as ``(q_hi - q_lo) / (2 * z_alpha)``.  This allows the surrogate
+                         to participate in the standard ``predict(return_std=True)`` contract.
+      :type return_std: bool, default False
+
+      :returns: * **y_pred** (*np.ndarray, shape (n_samples, n_outputs)*)
+                * **y_std** (*np.ndarray, shape (n_samples, n_outputs)  [only if return_std]*)
+
+
+
+   .. py:method:: predict_intervals(X: numpy.ndarray) -> tuple[numpy.ndarray, numpy.ndarray]
+
+      Return raw quantile interval bounds (y_lower, y_upper).
+
+      Unlike ``predict(return_std=True)`` which converts width to a pseudo-std,
+      this method returns the actual fitted quantile predictions.
+
+      :returns: * **y_lower** (*np.ndarray, shape (n_samples, n_outputs)*)
+                * **y_upper** (*np.ndarray, shape (n_samples, n_outputs)*)
+
+
+
+   .. py:method:: _conformal_point_predict(X: numpy.ndarray) -> numpy.ndarray
+
+
+   .. py:method:: get_params(deep: bool = True) -> dict
+
+
+   .. py:method:: set_params(**params) -> QuantileRegressionSurrogate
+
+

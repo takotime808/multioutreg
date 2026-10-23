@@ -1,0 +1,129 @@
+multioutreg.metrics
+===================
+
+.. py:module:: multioutreg.metrics
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/metrics/multiobjective_regret/index
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.metrics.RegretTracker
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.metrics.pareto_mask
+   multioutreg.metrics.hypervolume_regret
+   multioutreg.metrics.scalarized_regret
+   multioutreg.metrics.epsilon_regret
+
+
+Package Contents
+----------------
+
+.. py:function:: pareto_mask(Y: numpy.ndarray, minimize: Union[bool, Iterable[bool]] = True) -> numpy.ndarray
+
+   Return a boolean mask for non-dominated points (Pareto set) under minimization convention.
+
+   :param Y: Objective values.
+   :type Y: array, shape (n, m) or (n,)
+   :param minimize: True for objectives to minimize, False for maximize.
+   :type minimize: bool or array-like of bool
+
+   :returns: **mask** -- True if Y[i] is Pareto-efficient (non-dominated).
+   :rtype: array, shape (n,)
+
+
+.. py:function:: hypervolume_regret(Y_true: numpy.ndarray, Y_pred: numpy.ndarray, reference_point: Optional[numpy.ndarray] = None, minimize: Union[bool, Iterable[bool]] = True) -> float
+
+   Hypervolume regret: HV(true_front) - HV(pred_front)  (>= 0 ideally).
+
+   Y_true, Y_pred: arrays of shape (n, m) or (n,) with objective values.
+
+
+.. py:function:: scalarized_regret(Y_true: numpy.ndarray, Y_pred: numpy.ndarray, weights: numpy.ndarray, minimize: Union[bool, Iterable[bool]] = True, reduce: str = 'mean') -> Union[float, numpy.ndarray, Dict[str, float]]
+
+   Scalarized regret across weight vectors.
+
+   For each weight vector w (nonnegative, sum=1), compute:
+     r(w) = min_x w·Y_true(x) - min_x w·Y_pred(x)    (minimization)
+
+   Accepts weights in shapes:
+     - (k, m)  -> usual case
+     - (m,)    -> one weight vector
+     - (k,)    -> only valid when m == 1 (auto-expands to (k, 1))
+     - scalar  -> only valid when m == 1 (treated as weight=1.0)
+
+   Returns aggregated regret by `reduce` or per-weight array.
+
+
+.. py:function:: epsilon_regret(Y_true: numpy.ndarray, Y_pred: numpy.ndarray, minimize: Union[bool, Iterable[bool]] = True) -> float
+
+   Additive epsilon indicator I_ε(A, B) under minimization, with A=pred_front, B=true_front.
+   Smaller is better; regret is max_{b∈B} min_{a∈A} max_i (a_i - b_i).
+
+   Returns a nonnegative float (0.0 means predicted front weakly dominates B).
+
+
+.. py:class:: RegretTracker
+
+   Track regret over iterations of an optimization loop.
+
+   .. rubric:: Example
+
+   tracker = RegretTracker(minimize=[True, True, True])
+   for t in range(T):
+       # Y_true_batch, Y_pred_batch are (n_t, m)
+       tracker.step(Y_true_batch, Y_pred_batch)
+
+   hist = tracker.history  # dict of lists
+
+
+   .. py:attribute:: minimize
+      :type:  Union[bool, Iterable[bool]]
+      :value: True
+
+
+
+   .. py:attribute:: reference_point
+      :type:  Optional[numpy.ndarray]
+      :value: None
+
+
+
+   .. py:attribute:: weights
+      :type:  Optional[numpy.ndarray]
+      :value: None
+
+
+
+   .. py:attribute:: n_weight_samples
+      :type:  int
+      :value: 16
+
+
+
+   .. py:attribute:: history
+      :type:  Dict[str, List[float]]
+
+
+   .. py:method:: _maybe_init_weights(m: int)
+
+
+   .. py:method:: step(Y_true: numpy.ndarray, Y_pred: numpy.ndarray) -> Dict[str, float]
+
+

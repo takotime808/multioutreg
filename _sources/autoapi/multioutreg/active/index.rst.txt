@@ -1,0 +1,673 @@
+multioutreg.active
+==================
+
+.. py:module:: multioutreg.active
+
+.. autoapi-nested-parse::
+
+   Active learning: acquisition functions, batch selection and sampling loops.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/active/acquisition/index
+   /autoapi/multioutreg/active/batch/index
+   /autoapi/multioutreg/active/benchmarks/index
+   /autoapi/multioutreg/active/loop/index
+   /autoapi/multioutreg/active/multi_fidelity/index
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.active.ACQUISITIONS
+   multioutreg.active.BENCHMARKS
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.active.CommitteeSurrogate
+   multioutreg.active.Benchmark
+   multioutreg.active.ActiveLearner
+   multioutreg.active.FidelityInfo
+   multioutreg.active.MultiFidelityActiveLearner
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.active.aggregate
+   multioutreg.active.expected_improvement
+   multioutreg.active.max_variance
+   multioutreg.active.output_scale
+   multioutreg.active.predict_mean_std
+   multioutreg.active.probability_of_improvement
+   multioutreg.active.upper_confidence_bound
+   multioutreg.active.select_batch
+   multioutreg.active.get_benchmark
+   multioutreg.active.heldout_metrics
+   multioutreg.active.space_filling
+   multioutreg.active.effective_costs
+   multioutreg.active.fidelity_info
+   multioutreg.active.level_trust
+   multioutreg.active.mf_expected_improvement
+   multioutreg.active.variance_reduction_per_cost
+
+
+Package Contents
+----------------
+
+.. py:data:: ACQUISITIONS
+
+.. py:class:: CommitteeSurrogate(model_factory: Callable, n_members: int = 5, random_state=0)
+
+   Query-by-committee uncertainty for any surrogate.
+
+   Fits ``n_members`` copies of ``model_factory()`` on bootstrap resamples and
+   predicts the member mean, with the spread across members as ``std``. This
+   lets models without native uncertainty (KNN, linear, plain trees) take part
+   in variance-based active learning (Burbidge et al. 2007).
+
+   :param model_factory: Zero-argument callable returning an unfitted surrogate with
+                         ``fit(X, Y)`` and ``predict(X)``.
+   :type model_factory: callable
+   :param n_members:
+   :type n_members: int, default 5
+   :param random_state:
+   :type random_state: int or None, default 0
+
+
+   .. py:attribute:: model_factory
+
+
+   .. py:attribute:: n_members
+      :value: 5
+
+
+
+   .. py:attribute:: random_state
+      :value: 0
+
+
+
+   .. py:method:: fit(X, Y) -> CommitteeSurrogate
+
+
+   .. py:method:: predict(X, return_std: bool = False)
+
+
+.. py:function:: aggregate(values, how: str = 'sum', weights: Optional[Sequence[float]] = None) -> numpy.ndarray
+
+   Combine per-output scores ``(n, n_outputs)`` into one score ``(n,)``.
+
+
+.. py:function:: expected_improvement(mean, std, best: float, xi: float = 0.0, weights=None, minimize: bool = True) -> numpy.ndarray
+
+   Expected improvement over ``best`` (Jones et al. 1998).
+
+
+.. py:function:: max_variance(mean, std, y_scale=None, how: str = 'sum', weights=None) -> numpy.ndarray
+
+   Standardized predictive variance, aggregated over outputs (ALM).
+
+   ``y_scale`` (per-output std of the training targets, see
+   :func:`output_scale`) keeps large-scale outputs from dominating.
+
+
+.. py:function:: output_scale(Y) -> numpy.ndarray
+
+   Per-output standard deviation of observed values (1 where degenerate).
+
+
+.. py:function:: predict_mean_std(model, X, allow_zero_std: bool = False, **predict_kwargs)
+
+   Return ``(mean, std)`` as 2-D arrays, refusing silent zero uncertainty.
+
+   ``BaseSurrogate`` and ``AutoDetectMultiOutputRegressor`` fill ``std`` with
+   zeros for outputs whose model has no native uncertainty. A variance-based
+   acquisition would read that as "perfectly known" and never sample for that
+   output, so this raises unless ``allow_zero_std`` is set.
+
+
+.. py:function:: probability_of_improvement(mean, std, best: float, xi: float = 0.0, weights=None, minimize: bool = True) -> numpy.ndarray
+
+   Probability of improving on ``best`` by at least ``xi`` (Kushner 1964).
+
+
+.. py:function:: upper_confidence_bound(mean, std, beta: float = 4.0, weights=None, minimize: bool = True) -> numpy.ndarray
+
+   GP-UCB (Srinivas et al. 2010) on the scalarized objective.
+
+   With ``minimize=True`` this is the negated lower confidence bound, so that
+   larger is still better.
+
+
+.. py:function:: select_batch(U_cand: numpy.ndarray, scores: numpy.ndarray, batch_size: int, U_train: Optional[numpy.ndarray] = None, length_scale: Optional[float] = None, penalize_train: bool = False) -> numpy.ndarray
+
+   Greedy top-k with a Gaussian distance penalty around picked points.
+
+   After each pick, every candidate's score is multiplied by
+   ``1 - exp(-d^2 / (2 l^2))`` with ``d`` its distance to the pick, so a batch
+   spreads across the acquisition surface instead of clustering on one peak
+   (local penalization, González et al. 2016).
+
+   :param U_cand: Candidates in the unit cube (distances are measured there).
+   :type U_cand: array, shape (n_candidates, n_features)
+   :param scores: Acquisition values; larger is better. Shifted to be non-negative.
+   :type scores: array, shape (n_candidates,)
+   :param batch_size:
+   :type batch_size: int
+   :param U_train: Existing design in the unit cube; sets the default length scale and,
+                   with ``penalize_train``, is penalized like a pick.
+   :type U_train: array, optional
+   :param length_scale: Defaults to :func:`default_length_scale` of ``n_train + batch_size``.
+   :type length_scale: float, optional
+
+   :returns: Indices into ``U_cand``.
+   :rtype: np.ndarray of int, shape (batch_size,)
+
+
+.. py:data:: BENCHMARKS
+   :value: ('forrester', 'branin', 'currin', 'branin_currin', 'ishigami', 'hartmann3', 'park', 'borehole')
+
+
+.. py:class:: Benchmark
+
+   An analytic test problem with bounds and, optionally, fidelity levels.
+
+   ``functions`` and ``costs`` are keyed by level, ordered cheapest first;
+   the last level is the high fidelity.
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: bounds
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: functions
+      :type:  Dict[str, Callable[[numpy.ndarray], numpy.ndarray]]
+
+
+   .. py:attribute:: costs
+      :type:  Dict[str, float]
+
+
+   .. py:attribute:: minimum
+      :type:  Optional[float]
+      :value: None
+
+
+
+   .. py:method:: __post_init__()
+
+
+   .. py:property:: levels
+
+
+   .. py:property:: high
+      :type: str
+
+
+
+   .. py:property:: n_features
+      :type: int
+
+
+
+   .. py:method:: __call__(X, level: Optional[str] = None) -> numpy.ndarray
+
+
+   .. py:method:: sample(n: int, method: str = 'sobol', seed=None) -> numpy.ndarray
+
+      Space-filling (``"sobol"``, ``"lhs"``) or ``"random"`` points in bounds.
+
+
+
+.. py:function:: get_benchmark(name: str, cost_ratio: float = 10.0) -> Benchmark
+
+   Return a :class:`Benchmark` by name.
+
+   Multi-fidelity benchmarks have levels ``"lo"`` and ``"hi"`` with costs
+   ``1`` and ``cost_ratio``.
+
+
+.. py:class:: ActiveLearner(model_factory: Callable, bounds, acquisition: Union[str, Callable] = 'max_variance', acquisition_kwargs: Optional[dict] = None, weights=None, minimize: bool = True, batch_size: int = 1, n_candidates: int = 1024, length_scale: Optional[float] = None, penalize_train: bool = False, allow_zero_std: bool = False, random_state: Optional[int] = 0)
+
+   Sequential design for a multi-output surrogate on a box-shaped domain.
+
+   :param model_factory: Zero-argument callable returning an unfitted surrogate with
+                         ``fit(X, Y)`` and ``predict(X, return_std=True)``. The model is refit
+                         from scratch after every :meth:`tell`.
+   :type model_factory: callable
+   :param bounds:
+   :type bounds: array-like, shape (n_features, 2)
+   :param acquisition: One of ``"max_variance"``, ``"ucb"``, ``"ei"``, ``"pi"``, ``"random"``,
+                       or ``f(mean, std, **kwargs) -> scores``.
+   :type acquisition: str or callable, default "max_variance"
+   :param acquisition_kwargs: Extra arguments for the acquisition (``beta``, ``xi``, ``how``).
+   :type acquisition_kwargs: dict, optional
+   :param weights: Per-output weights: aggregation weights for ``max_variance``,
+                   scalarization weights for ``ucb`` / ``ei`` / ``pi``.
+   :type weights: sequence of float, optional
+   :param minimize: Direction for the optimization acquisitions.
+   :type minimize: bool, default True
+   :param batch_size:
+   :type batch_size: int, default 1
+   :param n_candidates: Size of the fresh Sobol candidate pool drawn on every :meth:`ask`.
+   :type n_candidates: int, default 1024
+   :param length_scale: Passed to :func:`multioutreg.active.batch.select_batch`.
+   :param penalize_train: Passed to :func:`multioutreg.active.batch.select_batch`.
+   :param allow_zero_std: See :func:`multioutreg.active.acquisition.predict_mean_std`.
+   :type allow_zero_std: bool, default False
+   :param random_state:
+   :type random_state: int or None, default 0
+
+
+   .. py:attribute:: model_factory
+
+
+   .. py:attribute:: bounds
+
+
+   .. py:attribute:: acquisition
+      :value: 'max_variance'
+
+
+
+   .. py:attribute:: acquisition_kwargs
+
+
+   .. py:attribute:: weights
+      :value: None
+
+
+
+   .. py:attribute:: minimize
+      :value: True
+
+
+
+   .. py:attribute:: batch_size
+      :value: 1
+
+
+
+   .. py:attribute:: n_candidates
+      :value: 1024
+
+
+
+   .. py:attribute:: length_scale
+      :value: None
+
+
+
+   .. py:attribute:: penalize_train
+      :value: False
+
+
+
+   .. py:attribute:: allow_zero_std
+      :value: False
+
+
+
+   .. py:attribute:: random_state
+      :value: 0
+
+
+
+   .. py:attribute:: _rng
+
+
+   .. py:attribute:: X_
+
+
+   .. py:attribute:: Y_
+      :type:  Optional[numpy.ndarray]
+      :value: None
+
+
+
+   .. py:attribute:: model_
+      :value: None
+
+
+
+   .. py:attribute:: history_
+      :type:  List[dict]
+      :value: []
+
+
+
+   .. py:property:: n_features
+      :type: int
+
+
+
+   .. py:method:: to_unit(X) -> numpy.ndarray
+
+
+   .. py:method:: from_unit(U) -> numpy.ndarray
+
+
+   .. py:method:: _seed() -> int
+
+
+   .. py:method:: initial_design(n: int, method: str = 'sobol') -> numpy.ndarray
+
+      Space-filling starting points in the domain (not yet evaluated).
+
+
+
+   .. py:method:: tell(X, Y) -> ActiveLearner
+
+      Add evaluated points; the model is refit on the next :meth:`fit`/:meth:`ask`.
+
+
+
+   .. py:method:: fit()
+
+      Fit a fresh model on all data told so far and return it.
+
+
+
+   .. py:method:: best_observed() -> float
+
+
+   .. py:method:: score(X) -> numpy.ndarray
+
+      Acquisition value at ``X`` (larger is better).
+
+
+
+   .. py:method:: ask(n: Optional[int] = None) -> numpy.ndarray
+
+      Return the next ``n`` (default ``batch_size``) points to evaluate.
+
+
+
+   .. py:method:: _record(X_test, Y_test, **extra) -> dict
+
+
+   .. py:method:: run(simulator: Callable[[numpy.ndarray], numpy.ndarray], n_init: int = 10, n_iter: int = 10, init_method: str = 'sobol', X_test=None, Y_test=None, max_evals: Optional[int] = None, rtol: Optional[float] = None, patience: int = 2, callback: Optional[Callable[[ActiveLearner, dict], None]] = None) -> List[dict]
+
+      Run the loop with a Python ``simulator(X) -> Y``.
+
+      Stops after ``n_iter`` batches, when ``max_evals`` evaluations are
+      reached, or (with ``rtol`` and test data) when held-out NRMSE has not
+      improved by a relative ``rtol`` for ``patience`` iterations.
+
+      :returns: :attr:`history_`, one record per fitted model.
+      :rtype: list of dict
+
+
+
+.. py:function:: heldout_metrics(model, X_test, Y_test) -> Dict[str, float]
+
+   RMSE and range-free normalized RMSE (RMSE / std of Y_test), averaged over outputs.
+
+
+.. py:function:: space_filling(n: int, n_features: int, method: str = 'sobol', seed=None) -> numpy.ndarray
+
+   ``n`` points in the unit cube from a scrambled Sobol, LHS or random design.
+
+
+.. py:class:: FidelityInfo
+
+   High-fidelity prediction at candidates, split by what each level can reduce.
+
+   .. attribute:: mean, std
+
+      High-fidelity predictive mean and std.
+
+      :type: arrays, shape (n, n_outputs)
+
+   .. attribute:: reduction
+
+      Variance of the high-fidelity prediction that one run at that level
+      (at the same point) would remove.
+
+      :type: dict[level, array (n, n_outputs)]
+
+   .. attribute:: corr
+
+      Correlation between that level and the high fidelity at each point.
+
+      :type: dict[level, array (n, n_outputs)]
+
+
+   .. py:attribute:: mean
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: std
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: reduction
+      :type:  Dict[str, numpy.ndarray]
+
+
+   .. py:attribute:: corr
+      :type:  Dict[str, numpy.ndarray]
+
+
+.. py:class:: MultiFidelityActiveLearner(model_factory: Callable, bounds, levels: Sequence[str], costs: Dict[str, float], acquisition: str = 'variance', nested: bool = True, min_hi_fraction: float = 0.25, trust_z: Optional[float] = 1.0, how: str = 'sum', weights=None, minimize: bool = True, xi: float = 0.0, n_candidates: int = 1024, random_state: Optional[int] = 0)
+
+   Choose the next ``(x, level)`` to run under a total cost budget.
+
+   :param model_factory: Zero-argument callable returning an unfitted multi-fidelity surrogate
+                         with ``fit({level: (X, Y)})``, e.g. ``AdditiveCorrectionVFM`` (two
+                         levels named ``"lo"`` / ``"hi"``) or ``StackedVFMSurrogate``.
+   :type model_factory: callable
+   :param bounds:
+   :type bounds: array-like, shape (n_features, 2)
+   :param levels: Fidelity levels, cheapest first; the last one is the target.
+   :type levels: sequence of str
+   :param costs: Cost of one evaluation at each level.
+   :type costs: dict[level, float]
+   :param acquisition: ``"variance"``: variance reduction per cost (global accuracy).
+                       ``"ei"``: multi-fidelity expected improvement (optimization).
+   :type acquisition: {"variance", "ei"}, default "variance"
+   :param nested: A query at a level also runs every lower level at the same point.
+   :type nested: bool, default True
+   :param min_hi_fraction: Force a high-fidelity query whenever high-fidelity spending is below
+                           this share of the total spent. Evidence about whether a lower level
+                           is informative only comes from high-fidelity runs, so this keeps it
+                           coming even when a lower level (spuriously) looks valuable.
+   :type min_hi_fraction: float, default 0.25
+   :param trust_z: Standard errors for :func:`level_trust`; lower levels are credited
+                   only as far as the high-fidelity data shows they predict it. ``None``
+                   trusts the model's own variance split.
+   :type trust_z: float or None, default 1.0
+
+
+   .. py:attribute:: model_factory
+
+
+   .. py:attribute:: levels
+
+
+   .. py:attribute:: costs
+
+
+   .. py:attribute:: acquisition
+      :value: 'variance'
+
+
+
+   .. py:attribute:: nested
+      :value: True
+
+
+
+   .. py:attribute:: min_hi_fraction
+      :value: 0.25
+
+
+
+   .. py:attribute:: trust_z
+      :value: 1.0
+
+
+
+   .. py:attribute:: how
+      :value: 'sum'
+
+
+
+   .. py:attribute:: weights
+      :value: None
+
+
+
+   .. py:attribute:: minimize
+      :value: True
+
+
+
+   .. py:attribute:: xi
+      :value: 0.0
+
+
+
+   .. py:attribute:: n_candidates
+      :value: 1024
+
+
+
+   .. py:attribute:: _space
+
+
+   .. py:attribute:: data_
+      :type:  Dict[str, List[numpy.ndarray]]
+
+
+   .. py:attribute:: spent_
+
+
+   .. py:attribute:: model_
+      :value: None
+
+
+
+   .. py:attribute:: history_
+      :type:  List[dict]
+      :value: []
+
+
+
+   .. py:property:: top
+      :type: str
+
+
+
+   .. py:property:: total_spent
+      :type: float
+
+
+
+   .. py:property:: eff_costs
+      :type: Dict[str, float]
+
+
+
+   .. py:method:: tell(level: str, X, Y) -> MultiFidelityActiveLearner
+
+      Add evaluations at ``level``; charges ``costs[level]`` per row.
+
+
+
+   .. py:method:: fit()
+
+
+   .. py:method:: initial_design(n_per_level: Dict[str, int]) -> Dict[str, numpy.ndarray]
+
+      Nested Sobol designs: each level's points are a prefix of the level below's.
+
+
+
+   .. py:method:: score(X) -> numpy.ndarray
+
+      Acquisition for every ``(x, level)``, shape (n, n_levels).
+
+
+
+   .. py:method:: ask(remaining: Optional[float] = None)
+
+      Next query as ``(level, x)`` with ``x`` of shape (1, n_features); None if unaffordable.
+
+
+
+   .. py:method:: _record(X_test, Y_test, **extra) -> dict
+
+
+   .. py:method:: run(simulators: Dict[str, Callable[[numpy.ndarray], numpy.ndarray]], budget: float, n_init: Optional[Dict[str, int]] = None, X_test=None, Y_test=None, callback: Optional[Callable] = None) -> List[dict]
+
+      Spend ``budget`` (including the initial design) and return :attr:`history_`.
+
+      ``X_test`` / ``Y_test`` are high-fidelity hold-out data.
+
+
+
+.. py:function:: effective_costs(levels: Sequence[str], costs: Dict[str, float], nested: bool = True) -> Dict[str, float]
+
+   Cost of one query per level; nested queries also pay for every lower level.
+
+
+.. py:function:: fidelity_info(model, X, levels: Sequence[str], nested: bool = True, trust: Optional[Dict[str, numpy.ndarray]] = None) -> FidelityInfo
+
+   Per-level variance reduction for the high-fidelity prediction at ``X``.
+
+   For AR1 models (``AdditiveCorrectionVFM``),
+   ``var_hi = rho^2 var_lo + var_delta``: a low-fidelity run removes the first
+   term; a high-fidelity run removes ``var_delta``, plus the first term when
+   ``nested`` (the low fidelity is run at the same point too).
+
+   For other models with ``predict(X, level=..., return_std=True)`` the
+   reduction is ``corr_l^2 var_hi``, with ``corr_l`` the correlation of level
+   ``l`` and high-fidelity predictions over ``X`` (Huang et al. 2006).
+
+   ``trust`` (see :func:`level_trust`) multiplies each lower level's
+   reduction, and its square root that level's correlation.
+
+
+.. py:function:: level_trust(model, levels: Sequence[str], X_hi, Y_hi, z: float = 1.0, min_points: int = 6) -> Dict[str, numpy.ndarray]
+
+   How far the high-fidelity data supports each lower level, per output, in [0, 1].
+
+   The squared lower confidence bound (Fisher z, ``z`` standard errors) of
+   ``|corr(level prediction, Y_hi)|`` at the high-fidelity points. It is 0
+   until there are ``min_points`` high-fidelity points (with 4 points, pure
+   noise reaches ``|r| > 0.95`` a few percent of the time), so a lower level earns
+   credit only once the data shows it predicts the high fidelity. Without it,
+   a scale such as AR1's ``rho`` fitted to a handful of points can make an
+   uninformative level look valuable indefinitely.
+
+
+.. py:function:: mf_expected_improvement(info: FidelityInfo, eff_costs: Dict[str, float], best: float, xi: float = 0.0, weights=None, minimize: bool = True) -> numpy.ndarray
+
+   Multi-fidelity EI (Huang et al. 2006): ``EI_hi * corr_l * C_top / C_l``, shape (n, n_levels).
+
+
+.. py:function:: variance_reduction_per_cost(info: FidelityInfo, eff_costs: Dict[str, float], y_scale=None, how: str = 'sum', weights=None) -> numpy.ndarray
+
+   Standardized high-fidelity variance removed per unit cost, shape (n, n_levels).
+
+

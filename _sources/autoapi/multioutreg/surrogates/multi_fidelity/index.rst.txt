@@ -1,0 +1,57 @@
+multioutreg.surrogates.multi_fidelity
+=====================================
+
+.. py:module:: multioutreg.surrogates.multi_fidelity
+
+.. autoapi-nested-parse::
+
+   Multi-fidelity wrapper for surrogate models.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.multi_fidelity.MultiFidelitySurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: MultiFidelitySurrogate(surrogate_cls, fidelity_levels: Iterable[str])
+
+   Independent surrogate per fidelity level (no information transfer).
+
+   Each level's model is fitted only on that level's data, and
+   ``predict(X, level=...)`` uses only that level's model: the high-fidelity
+   prediction ignores the low-fidelity data entirely.  This is a baseline
+   (and a container for single-level use, e.g. in
+   ``AutoDetectMultiOutputRegressor``), not a multi-fidelity model.  For
+   models that use the cheaper levels to predict the expensive one, use
+   ``StackedVFMSurrogate`` (any number of levels) or
+   ``AdditiveCorrectionVFM`` (two levels, ``f_hi = rho * f_lo + delta``).
+
+   ``predict`` defaults to the *first* (lowest) level.
+
+
+   .. py:attribute:: fidelity_levels
+
+
+   .. py:attribute:: models
+      :type:  Dict[str, multioutreg.surrogates.base_sklearn.BaseSurrogate]
+
+
+   .. py:method:: fit(data: Union[Dict[str, Tuple[numpy.ndarray, numpy.ndarray]], Tuple[numpy.ndarray, numpy.ndarray]]) -> MultiFidelitySurrogate
+
+      Fit surrogates for each fidelity level.
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, level: str | None = None, return_std: bool = False)
+
+      Predict with the surrogate corresponding to ``level``.
+
+
+

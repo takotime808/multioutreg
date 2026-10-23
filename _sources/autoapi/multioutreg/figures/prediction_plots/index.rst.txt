@@ -1,0 +1,39 @@
+multioutreg.figures.prediction_plots
+====================================
+
+.. py:module:: multioutreg.figures.prediction_plots
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.prediction_plots.plot_predictions
+   multioutreg.figures.prediction_plots.plot_predictions_with_error_bars
+
+
+Module Contents
+---------------
+
+.. py:function:: plot_predictions(model, X_test: pandas.DataFrame | numpy.ndarray, y_test: pandas.DataFrame | numpy.ndarray, ax: Optional[matplotlib.pyplot.Axes] = None) -> matplotlib.pyplot.Axes
+
+   Scatter plot of predicted vs. true values.
+
+   Works for both single-output and multi-output regressors and mirrors
+   the visualisation used in scikit-learn's multioutput regression
+   example.
+
+
+.. py:function:: plot_predictions_with_error_bars(y_true, preds, std, output_names=None, n_cols=3)
+
+   Plot predicted vs true values with error bars for multi- or single-output regression.
+
+   Parameters:
+   - y_true: shape (n_samples, n_outputs) or (n_samples,)
+   - preds: shape (n_samples, n_outputs) or (n_samples,)
+   - std:  shape (n_samples, n_outputs) or (n_samples,) standard deviation of prediction per output
+   - output_names: list of names for output variables (optional)
+   - n_cols: number of subplot columns (default: 3)
+
+

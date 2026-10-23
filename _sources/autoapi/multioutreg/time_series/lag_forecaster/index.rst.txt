@@ -1,0 +1,173 @@
+multioutreg.time_series.lag_forecaster
+======================================
+
+.. py:module:: multioutreg.time_series.lag_forecaster
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.time_series.lag_forecaster._Z_90
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.time_series.lag_forecaster.LagFeatureForecaster
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.lag_forecaster._to_array
+   multioutreg.time_series.lag_forecaster._supports_return_std
+   multioutreg.time_series.lag_forecaster._build_quantile_array
+
+
+Module Contents
+---------------
+
+.. py:data:: _Z_90
+   :value: 1.2815515655446004
+
+
+.. py:class:: LagFeatureForecaster(surrogate: Any, n_lags: int = 12, horizon: int = 1, uncertainty: str = 'return_std', include_time_features: bool = False, include_rolling_windows: bool = False, rolling_windows: Sequence[int] = (4, 8, 24))
+
+   Wrap any surrogate or sklearn estimator to forecast a time series via lag features.
+
+   Converts a 1D series to a tabular (X_lag, y) sliding-window matrix, fits the
+   surrogate, then iterates multi-step predictions by feeding each step's prediction
+   back as the next row's lag context.
+
+   Uncertainty is propagated using one of three strategies:
+
+   - ``"conformal"``  : calls ``wrap_conformal()`` / ``conformal_predict()`` if the
+                        surrogate exposes a ``ConformalMixin`` API; falls back to
+                        ``"return_std"`` otherwise.
+   - ``"return_std"`` : calls ``surrogate.predict(X, return_std=True)`` to get std.
+   - ``"none"``       : point prediction only; lower/upper equal the point prediction.
+
+   :param surrogate: Fitted or unfitted sklearn-compatible estimator or BaseSurrogate.
+   :type surrogate: Any
+   :param n_lags: Number of historical steps used as features.
+   :type n_lags: int, default 12
+   :param horizon: Steps to forecast ahead in a single call to ``predict()``.
+   :type horizon: int, default 1
+   :param uncertainty: Uncertainty strategy: ``"conformal"``, ``"return_std"``, or ``"none"``.
+   :type uncertainty: str, default "return_std"
+   :param include_time_features: Append sin/cos-encoded calendar features (requires DatetimeIndex).
+   :type include_time_features: bool, default False
+   :param include_rolling_windows: Append rolling mean/std columns to the lag matrix.
+   :type include_rolling_windows: bool, default False
+   :param rolling_windows: Window sizes used when include_rolling_windows=True.
+   :type rolling_windows: sequence of int, default (4, 8, 24)
+
+
+   .. py:attribute:: surrogate
+
+
+   .. py:attribute:: n_lags
+      :value: 12
+
+
+
+   .. py:attribute:: horizon
+      :value: 1
+
+
+
+   .. py:attribute:: uncertainty
+      :value: 'return_std'
+
+
+
+   .. py:attribute:: include_time_features
+      :value: False
+
+
+
+   .. py:attribute:: include_rolling_windows
+      :value: False
+
+
+
+   .. py:attribute:: rolling_windows
+      :value: (4, 8, 24)
+
+
+
+   .. py:attribute:: _series
+      :type:  numpy.ndarray | None
+      :value: None
+
+
+
+   .. py:attribute:: _fitted
+      :value: False
+
+
+
+   .. py:method:: fit(series: numpy.ndarray | pandas.Series, cal_frac: float = 0.2) -> LagFeatureForecaster
+
+      Fit the surrogate on lag features derived from ``series``.
+
+      :param series:
+      :type series: 1D time series array or pd.Series
+      :param cal_frac: Fraction of the lag-feature matrix held out for conformal calibration.
+                       Only used when ``uncertainty="conformal"``.
+      :type cal_frac: float, default 0.2
+
+      :rtype: self
+
+
+
+   .. py:method:: predict(horizon: Optional[int] = None, quantiles: Sequence[float] = (0.1, 0.5, 0.9), alpha: float = 0.1) -> multioutreg.time_series.chronos_adapter.ForecastResult
+
+      Forecast ``horizon`` steps ahead.
+
+      :param horizon: Number of steps to forecast.  Defaults to ``self.horizon``.
+      :type horizon: int | None
+      :param quantiles: Desired quantile levels in the output.
+      :type quantiles: sequence of float
+      :param alpha: Coverage level for conformal intervals (1 - alpha coverage).
+      :type alpha: float
+
+      :returns: Shape: ``[1, n_quantiles, horizon]`` (single series).
+      :rtype: ForecastResult
+
+
+
+   .. py:method:: _recursive_forecast(context: numpy.ndarray, horizon: int) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+      Iterative multi-step: re-feed predicted point as the next lag.
+
+      When ``include_rolling_windows=True`` the rolling features are recomputed
+      from the growing context buffer at every step so that inference uses the
+      same feature space as training.
+
+      :returns: * **means** (*np.ndarray, shape (horizon,)*)
+                * **stds** (*np.ndarray, shape (horizon,)  — zeros when uncertainty="none"*)
+
+
+
+   .. py:method:: _maybe_add_rolling(arr: numpy.ndarray, X: numpy.ndarray) -> numpy.ndarray
+
+
+.. py:function:: _to_array(series: numpy.ndarray | pandas.Series) -> numpy.ndarray
+
+.. py:function:: _supports_return_std(surrogate: Any) -> bool
+
+   Heuristic check: does the surrogate support predict(return_std=True)?
+
+
+.. py:function:: _build_quantile_array(means: numpy.ndarray, stds: numpy.ndarray, q_levels: tuple, surrogate: Any, alpha: float, uncertainty: str) -> numpy.ndarray
+
+   Build (Q, H) quantile array from means and stds using Gaussian approximation.
+
+

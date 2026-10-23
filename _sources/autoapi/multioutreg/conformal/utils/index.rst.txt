@@ -1,0 +1,47 @@
+multioutreg.conformal.utils
+===========================
+
+.. py:module:: multioutreg.conformal.utils
+
+.. autoapi-nested-parse::
+
+   Shared utilities for conformal prediction.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.conformal.utils.absolute_residual_score
+   multioutreg.conformal.utils.normalized_residual_score
+   multioutreg.conformal.utils.intervals_from_scores
+
+
+Module Contents
+---------------
+
+.. py:function:: absolute_residual_score(y_true: numpy.ndarray, y_pred: numpy.ndarray) -> numpy.ndarray
+
+   Nonconformity score: absolute residual |y - y_hat|.
+
+
+.. py:function:: normalized_residual_score(y_true: numpy.ndarray, y_pred: numpy.ndarray, y_std: numpy.ndarray) -> numpy.ndarray
+
+   Normalized nonconformity score: |y - y_hat| / sigma.
+
+   Produces adaptive (heteroscedastic) intervals when used with models
+   that provide uncertainty estimates via return_std=True.
+
+
+.. py:function:: intervals_from_scores(y_pred: numpy.ndarray, conformal_quantile: float, y_std: Optional[numpy.ndarray] = None) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+   Construct intervals from point predictions and a conformal quantile.
+
+   If y_std is provided (normalized scoring), intervals are adaptive:
+       [y_pred - q * y_std, y_pred + q * y_std]
+   Otherwise, constant-width intervals:
+       [y_pred - q, y_pred + q]
+
+

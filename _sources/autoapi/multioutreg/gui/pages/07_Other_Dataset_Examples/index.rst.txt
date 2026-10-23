@@ -1,0 +1,64 @@
+multioutreg.gui.pages.07_Other_Dataset_Examples
+===============================================
+
+.. py:module:: multioutreg.gui.pages.07_Other_Dataset_Examples
+
+.. autoapi-nested-parse::
+
+   Streamlit page for downloading example datasets with and without fidelity levels.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.07_Other_Dataset_Examples.datasets
+   multioutreg.gui.pages.07_Other_Dataset_Examples.csv_bytes
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.07_Other_Dataset_Examples.generate_dataset_linear
+   multioutreg.gui.pages.07_Other_Dataset_Examples.generate_dataset_nonlinear
+   multioutreg.gui.pages.07_Other_Dataset_Examples.generate_dataset_multifidelity
+   multioutreg.gui.pages.07_Other_Dataset_Examples.generate_dataset_doe_with_class_imbalance
+   multioutreg.gui.pages.07_Other_Dataset_Examples.generate_dataset_doe_with_drift
+
+
+Module Contents
+---------------
+
+.. py:function:: generate_dataset_linear()
+
+   Multi-output linear dataset.
+
+
+.. py:function:: generate_dataset_nonlinear()
+
+   Multi-output non-linear dataset.
+
+
+.. py:function:: generate_dataset_multifidelity()
+
+   Multi-output multi-fidelity dataset.
+
+
+.. py:function:: generate_dataset_doe_with_class_imbalance()
+
+   Multi-output DOE with class imbalance and timestamps.
+
+
+.. py:function:: generate_dataset_doe_with_drift()
+
+   Multi-output DOE with drift, imbalance, and timestamps.
+
+
+.. py:data:: datasets
+
+.. py:data:: csv_bytes
+

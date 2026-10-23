@@ -1,0 +1,244 @@
+multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models
+========================================================
+
+.. py:module:: multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models
+
+.. autoapi-nested-parse::
+
+   Streamlit page for multi-fidelity surrogate modeling.
+
+   Accepts a single CSV with a fidelity level column, splits data per level,
+   and grid-searches over combinations of multi-fidelity surrogate types and
+   base surrogate classes:
+
+   * StackedVFMSurrogate  — nonlinear recursive feature augmentation (N levels)
+   * AdditiveCorrectionVFM — two-level additive correction (Kennedy-O'Hagan)
+   * MultiFidelitySurrogate — independent surrogate per level (no coupling)
+
+   Example data can be downloaded from the "Other Dataset Examples" page.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._compute_uncertainty_metrics
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._LEVEL_MARKERS
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._SEED_KWARG
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models.uploaded_file
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models.df
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._OutputColumn
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._HighestFidelityView
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models.generate_html_report
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._split_by_fidelity
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._compute_metrics
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._single_level_predictions
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._pearson
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._level_summary
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._baseline_comparison
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._summary_points
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._plot_conformal_summary
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._sampling_plot
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._seeded
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._build_candidates
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._fit_candidate
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._predict_highest
+   multioutreg.gui.pages.02_Multi_Fidelity_Surrogate_Models._select_best_candidate
+
+
+Module Contents
+---------------
+
+.. py:function:: generate_html_report(model_type: str, fidelity_levels: List[str], output_names: List[str], description: str, metrics: Dict[str, Dict[str, float]], uncertainty_metrics: Dict[str, float], y_test: numpy.ndarray, best_pred: numpy.ndarray, best_std: numpy.ndarray, best_model: Any, X_train: numpy.ndarray, n_train: int, n_test: int, cross_validation: str, seed: int, notes: str, conformal_intervals: tuple | None = None, conformal_alpha: float | None = None, imputation_summary: dict | None = None, input_names: List[str] | None = None, calibration_residuals: numpy.ndarray | None = None, X_design: numpy.ndarray | Dict[str, numpy.ndarray] | None = None, summary_points: List[str] | None = None, level_summary: List[dict] | None = None, baseline_comparison: List[dict] | None = None, baseline_label: str | None = None, grid_search_results: List[dict] | None = None, best_candidate_name: str | None = None) -> str
+
+   Render a Jinja2 HTML report from model evaluation results.
+
+   ``best_model`` is explained by SHAP / PDP, so pass a
+   :class:`_HighestFidelityView` to explain the level that is evaluated.
+   ``calibration_residuals`` are |y_cal - y_cal_pred| from the conformal
+   calibration split; the Gaussian-vs-conformal plot needs them.
+   ``X_design`` is the input design used for the sampling section: a dict of
+   ``{level: X}`` shows every fidelity level, an array a single design
+   (defaults to ``X_train``).
+   The remaining optional arguments fill the Summary, Fidelity Levels,
+   HF-only baseline and Model Selection sections; each is omitted when None.
+
+
+.. py:function:: _split_by_fidelity(df: pandas.DataFrame, fidelity_col: str, input_cols: List[str], output_cols: List[str], ordered_levels: List) -> Dict[str, tuple]
+
+   Return ``{level_name: (X, Y)}`` for each fidelity level.
+
+
+.. py:function:: _compute_metrics(y_test: numpy.ndarray, y_pred: numpy.ndarray, y_std: numpy.ndarray, output_names: List[str]) -> Dict[str, Dict[str, float]]
+
+.. py:data:: _compute_uncertainty_metrics
+
+.. py:function:: _single_level_predictions(surrogate_cls: Any, train_data: Dict[str, tuple], X_test: numpy.ndarray, fitted_models: Dict[str, Any] | None = None) -> Dict[str, Any]
+
+   Fit ``surrogate_cls`` on each level alone and predict the hi-fi test inputs.
+
+   Returns ``{level: (y_pred, y_std)}``, or ``{level: "error message"}`` when
+   that level's fit fails. The highest level's entry is the HF-only baseline.
+   ``fitted_models`` (e.g. ``MultiFidelitySurrogate.models``) are reused
+   instead of refitting, so an independent winner is compared with exactly
+   its own per-level models rather than a re-randomised refit.
+
+
+.. py:function:: _pearson(a: numpy.ndarray, b: numpy.ndarray) -> float | None
+
+.. py:function:: _level_summary(train_data: Dict[str, tuple], test_data: Dict[str, tuple], level_preds: Dict[str, Any], y_test: numpy.ndarray, output_names: List[str]) -> List[dict]
+
+   One row per (level, output): sizes, output spread, and how well a model
+   trained on that level alone tracks the highest-fidelity test outputs.
+
+
+.. py:function:: _baseline_comparison(metrics: Dict[str, Dict[str, float]], baseline_metrics: Dict[str, Dict[str, float]]) -> List[dict]
+
+   Per-output multi-fidelity vs HF-only test metrics.
+
+
+.. py:function:: _summary_points(best_cand: dict, gs_rows: List[dict], metrics: Dict[str, Dict[str, float]], baseline_rows: List[dict] | None, baseline_label: str, level_rows: List[dict], level_names: List[str], uncertainty_metrics: Dict[str, float], best_std: numpy.ndarray, n_test: int, conformal_coverage: float | None = None, conformal_alpha: float | None = None) -> List[str]
+
+   Plain-language findings derived from the computed metrics.
+
+
+.. py:function:: _plot_conformal_summary(conf_df: pandas.DataFrame) -> None
+
+   Draw the Conformal Prediction Summary table as two panels.
+
+   Left: empirical coverage per output vs the nominal 1 - alpha, with the
+   range expected from test-set sampling noise alone (± 1.96 binomial
+   standard errors). Right: mean interval width per output (own units).
+
+
+.. py:data:: _LEVEL_MARKERS
+   :value: ['o', 's', '^', 'D', 'v', 'P', 'X', '*']
+
+
+.. py:function:: _sampling_plot(designs: Dict[str, numpy.ndarray], input_names: List[str]) -> tuple
+
+   Return ``(b64_png, explanation)`` for the sampling section of the report.
+
+   ``designs`` maps each fidelity level (lowest to highest) to its input
+   design. All levels are min-max scaled to [0, 1] with the bounds of their
+   union and drawn on one plot, one colour + marker per level. The sampling
+   method is inferred separately for each level.
+
+
+.. py:data:: _SEED_KWARG
+   :type:  Dict[Any, str | None]
+
+.. py:function:: _seeded(surrogate_cls: Any, seed: int | None) -> Any
+
+   Return a zero-argument factory for ``surrogate_cls`` seeded with ``seed``.
+
+   With ``seed=None`` the class is returned unchanged (each model uses its own
+   default, which is unseeded for e.g. SparseGP / RF).
+
+
+.. py:function:: _build_candidates(level_names: List[str], skip_expensive: bool, seed: int | None = None) -> List[dict]
+
+   Return a list of candidate configs for the grid search.
+
+   Each config is a dict with keys:
+       name            display name for the results table
+       mf_type         "stacked" | "additive" | "independent"
+       surrogate_cls   base surrogate factory (class, or class seeded via
+                       :func:`_seeded` when ``seed`` is given)
+       augment_with_std  bool (StackedVFM only)
+
+
+.. py:function:: _fit_candidate(cand: dict, train_data: Dict[str, tuple], level_names: List[str]) -> Any
+
+   Fit and return the model described by *cand*.
+
+
+.. py:function:: _predict_highest(model: Any, cand: dict, X: numpy.ndarray, level_names: List[str]) -> tuple
+
+   Return highest-fidelity ``(mean, std)`` predictions as 2-D float arrays.
+
+
+.. py:class:: _OutputColumn(predict_fn=None, index: int = 0)
+
+   Bases: :py:obj:`sklearn.base.RegressorMixin`, :py:obj:`sklearn.base.BaseEstimator`
+
+
+   Single-output, already-fitted regressor for SHAP and sklearn PDP.
+
+
+   .. py:attribute:: predict_fn
+      :value: None
+
+
+
+   .. py:attribute:: index
+      :value: 0
+
+
+
+   .. py:method:: fit(X, y=None)
+
+
+   .. py:method:: predict(X)
+
+
+   .. py:method:: __sklearn_is_fitted__()
+
+
+.. py:class:: _HighestFidelityView(model: Any, cand: dict, level_names: List[str], n_outputs: int)
+
+   Expose a fitted multi-fidelity model's highest-fidelity predictions.
+
+   ``MultiFidelitySurrogate.predict`` defaults to the lowest level and none of
+   the multi-fidelity models have ``estimators_``, so SHAP / PDP would
+   otherwise explain the wrong level or be skipped.
+
+
+   .. py:attribute:: model
+
+
+   .. py:attribute:: _cand
+
+
+   .. py:attribute:: _level_names
+
+
+   .. py:attribute:: estimators_
+
+
+   .. py:method:: predict(X: numpy.ndarray) -> numpy.ndarray
+
+
+.. py:function:: _select_best_candidate(candidates: List[dict], train_data: Dict[str, tuple], level_names: List[str], cv: Any = 'auto', random_state: int = 0, on_progress: Any = None) -> tuple
+
+   Grid-search *candidates* by cross-validation on the highest-fidelity
+   training data and return ``(results, best_cand, cv_splitter)``.
+
+   ``cv="auto"`` picks the scheme from the number of highest-fidelity rows
+   (see :func:`~multioutreg.model_selection.auto_detect.select_cv_strategy`).
+   Each fold holds out highest-fidelity rows only; lower levels are always
+   fitted on all their data. The test set is never seen here, so the winner's
+   test-set metrics are an honest estimate rather than the best of N scores
+   on the same data.
+
+
+.. py:data:: uploaded_file
+
+.. py:data:: df
+

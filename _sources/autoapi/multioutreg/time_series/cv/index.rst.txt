@@ -1,0 +1,224 @@
+multioutreg.time_series.cv
+==========================
+
+.. py:module:: multioutreg.time_series.cv
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.time_series.cv.TSFoldResult
+   multioutreg.time_series.cv.WalkForwardCV
+   multioutreg.time_series.cv.TimeSeriesSplitWrapper
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.cv.walk_forward_splits
+   multioutreg.time_series.cv._to_array
+
+
+Module Contents
+---------------
+
+.. py:class:: TSFoldResult
+
+   Result for a single walk-forward fold.
+
+
+   .. py:attribute:: fold_idx
+      :type:  int
+
+
+   .. py:attribute:: train_size
+      :type:  int
+
+
+   .. py:attribute:: test_size
+      :type:  int
+
+
+   .. py:attribute:: y_true
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: y_pred
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: quantiles
+      :type:  Optional[numpy.ndarray]
+
+
+   .. py:attribute:: q_levels
+      :type:  Optional[Tuple[float, ...]]
+
+
+   .. py:attribute:: smape
+      :type:  float
+
+
+   .. py:attribute:: mase
+      :type:  float
+
+
+   .. py:attribute:: wql
+      :type:  Optional[float]
+
+
+.. py:function:: walk_forward_splits(n: int, min_train: int, horizon: int, step: int = 1, max_train: Optional[int] = None) -> Iterator[Tuple[numpy.ndarray, numpy.ndarray]]
+
+   Generate walk-forward (train_idx, test_idx) pairs.
+
+   :param n: Total series length.
+   :type n: int
+   :param min_train: Minimum number of training observations.
+   :type min_train: int
+   :param horizon: Forecast horizon (test window size).
+   :type horizon: int
+   :param step: Number of steps to advance the window between folds.
+   :type step: int, default 1
+   :param max_train: If given, applies a rolling window (training set size capped at max_train).
+                     None => expanding window (training set always grows).
+   :type max_train: int | None
+
+   :Yields: * **train_idx** (*np.ndarray of int*)
+            * **test_idx** (*np.ndarray of int*)
+
+
+.. py:class:: WalkForwardCV(min_train: int = 30, horizon: int = 1, step: int = 1, max_train: Optional[int] = None, seasonality: int = 1)
+
+   Walk-forward cross-validator for time series forecasters.
+
+   Fits the forecaster on each training fold and evaluates on the test fold,
+   computing SMAPE, MASE, and WQL (when quantile forecasts are available).
+
+   The forecaster must implement::
+
+       forecaster.fit(train_series)   # 1D array or pd.Series
+       forecaster.predict(horizon, quantiles=quantiles)  # -> ForecastResult
+
+   :param min_train: Minimum training observations.
+   :type min_train: int, default 30
+   :param horizon: Steps to forecast per fold.
+   :type horizon: int, default 1
+   :param step: Steps to advance the training window between folds.
+   :type step: int, default 1
+   :param max_train: Expanding (None) or rolling window.
+   :type max_train: int | None, default None
+   :param seasonality: Seasonal period used in the MASE denominator.
+   :type seasonality: int, default 1
+
+   .. rubric:: Examples
+
+   >>> cv = WalkForwardCV(min_train=50, horizon=5, step=5)
+   >>> results = cv.evaluate(series, forecaster)
+   >>> print(cv.summary(results))
+
+
+   .. py:attribute:: min_train
+      :value: 30
+
+
+
+   .. py:attribute:: horizon
+      :value: 1
+
+
+
+   .. py:attribute:: step
+      :value: 1
+
+
+
+   .. py:attribute:: max_train
+      :value: None
+
+
+
+   .. py:attribute:: seasonality
+      :value: 1
+
+
+
+   .. py:method:: split(series: numpy.ndarray | pandas.Series) -> Iterator[Tuple[numpy.ndarray, numpy.ndarray]]
+
+      Yield (train_idx, test_idx) pairs without fitting any model.
+
+      :param series:
+      :type series: 1D time series
+
+      :Yields: **train_idx, test_idx** (*np.ndarray*)
+
+
+
+   .. py:method:: evaluate(series: numpy.ndarray | pandas.Series, forecaster: Any, quantiles: Sequence[float] = (0.1, 0.5, 0.9)) -> list[TSFoldResult]
+
+      Fit forecaster on each training fold and evaluate on the test fold.
+
+      :param series:
+      :type series: 1D time series
+      :param forecaster: Must have ``fit(train_series)`` and
+                         ``predict(horizon, quantiles=...) -> ForecastResult``.
+      :type forecaster: Any
+      :param quantiles:
+      :type quantiles: sequence of float
+
+      :rtype: list[TSFoldResult]
+
+
+
+   .. py:method:: summary(fold_results: list[TSFoldResult]) -> dict
+
+      Aggregate fold results into mean ± std of each metric.
+
+      :returns: **dict with keys** -- mean_wql, std_wql, n_folds
+      :rtype: mean_smape, std_smape, mean_mase, std_mase,
+
+
+
+.. py:class:: TimeSeriesSplitWrapper(n_splits: int = 5, min_train: int = 30, horizon: int = 1)
+
+   sklearn-compatible cross-validator wrapping walk_forward_splits.
+
+   Allows using ``WalkForwardCV`` with sklearn utilities (e.g., ``cross_val_score``).
+
+   :param n_splits: Approximate number of folds (used to compute ``step``).
+   :type n_splits: int, default 5
+   :param min_train:
+   :type min_train: int, default 30
+   :param horizon:
+   :type horizon: int, default 1
+
+
+   .. py:attribute:: n_splits
+      :value: 5
+
+
+
+   .. py:attribute:: min_train
+      :value: 30
+
+
+
+   .. py:attribute:: horizon
+      :value: 1
+
+
+
+   .. py:method:: get_n_splits(X=None, y=None, groups=None) -> int
+
+
+   .. py:method:: split(X: numpy.ndarray, y: Optional[numpy.ndarray] = None, groups: Any = None) -> Iterator[Tuple[numpy.ndarray, numpy.ndarray]]
+
+      Yield (train_idx, test_idx) arrays compatible with sklearn.
+
+
+
+.. py:function:: _to_array(series: numpy.ndarray | pandas.Series) -> numpy.ndarray
+

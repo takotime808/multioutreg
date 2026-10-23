@@ -1,0 +1,40 @@
+multioutreg.gui.pages.sample_infer_dashboard
+============================================
+
+.. py:module:: multioutreg.gui.pages.sample_infer_dashboard
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.pages.sample_infer_dashboard.main
+   multioutreg.gui.pages.sample_infer_dashboard.plot_pairgrid_with_kde
+   multioutreg.gui.pages.sample_infer_dashboard.show_correlation_heatmap
+   multioutreg.gui.pages.sample_infer_dashboard.show_feature_distributions
+   multioutreg.gui.pages.sample_infer_dashboard.infer_sampling
+   multioutreg.gui.pages.sample_infer_dashboard.show_missing_data
+   multioutreg.gui.pages.sample_infer_dashboard.plot_pca
+   multioutreg.gui.pages.sample_infer_dashboard.plot_umap
+
+
+Module Contents
+---------------
+
+.. py:function:: main()
+
+.. py:function:: plot_pairgrid_with_kde(df, cols)
+
+.. py:function:: show_correlation_heatmap(df, cols)
+
+.. py:function:: show_feature_distributions(df, cols)
+
+.. py:function:: infer_sampling(df, cols)
+
+.. py:function:: show_missing_data(df)
+
+.. py:function:: plot_pca(df, cols)
+
+.. py:function:: plot_umap(df, cols)
+

@@ -1,0 +1,91 @@
+multioutreg.surrogates.ngboost_sklearn
+======================================
+
+.. py:module:: multioutreg.surrogates.ngboost_sklearn
+
+.. autoapi-nested-parse::
+
+   NGBoost surrogate with native probabilistic uncertainty.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.ngboost_sklearn._NGBOOST_AVAILABLE
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.ngboost_sklearn.NGBoostSurrogate
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.ngboost_sklearn._require_ngboost
+
+
+Module Contents
+---------------
+
+.. py:data:: _NGBOOST_AVAILABLE
+   :value: True
+
+
+.. py:function:: _require_ngboost()
+
+.. py:class:: NGBoostSurrogate(n_estimators=500, learning_rate=0.01, verbose=False, **kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   NGBoost surrogate providing native probabilistic uncertainty.
+
+   Wraps ngboost.NGBRegressor in a MultiOutputRegressor and exposes
+   per-output predictive standard deviations via NGBoost's natural-gradient
+   distributional output.
+
+   :param n_estimators: Number of boosting iterations.
+   :type n_estimators: int, default 500
+   :param learning_rate:
+   :type learning_rate: float, default 0.01
+   :param verbose:
+   :type verbose: bool, default False
+   :param \*\*kwargs: Additional keyword arguments passed to NGBRegressor.
+
+
+   .. py:attribute:: n_estimators
+      :value: 500
+
+
+
+   .. py:attribute:: learning_rate
+      :value: 0.01
+
+
+
+   .. py:attribute:: verbose
+      :value: False
+
+
+
+   .. py:attribute:: _extra_kwargs
+
+
+   .. py:method:: get_params(deep=True)
+
+
+   .. py:method:: set_params(**params)
+
+
+   .. py:method:: predict(X, return_std=False)
+
+

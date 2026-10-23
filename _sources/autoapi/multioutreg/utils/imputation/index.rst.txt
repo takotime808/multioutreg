@@ -1,0 +1,101 @@
+multioutreg.utils.imputation
+============================
+
+.. py:module:: multioutreg.utils.imputation
+
+.. autoapi-nested-parse::
+
+   Utilities for detecting and handling missing values in DataFrames.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.utils.imputation.detect_missing
+   multioutreg.utils.imputation.apply_imputation
+   multioutreg.utils.imputation.drop_unusable_rows
+   multioutreg.utils.imputation.impute_train_test
+
+
+Module Contents
+---------------
+
+.. py:function:: detect_missing(df: pandas.DataFrame) -> pandas.DataFrame
+
+   Return a summary of missing values per column.
+
+   :param df: Input DataFrame to inspect.
+   :type df: pd.DataFrame
+
+   :returns: DataFrame indexed by column name with columns ``missing_count`` and
+             ``missing_pct``.  Only columns that have at least one missing value
+             are included.  Returns an empty DataFrame when no values are missing.
+   :rtype: pd.DataFrame
+
+
+.. py:function:: apply_imputation(df: pandas.DataFrame, cols_to_impute: list[str], cols_to_drop_rows: list[str], n_neighbors: int = 5) -> pandas.DataFrame
+
+   Clean a DataFrame by KNN-imputing selected columns and dropping rows elsewhere.
+
+   .. note::
+       The imputer is fitted on the whole frame, so do not use this before a
+       train/test split: test rows would influence training values. For
+       modeling, use :func:`drop_unusable_rows` before splitting and
+       :func:`impute_train_test` after.
+
+   :param df: Input DataFrame (not modified in-place).
+   :type df: pd.DataFrame
+   :param cols_to_impute: Columns where missing values should be filled using KNN imputation.
+   :type cols_to_impute: list[str]
+   :param cols_to_drop_rows: Columns where any row with a missing value should be dropped entirely.
+   :type cols_to_drop_rows: list[str]
+   :param n_neighbors: Number of nearest neighbors used by :class:`~sklearn.impute.KNNImputer`.
+                       Default is 5.
+   :type n_neighbors: int, optional
+
+   :returns: Cleaned copy of ``df``.
+   :rtype: pd.DataFrame
+
+
+.. py:function:: drop_unusable_rows(df: pandas.DataFrame, output_cols: list[str], cols_to_drop_rows: list[str]) -> pandas.DataFrame
+
+   Drop rows that cannot be used for modeling, before any train/test split.
+
+   Rows with a missing target are always dropped: an imputed target would be
+   scored as ground truth. Rows with a missing value in ``cols_to_drop_rows``
+   are dropped as well. Both decisions depend only on the row itself, so this
+   is safe to do before splitting.
+
+   :param df: Input DataFrame (not modified in-place).
+   :type df: pd.DataFrame
+   :param output_cols: Target columns; rows missing any of these are dropped.
+   :type output_cols: list[str]
+   :param cols_to_drop_rows: Additional columns whose missing values cause the row to be dropped.
+   :type cols_to_drop_rows: list[str]
+
+   :returns: Copy of ``df`` without the unusable rows.
+   :rtype: pd.DataFrame
+
+
+.. py:function:: impute_train_test(X_train: numpy.ndarray, X_test: numpy.ndarray, n_neighbors: int = 5) -> tuple[numpy.ndarray, numpy.ndarray]
+
+   KNN-impute missing input values without leaking test data.
+
+   The imputer is fitted on the training inputs only and then applied to both
+   splits, so test rows never influence the values filled into training rows
+   (or each other). All input columns are used to find neighbours.
+
+   :param X_train: Input feature matrices, possibly containing NaN.
+   :type X_train: np.ndarray
+   :param X_test: Input feature matrices, possibly containing NaN.
+   :type X_test: np.ndarray
+   :param n_neighbors: Number of nearest neighbours used by :class:`~sklearn.impute.KNNImputer`.
+   :type n_neighbors: int, optional
+
+   :returns: **X_train_imputed, X_test_imputed**
+   :rtype: np.ndarray
+
+
