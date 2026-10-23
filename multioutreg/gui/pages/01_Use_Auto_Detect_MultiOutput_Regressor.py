@@ -5,7 +5,10 @@
 import matplotlib
 matplotlib.use("Agg")  # plotting helpers call plt.show(); never open desktop windows
 
+import io
 import os
+import re
+import joblib
 import numpy as np
 import pandas as pd
 import streamlit as st
@@ -54,6 +57,7 @@ from multioutreg.model_selection import AutoDetectMultiOutputRegressor
 from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
 from multioutreg.utils.metric_utils import gaussian_uncertainty_metrics
 from multioutreg.time_series.ts_suitability import check_ts_suitability
+from multioutreg.metrics import hypervolume_regret, scalarized_regret, epsilon_regret
 
 # # NOTE: NOT used...yet.
 # from multioutreg.figures.doe_plots import make_doe_plot
@@ -62,6 +66,62 @@ from multioutreg.time_series.ts_suitability import check_ts_suitability
 
 
 from multioutreg.report.auto_detect_report import generate_html_report
+
+
+# ----- Regret / download helpers -----
+def _serialize_model(model: Any) -> bytes:
+    buf = io.BytesIO()
+    joblib.dump(model, buf)
+    return buf.getvalue()
+
+
+def _parse_optional_float(txt: Optional[str]) -> Optional[float]:
+    if not txt or not txt.strip():
+        return None
+    try:
+        return float(txt.strip())
+    except ValueError:
+        return None
+
+
+def _parse_csv_floats(txt: str) -> List[float]:
+    return [float(x) for x in re.split(r"[,\s]+", txt.strip()) if x]
+
+
+def _parse_weight_matrix(txt: str, m: int) -> Optional[np.ndarray]:
+    """One weight vector per line (comma/space separated). Returns (k, m) rows on the simplex, or None if invalid."""
+    rows = []
+    try:
+        for line in (txt or "").strip().splitlines():
+            if line.strip():
+                vals = _parse_csv_floats(line)
+                if len(vals) != m:
+                    return None
+                rows.append(vals)
+    except ValueError:
+        return None
+    if not rows:
+        return None
+    W = np.clip(np.asarray(rows, dtype=float), 0.0, np.inf)
+    sums = W.sum(axis=1, keepdims=True)
+    sums[sums == 0] = 1.0
+    return W / sums
+
+
+def _auto_reference_point(Y_true: np.ndarray, Y_pred: np.ndarray, margin_pct: float) -> np.ndarray:
+    """Minimization reference point: worst + margin_pct% of span (1.0 fallback when span == 0)."""
+    allY = np.vstack([Y_true, Y_pred])
+    span = np.ptp(allY, axis=0)
+    return allY.max(axis=0) + np.where(span > 0, (margin_pct / 100.0) * span, 1.0)
+
+
+def _regret_status_line(label: str, value: Optional[float], bound: Optional[float]) -> str:
+    if value is None:
+        return f"{label}: (not computed)"
+    if bound is None:
+        return f"{label}: {value:.4g}"
+    icon = "✅" if value <= bound else "❌"
+    return f"{icon} {label}: {value:.4g} (bound ≤ {bound:g})"
 
 
 # ----- Streamlit App -----
@@ -228,6 +288,45 @@ if uploaded_file:
             ),
             key="skip_expensive",
         )
+
+        # Multi-objective regret settings & bounds
+        st.markdown("**Multi-objective regret** (all targets treated as objectives to minimize)")
+        _rcol_a, _rcol_b = st.columns(2)
+        with _rcol_a:
+            hv_ref_mode = st.selectbox(
+                "Hypervolume reference point",
+                ["Auto (10% beyond worst)", "Auto with margin (%)", "Custom"],
+                key="hv_ref_mode",
+            )
+            if hv_ref_mode == "Auto with margin (%)":
+                st.number_input(
+                    "Reference margin (%)", min_value=0.0, max_value=100.0,
+                    value=10.0, step=0.5, key="hv_margin_pct",
+                )
+            elif hv_ref_mode == "Custom":
+                st.text_input(
+                    "Custom reference point (one value per target, comma/space separated)",
+                    placeholder="e.g., 3.0, 3.0",
+                    key="hv_ref_custom",
+                )
+        with _rcol_b:
+            weights_mode = st.selectbox(
+                "Scalarized weights",
+                ["Auto (Dirichlet k=8)", "Uniform", "Custom"],
+                key="weights_mode",
+            )
+            if weights_mode == "Custom":
+                st.text_area(
+                    "Custom weight vectors (one per line, comma/space separated)",
+                    placeholder="e.g.\n0.5, 0.5\n0.2, 0.8",
+                    height=100,
+                    key="weights_custom",
+                )
+        st.caption("Optional pass/fail bounds (leave blank to skip)")
+        _bcol1, _bcol2, _bcol3 = st.columns(3)
+        _bcol1.text_input("Max HV regret (≤)", key="bound_hv")
+        _bcol2.text_input("Max scalarized regret (≤)", key="bound_scalar")
+        _bcol3.text_input("Max ε-regret (≤)", key="bound_eps")
 
     with st.form("column_selection"):
         input_cols = st.multiselect("Select input features", options=df.columns)
@@ -447,6 +546,58 @@ if uploaded_file:
         st.write("### Uncertainty Calibration (Gaussian std, test set)")
         st.dataframe(pd.Series(uncertainty_metrics, name="value").to_frame())
 
+        # Multi-objective regret (predicted vs. true Pareto front on the test set)
+        _m = y_test.shape[1]
+        hv_ref_mode = st.session_state.hv_ref_mode
+        weights_mode = st.session_state.weights_mode
+        hv_margin_pct = None
+        if hv_ref_mode == "Custom":
+            try:
+                _ref_vals = _parse_csv_floats(st.session_state.get("hv_ref_custom", ""))
+            except ValueError:
+                _ref_vals = []
+            if len(_ref_vals) == _m:
+                reference_point = np.asarray(_ref_vals, dtype=float)
+            else:
+                st.warning("Invalid custom reference point; falling back to auto 10%.")
+                hv_margin_pct = 10.0
+                reference_point = _auto_reference_point(y_test, best_pred, hv_margin_pct)
+        else:
+            hv_margin_pct = (
+                float(st.session_state.get("hv_margin_pct", 10.0))
+                if hv_ref_mode == "Auto with margin (%)" else 10.0
+            )
+            reference_point = _auto_reference_point(y_test, best_pred, hv_margin_pct)
+
+        if _m == 1:
+            regret_weights = 1.0
+        elif weights_mode == "Custom":
+            regret_weights = _parse_weight_matrix(st.session_state.get("weights_custom", ""), _m)
+            if regret_weights is None:
+                st.warning("Invalid custom weights; falling back to uniform.")
+                regret_weights = np.full((1, _m), 1.0 / _m)
+        elif weights_mode == "Uniform":
+            regret_weights = np.full((1, _m), 1.0 / _m)
+        else:
+            regret_weights = np.random.default_rng(7).dirichlet(np.ones(_m), size=8)
+
+        regret_metrics = {
+            "hv": float(hypervolume_regret(y_test, best_pred, reference_point=reference_point)),
+            "scalar": float(scalarized_regret(y_test, best_pred, weights=regret_weights, reduce="mean")),
+            "eps": float(epsilon_regret(y_test, best_pred)),
+        }
+        regret_bounds = {
+            k: _parse_optional_float(st.session_state.get(f"bound_{k}"))
+            for k in ("hv", "scalar", "eps")
+        }
+        regret_settings = {
+            "hv_ref_mode": hv_ref_mode,
+            "hv_margin_pct": hv_margin_pct,
+            "reference_point": reference_point.tolist(),
+            "weights_mode": weights_mode,
+            "weights_shape": None if np.isscalar(regret_weights) else list(np.shape(regret_weights)),
+        }
+
         # Shap plots
         shap_img = safe_plot_b64(
             plot_multioutput_shap_bar_subplots,
@@ -491,6 +642,45 @@ if uploaded_file:
             conformal_alpha=conformal_alpha_sel if use_conformal else None,
             calibration_residuals=model._conformal_residuals if use_conformal else None,
             imputation_summary=_imputation_summary,
+            regret_metrics=regret_metrics,
+            regret_bounds=regret_bounds,
+            regret_settings=regret_settings,
         )
 
-        st.download_button("Download HTML Report", html, file_name="model_report_auto.html", mime="text/html")
+        # Stash results so the regret summary and downloads survive the rerun a download click triggers
+        st.session_state["mor_artifacts"] = {
+            "html_report": html,
+            "model_bytes": _serialize_model(best_model),
+            "regret_metrics": regret_metrics,
+            "regret_bounds": regret_bounds,
+            "regret_settings": regret_settings,
+        }
+
+    _arts = st.session_state.get("mor_artifacts")
+    if _arts:
+        st.write("### Multi-Objective Regret")
+        for _key, _label in [
+            ("hv", "Hypervolume regret"),
+            ("scalar", "Scalarized regret (mean)"),
+            ("eps", "ε-regret"),
+        ]:
+            st.write(_regret_status_line(
+                _label, _arts["regret_metrics"].get(_key), _arts["regret_bounds"].get(_key)
+            ))
+        with st.expander("Regret settings summary", expanded=False):
+            st.json(_arts["regret_settings"])
+
+        st.download_button(
+            "Download HTML Report",
+            _arts["html_report"],
+            file_name="model_report_auto.html",
+            mime="text/html",
+            key="download_html_report",
+        )
+        st.download_button(
+            "Download Trained Model (.joblib)",
+            _arts["model_bytes"],
+            file_name="multioutreg_best_model.joblib",
+            mime="application/octet-stream",
+            key="download_model",
+        )

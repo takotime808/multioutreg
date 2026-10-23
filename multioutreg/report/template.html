@@ -16,6 +16,9 @@
         .summary li { margin-bottom: 0.4em; }
         tr.best td { background: #eef6ee; font-weight: bold; }
         td.num { text-align: right; }
+        .pass { color: #2e7d32; font-weight: bold; }
+        .fail { color: #d7263d; font-weight: bold; }
+        .code { font-family: Menlo, Consolas, monospace; }
     </style>
 </head>
 <body>
@@ -259,6 +262,53 @@
             <div>{{ p.caption }}</div>
         </div>
         {% endfor %}
+    </div>
+    {% endif %}
+    {% if regret_metrics %}
+    {% macro fmt(x) -%}
+        {%- if x is not none -%}{{ "%.4g"|format(x) }}{%- else -%}&mdash;{%- endif -%}
+    {%- endmacro %}
+    {% macro badge(val, bound) -%}
+        {%- if val is not none and bound is not none -%}
+            {%- if val <= bound -%}<span class="pass">PASS</span>{%- else -%}<span class="fail">FAIL</span>{%- endif -%}
+        {%- else -%}&mdash;{%- endif -%}
+    {%- endmacro %}
+    {% set b = regret_bounds or {} %}
+    <div class="section">
+        <h2>Multi-Objective Regret</h2>
+        <p>
+            <i>
+                Regret compares the Pareto front implied by the model's predictions with the true Pareto front of the test set (all objectives minimized). Hypervolume regret measures lost dominated volume, scalarized regret the mean loss over weighted-sum preferences, and &epsilon;-regret the additive shift needed for the predicted front to weakly dominate the true front. Zero is ideal for all three.
+            </i>
+        </p>
+        <table>
+            <tr>
+                <th>Metric</th>
+                <th>Value</th>
+                <th>Max Allowed</th>
+                <th>Status</th>
+            </tr>
+            {% for key, label in [("hv", "Hypervolume regret"), ("scalar", "Scalarized regret (mean)"), ("eps", "&epsilon;-regret")] %}
+            <tr>
+                <td>{{ label }}</td>
+                <td class="num">{{ fmt(regret_metrics.get(key)) }}</td>
+                <td class="num">{{ fmt(b.get(key)) }}</td>
+                <td>{{ badge(regret_metrics.get(key), b.get(key)) }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        {% if regret_settings %}
+        <details>
+            <summary>Regret settings</summary>
+            <ul class="summary">
+                <li>HV reference mode: <span class="code">{{ regret_settings.get("hv_ref_mode") or "&mdash;" }}</span></li>
+                <li>HV margin (%): <span class="code">{{ regret_settings.get("hv_margin_pct") if regret_settings.get("hv_margin_pct") is not none else "&mdash;" }}</span></li>
+                <li>Reference point: <span class="code">{{ regret_settings.get("reference_point") or "auto" }}</span></li>
+                <li>Weights mode: <span class="code">{{ regret_settings.get("weights_mode") or "&mdash;" }}</span></li>
+                <li>Weights shape: <span class="code">{{ regret_settings.get("weights_shape") or "&mdash;" }}</span></li>
+            </ul>
+        </details>
+        {% endif %}
     </div>
     {% endif %}
     {# <div class="section">

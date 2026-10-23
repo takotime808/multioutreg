@@ -61,6 +61,9 @@ def generate_html_report(
     conformal_alpha: float | None = None,
     calibration_residuals: np.ndarray | None = None,
     imputation_summary: dict | None = None,
+    regret_metrics: Dict[str, float] | None = None,
+    regret_bounds: Dict[str, Optional[float]] | None = None,
+    regret_settings: Dict[str, Any] | None = None,
 ) -> str:
     """
     Generate an HTML report summarizing surrogate model results, including performance metrics,
@@ -132,6 +135,13 @@ def generate_html_report(
     calibration_residuals : np.ndarray | None, optional
         ``|y_cal - y_cal_pred|`` from the held-out conformal calibration set.
         The Gaussian-vs-conformal coverage plot is drawn only when given.
+    regret_metrics : Dict[str, float] | None, optional
+        Multi-objective regret values keyed ``"hv"``, ``"scalar"`` and ``"eps"``
+        (see :mod:`multioutreg.metrics`). The regret section renders only when given.
+    regret_bounds : Dict[str, float | None] | None, optional
+        Optional max-acceptable value per regret key, shown as PASS/FAIL.
+    regret_settings : Dict[str, Any] | None, optional
+        Settings used to compute the regret (reference point, weights mode, ...).
 
     Returns
     -------
@@ -299,5 +309,8 @@ def generate_html_report(
         pca_n_components=pca_n_components,
         kaiser_rule_suggestion=kaiser_rule_suggestion,
         imputation_summary=imputation_summary,
+        regret_metrics=regret_metrics,
+        regret_bounds=regret_bounds,
+        regret_settings=regret_settings,
     )
     return rendered

@@ -17,6 +17,7 @@ from mor_cli.detect_sampling import app as detect_app
 from multioutreg.figures.umap_plot_classify import generate_umap_plot
 from multioutreg.sampling.detect import guess_input_columns
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
+from multioutreg.sampling.pca_sampling_detector import generate_sampling_plot_and_metrics
 
 
 def compute_bias_metrics(df: pd.DataFrame) -> dict:
@@ -72,6 +73,9 @@ def main():
         st.sidebar.subheader("PCA")
         pca_thresh = st.sidebar.slider("PCA: Variance Threshold (optional)", 0.0, 1.0, 0.9)
 
+        # Rows of numeric_df survive dropna, so align the colour column to them.
+        label_data = df.loc[numeric_df.index, umap_target].to_numpy() if umap_target else None
+
         # Tabs
         tabs = st.tabs(["📊 Dataset & Sampling", "🚨 Bias Metrics", "📈 PCA", "🔍 UMAP"])
 
@@ -120,16 +124,25 @@ def main():
             else:
                 st.warning("⚠️ Not enough numeric features for PCA.")
 
+            if len(input_cols) >= 2:
+                st.subheader("📈 PCA Projection of the Design")
+                fig, pca_metrics = generate_sampling_plot_and_metrics(
+                    numeric_df[input_cols].to_numpy(), labels=label_data
+                )
+                st.pyplot(fig)
+                st.caption(pca_metrics["explanation"])
+                with st.expander("Projection metrics"):
+                    st.json(pca_metrics)
+
         # Tab 4: UMAP
         with tabs[3]:
             if len(input_cols) >= 2:
                 st.subheader("🔍 UMAP Projection")
-                # label_data = df[umap_target].to_numpy() if umap_target else None
                 umap_b64, umap_explanation = generate_umap_plot(
                     X=numeric_df[input_cols].to_numpy(),
-                    # n_neighbors=umap_neighbors,
-                    # min_dist=umap_min_dist,
-                    # labels=label_data
+                    n_neighbors=umap_neighbors,
+                    min_dist=umap_min_dist,
+                    labels=label_data,
                 )
                 show_base64_image(umap_b64, caption=f"UMAP Projection — {umap_explanation}")
             else:
