@@ -91,6 +91,11 @@ neuralforecast = [
   # Used by NeuralForecaster (N-BEATS / N-HiTS)
   "neuralforecast>=1.7",
 ]
+moo = [
+  # Optional fast exact hypervolume for >2 objectives in multioutreg.metrics
+  # (falls back to exact 1D/2D or Monte Carlo without it).
+  "pymoo>=0.6.1",
+]
 test = [
     "pytest",
     "pytest-cov",
@@ -104,7 +109,7 @@ all = [
   # Every optional *library* feature plus the test tooling. `examples` is
   # deliberately excluded: ray/hyperopt/plotly are only used by the example
   # notebooks, never by the package. Use `multioutreg[all,examples]` for those.
-  "multioutreg[ts,ngboost,xgboost,lightgbm,catboost,gpytorch,smt,lstm,prophet,neuralforecast,test]",
+  "multioutreg[ts,ngboost,xgboost,lightgbm,catboost,gpytorch,smt,lstm,prophet,neuralforecast,moo,test]",
 ]
 examples = [
   "ray",
