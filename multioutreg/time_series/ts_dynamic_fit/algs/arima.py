@@ -1,6 +1,6 @@
 # Copyright (c) 2025 takotime808
 from statsmodels.tsa.stattools import adfuller, acf, pacf
-import pandas as pd 
+import pandas as pd
 import numpy as np
 import statsmodels.api as sm
 from sklearn.metrics import mean_absolute_error as mae
