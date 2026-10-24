@@ -43,7 +43,9 @@ def conformal_interval_from_residuals(
     """Compute split-conformal prediction intervals from calibration residuals.
 
     Uses the standard split-conformal quantile:
-        q = ceil((n + 1) * (1 - alpha)) / n -th quantile of |residuals|
+        k = ceil((n + 1) * (1 - alpha))-th smallest |residual|.
+    When k > n, the interval is unbounded. Coverage requires exchangeable
+    calibration and test scores; arbitrary temporal dependence does not qualify.
 
     Parameters
     ----------
@@ -59,10 +61,18 @@ def conformal_interval_from_residuals(
     lower, upper : np.ndarray, each shape (horizon,)
     """
     abs_resid = np.abs(np.asarray(cal_residuals, dtype=float))
-    n = len(abs_resid)
-    level = min(1.0, np.ceil((n + 1) * (1.0 - alpha)) / n)
-    q_hat = float(np.quantile(abs_resid, level))
+    if not np.isfinite(alpha) or not 0.0 < alpha < 1.0:
+        raise ValueError("alpha must be finite and strictly between 0 and 1")
+    if abs_resid.ndim != 1 or abs_resid.size == 0:
+        raise ValueError("cal_residuals must be a nonempty one-dimensional array")
+    if not np.all(np.isfinite(abs_resid)):
+        raise ValueError("cal_residuals must contain only finite values")
     point_pred = np.asarray(point_pred, dtype=float)
+    if point_pred.ndim != 1 or not np.all(np.isfinite(point_pred)):
+        raise ValueError("point_pred must be a finite one-dimensional array")
+    n = abs_resid.size
+    k = int(np.ceil((n + 1) * (1.0 - alpha)))
+    q_hat = np.inf if k > n else float(np.partition(abs_resid, k - 1)[k - 1])
     return point_pred - q_hat, point_pred + q_hat
 
 
