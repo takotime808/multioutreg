@@ -46,7 +46,11 @@ install `pymoo`.
 Many real-world decisions are made with some (possibly unknown) preference over objectives. Weighted sums `w·Y` are a simple and widely used scalarization. By comparing `min_x w·Y_true` vs. `min_x w·Y_pred` over **multiple** weights, we summarize how much utility a decision-maker might lose when using the model’s predicted front instead of the true front.
 
 **Default choice:**  
-If weights aren’t supplied, we sample **8 Dirichlet** weight vectors uniformly over the simplex. This provides a small but diverse spread of preferences without biasing toward any one objective. When the number of objectives is 1, a scalar weight of `1.0` is used.
+`scalarized_regret` requires `weights`; each row is clipped to non-negative values and normalized to sum to 1. The callers that choose weights for you sample them uniformly over the simplex (Dirichlet(1)), which gives a spread of preferences without favoring any one objective:
+- `RegretTracker` samples **16** weight vectors (`n_weight_samples`) on its first `step`.
+- The GUI's **Auto** mode samples **8** weight vectors; its **Uniform** mode uses the single vector `1/m`.
+
+When the number of objectives is 1, a scalar weight of `1.0` is used.
 
 ### 3) ε-indicator regret — dominance-based tightness
 The additive ε-indicator reports how far (additively, per objective) the predicted front must be shifted so it **weakly dominates** the true front. It is a crisp, dominance-centric notion and complements HV and scalarized regret: ε=0 means the predicted front is already at least as good everywhere.
@@ -68,6 +72,14 @@ The additive ε-indicator reports how far (additively, per objective) the predic
   If you set **max acceptable** values for HV, scalarized, or ε-regret, the UI will flag results:
   - ✅ when metric ≤ bound
   - ❌ otherwise
+
+---
+
+## Computational notes
+
+- **`pareto_mask` cost:** dominance is checked between every pair of rows using `(n, n, m)` boolean
+  arrays, so time and memory grow with `n² · m`. A few thousand rows is fine; for two objectives,
+  `n = 20,000` needs on the order of 2 GB. Filter or subsample very large candidate sets first.
 
 ---
 
@@ -111,7 +123,7 @@ Weights can be `(k, m)`, `(m,)`, `(k,)` (if `m==1`), or scalar (if `m==1`).
 ## Defaults summary
 
 - **HV reference**: data-dependent worst + **10%** span (per objective) if not provided.  
-- **Scalarized weights**: **Dirichlet(1)** sample of **8** weight vectors when `m>1`; **1.0** when `m==1`.  
+- **Scalarized weights**: required by `scalarized_regret`; `RegretTracker` samples **16** Dirichlet(1) vectors and the GUI's Auto mode samples **8**; **1.0** when `m==1`.  
 - **ε-indicator**: parameter-free.  
 - **Minimization**: by default, all objectives are minimized (pass `minimize=[...]` to mix min/max).
 

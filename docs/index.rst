@@ -38,6 +38,7 @@ Notes about project.
    integrated_surrogates
    surrogate_roadmap
    active_learning
+   multiobjective_metrics
    parallel_computing
    references
 
