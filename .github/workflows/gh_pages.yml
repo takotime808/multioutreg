@@ -72,11 +72,32 @@ jobs:
       # Served at https://takotime808.github.io/multioutreg/coverage/ (the README badge links here).
       # coverage.py writes a .gitignore containing "*" into htmlcov/, which would stop
       # the deploy action from committing the report, so drop it.
+      # If there is no report, publish a placeholder page instead of a 404, and mark the
+      # badge unknown so it never shows a percentage that can't be clicked through to.
       - name: Add HTML coverage report to site
+        env:
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
         run: |
           if [ -f coverage-artifact/htmlcov/index.html ]; then
             rm -f coverage-artifact/htmlcov/.gitignore
             cp -r coverage-artifact/htmlcov docs/build/html/coverage
+          else
+            mkdir -p docs/build/html/coverage
+            cat > docs/build/html/coverage/index.html <<EOF
+          <!doctype html>
+          <html lang="en">
+          <head><meta charset="utf-8"><title>Coverage report unavailable</title></head>
+          <body style="font-family: sans-serif; max-width: 40em; margin: 4em auto; padding: 0 1em;">
+            <h1>Coverage report unavailable</h1>
+            <p>No HTML coverage report was produced for commit <code>${HEAD_SHA}</code>.</p>
+            <p>See the <a href="${RUN_URL}">test workflow run</a> for details.</p>
+          </body>
+          </html>
+          EOF
+            if ! grep -qiE 'failing|unknown' docs/build/html/_static/badges/coverage.svg; then
+              curl -sSL "https://img.shields.io/badge/coverage-unknown-lightgrey.svg" -o docs/build/html/_static/badges/coverage.svg
+            fi
           fi
 
       - name: Deploy to GitHub Pages
