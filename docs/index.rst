@@ -19,6 +19,7 @@ Notes about project.
    install
    usage
    cost_savings
+   active_learning_savings
    multi_fidelity_gui
 
 .. toctree::
