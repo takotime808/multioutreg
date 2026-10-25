@@ -7,7 +7,7 @@ Multi-Output Multi-Fidelity Surrogate Modeling with Uncertainty Quantification.
 [![Docs](https://img.shields.io/badge/docs-online-blue.svg)](https://takotime808.github.io/multioutreg/)
 [![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
 
-![Coverage](https://takotime808.github.io/multioutreg/_static/badges/coverage.svg)
+[![Coverage](https://takotime808.github.io/multioutreg/_static/badges/coverage.svg)](https://takotime808.github.io/multioutreg/coverage/)
 [![Documentation](https://github.com/takotime808/multioutreg/actions/workflows/gh_pages.yml/badge.svg)](https://github.com/takotime808/multioutreg/actions/workflows/gh_pages.yml)
 
 <!-- [![PyPI](https://img.shields.io/pypi/v/multioutreg.svg)](https://pypi.org/project/multioutreg/) -->

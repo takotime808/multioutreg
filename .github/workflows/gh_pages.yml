@@ -22,19 +22,21 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
-      - name: Download coverage badge from test workflow
+      - name: Download coverage badge and HTML report from test workflow
         continue-on-error: true
         uses: dawidd6/action-download-artifact@v6
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           run_id: ${{ github.event.workflow_run.id }}
           name: coverage-badge
-          path: docs/_static/badges
+          path: coverage-artifact
 
       - name: Ensure coverage badge exists
         run: |
           mkdir -p docs/_static/badges
-          if [ ! -s docs/_static/badges/coverage.svg ]; then
+          if [ -s coverage-artifact/coverage.svg ]; then
+            cp coverage-artifact/coverage.svg docs/_static/badges/coverage.svg
+          else
             curl -sSL "https://img.shields.io/badge/coverage-unknown-lightgrey.svg" -o docs/_static/badges/coverage.svg
           fi
 
@@ -66,6 +68,16 @@ jobs:
       - name: Build Sphinx HTML
         working-directory: docs
         run: make html
+
+      # Served at https://takotime808.github.io/multioutreg/coverage/ (the README badge links here).
+      # coverage.py writes a .gitignore containing "*" into htmlcov/, which would stop
+      # the deploy action from committing the report, so drop it.
+      - name: Add HTML coverage report to site
+        run: |
+          if [ -f coverage-artifact/htmlcov/index.html ]; then
+            rm -f coverage-artifact/htmlcov/.gitignore
+            cp -r coverage-artifact/htmlcov docs/build/html/coverage
+          fi
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
