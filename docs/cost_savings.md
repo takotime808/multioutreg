@@ -53,7 +53,9 @@ flowchart LR
    more.
 2. **Runs go where they are informative.** Bayesian optimization (`"ei"`, `"ucb"`, `"pi"`)
    concentrates runs near the optimum instead of sweeping the domain, the largest saving
-   measured here.
+   measured here. For a global surrogate, max-variance sampling puts runs where the model is
+   least certain; {doc}`active_learning_savings` shows it reproducing a curve for 28% less
+   than a Sobol design.
 3. **Space-filling instead of grids.** A full-factorial grid repeats every input level and its
    size jumps by `k^d`. Sobol or active designs reach the same surrogate accuracy in fewer
    runs, and the gap grows with the number of inputs.

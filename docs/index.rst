@@ -19,6 +19,7 @@ Notes about project.
    install
    usage
    cost_savings
+   active_learning_savings
    multi_fidelity_gui
 
 .. toctree::
@@ -38,6 +39,7 @@ Notes about project.
    integrated_surrogates
    surrogate_roadmap
    active_learning
+   multiobjective_metrics
    parallel_computing
    references
 

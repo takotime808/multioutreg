@@ -183,6 +183,8 @@ myst_fence_as_directive = ["mermaid"]
 html_show_sphinx = False
 # # ---------- Remove footer ----------
 # html_css_files = ["css/hide-footer.css"]
+# Page-specific styles; every selector is scoped to an `al-` class.
+html_css_files = ["css/active-learning-savings.css"]
 
 
 # ---------- MODIFY INCLUDED README IMAGE PATHS ----------

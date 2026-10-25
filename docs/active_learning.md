@@ -110,6 +110,14 @@ For the optimization criteria, outputs are first scalarized with `weights`
 independent outputs. Per-output surrogates are independent by construction,
 so this matches what the models actually say.
 
+Unlike `max_variance`, the optimization criteria do not divide by output scale.
+With `weights=None` every weight is 1, applied to the raw outputs, so the
+output with the largest scale dominates `g`. When outputs have different units
+or ranges, pass `weights` that include the scale (for example
+`w_j / output_scale(Y)[j]`), or standardize the targets before fitting. A fixed
+weight vector targets one trade-off between outputs. It does not explore the
+Pareto front (see Non-Goals).
+
 ### Acquisition Functions
 
 | Name | Formula (per candidate) | Goal |
