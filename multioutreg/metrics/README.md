@@ -2,7 +2,7 @@
 
 This module provides three complementary regret metrics for multi-objective model evaluation and iterative optimization:
 
-- **Hypervolume regret**: `HV(true_front) − HV(pred_front)`  
+- **Hypervolume regret**: `HV(true_front) − HV(pred_front)`, with `hypervolume(Y)` exact in any number of objectives  
 - **Scalarized regret**: average (or distribution) of `min_x w·Y_true(x) − min_x w·Y_pred(x)` across weight vectors `w`  
 - **ε-indicator regret**: additive dominance gap needed so the predicted front weakly dominates the true front
 
@@ -21,6 +21,26 @@ If no reference is provided, we derive a safe, data-dependent reference as:
 worst + 10% * span   (per objective, with a 1.0 fallback if span = 0)
 ```
 This keeps the reference large enough to avoid clipping HV and stable across datasets with different scales, without requiring manual tuning.
+
+The default is computed from **both** `Y_true` and `Y_pred`, so it moves with the prediction:
+fix `reference_point` when comparing several models, or their regrets are on different scales.
+For objectives with `minimize=False`, give the reference point's coordinate negated (the
+worst value in your own units, times −1).
+
+**Exact in any dimension:** `hypervolume(Y, reference_point)` and `hypervolume_regret` are
+exact for any number of objectives. 1-D and 2-D use closed forms; for 3+ objectives the front
+is sliced along the last objective and the slab volumes are summed recursively down to the
+2-D sweep. With `pymoo` installed (`pip install multioutreg[moo]`) its faster exact algorithm
+is used for 3+ objectives; the values agree. The pure-NumPy path takes well under two seconds
+for fronts of hundreds of points with 3–4 objectives; for 5+ objectives with large fronts,
+install `pymoo`.
+
+**Front fidelity versus decision regret:** `hypervolume_regret(Y_true, Y_pred)` compares the
+*predicted* front with the true one and is clipped at zero, so an optimistic model can score
+0. To score the designs a model would pick, pass the true values at its picks:
+`hypervolume_regret(Y_true, Y_true[pareto_mask(Y_pred)])`. Swapping the arguments,
+`hypervolume_regret(Y_pred, Y_true)`, is positive when the prediction is optimistic.
+`examples/hypervolume_regret.ipynb` walks through all of this.
 
 ### 2) Scalarized regret — preference-aware loss
 Many real-world decisions are made with some (possibly unknown) preference over objectives. Weighted sums `w·Y` are a simple and widely used scalarization. By comparing `min_x w·Y_true` vs. `min_x w·Y_pred` over **multiple** weights, we summarize how much utility a decision-maker might lose when using the model’s predicted front instead of the true front.
@@ -56,14 +76,21 @@ The additive ε-indicator reports how far (additively, per objective) the predic
 ```python
 from multioutreg.metrics import (
     pareto_mask,
+    hypervolume,
     hypervolume_regret,
     scalarized_regret,
     epsilon_regret,
     RegretTracker,
 )
 
+# Exact hypervolume of a front, any number of objectives
+hv = hypervolume(Y_true, reference_point=ref, minimize=True)
+
 # Hypervolume regret (optionally pass a reference point)
 r_hv = hypervolume_regret(Y_true, Y_pred, reference_point=None, minimize=True)
+
+# Decision regret: true values at the designs the model calls Pareto-optimal
+r_dec = hypervolume_regret(Y_true, Y_true[pareto_mask(Y_pred)], reference_point=ref)
 
 # Scalarized regret across weights (1D/2D/scalar accepted; rows auto-normalized)
 r_sc = scalarized_regret(Y_true, Y_pred, weights=[[0.5,0.5],[0.2,0.8]], reduce="mean")
