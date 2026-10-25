@@ -168,12 +168,16 @@ Friedman 1, Gramacy & Lee, Himmelblau, ZDT1–3 (with `zdt_front` for the exact
 Pareto front), Viennet 2, multi-fidelity Branin (`branin_mf`) and the
 heterogeneous function.
 
-**Notebooks to build on the first batch:**
+**Notebooks on the first batch.** Done: the
+[Multi-Output Surrogates tutorial](tutorials/multi_output_surrogates.ipynb) uses ZDT1 and ZDT3
+(per-output model selection, decision regret against `zdt_front`), Friedman 1 (SHAP and
+partial dependence against the five inert inputs) and Gramacy & Lee (GP and conformal
+coverage by region). Viennet 2 was left out: all three outputs are quadratics, so a GP fits
+each exactly and it says nothing about model selection; Kursawe (next to port) is the better
+multi-target example. Still to build:
 
 | Notebook | Benchmarks | What it demonstrates |
 |---|---|---|
-| Single-fidelity model selection and explanations | Friedman 1, Gramacy & Lee | Friedman 1 has five inert inputs, so SHAP and PDP figures can be checked against a known answer; Gramacy & Lee is non-stationary, so a stationary GP's intervals miss on one side and are too wide on the other (coverage and conformal demo). |
-| Multi-target surrogates and regret | ZDT1–3, Viennet 2 | ZDT output 1 is `x1` and output 2 is hard, so per-output Auto-Detect should pick different models; the exact fronts validate the regret metrics. Viennet 2 has three outputs of different shape over a 2-D input that can be plotted. |
 | Multi-fidelity, scale and warping | Heterogeneous, `branin_mf` (add to `examples/mf_surrogates.ipynb`) | The heterogeneous function's scale between levels varies with `x`, so a constant `rho` cannot fit it and stacking (which sees `x`) should win. In `branin_mf` the low level sees stretched inputs, which no scaled correction matches. |
 | Batch active learning | Himmelblau | Four equal minima: a good `select_batch` batch spreads across all four basins. |
 
@@ -233,6 +237,25 @@ Left over after the old feature branches were rebuilt on `main` (#29–#31):
   level, so the module cannot be imported without `umap-learn` and the
   fallback never runs in that case. Move the import into the function and add
   a test that patches the import to fail and expects `"projection": "PCA"`.
+- **Regret semantics in `multioutreg.metrics`:** `hypervolume_regret(Y_true, Y_pred)`,
+  `scalarized_regret` and `epsilon_regret` still compare the *predicted* front with the
+  true front, the definition the branch-integration review flagged for change. With the
+  difference clipped at zero, an optimistic model scores zero: in the multi-output tutorial a
+  ZDT1 surrogate whose `f2` is shifted down by 0.5 scores 0 while the accurate surrogate scores
+  0.042, although both pick the same designs. Decision regret evaluates the true objectives at
+  the designs the model selects (`hypervolume_regret(Y_true, Y_true[pareto_mask(Y_pred)])`;
+  for scalarized regret, `w·Y_true(argmin w·Y_pred) − min w·Y_true`). Make it the default,
+  keep the front comparison under a different name, and update the GUI page 01 and report
+  wording.
+- **Conformal predictors and package surrogates:** `SplitConformalPredictor` and
+  `CVPlusConformalPredictor` copy their estimator with `sklearn.clone`, which fails on the
+  package's own surrogates (`GaussianProcessSurrogate` has no `get_params`). The tutorials pass
+  scikit-learn regressors instead. Either implement `get_params` / `set_params` on
+  `BaseSurrogate` or reuse `_clone_surrogate` from `auto_detect.py`.
+- **SHAP figure run time:** `figures.shap_multioutput.generate_shap_plot` uses SHAP's exact
+  explainer, which took 86 s for 100 rows of the 10-input Friedman 1 problem with a GP. A
+  `KernelExplainer` on k-means background data gave the same ranking in about 2 s. Cap the
+  rows or switch explainers for non-tree models.
 - **Branch cleanup:** the local `ts-review` branch and
   `origin/main-backup-pre-ai` are fully merged and can be deleted. Tag any
   tip whose source is still needed (e.g. `archive/crossval-datasize-dep` on
