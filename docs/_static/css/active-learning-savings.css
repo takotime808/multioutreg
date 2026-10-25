@@ -1,0 +1,278 @@
+/* Copyright (c) 2026 takotime808 */
+/* Styles for docs/active_learning_savings.md. Every selector is scoped to an `al-` class,
+   so other pages are unaffected. Neutral colors come from Furo's variables, which already
+   follow its light/dark toggle; the series colors match the tutorial's figures. */
+
+:root {
+    --al-active: #2a78d6;
+    --al-sobol: #1baf7a;
+    --al-random: #eb6834;
+    --al-grid: #7a7975;
+    --al-figure-surface: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+    body:not([data-theme="light"]) {
+        --al-active: #5b9bea;
+        --al-sobol: #3cc993;
+        --al-random: #f2895f;
+        --al-grid: #a3a29e;
+    }
+}
+
+body[data-theme="dark"] {
+    --al-active: #5b9bea;
+    --al-sobol: #3cc993;
+    --al-random: #f2895f;
+    --al-grid: #a3a29e;
+}
+
+/* ---------- Lead ---------- */
+
+.al-eyebrow {
+    margin: 0 0 0.25rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-brand-content);
+}
+
+.al-lead {
+    font-size: 1.12rem;
+    line-height: 1.55;
+    color: var(--color-foreground-secondary);
+    max-width: 46rem;
+}
+
+/* ---------- Savings table ---------- */
+
+.al-savings {
+    max-width: 100%;
+    margin: 1.5rem 0 0.5rem;
+    border: 1px solid var(--color-background-border);
+    border-radius: 10px;
+    /* Scroll inside the box rather than widening the page on narrow screens. */
+    overflow-x: auto;
+    background: var(--color-background-primary);
+}
+
+.al-savings table {
+    width: 100%;
+    margin: 0;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+    border: none;
+    box-shadow: none;
+}
+
+.al-savings th,
+.al-savings td {
+    padding: 0.7rem 0.9rem;
+    border: none;
+    border-bottom: 1px solid var(--color-background-border);
+    text-align: left;
+    vertical-align: middle;
+}
+
+.al-savings thead th {
+    background: var(--color-background-secondary);
+    color: var(--color-foreground-secondary);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.al-savings tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.al-savings .al-num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.al-savings tr.al-best td {
+    background: color-mix(in srgb, var(--al-active) 9%, transparent);
+}
+
+.al-method {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-weight: 600;
+    color: var(--color-foreground-primary);
+}
+
+.al-method small {
+    display: block;
+    font-weight: 400;
+    font-size: 0.78rem;
+    color: var(--color-foreground-muted);
+}
+
+.al-swatch {
+    flex: none;
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 3px;
+}
+
+.al-swatch.active { background: var(--al-active); }
+.al-swatch.sobol { background: var(--al-sobol); }
+.al-swatch.random { background: var(--al-random); }
+.al-swatch.grid { background: var(--al-grid); }
+
+/* Inline bar: cost relative to the most expensive design. */
+.al-bar {
+    position: relative;
+    min-width: 7rem;
+    height: 0.55rem;
+    border-radius: 4px;
+    background: var(--color-background-secondary);
+}
+
+.al-bar span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: 4px;
+}
+
+.al-bar .active { background: var(--al-active); }
+.al-bar .sobol { background: var(--al-sobol); }
+.al-bar .random { background: var(--al-random); }
+.al-bar .grid { background: var(--al-grid); }
+
+.al-saving {
+    font-weight: 700;
+    color: var(--color-foreground-primary);
+}
+
+.al-baseline {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--al-active);
+}
+
+.al-table-note {
+    margin: 0.4rem 0 1.5rem;
+    font-size: 0.8rem;
+    color: var(--color-foreground-muted);
+}
+
+/* ---------- Stat tiles ---------- */
+
+.al-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0.8rem;
+    margin: 1.5rem 0 2rem;
+}
+
+.al-stat {
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--color-background-border);
+    border-radius: 10px;
+    background: var(--color-background-secondary);
+}
+
+.al-stat .al-value {
+    display: block;
+    font-size: 1.9rem;
+    font-weight: 700;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-foreground-primary);
+}
+
+.al-stat .al-label {
+    display: block;
+    margin-top: 0.3rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: var(--color-foreground-secondary);
+}
+
+/* ---------- Figures ---------- */
+
+.al-figure {
+    margin: 1.25rem 0 1.75rem;
+}
+
+.al-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    padding: 0.5rem;
+    border: 1px solid var(--color-background-border);
+    border-radius: 10px;
+    /* The figures are rendered on white; keep them on white in dark mode too. */
+    background: var(--al-figure-surface);
+}
+
+.al-figure figcaption {
+    margin-top: 0.55rem;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--color-foreground-secondary);
+}
+
+/* ---------- Reason and tool cards ---------- */
+
+.al-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    gap: 0.8rem;
+    margin: 1rem 0 1.75rem;
+}
+
+.al-card {
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--color-background-border);
+    border-top: 3px solid var(--color-brand-primary);
+    border-radius: 10px;
+    background: var(--color-background-primary);
+}
+
+.al-card h4 {
+    margin: 0 0 0.4rem;
+    font-size: 0.98rem;
+}
+
+.al-card p {
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--color-foreground-secondary);
+}
+
+.al-card code {
+    font-size: 0.82rem;
+}
+
+/* ---------- Small screens ---------- */
+
+@media (max-width: 40rem) {
+    .al-savings th,
+    .al-savings td {
+        padding: 0.55rem 0.5rem;
+    }
+
+    .al-savings .al-hide-sm {
+        display: none;
+    }
+
+    .al-method small {
+        display: none;
+    }
+
+    .al-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .al-stat .al-value {
+        font-size: 1.5rem;
+    }
+}
