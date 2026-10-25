@@ -2,8 +2,12 @@
 """Analytic benchmark functions for active learning, with fidelity variants.
 
 Definitions follow the Virtual Library of Simulation Experiments
-(Surjanovic & Bingham, https://www.sfu.ca/~ssurjano/). Every function takes
-``X`` of shape ``(n, d)`` in its own bounds and returns ``(n, n_outputs)``.
+(Surjanovic & Bingham, https://www.sfu.ca/~ssurjano/) and, for Friedman 1,
+Gramacy & Lee, Himmelblau, ZDT, Viennet 2, the heterogeneous and the
+multi-fidelity Branin functions, the BenchmarkFcns library
+(https://github.com/mazhar-ansari-ardeh/BenchmarkFcns, MIT), ported to NumPy.
+Every function takes ``X`` of shape ``(n, d)`` in its own bounds and returns
+``(n, n_outputs)``.
 """
 
 from __future__ import annotations
@@ -131,6 +135,110 @@ def borehole_lo(X):
     return _borehole(X, 5.0, 1.5)
 
 
+def branin_mf_lo(X):
+    """Low-fidelity Branin: ``10 f(1.2 x) + 5 x1 + 10 x2``.
+
+    The low level sees stretched inputs, so no scaling of it matches the high
+    level; a hard case for additive or scaled corrections.
+    """
+    X = np.asarray(X, dtype=np.float64)
+    return 10 * branin(1.2 * X) + _col(5 * X[:, 0] + 10 * X[:, 1])
+
+
+def heterogeneous_lo(X):
+    """Low level of the heterogeneous function (Mainini et al. 2022) on [0, 1]."""
+    x = np.asarray(X, dtype=np.float64)[:, 0]
+    return _col(np.sin(30 * (x - 0.9) ** 4) * np.cos(2 * (x - 0.9)) + (x - 0.9) / 2)
+
+
+def heterogeneous(X):
+    """High level ``(f_lo - 1 + x) / (1 + 0.25 x)``: the scale between levels varies with x."""
+    x = np.asarray(X, dtype=np.float64)[:, :1]
+    return (heterogeneous_lo(X) - 1 + x) / (1 + 0.25 * x)
+
+
+def friedman1(X):
+    """Friedman (1991) on [0, 1]^10; only x1..x5 enter, x6..x10 are inert.
+
+    Noise-free; the usual benchmark adds N(0, 1) noise.
+    """
+    X = np.asarray(X, dtype=np.float64)
+    return _col(
+        10 * np.sin(np.pi * X[:, 0] * X[:, 1]) + 20 * (X[:, 2] - 0.5) ** 2 + 10 * X[:, 3] + 5 * X[:, 4]
+    )
+
+
+def gramacy_lee(X):
+    """Gramacy & Lee (2012) on [0.5, 2.5]: fast oscillation on the left, smooth on the right."""
+    x = np.asarray(X, dtype=np.float64)[:, 0]
+    return _col(np.sin(10 * np.pi * x) / (2 * x) + (x - 1) ** 4)
+
+
+HIMMELBLAU_MINIMA = np.array(
+    [[3.0, 2.0], [-2.805118, 3.131312], [-3.779310, -3.283186], [3.584428, -1.848126]]
+)
+
+
+def himmelblau(X):
+    """Himmelblau on [-5, 5]^2: four global minima of 0 (``HIMMELBLAU_MINIMA``)."""
+    X = np.asarray(X, dtype=np.float64)
+    x, y = X[:, 0], X[:, 1]
+    return _col((x ** 2 + y - 11) ** 2 + (x + y ** 2 - 7) ** 2)
+
+
+def _zdt(X, h):
+    X = np.asarray(X, dtype=np.float64)
+    if X.shape[1] < 2:
+        raise ValueError("ZDT functions need at least 2 input dimensions.")
+    f1 = X[:, 0]
+    g = 1 + 9 * X[:, 1:].sum(axis=1) / (X.shape[1] - 1)
+    return np.column_stack([f1, g * h(f1 / g, f1)])
+
+
+def zdt1(X):
+    """ZDT1 (Zitzler, Deb & Thiele 2000) on [0, 1]^d, two outputs; convex front."""
+    return _zdt(X, lambda r, f1: 1 - np.sqrt(r))
+
+
+def zdt2(X):
+    """ZDT2 on [0, 1]^d, two outputs; concave front."""
+    return _zdt(X, lambda r, f1: 1 - r ** 2)
+
+
+def zdt3(X):
+    """ZDT3 on [0, 1]^d, two outputs; front in five disconnected pieces."""
+    return _zdt(X, lambda r, f1: 1 - np.sqrt(r) - r * np.sin(10 * np.pi * f1))
+
+
+def zdt_front(name: str, n: int = 500) -> np.ndarray:
+    """Points on the true Pareto front of ``"zdt1"``, ``"zdt2"`` or ``"zdt3"``.
+
+    The front is reached at ``x2 = ... = xd = 0`` (so ``g = 1``); for ZDT3 only
+    the non-dominated part of that curve is kept, so fewer than ``n`` rows
+    come back.
+    """
+    fns = {"zdt1": zdt1, "zdt2": zdt2, "zdt3": zdt3}
+    if name not in fns:
+        raise ValueError(f"No analytic front for {name!r}. Available: {sorted(fns)}.")
+    X = np.zeros((n, 2))
+    X[:, 0] = np.linspace(0, 1, n)
+    F = fns[name](X)
+    # Sorted by f1, a point is non-dominated iff its f2 is below every earlier f2.
+    keep = F[:, 1] < np.minimum.accumulate(np.r_[np.inf, F[:-1, 1]])
+    return F[keep]
+
+
+def viennet2(X):
+    """Viennet 2 on [-4, 4]^2: three quadratic outputs of different shape."""
+    X = np.asarray(X, dtype=np.float64)
+    x1, x2 = X[:, 0], X[:, 1]
+    return np.column_stack([
+        (x1 - 2) ** 2 / 2 + (x2 + 1) ** 2 / 13 + 3,
+        (x1 + x2 - 3) ** 2 / 36 + (-x1 + x2 + 2) ** 2 / 8 - 17,
+        (x1 + 2 * x2 - 1) ** 2 / 175 + (2 * x1 - x2) ** 2 / 17 - 13,
+    ])
+
+
 # ---------------------------------------------------------------------------
 # Benchmark container
 # ---------------------------------------------------------------------------
@@ -190,13 +298,21 @@ _BOREHOLE_BOUNDS = [
 ]
 
 
-def get_benchmark(name: str, cost_ratio: float = 10.0) -> Benchmark:
+def get_benchmark(name: str, cost_ratio: float = 10.0, n_features: Optional[int] = None) -> Benchmark:
     """Return a :class:`Benchmark` by name.
 
     Multi-fidelity benchmarks have levels ``"lo"`` and ``"hi"`` with costs
-    ``1`` and ``cost_ratio``.
+    ``1`` and ``cost_ratio``. ``n_features`` sets the input dimension of the
+    scalable ZDT problems (default 6; the literature uses 30, which needs far
+    more training points); the other benchmarks have a fixed dimension.
     """
     mf = {"lo": 1.0, "hi": float(cost_ratio)}
+    scalable = name.startswith("zdt")
+    if n_features is not None and not scalable:
+        raise ValueError(f"Benchmark {name!r} has a fixed input dimension; n_features applies to ZDT only.")
+    d = 6 if n_features is None else int(n_features)
+    if scalable and d < 2:
+        raise ValueError("ZDT benchmarks need n_features >= 2.")
     table = {
         "forrester": lambda: Benchmark("forrester", [[0, 1]], {"lo": forrester_lo, "hi": forrester}, dict(mf), -6.02074),
         "branin": lambda: Benchmark("branin", [[-5, 10], [0, 15]], {"hi": branin}, minimum=0.397887),
@@ -206,6 +322,15 @@ def get_benchmark(name: str, cost_ratio: float = 10.0) -> Benchmark:
         "hartmann3": lambda: Benchmark("hartmann3", [[0, 1]] * 3, {"hi": hartmann3}, minimum=-3.86278),
         "park": lambda: Benchmark("park", [[0, 1]] * 4, {"lo": park_lo, "hi": park}, dict(mf)),
         "borehole": lambda: Benchmark("borehole", _BOREHOLE_BOUNDS, {"lo": borehole_lo, "hi": borehole}, dict(mf)),
+        "branin_mf": lambda: Benchmark("branin_mf", [[-5, 10], [0, 15]], {"lo": branin_mf_lo, "hi": branin}, dict(mf), 0.397887),
+        "heterogeneous": lambda: Benchmark("heterogeneous", [[0, 1]], {"lo": heterogeneous_lo, "hi": heterogeneous}, dict(mf)),
+        "friedman1": lambda: Benchmark("friedman1", [[0, 1]] * 10, {"hi": friedman1}),
+        "gramacy_lee": lambda: Benchmark("gramacy_lee", [[0.5, 2.5]], {"hi": gramacy_lee}, minimum=-0.869011),
+        "himmelblau": lambda: Benchmark("himmelblau", [[-5, 5]] * 2, {"hi": himmelblau}, minimum=0.0),
+        "zdt1": lambda: Benchmark("zdt1", [[0, 1]] * d, {"hi": zdt1}),
+        "zdt2": lambda: Benchmark("zdt2", [[0, 1]] * d, {"hi": zdt2}),
+        "zdt3": lambda: Benchmark("zdt3", [[0, 1]] * d, {"hi": zdt3}),
+        "viennet2": lambda: Benchmark("viennet2", [[-4, 4]] * 2, {"hi": viennet2}),
     }
     if name not in table:
         raise ValueError(f"Unknown benchmark {name!r}. Available: {sorted(table)}.")
@@ -215,4 +340,6 @@ def get_benchmark(name: str, cost_ratio: float = 10.0) -> Benchmark:
 BENCHMARKS = (
     "forrester", "branin", "currin", "branin_currin",
     "ishigami", "hartmann3", "park", "borehole",
+    "branin_mf", "heterogeneous", "friedman1", "gramacy_lee",
+    "himmelblau", "zdt1", "zdt2", "zdt3", "viennet2",
 )

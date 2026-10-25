@@ -303,6 +303,17 @@ bounds, so tests, docs and the notebook share one definition:
 | Hartmann-3 | 3 | 1 | hi | Optimization |
 | Park | 4 | 1 | hi / lo | MF in 4-D |
 | Borehole | 8 | 1 | hi / lo | MF in 8-D, physical units |
+| Branin MF (`branin_mf`) | 2 | 1 | hi / lo (low level on stretched inputs) | MF where no scaled correction fits |
+| Heterogeneous | 1 | 1 | hi / lo (Mainini et al. 2022) | MF with an input-dependent scale |
+| Friedman 1 | 10 | 1 | hi | Five inert inputs; screening and explanations |
+| Gramacy & Lee | 1 | 1 | hi | Non-stationary; coverage and sampling density |
+| Himmelblau | 2 | 1 | hi | Four equal minima; batch diversity |
+| ZDT1 / ZDT2 / ZDT3 | 6 (`n_features`) | 2 | hi | Multi-output with exact Pareto fronts (`zdt_front`) |
+| Viennet 2 | 2 | 3 | hi | Three outputs of different shape |
+
+Friedman 1, Gramacy & Lee, Himmelblau, ZDT, Viennet 2, Branin MF and the
+heterogeneous function are NumPy ports from BenchmarkFcns
+(<https://github.com/mazhar-ansari-ardeh/BenchmarkFcns>, MIT).
 
 ## Testing Plan
 

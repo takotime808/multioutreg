@@ -54,6 +54,7 @@ for a short demonstration.
 ## 📦 Features ##
 
 - 🧠 Auto-detect best multi-output regressors with uncertainty support.
+- 💰 Fewer expensive simulator runs: active learning, Bayesian optimization and multi-fidelity sampling ([measured savings](docs/cost_savings.md)).
 - 📉 Per-target metrics, SHAP plots, UMAP projections, PDPs, residuals.
 - 🎯 Multi-objective regret metrics (hypervolume, scalarized, ε-indicator).
 - 📊 Exportable HTML reports and Streamlit dashboards.
