@@ -18,15 +18,18 @@ Notes about project.
 
    install
    usage
+   cost_savings
    multi_fidelity_gui
 
 .. toctree::
    :maxdepth: 3
    :caption: Tutorials
 
+   tutorials/multi_output_surrogates
    tutorials/forecasting_with_chronos
    tutorials/multi_fidelity_surrogates
    tutorials/active_learning_benchmarks
+   tutorials/cost_savings
 
 .. toctree::
    :maxdepth: 2

@@ -140,7 +140,7 @@ that the candidates above either depend on or would benefit from.
 
 | # | Addition | Rationale | Effort |
 |---|---|---|---|
-| 1 | **Benchmark suite** of analytic test problems: Forrester, Branin, Currin, Park and Borehole multi-fidelity variants, plus correlated multi-output toy functions | Nothing in the package compares surrogates on problems with a known answer. Without it, the multi-fidelity candidates and the accuracy-vs-cost evaluation above have nothing to be judged on. | Low |
+| 1 | **Benchmark suite** of analytic test problems, in `multioutreg.active.benchmarks` (see [Benchmark Suite](#benchmark-suite) below for what is in and what is next) | Nothing in the package compares surrogates on problems with a known answer. Without it, the multi-fidelity candidates and the accuracy-vs-cost evaluation above have nothing to be judged on. | Low |
 | 2 | **Std recalibration** (variance scaling or isotonic, Kuleshov et al. 2018) | All calibration in the package today is conformal; nothing corrects a model's own `std` when it is over- or under-dispersed. Acquisition functions and the joint metrics consume `std` directly. `uncertainty-toolbox` (a core dependency) already provides a std recalibrator. | Low |
 | 3 | **Global sensitivity analysis** (first-order and total Sobol indices) | A primary use of a fitted surrogate, and absent from the package; the SHAP and PDP figures answer a different question. Saltelli/Jansen estimators can run on `scipy.stats.qmc` samples, and repeating them over posterior draws gives indices with uncertainty. | Low |
 | 4 | **Gradient-enhanced surrogates** (`smt` GEKPLS) | Many simulators return adjoint gradients; using them cuts the number of samples needed substantially. `smt` is already an optional extra. | Low |
@@ -152,6 +152,55 @@ that the candidates above either depend on or would benefit from.
 | 10 | **Missing outputs in per-output wrappers** | Mask missing values per output instead of dropping whole rows. Simpler than the multi-task GP route above, and common when simulation runs fail partway. | Low–Medium |
 | 11 | **Hyperparameter search beyond grid search** (random search, Optuna) | Model selection uses `GridSearchCV` only, which scales poorly as candidates and parameters grow. `ray[tune]` and `hyperopt` are commented out of `pyproject.toml`. | Low–Medium |
 
+### Benchmark Suite
+
+`multioutreg.active.benchmarks` holds NumPy versions of analytic problems with
+known answers. Further candidates come from BenchmarkFcns
+(<https://github.com/mazhar-ansari-ardeh/BenchmarkFcns>, MIT; ~310
+functions). Port the formulas rather than depend on the package: PyPI ships
+only a source distribution (needs a C++ compiler and Eigen), and it requires
+Python ≥ 3.11 while CI still tests 3.10. The package is still useful in a
+test to cross-check the ports.
+
+**In the package:** Forrester, Branin, Currin, Branin–Currin, Ishigami,
+Hartmann-3, Park and Borehole; and, from the first BenchmarkFcns batch,
+Friedman 1, Gramacy & Lee, Himmelblau, ZDT1–3 (with `zdt_front` for the exact
+Pareto front), Viennet 2, multi-fidelity Branin (`branin_mf`) and the
+heterogeneous function.
+
+**Notebooks on the first batch.** Done: the
+[Multi-Output Surrogates tutorial](tutorials/multi_output_surrogates.ipynb) uses ZDT1 and ZDT3
+(per-output model selection, decision regret against `zdt_front`), Friedman 1 (SHAP and
+partial dependence against the five inert inputs) and Gramacy & Lee (GP and conformal
+coverage by region). Viennet 2 was left out: all three outputs are quadratics, so a GP fits
+each exactly and it says nothing about model selection; Kursawe (next to port) is the better
+multi-target example. Still to build:
+
+| Notebook | Benchmarks | What it demonstrates |
+|---|---|---|
+| Multi-fidelity, scale and warping | Heterogeneous, `branin_mf` (add to `examples/mf_surrogates.ipynb`) | The heterogeneous function's scale between levels varies with `x`, so a constant `rho` cannot fit it and stacking (which sees `x`) should win. In `branin_mf` the low level sees stretched inputs, which no scaled correction matches. |
+| Batch active learning | Himmelblau | Four equal minima: a good `select_batch` batch spreads across all four basins. |
+
+**Next to port:**
+
+| Benchmark | Dim → outputs | Use |
+|---|---|---|
+| DTLZ2 | d → m | Outputs on a sphere, so strongly dependent: tests the multi-task GP, PCA output reduction and copula / energy-score candidates. |
+| Kursawe | 3 → 2 | One smooth and one non-smooth output; trees should win the second. |
+| BNH (with constraints) | 2 → 2 + 2 constraints | Objectives and constraints predicted together; regret on the feasible set. CF1–CF10 are harder versions. |
+| Hartmann-6 | 6 → 1 | Standard smooth GP and Bayesian-optimization benchmark. |
+| Six-hump camel | 2 → 1 | Six local minima, two global: EI vs max-variance, visually. |
+| Step (N1–N3) | any → 1 | Discontinuous: GPs fail and trees win, which shows why model selection matters. |
+| Rosenbrock, Styblinski-Tang | scalable → 1 | Dimension and sample-size sweeps for `cv="auto"` and kernel choice. |
+| Wing weight, Piston, OTL circuit, Robot arm | 10, 7, 6, 8 → 1 | Engineering functions with physical inputs; each has a low-fidelity level, so they also give higher-dimensional multi-fidelity tests. |
+| Xiong 1-D, Gano | 1, 2 → 1 | Small plottable multi-fidelity companions to Forrester. |
+
+**Not worth porting:** the CEC 2014–2022 competition suites (shifted and
+rotated optimizer landscapes that need large data files), extremely rugged
+optimization functions such as Eggholder, Cross-in-tray and Rana (no
+surrogate fits them, so they only show that everything fails), and the
+systematic bi-fidelity versions of classic optimization functions.
+
 ### Issues to Resolve First
 
 - **Default fidelity level:** `MultiFidelitySurrogate.predict` uses the
@@ -162,6 +211,55 @@ that the candidates above either depend on or would benefit from.
 - **NaN std downstream:** returning NaN instead of zero std (the first issue
   under [Active Learning](#active-learning)) first needs NaN handling in the
   GUI and report plots, which pass `best_std` directly to uncertainty-toolbox.
+
+### Open Follow-ups from Branch Integration
+
+Left over after the old feature branches were rebuilt on `main` (#29–#31):
+
+- **Fitted `rho` in `AdditiveCorrectionVFM`:** found by
+  `examples/mf_surrogates.ipynb` (4-level Forrester, reference XC4). `rho` is
+  the least-squares slope of `Y_hi` on `f_lo(X_hi)`, which is biased whenever
+  the discrepancy `f_hi - rho * f_lo` is correlated with `f_lo`. On Forrester
+  f4 → f1 it fits 0.44 where 2 makes the correction linear, and `rho=1` beats
+  it up to 18 high-fidelity points. Estimate `rho` jointly with `delta`
+  (regress on `[f_lo(X), X]`, or maximise the correction GP's marginal
+  likelihood over `rho`, as in Kennedy–O'Hagan).
+- **Stacked VFM intervals:** the same notebook shows the 4-level GP stack is
+  the most accurate model but only about half the test grid falls inside its
+  nominal 95% band, because the top-level `std` treats lower-level
+  predictions as exact. Propagate lower-level variance (e.g. by sampling the
+  lower-level posteriors) or recalibrate by default.
+- **More benchmark notebooks:** the Forrester notebook is the first piece of
+  the benchmark suite (candidate 1); the notebooks planned under
+  [Benchmark Suite](#benchmark-suite) are the next pieces.
+- **UMAP import in the sampling figure:** `figures/umap_plot_classify.py`
+  falls back to PCA when UMAP fails, but still runs `import umap` at module
+  level, so the module cannot be imported without `umap-learn` and the
+  fallback never runs in that case. Move the import into the function and add
+  a test that patches the import to fail and expects `"projection": "PCA"`.
+- **Regret semantics in `multioutreg.metrics`:** `hypervolume_regret(Y_true, Y_pred)`,
+  `scalarized_regret` and `epsilon_regret` still compare the *predicted* front with the
+  true front, the definition the branch-integration review flagged for change. With the
+  difference clipped at zero, an optimistic model scores zero: in the multi-output tutorial a
+  ZDT1 surrogate whose `f2` is shifted down by 0.5 scores 0 while the accurate surrogate scores
+  0.042, although both pick the same designs. Decision regret evaluates the true objectives at
+  the designs the model selects (`hypervolume_regret(Y_true, Y_true[pareto_mask(Y_pred)])`;
+  for scalarized regret, `w·Y_true(argmin w·Y_pred) − min w·Y_true`). Make it the default,
+  keep the front comparison under a different name, and update the GUI page 01 and report
+  wording.
+- **Conformal predictors and package surrogates:** `SplitConformalPredictor` and
+  `CVPlusConformalPredictor` copy their estimator with `sklearn.clone`, which fails on the
+  package's own surrogates (`GaussianProcessSurrogate` has no `get_params`). The tutorials pass
+  scikit-learn regressors instead. Either implement `get_params` / `set_params` on
+  `BaseSurrogate` or reuse `_clone_surrogate` from `auto_detect.py`.
+- **SHAP figure run time:** `figures.shap_multioutput.generate_shap_plot` uses SHAP's exact
+  explainer, which took 86 s for 100 rows of the 10-input Friedman 1 problem with a GP. A
+  `KernelExplainer` on k-means background data gave the same ranking in about 2 s. Cap the
+  rows or switch explainers for non-tree models.
+- **Branch cleanup:** the local `ts-review` branch and
+  `origin/main-backup-pre-ai` are fully merged and can be deleted. Tag any
+  tip whose source is still needed (e.g. `archive/crossval-datasize-dep` on
+  `9f72fa2`) before deleting, so the commit stays reachable.
 
 ## Recommended First Batch
 
