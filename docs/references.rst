@@ -684,7 +684,7 @@ is an engineering task with no research literature behind it.
    * - XC4
      - Mainini, L., et al. *Analytical Benchmark Problems for Multifidelity Optimization Methods*. arXiv:2204.07867 (2022).
      - `arXiv <https://arxiv.org/abs/2204.07867>`__
-     - Roadmap cross-cutting #1: a curated multi-fidelity benchmark set with stated cost ratios between levels, for the accuracy-vs-cost curves.
+     - Roadmap cross-cutting #1: a curated multi-fidelity benchmark set with stated cost ratios between levels, for the accuracy-vs-cost curves. Its 4-level Forrester problem is used in ``examples/mf_surrogates.ipynb``.
    * - XC5
      - Levi, D., Gispan, L., Giladi, N., & Fetaya, E. *Evaluating and Calibrating Uncertainty Prediction in Regression Tasks*. Sensors, 22(15) (2022).
      - `doi <https://doi.org/10.3390/s22155540>`__ · `arXiv <https://arxiv.org/abs/1905.11659>`__

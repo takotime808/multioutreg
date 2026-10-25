@@ -163,6 +163,36 @@ that the candidates above either depend on or would benefit from.
   under [Active Learning](#active-learning)) first needs NaN handling in the
   GUI and report plots, which pass `best_std` directly to uncertainty-toolbox.
 
+### Open Follow-ups from Branch Integration
+
+Left over after the old feature branches were rebuilt on `main` (#29–#31):
+
+- **Fitted `rho` in `AdditiveCorrectionVFM`:** found by
+  `examples/mf_surrogates.ipynb` (4-level Forrester, reference XC4). `rho` is
+  the least-squares slope of `Y_hi` on `f_lo(X_hi)`, which is biased whenever
+  the discrepancy `f_hi - rho * f_lo` is correlated with `f_lo`. On Forrester
+  f4 → f1 it fits 0.44 where 2 makes the correction linear, and `rho=1` beats
+  it up to 18 high-fidelity points. Estimate `rho` jointly with `delta`
+  (regress on `[f_lo(X), X]`, or maximise the correction GP's marginal
+  likelihood over `rho`, as in Kennedy–O'Hagan).
+- **Stacked VFM intervals:** the same notebook shows the 4-level GP stack is
+  the most accurate model but only about half the test grid falls inside its
+  nominal 95% band, because the top-level `std` treats lower-level
+  predictions as exact. Propagate lower-level variance (e.g. by sampling the
+  lower-level posteriors) or recalibrate by default.
+- **More benchmark notebooks:** the Forrester notebook is the first piece of
+  the benchmark suite (candidate 1); Currin, Park and Borehole would test
+  higher input dimensions.
+- **UMAP import in the sampling figure:** `figures/umap_plot_classify.py`
+  falls back to PCA when UMAP fails, but still runs `import umap` at module
+  level, so the module cannot be imported without `umap-learn` and the
+  fallback never runs in that case. Move the import into the function and add
+  a test that patches the import to fail and expects `"projection": "PCA"`.
+- **Branch cleanup:** the local `ts-review` branch and
+  `origin/main-backup-pre-ai` are fully merged and can be deleted. Tag any
+  tip whose source is still needed (e.g. `archive/crossval-datasize-dep` on
+  `9f72fa2`) before deleting, so the commit stays reachable.
+
 ## Recommended First Batch
 
 Low effort, using dependencies already declared in `pyproject.toml`:
