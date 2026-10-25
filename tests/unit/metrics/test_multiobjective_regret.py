@@ -114,3 +114,87 @@ def test_tracker_runs_m1():
     res = tracker.step(Yt, Yp)
     assert {"hv", "scalar", "eps"} <= set(res.keys())
     assert len(tracker.history["scalar"]) == 1
+
+
+# --------------------------- exact hypervolume, any dimension ---------------------------
+
+def _hv_inclusion_exclusion(F, ref):
+    # Exact volume of the union of boxes [f, ref] by inclusion-exclusion (small fronts only).
+    from itertools import combinations
+    F = F[np.all(F < ref, axis=1)]
+    total = 0.0
+    for k in range(1, len(F) + 1):
+        for subset in combinations(range(len(F)), k):
+            corner = F[list(subset)].max(axis=0)
+            total += (-1) ** (k + 1) * np.prod(ref - corner)
+    return total
+
+
+@pytest.mark.parametrize("m", [1, 2, 3, 4, 5])
+def test_hypervolume_single_point_is_box_volume(m):
+    from multioutreg.metrics import hypervolume
+    point = np.linspace(0.1, 0.5, m)[None, :]
+    ref = np.ones(m)
+    assert hypervolume(point, reference_point=ref) == pytest.approx(np.prod(ref - point[0]))
+
+
+@pytest.mark.parametrize("m,n,seed", [(3, 6, 0), (3, 10, 1), (4, 7, 2), (4, 9, 3), (5, 6, 4)])
+def test_hypervolume_matches_inclusion_exclusion(m, n, seed):
+    from multioutreg.metrics import hypervolume
+    rng = np.random.default_rng(seed)
+    F = rng.random((n, m))
+    ref = np.full(m, 1.1)
+    assert hypervolume(F, reference_point=ref) == pytest.approx(_hv_inclusion_exclusion(F, ref), rel=1e-12)
+
+
+def test_hypervolume_2d_staircase_by_hand():
+    from multioutreg.metrics import hypervolume
+    Y = np.array([[1.0, 4.0], [2.0, 2.5], [3.0, 2.0], [4.0, 1.0], [3.5, 3.5], [2.5, 4.5]])
+    # rectangles: 4*1 + 3*1.5 + 2*0.5 + 1*1
+    assert hypervolume(Y, reference_point=[5.0, 5.0]) == pytest.approx(10.5)
+
+
+def test_hypervolume_ignores_dominated_and_out_of_reference_points():
+    from multioutreg.metrics import hypervolume
+    F = np.array([[0.2, 0.2, 0.2], [0.5, 0.1, 0.6]])
+    ref = np.ones(3)
+    base = hypervolume(F, reference_point=ref)
+    extra = np.vstack([F, [[0.3, 0.3, 0.3]], [[0.05, 0.05, 1.5]], [[2.0, 0.0, 0.0]]])
+    assert hypervolume(extra, reference_point=ref) == pytest.approx(base)
+    assert hypervolume(np.array([[2.0, 2.0, 2.0]]), reference_point=ref) == 0.0
+
+
+def test_hypervolume_maximization_and_default_reference():
+    from multioutreg.metrics import hypervolume
+    rng = np.random.default_rng(5)
+    F = rng.random((8, 3))
+    ref = np.full(3, 1.2)
+    flip = np.array([1.0, -1.0, 1.0])
+    # Maximizing a negated objective, with the reference given in the minimization convention.
+    assert hypervolume(F * flip, reference_point=ref, minimize=[True, False, True]) == pytest.approx(
+        hypervolume(F, reference_point=ref))
+    default_ref = F.max(0) + 0.1 * np.ptp(F, 0)
+    assert hypervolume(F) == pytest.approx(hypervolume(F, reference_point=default_ref))
+    with pytest.raises(ValueError):
+        hypervolume(F, reference_point=[1.0, 1.0])
+
+
+def test_hypervolume_regret_3d_is_exact():
+    rng = np.random.default_rng(6)
+    Y_true = rng.random((10, 3))
+    ref = np.full(3, 1.5)
+    assert hypervolume_regret(Y_true, Y_true, reference_point=ref) == 0.0
+    Y_pred = Y_true + 0.1
+    expected = _hv_inclusion_exclusion(Y_true[pareto_mask(Y_true)], ref) - _hv_inclusion_exclusion(
+        Y_pred[pareto_mask(Y_pred)], ref)
+    assert hypervolume_regret(Y_true, Y_pred, reference_point=ref) == pytest.approx(expected, rel=1e-12)
+
+
+def test_hypervolume_agrees_with_pymoo_when_installed():
+    pytest.importorskip("pymoo")
+    from multioutreg.metrics import hypervolume
+    from multioutreg.metrics.multiobjective_regret import _hv_exact_min
+    rng = np.random.default_rng(7)
+    F = rng.random((40, 4))
+    ref = np.full(4, 1.1)
+    assert hypervolume(F, reference_point=ref) == pytest.approx(_hv_exact_min(F, ref), rel=1e-9)

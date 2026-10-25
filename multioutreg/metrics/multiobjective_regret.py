@@ -4,6 +4,7 @@ Multi-objective regret utilities for evaluation and optimization loops.
 
 Provides:
 - pareto_mask(Y, minimize=True)
+- hypervolume(Y, reference_point=None, minimize=True): exact, any number of objectives
 - hypervolume_regret(Y_true, Y_pred, reference_point=None, minimize=True)
 - scalarized_regret(Y_true, Y_pred, weights, minimize=True, reduce="mean")
 - epsilon_regret(Y_true, Y_pred, minimize=True)
@@ -130,44 +131,93 @@ def _hv_2d_min(F: np.ndarray, ref: np.ndarray) -> float:
     return float(max(0.0, hv))
 
 
+def _hv_exact_min(F: np.ndarray, ref: np.ndarray) -> float:
+    """
+    Exact hypervolume (minimization) in any number of objectives by slicing.
+
+    Points are sorted by the last objective. Between consecutive values of it,
+    the dominated region's cross-section is the (m-1)-objective hypervolume of
+    the points at or below that value, so the volume is a sum of slab volumes
+    and the recursion ends at the exact 2-D sweep. Cost grows as roughly
+    n^(m-1), which is fine for the front sizes of surrogate evaluation
+    (hundreds of points, a handful of objectives).
+    """
+    # Points not strictly better than the reference in every objective add nothing.
+    F = F[np.all(F < ref, axis=1)]
+    if F.shape[0] == 0:
+        return 0.0
+    m = F.shape[1]
+    if m == 1:
+        return float(ref[0] - F[:, 0].min())
+    if m == 2:
+        return _hv_2d_min(F, ref)  # the sweep ignores dominated points by itself
+
+    F = F[pareto_mask(F, True)]
+    F = F[np.argsort(F[:, -1], kind="stable")]
+    levels = np.append(F[:, -1], ref[-1])
+    volume = 0.0
+    for k in range(F.shape[0]):
+        depth = levels[k + 1] - levels[k]
+        if depth > 0:
+            volume += _hv_exact_min(F[: k + 1, :-1], ref[:-1]) * depth
+    return float(volume)
+
+
 def _hypervolume_min(F: np.ndarray, reference_point: np.ndarray) -> float:
     """
-    Compute hypervolume (minimization) of a non-dominated front F given reference_point.
-    Tries pymoo if available; otherwise uses exact 1D/2D or MC fallback for m>2.
+    Compute hypervolume (minimization) of a front F given reference_point.
+    Exact for any number of objectives: uses pymoo's implementation when it is
+    installed and there are 3+ objectives, otherwise :func:`_hv_exact_min`.
     """
     F = _ensure_2d(F)
+    reference_point = np.asarray(reference_point, dtype=float).reshape(-1)
     m = F.shape[1]
 
-    # 1D exact
-    if m == 1:
-        return _hypervolume_1d_min(F, reference_point)
+    if m >= 3:
+        try:
+            from pymoo.indicators.hv import HV  # type: ignore
+            inside = F[np.all(F < reference_point, axis=1)]
+            if inside.shape[0] == 0:
+                return 0.0
+            return float(HV(ref_point=reference_point).do(inside))
+        except ImportError:
+            pass
+    return _hv_exact_min(F, reference_point)
 
-    # Try pymoo for general m
-    try:
-        from pymoo.indicators.hv import HV  # type: ignore
-        return float(HV(ref_point=np.asarray(reference_point, float)).do(F))
-    except Exception:
-        pass
 
-    # 2D exact
-    if m == 2:
-        return _hv_2d_min(F, reference_point)
+def hypervolume(
+    Y: np.ndarray,
+    reference_point: Optional[np.ndarray] = None,
+    minimize: Union[bool, Iterable[bool]] = True,
+) -> float:
+    """
+    Exact hypervolume dominated by the Pareto front of ``Y``, in any number of objectives.
 
-    # MC fallback for m>2 (rough but safe)
-    rng = np.random.default_rng(123)
-    best = np.min(F, axis=0)
-    lows = np.minimum(best, reference_point)
-    highs = np.maximum(best, reference_point)
-    widths = np.maximum(highs - lows, 1e-8)
-    num = 20000
-    samples = lows + rng.random((num, m)) * widths
-    # A sample is dominated by the front if exists f in F with f <= s (minimization)
-    dominated = []
-    for s in samples:
-        dominated.append(np.any(np.all(F <= s[None, :], axis=1)))
-    frac = float(np.mean(dominated))
-    vol = float(np.prod(widths)) * frac
-    return vol
+    Parameters
+    ----------
+    Y : array, shape (n, m) or (n,)
+        Objective values; dominated rows are ignored.
+    reference_point : array, shape (m,), optional
+        Point worse than every point of interest, given in the minimization
+        convention: for objectives with ``minimize=False`` pass the *negated*
+        coordinate. Points not strictly better than it in every objective add
+        nothing. Defaults to 10% of the range beyond the worst value of each
+        objective (1.0 beyond it for a constant objective).
+    minimize : bool or array-like of bool
+        True for objectives to minimize, False for objectives to maximize.
+
+    Returns
+    -------
+    float
+        The hypervolume (length for 1 objective, area for 2, volume for 3+).
+    """
+    Y_ = _as_minimization(Y, minimize)
+    if reference_point is None:
+        reference_point = _default_reference_point([Y_])
+    reference_point = _ensure_2d(reference_point).reshape(-1)
+    if reference_point.size != Y_.shape[1]:
+        raise ValueError("reference_point dimensionality must match number of objectives.")
+    return _hypervolume_min(Y_[pareto_mask(Y_, True)], reference_point)
 
 
 # --------------------------- regret metrics ---------------------------

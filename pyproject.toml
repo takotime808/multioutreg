@@ -92,8 +92,8 @@ neuralforecast = [
   "neuralforecast>=1.7",
 ]
 moo = [
-  # Optional fast exact hypervolume for >2 objectives in multioutreg.metrics
-  # (falls back to exact 1D/2D or Monte Carlo without it).
+  # Optional faster exact hypervolume for >2 objectives in multioutreg.metrics
+  # (without it, an exact pure-NumPy slicing algorithm is used).
   "pymoo>=0.6.1",
 ]
 test = [

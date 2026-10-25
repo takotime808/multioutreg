@@ -2,6 +2,7 @@
 
 from .multiobjective_regret import (
     pareto_mask,
+    hypervolume,
     hypervolume_regret,
     scalarized_regret,
     epsilon_regret,
@@ -9,6 +10,7 @@ from .multiobjective_regret import (
 )
 __all__ = [
     "pareto_mask",
+    "hypervolume",
     "hypervolume_regret",
     "scalarized_regret",
     "epsilon_regret",
