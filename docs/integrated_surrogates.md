@@ -70,6 +70,10 @@ predictions. Functionally equivalent to `MultiOutputRegressor` but necessary whe
 API (e.g. SMT) does not conform to the sklearn estimator interface, or when per-output
 hyperparameters (e.g. per-output random seeds) are required.
 
+Kernel hyperparameters for the GP-family surrogates (length scale, amplitude, noise, ARD,
+and the grids the model search tries) are covered in
+[Surrogate Hyperparameters](surrogate_hyperparameters.md).
+
 `PolynomialBayesianRidgeSurrogate` inherits from `BaseSurrogate` (and therefore uses
 `MultiOutputRegressor` internally), but overrides `predict` to iterate `model.estimators_`
 directly when `return_std=True` in order to collect per-output posterior standard deviations.

@@ -58,6 +58,51 @@ The additive ε-indicator reports how far (additively, per objective) the predic
 **Default choice:**  
 ε has no additional parameters. We compute the indicator between the **non-dominated** subsets of the two fronts.
 
+**Definition.** With `P` the predicted front and `T` the true front (both non-dominated, after
+flipping any `minimize=False` objectives to minimization):
+
+```
+ε-regret = max(0,  max_{t ∈ T}  min_{p ∈ P}  max_i (p_i − t_i))
+```
+
+Read it inside out:
+
+1. `max_i (p_i − t_i)` is how far predicted point `p` falls short of true point `t` on its
+   *worst* objective.
+2. `min_{p ∈ P}` picks the predicted point that covers `t` best.
+3. `max_{t ∈ T}` takes the true point that is covered worst.
+
+So ε is the smallest amount you could subtract from **every** objective of every predicted point
+so that each true Pareto point is weakly dominated. HV regret is an average over the front;
+ε is worst-case. One badly missed region of the front sets ε even when the rest is perfect.
+
+**Worked examples** (two objectives, both minimized, `T = [[0, 1], [1, 0]]`):
+
+| `Y_pred` | ε-regret | Why |
+|---|---|---|
+| `T` | `0.0` | Identical fronts |
+| `T + [0.2, 0.0]` | `0.2` | Every point is 0.2 worse on objective 1 |
+| `[[0, 1]]` | `1.0` | The corner `[1, 0]` is missed; the nearest prediction is 1.0 worse on objective 2 |
+| `T − 0.5` | `0.0` | An optimistic front dominates `T`, and the result is clipped at 0 |
+
+**Things to watch:**
+
+- **Units matter.** The indicator is additive, so it is in the units of the objectives and is
+  dominated by the objective with the largest scale. In the example above, if objective 2 were
+  multiplied by 1000, the same 0.2 shift on objective 2 would give ε = 200. Standardize the
+  objectives (or divide by known ranges) before comparing ε across objectives or datasets.
+- **Optimism scores 0.** As with HV regret, a model that over-promises gets ε = 0. To score the
+  designs a model would actually pick, pass the true values at its picks:
+  `epsilon_regret(Y_true, Y_true[pareto_mask(Y_pred)])`.
+- **Empty fronts** return `inf` (e.g. an empty `Y_pred`).
+- **Maximization** is handled by `minimize=[...]`: those columns are negated internally, so ε
+  stays non-negative and in the original units.
+- **Cost:** after Pareto filtering it is `O(|T| · |P| · m)`, which is cheap next to `pareto_mask`
+  itself.
+
+**Where it shows up:** `RegretTracker.step` records it under `"eps"` in `history`; the AutoDetect
+GUI page reports it as **ε-regret** on the test split and lets you set a **Max ε-regret (≤)** bound.
+
 ---
 
 ## Practical guidance
@@ -124,7 +169,7 @@ Weights can be `(k, m)`, `(m,)`, `(k,)` (if `m==1`), or scalar (if `m==1`).
 
 - **HV reference**: data-dependent worst + **10%** span (per objective) if not provided.  
 - **Scalarized weights**: required by `scalarized_regret`; `RegretTracker` samples **16** Dirichlet(1) vectors and the GUI's Auto mode samples **8**; **1.0** when `m==1`.  
-- **ε-indicator**: parameter-free.  
+- **ε-indicator**: parameter-free, but in objective units; standardize objectives to compare across them.  
 - **Minimization**: by default, all objectives are minimized (pass `minimize=[...]` to mix min/max).
 
 These defaults are chosen to be **safe, scale-aware, and preference-agnostic**, giving meaningful numbers without extra configuration, while still letting you override them when domain knowledge is available.
