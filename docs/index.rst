@@ -32,6 +32,7 @@ Notes about project.
    tutorials/active_learning_benchmarks
    tutorials/cost_savings
    tutorials/imputation_methods
+   tutorials/active_learning_missing_inputs
 
 .. toctree::
    :maxdepth: 2
@@ -41,6 +42,7 @@ Notes about project.
    surrogate_hyperparameters
    surrogate_roadmap
    gui_ux_roadmap
+   pair_plot_report
    active_learning
    multiobjective_metrics
    parallel_computing
