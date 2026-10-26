@@ -522,6 +522,7 @@ def generate_html_report(
     cross_validation: str,
     seed: int,
     notes: str,
+    feature_names: List[str] | None = None,
     feature_names_pca: List[str] | None = None,
     pca_explained_variance: List[float] | None = None,
     pca_variance_plot: str | None = None,
@@ -571,6 +572,9 @@ def generate_html_report(
         Random seed used.
     notes : str
         Additional notes.
+    feature_names : List[str] | None, optional
+        Names of the columns of ``X_train`` (used to label the PDPs). Defaults
+        to ``feature_names_pca`` when given, else ``feature_0``, ``feature_1``, ...
     feature_names_pca : List[str] | None, optional
         Names to use for PCA.
     pca_explained_variance : List[float] | None, optional
@@ -644,7 +648,13 @@ def generate_html_report(
         }
     ]
 
-    pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=list(output_names))
+    # PDP labels are the *input* columns; sklearn rejects a list whose length
+    # differs from X_train.shape[1], which made every PDP "not supported".
+    if feature_names is None or len(feature_names) != X_train.shape[1]:
+        feature_names = feature_names_pca
+    if feature_names is None or len(feature_names) != X_train.shape[1]:
+        feature_names = [f"feature_{i}" for i in range(X_train.shape[1])]
+    pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=list(feature_names))
     
     sampling_umap_plot, sampling_method_explanation = generate_umap_plot(X_train)
     # other_plots = generate_error_histogram(y_test, best_pred, output_names)
