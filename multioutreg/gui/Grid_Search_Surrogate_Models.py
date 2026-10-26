@@ -10,8 +10,8 @@ import pandas as pd
 import numpy as np
 import os
 from typing import Dict, List, Tuple, Union, Any
-from sklearn.model_selection import train_test_split, ParameterGrid
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, root_mean_squared_error
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, Matern
 from sklearn.ensemble import ExtraTreesRegressor, HistGradientBoostingRegressor, RandomForestRegressor, GradientBoostingRegressor
@@ -454,146 +454,6 @@ if uploaded_file:
         #     if len(numeric_cols) >= 2:
         #         g = make_doe_plot(df=df, numeric_cols=numeric_cols)
         #         st.pyplot(g.fig)
-        #     else:
-        #         st.info("Not enough numeric columns for pairwise plot.")
-
-        # PCA.
-        pca_variance_plot = None
-        pca_explained_variance = None
-        pca_n_components = None
-        feature_names_pca = None
-        kaiser_rule_suggestion = None
-        if use_pca:
-            _pca = fit_input_pca(X_train, X_test, pca_method, n_components, pca_threshold)
-            X_train, X_test = _pca.X_train, _pca.X_test
-            pca_n_components = _pca.n_components
-            feature_names_pca = _pca.feature_names
-            pca_variance_plot = generate_pca_variance_plot(
-                _pca.preview_pca,
-                n_selected=pca_n_components,
-                threshold=pca_threshold if pca_method == "Explained variance threshold" else None,
-            )
-            pca_explained_variance = _pca.preview_pca.explained_variance_ratio_.tolist()
-            kaiser_rule_suggestion = (
-                f"Kaiser rule suggests **{_pca.kaiser_k}** components "
-                "(eigenvalues > 1 on standardized inputs)."
-            )
-            st.markdown(kaiser_rule_suggestion)
-            st.image(
-                f"data:image/png;base64,{pca_variance_plot}",
-                caption="Scree Plot",
-                width="stretch",
-            )
-
-        surrogate_defs = default_surrogate_defs()
-
-        if use_screening:
-            _screener = ModelScreener().fit(X_train, y_train)
-            _eligible = _screener.screen_per_output(list(output_cols))
-            # Keep a surrogate_def if not screened or if it passes for at least one output
-            surrogate_defs = [
-                d for d in surrogate_defs
-                if d[0] not in _eligible.index or _eligible.loc[d[0]].any()
-            ]
-            skipped = [
-                d[0] for d in [
-                    ("gpr", None, None), ("rf", None, None), ("et", None, None),
-                    ("gb", None, None), ("knn", None, None), ("blr", None, None),
-                    ("svr", None, None), ("dt", None, None), ("cpn", None, None),
-                    ("mfs_lr", None, None), ("ngb", None, None),
-                    ("bayesian_ridge", None, None), ("rfgp", None, None),
-                    ("pbr", None, None), ("sgp", None, None), ("gpx", None, None),
-                    ("ard_gp", None, None), ("kpls", None, None),
-                    ("hgb", None, None), ("lgbm", None, None), ("xgb", None, None),
-                    ("elastic_net", None, None), ("lasso", None, None),
-                    ("quantile", None, None), ("catboost", None, None),
-                    ("sgpr", None, None),
-                ]
-                if d[0] in _eligible.index and not _eligible.loc[d[0]].any()
-            ]
-            if skipped:
-                st.info(
-                    f"Pre-screening skipped {len(skipped)} model(s): "
-                    + ", ".join(skipped)
-                )
-
-        _EXPENSIVE_MODELS = {"gpr", "ngb", "cpn", "ard_gp", "gpx", "kpls", "sgpr"}
-        _EXPENSIVE_DISPLAY_NAMES = {
-            "gpr": "Gaussian Process",
-            "ngb": "NGBoost",
-            "cpn": "Conformal Prediction Network",
-            "ard_gp": "ARD Gaussian Process",
-            "gpx": "GPX (Rust GP)",
-            "kpls": "KPLS (Kriging+PLS)",
-            "sgpr": "Sparse GP (GPyTorch)",
-        }
-        if skip_expensive:
-            _skipped = [d[0] for d in surrogate_defs if d[0] in _EXPENSIVE_MODELS]
-            surrogate_defs = [d for d in surrogate_defs if d[0] not in _EXPENSIVE_MODELS]
-            if _skipped:
-                st.info(
-                    f"Skipping {len(_skipped)} expensive model(s): "
-                    + ", ".join(_EXPENSIVE_DISPLAY_NAMES.get(k, k) for k in _skipped)
-                )
-
-        configs = [(name, Est, params) for name, Est, grid in surrogate_defs for params in ParameterGrid(grid)]
-
-        best_score = np.inf
-        best_combo = None
-        best_pred = None
-        best_std = None
-        best_model = None
-
-        for est_params in ParameterGrid({"combos": [configs] * y_train.shape[1]}):
-            try:
-                combo = est_params["combos"][:y_train.shape[1]]
-                estimators = [est(**params) for (_, est, params) in combo]
-                model = PerTargetRegressorWithStd(estimators)
-                model.fit(X_train, y_train)
-                pred, std = model.predict(X_test, return_std=True)
-                score = mean_squared_error(y_test, pred)
-                if score < best_score:
-                    best_score = score
-                    best_combo = [dict(model=name, **params) for (name, _, params) in combo]
-                    best_pred, best_std = pred, std
-                    best_model = model
-            except Exception:
-                continue
-
-        # Evaluate MoE as a joint multi-output candidate and replace best model if it wins
-        if use_moe:
-            from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
-            try:
-                moe = MixtureOfExpertsSurrogate(
-                    n_experts=moe_n_experts,
-                    gating_type=moe_gating_type,
-                    random_state=0,
-                )
-                moe.fit(X_train, y_train)
-                moe_pred, moe_std = moe.predict(X_test, return_std=True)
-                moe_score = mean_squared_error(y_test, moe_pred)
-                if moe_score < best_score:
-                    best_score = moe_score
-                    best_pred = moe_pred
-                    best_std = moe_std
-                    best_model = moe
-                    best_combo = [{
-                        "model": "MixtureOfExpertsSurrogate",
-                        "n_experts": moe_n_experts,
-                        "gating_type": moe_gating_type,
-                    }]
-                    st.info("MoE outperformed all per-target models and was selected.")
-            except Exception as exc:
-                st.warning(f"MoE evaluation failed: {exc}")
-
-        # # Show seaborn PairGrid plot with KDE in lower triangle
-        # if df.shape[1] >= 2:
-        #     st.write("### PairGrid Visualization (KDE Lower Triangle)")
-
-        #     numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
-        #     if len(numeric_cols) >= 2:
-        #         g = make_doe_plot(df=df, numeric_cols=numeric_cols)
-        #         st.pyplot(g.fig)
         #         del g
         #         grid_plot = plot_surrogate_model_summary(
         #                 X_train=X_train,
@@ -656,7 +516,7 @@ if uploaded_file:
             st.dataframe(conf_df)
 
         html = generate_html_report(
-            model_type="PerTargetRegressorWithStd",
+            model_type=type(best_model).__name__,
             fidelity_levels=[],
             output_names=output_cols,
             description=description,

@@ -45,7 +45,8 @@ def test_app_selects_per_output_and_reports(csv_path):
     at = run_grid_search_app(csv_path, ["x0", "x1"], ["y_lin", "y_step"],
                              surrogate_defs=FAST_DEFS)
     assert not at.exception, at.exception
-    assert _best_models(at) == ["linear", "dt"]
+    # Picked on the validation split, not the test set: rf edges out dt on y_step.
+    assert _best_models(at) == ["linear", "rf"]
     metrics = at.dataframe[-2].value
     assert list(metrics.index) == ["y_lin", "y_step"]
     assert (metrics["r2"] > 0.9).all()
