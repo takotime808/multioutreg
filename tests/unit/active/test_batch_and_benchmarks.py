@@ -131,7 +131,11 @@ def test_mf_branin_and_heterogeneous_relations():
     assert np.allclose(b(X), branin(X))
     h = get_benchmark("heterogeneous")
     x = h.sample(8, seed=0)
-    assert np.allclose(h(x, "hi"), (h(x, "lo") - 1 + x) / (1 + 0.25 * x))
+    # Mainini et al. (2022): f_1 is the high level, the bridge gives the low one
+    expected_hi = np.sin(30 * (x - 0.9) ** 4) * np.cos(2 * (x - 0.9)) + (x - 0.9) / 2
+    assert np.allclose(h(x), expected_hi)
+    assert np.allclose(h(x, "lo"), (h(x, "hi") - 1 + x) / (1 + 0.25 * x))
+    assert h.levels == ["lo", "hi"]
 
 
 def test_low_fidelity_is_correlated_with_high():

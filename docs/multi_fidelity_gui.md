@@ -21,10 +21,15 @@ fidelity column is one level. In the form you choose:
 |-------|---------|
 | Fidelity level column | Column whose values identify the levels (e.g. `0, 1, 2` or `lo, hi`). |
 | Input / output columns | Features and targets. The fidelity column cannot be either. |
-| Fidelity levels — ordered lowest → highest | At least 2. The **last** entry is the highest fidelity; everything is evaluated on it. |
+| Fidelity levels — ordered lowest → highest | At least 2. The **last** entry is the highest fidelity; everything is evaluated on it. Numeric levels start in ascending order, so `0` is the lowest. |
 | Skip computationally expensive models | Leaves out the sklearn GP (O(n³)). |
 | Fix random seed / Random seed | See [Reproducibility](#reproducibility). On by default (seed 0). |
 | Compute conformal prediction intervals | Adds split-conformal intervals at the chosen alpha. |
+
+**Level numbering.** Number levels upward from `0` (lowest, cheapest) to the
+highest fidelity, as in Kennedy & O'Hagan (2000), SMT's `MFK` and Emukit. Some
+benchmark sources, Mainini et al. (2022) and BenchmarkFcns, number the other way
+(`f_1` or column 0 is the highest fidelity); reverse their levels before upload.
 
 Missing values: target rows with missing values are always dropped; inputs can be dropped or
 KNN-imputed, with the imputer fitted on each level's training split only.

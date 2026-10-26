@@ -8,6 +8,12 @@ multi-fidelity Branin functions, the BenchmarkFcns library
 (https://github.com/mazhar-ansari-ardeh/BenchmarkFcns, MIT), ported to NumPy.
 Every function takes ``X`` of shape ``(n, d)`` in its own bounds and returns
 ``(n, n_outputs)``.
+
+Fidelity levels are ordered lowest first: the first level (index 0) is the
+cheapest and the last is the high fidelity, as in Kennedy & O'Hagan (2000),
+SMT's ``MFK`` and Emukit. Mainini et al. (2022) and BenchmarkFcns number the
+other way (``f_1`` / column 0 is the highest fidelity), so reverse their
+levels when porting.
 """
 
 from __future__ import annotations
@@ -145,16 +151,20 @@ def branin_mf_lo(X):
     return 10 * branin(1.2 * X) + _col(5 * X[:, 0] + 10 * X[:, 1])
 
 
-def heterogeneous_lo(X):
-    """Low level of the heterogeneous function (Mainini et al. 2022) on [0, 1]."""
+def heterogeneous(X):
+    """Heterogeneous function (Mainini et al. 2022, eq. 16, D = 1) on [0, 1]: the high level ``f_1``."""
     x = np.asarray(X, dtype=np.float64)[:, 0]
     return _col(np.sin(30 * (x - 0.9) ** 4) * np.cos(2 * (x - 0.9)) + (x - 0.9) / 2)
 
 
-def heterogeneous(X):
-    """High level ``(f_lo - 1 + x) / (1 + 0.25 x)``: the scale between levels varies with x."""
+def heterogeneous_lo(X):
+    """Low level ``f_2 = (f_1 - 1 + x) / (1 + 0.25 x)``: the scale between levels varies with x.
+
+    BenchmarkFcns labels these two levels the other way round; Mainini et al.
+    obtain the low level from ``f_1`` through this bridge function.
+    """
     x = np.asarray(X, dtype=np.float64)[:, :1]
-    return (heterogeneous_lo(X) - 1 + x) / (1 + 0.25 * x)
+    return (heterogeneous(X) - 1 + x) / (1 + 0.25 * x)
 
 
 def friedman1(X):
@@ -248,8 +258,8 @@ def viennet2(X):
 class Benchmark:
     """An analytic test problem with bounds and, optionally, fidelity levels.
 
-    ``functions`` and ``costs`` are keyed by level, ordered cheapest first;
-    the last level is the high fidelity.
+    ``functions`` and ``costs`` are keyed by level, ordered cheapest first
+    (index 0 is the lowest fidelity); the last level is the high fidelity.
     """
 
     name: str

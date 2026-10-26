@@ -310,6 +310,18 @@ def _split_by_fidelity(
     return level_data
 
 
+def _default_level_order(values) -> List:
+    """Unique fidelity levels, lowest first: numerically when all are numbers, else as text.
+
+    Numeric levels follow the usual convention that 0 is the lowest fidelity,
+    so ``[0, 1, 2, 10]`` must not sort as text (``"10" < "2"``).
+    """
+    levels = pd.unique(pd.Series(values).dropna()).tolist()
+    if levels and all(isinstance(v, (int, float, np.number)) and not isinstance(v, bool) for v in levels):
+        return sorted(levels)
+    return sorted(levels, key=str)
+
+
 def _compute_metrics(
     y_test: np.ndarray,
     y_pred: np.ndarray,
@@ -991,7 +1003,7 @@ if uploaded_file:
         key="fidelity_col_select",
     )
     remaining = [c for c in df.columns if c != fidelity_col]
-    _detected = sorted(df[fidelity_col].dropna().unique().tolist(), key=str)
+    _detected = _default_level_order(df[fidelity_col])
 
     # ------------------------------------------------------------------
     # Column selection + grid search options form
@@ -1007,7 +1019,8 @@ if uploaded_file:
             default=_detected,
             help=(
                 "Re-order by removing and re-adding levels in the correct order. "
-                "The last entry is treated as the highest fidelity."
+                "The last entry is treated as the highest fidelity. Numeric levels "
+                "start in ascending order (0 = lowest fidelity)."
             ),
         )
 
