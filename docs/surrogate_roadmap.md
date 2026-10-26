@@ -4,6 +4,19 @@ Candidate surrogates and methods for extending the multi-fidelity and
 multi-output capabilities of `multioutreg`. See
 [Integrated Surrogates](integrated_surrogates.md) for what is available today.
 
+*Last reviewed 2026-10-26, against `main` at #43.*
+
+## Status at a Glance
+
+| Area | Done | Open |
+|---|---|---|
+| Active learning | Acquisitions, query-by-committee, batch selection, the loop, cost-aware multi-fidelity acquisition (`multioutreg.active`, prototype) | Max-value entropy search, CLI and GUI, NaN std in Auto-Detect |
+| Benchmarks | 17 problems in `multioutreg.active.benchmarks.BENCHMARKS`; AL, cost-savings, multi-output and hypervolume notebooks | DTLZ2 and the rest of the port list; the multi-fidelity and Himmelblau notebooks |
+| Multi-objective metrics | Exact N-D `hypervolume()` (#36) | Decision regret as the default |
+| Multi-fidelity surrogates | — | All six candidates; the `rho` and Stacked VFM interval follow-ups |
+| Multi-output surrogates | — | All five candidates; joint metrics and conformal regions |
+| Cross-cutting | Benchmark suite | Items 2–11 |
+
 ## Current State
 
 - **Multi-output:** every base surrogate is per-output (one model per output
@@ -38,8 +51,9 @@ Ordered by value relative to implementation effort.
 
 - **Cost-aware choice of the next fidelity to run:** multi-fidelity expected
   improvement, max-value entropy search, or variance reduction per unit cost.
-  This would sit alongside the `multioutreg.sampling` module (see
-  [Active Learning](#active-learning)).
+  Variance reduction per unit cost and multi-fidelity EI are in
+  `multioutreg.active.multi_fidelity`; max-value entropy search is still to do
+  (see [Active Learning](#active-learning)).
 - **Evaluation:** accuracy-vs-cost curves, and the value each level adds (e.g.
   high-fidelity error with and without the low-fidelity data).
 - **Model selection:** a selection path in Auto-Detect that understands
@@ -77,56 +91,51 @@ The detailed design, including multi-fidelity active learning, is on the
 
 ### Current State
 
-`multioutreg` does not do active learning. Every fitting path
-(`AutoDetectMultiOutputRegressor.fit`, the grid-search CLIs, the GUI pages and
-the multi-fidelity surrogates) fits once on a fixed dataset. There is no
-acquisition function and nothing that suggests the next point to sample. The
-`multioutreg.sampling` module only infers which design a dataset came from
-(Random, LHS or Sobol); its `scipy.stats.qmc` calls simulate comparison designs
-and are never used to choose new points.
+`multioutreg.active` (prototype, phases 1–2 of the
+[Active Learning Plan](active_learning.md#delivery-phases)) provides:
 
-### What Already Exists
+- **Acquisitions** (`acquisition.py`): `max_variance` on standardized std
+  (`output_scale`), `upper_confidence_bound`, `expected_improvement` and
+  `probability_of_improvement`, with per-output weights and `aggregate`.
+- **Query-by-committee:** `CommitteeSurrogate` fits bootstrap copies of any
+  surrogate so KNN, linear models and plain trees can take part.
+  `predict_mean_std` refuses an all-zero std instead of reading it as
+  certainty.
+- **Batch selection:** `select_batch` uses greedy local penalization.
+- **Loop:** `ActiveLearner` (ask/tell, `space_filling` initial designs,
+  `heldout_metrics`).
+- **Multi-fidelity:** `fidelity_info`, `level_trust`, `effective_costs`,
+  `variance_reduction_per_cost`, `mf_expected_improvement` and
+  `MultiFidelityActiveLearner`.
 
-- **Predictive uncertainty:** most surrogates (GPs, Bayesian ridge, forest
-  uncertainty, NGBoost, deep ensembles, BNN, ...) implement
-  `predict(X, return_std=True)`. `AutoDetectMultiOutputRegressor.predict`
-  combines this per output, and
-  `metrics_generalized_api._predict_with_uncertainty` also handles
-  `return_cov`, `predict_std` and `predict_var`.
-- **Adaptive conformal intervals:** `SplitConformalPredictor` with normalized
-  scores gives intervals whose width depends on `X`, a coverage-backed measure
-  of local uncertainty.
-- **QMC generators:** `scipy.stats.qmc` is already a dependency, for the
-  initial design and for candidate pools.
-- **Multi-fidelity variance:** `MultiFidelitySurrogate.predict(X, level=...,
-  return_std=True)`, `StackedVFMSurrogate` and `AdditiveCorrectionVFM` give a
-  variance for each fidelity level.
-- **Diagnostics:** the DOE pair plots, UMAP plot and sampling detector can show
-  where new points land relative to the original design.
+The [Active Learning on Benchmark Functions](tutorials/active_learning_benchmarks.ipynb)
+tutorial covers all of these, and the
+[Cost Savings](tutorials/cost_savings.ipynb) tutorial prices them against
+passive designs. None of it is exposed through `mor_cli`, the GUI or the
+reports yet.
 
 ### Candidates
 
-| # | Addition | Rationale | Effort |
-|---|---|---|---|
-| 1 | **Acquisition functions** on `(mean, std)` arrays of shape `(n, n_outputs)` | Max variance (sum or max of standardized std across outputs) for global surrogate accuracy; UCB/LCB, EI and PI for optimization; conformal interval width as a coverage-backed alternative. | Low |
-| 2 | **Query-by-committee** for surrogates without `return_std` | Disagreement across a bootstrap ensemble or across the Auto-Detect candidates, so KNN, linear models and plain trees can take part. | Low |
-| 3 | **Batch selection** | Combine uncertainty with a distance penalty to points already chosen (k-means++ / maximin style) so a batch does not cluster in one region. | Low–Medium |
-| 4 | **Active-learning loop** | Initial LHS/Sobol design → fit → score a QMC candidate pool → pick a batch → call a user-supplied simulator → refit, stopping on a budget or when held-out metrics plateau. | Medium |
-| 5 | **Cost-aware multi-fidelity acquisition** | Variance reduction per unit cost, multi-fidelity EI or max-value entropy search across levels (the item under Multi-Fidelity → Supporting Methods). | Medium–High |
-| 6 | **CLI and GUI** | A `mor_cli` command that writes a CSV of the next points to run, and a Streamlit page following the existing page patterns. | Low–Medium |
+| # | Addition | Rationale | Effort | Status |
+|---|---|---|---|---|
+| 1 | **Acquisition functions** on `(mean, std)` arrays of shape `(n, n_outputs)` | Max variance (sum or max of standardized std across outputs) for global surrogate accuracy; UCB/LCB, EI and PI for optimization; conformal interval width as a coverage-backed alternative. | Low | Done, except the conformal-width score |
+| 2 | **Query-by-committee** for surrogates without `return_std` | Disagreement across a bootstrap ensemble or across the Auto-Detect candidates, so KNN, linear models and plain trees can take part. | Low | Bootstrap done; Auto-Detect candidates open (see Cross-Cutting item 7) |
+| 3 | **Batch selection** | Combine uncertainty with a distance penalty to points already chosen (k-means++ / maximin style) so a batch does not cluster in one region. | Low–Medium | Done |
+| 4 | **Active-learning loop** | Initial LHS/Sobol design → fit → score a QMC candidate pool → pick a batch → call a user-supplied simulator → refit, stopping on a budget or when held-out metrics plateau. | Medium | Done |
+| 5 | **Cost-aware multi-fidelity acquisition** | Variance reduction per unit cost, multi-fidelity EI or max-value entropy search across levels (the item under Multi-Fidelity → Supporting Methods). | Medium–High | Variance reduction and MF-EI done; MES open |
+| 6 | **CLI and GUI** | A `mor_cli` command that writes a CSV of the next points to run, and a Streamlit page following the existing page patterns. | Low–Medium | Not started |
+| 7 | **Integrated variance (ALC / MF-ALC)** for GPs | Scores a candidate by how much it reduces variance over the whole domain rather than at the point itself; phase 3 of the plan. | Medium | Not started |
 
-A new `multioutreg/active/` package (or `multioutreg/sampling/acquisition.py`)
-would hold items 1–5.
+### Issues to Resolve
 
-### Issues to Resolve First
-
-- **Zero std read as certainty:** `AutoDetectMultiOutputRegressor.predict`
-  fills `std` with zeros when the selected model has no `return_std`. A
-  variance-based acquisition would treat those outputs as perfectly known and
-  never sample for them. It should return NaN, raise, or fall back to a
-  committee estimate.
-- **Output scaling:** raw std summed across outputs lets the largest-scale
-  output dominate, so stds need standardizing before they are combined.
+- **Zero std read as certainty (partly fixed):** `predict_mean_std` now
+  raises on an all-zero std, so the active-learning path is safe.
+  `AutoDetectMultiOutputRegressor.predict` itself still fills `std` with zeros
+  when the selected model has no `return_std`, so other callers (GUI, reports)
+  still see false certainty. Returning NaN needs the downstream NaN handling
+  listed under [Cross-Cutting](#issues-to-resolve-first) first.
+- ~~**Output scaling**~~: done. `output_scale` standardizes std per output
+  before `max_variance` combines them.
 - **Sampling detection:** an adaptively built design is no longer Random, LHS
   or Sobol and will likely be reported as "Uncertain". Reports should say when
   a design was built adaptively.
@@ -138,9 +147,11 @@ that the candidates above either depend on or would benefit from.
 
 ### Candidates
 
+All items except 1 are not started.
+
 | # | Addition | Rationale | Effort |
 |---|---|---|---|
-| 1 | **Benchmark suite** of analytic test problems, in `multioutreg.active.benchmarks` (see [Benchmark Suite](#benchmark-suite) below for what is in and what is next) | Nothing in the package compares surrogates on problems with a known answer. Without it, the multi-fidelity candidates and the accuracy-vs-cost evaluation above have nothing to be judged on. | Low |
+| 1 | **Benchmark suite** of analytic test problems, in `multioutreg.active.benchmarks` (**done**; see [Benchmark Suite](#benchmark-suite) below for what is in and what is next) | Nothing in the package compared surrogates on problems with a known answer. Without it, the multi-fidelity candidates and the accuracy-vs-cost evaluation above have nothing to be judged on. | Low |
 | 2 | **Std recalibration** (variance scaling or isotonic, Kuleshov et al. 2018) | All calibration in the package today is conformal; nothing corrects a model's own `std` when it is over- or under-dispersed. Acquisition functions and the joint metrics consume `std` directly. `uncertainty-toolbox` (a core dependency) already provides a std recalibrator. | Low |
 | 3 | **Global sensitivity analysis** (first-order and total Sobol indices) | A primary use of a fitted surrogate, and absent from the package; the SHAP and PDP figures answer a different question. Saltelli/Jansen estimators can run on `scipy.stats.qmc` samples, and repeating them over posterior draws gives indices with uncertainty. | Low |
 | 4 | **Gradient-enhanced surrogates** (`smt` GEKPLS) | Many simulators return adjoint gradients; using them cuts the number of samples needed substantially. `smt` is already an optional extra. | Low |
@@ -168,8 +179,11 @@ Friedman 1, Gramacy & Lee, Himmelblau, ZDT1–3 (with `zdt_front` for the exact
 Pareto front), Viennet 2, multi-fidelity Branin (`branin_mf`) and the
 heterogeneous function.
 
-**Notebooks on the first batch.** Done: the
-[Multi-Output Surrogates tutorial](tutorials/multi_output_surrogates.ipynb) uses ZDT1 and ZDT3
+**Notebooks on the benchmarks.** Done: the
+[Active Learning on Benchmark Functions](tutorials/active_learning_benchmarks.ipynb) and
+[Cost Savings](tutorials/cost_savings.ipynb) tutorials; `examples/hypervolume_regret.ipynb`
+(ZDT1, plus a three-objective DTLZ2 defined inline, #36); and the
+[Multi-Output Surrogates tutorial](tutorials/multi_output_surrogates.ipynb), which uses ZDT1 and ZDT3
 (per-output model selection, decision regret against `zdt_front`), Friedman 1 (SHAP and
 partial dependence against the five inert inputs) and Gramacy & Lee (GP and conformal
 coverage by region). Viennet 2 was left out: all three outputs are quadratics, so a GP fits
@@ -179,13 +193,13 @@ multi-target example. Still to build:
 | Notebook | Benchmarks | What it demonstrates |
 |---|---|---|
 | Multi-fidelity, scale and warping | Heterogeneous, `branin_mf` (add to `examples/mf_surrogates.ipynb`) | The heterogeneous function's scale between levels varies with `x`, so a constant `rho` cannot fit it and stacking (which sees `x`) should win. In `branin_mf` the low level sees stretched inputs, which no scaled correction matches. |
-| Batch active learning | Himmelblau | Four equal minima: a good `select_batch` batch spreads across all four basins. |
+| Batch active learning | Himmelblau | Four equal minima: a good `select_batch` batch spreads across all four basins. The AL tutorial's batch section uses Branin (three minima); Himmelblau would make the spread easier to see. |
 
 **Next to port:**
 
 | Benchmark | Dim → outputs | Use |
 |---|---|---|
-| DTLZ2 | d → m | Outputs on a sphere, so strongly dependent: tests the multi-task GP, PCA output reduction and copula / energy-score candidates. |
+| DTLZ2 | d → m | Outputs on a sphere, so strongly dependent: tests the multi-task GP, PCA output reduction and copula / energy-score candidates. Already written inline in `examples/hypervolume_regret.ipynb`; move it into `benchmarks.py` with a `dtlz_front`. |
 | Kursawe | 3 → 2 | One smooth and one non-smooth output; trees should win the second. |
 | BNH (with constraints) | 2 → 2 + 2 constraints | Objectives and constraints predicted together; regret on the feasible set. CF1–CF10 are harder versions. |
 | Hartmann-6 | 6 → 1 | Standard smooth GP and Bayesian-optimization benchmark. |
@@ -214,7 +228,8 @@ systematic bi-fidelity versions of classic optimization functions.
 
 ### Open Follow-ups from Branch Integration
 
-Left over after the old feature branches were rebuilt on `main` (#29–#31):
+Left over after the old feature branches were rebuilt on `main` (#29–#31).
+All are still open as of the last review:
 
 - **Fitted `rho` in `AdditiveCorrectionVFM`:** found by
   `examples/mf_surrogates.ipynb` (4-level Forrester, reference XC4). `rho` is
@@ -246,7 +261,9 @@ Left over after the old feature branches were rebuilt on `main` (#29–#31):
   the designs the model selects (`hypervolume_regret(Y_true, Y_true[pareto_mask(Y_pred)])`;
   for scalarized regret, `w·Y_true(argmin w·Y_pred) − min w·Y_true`). Make it the default,
   keep the front comparison under a different name, and update the GUI page 01 and report
-  wording.
+  wording. #36 made the hypervolume exact in any dimension, exposed `hypervolume()`, and
+  showed decision regret in `examples/hypervolume_regret.ipynb` (section 5), but the library
+  functions still compare fronts.
 - **Conformal predictors and package surrogates:** `SplitConformalPredictor` and
   `CVPlusConformalPredictor` copy their estimator with `sklearn.clone`, which fails on the
   package's own surrogates (`GaussianProcessSurrogate` has no `get_params`). The tutorials pass
@@ -261,17 +278,34 @@ Left over after the old feature branches were rebuilt on `main` (#29–#31):
   tip whose source is still needed (e.g. `archive/crossval-datasize-dep` on
   `9f72fa2`) before deleting, so the commit stays reachable.
 
-## Recommended First Batch
+## Recommended Next Batch
 
-Low effort, using dependencies already declared in `pyproject.toml`:
+The benchmark suite from the original first batch is done, and the active-learning
+prototype went in ahead of the surrogate work. Everything below is low effort and
+uses dependencies already declared in `pyproject.toml`.
 
-1. The benchmark suite, so the additions below can be compared.
-2. `MFKSurrogate` (SMT co-kriging).
-3. The PCA output-reduction wrapper.
-4. The multi-task GP (GPyTorch).
-5. The Gaussian copula wrapper, plus energy-score and variogram-score metrics.
-6. Std recalibration and the extrapolation flag.
-7. Model persistence.
+**Correctness fixes first.** These are small and change results users already
+see:
+
+1. Decision regret as the default in `multioutreg.metrics`.
+2. `MultiFidelitySurrogate.predict` defaulting to the highest level.
+3. `get_params` / `set_params` on `BaseSurrogate`, so the conformal predictors
+   accept the package's own surrogates.
+4. A lazy `umap` import in `figures/umap_plot_classify.py`.
+
+**Then the original first batch, minus the benchmark suite:**
+
+5. `MFKSurrogate` (SMT co-kriging). This also replaces the biased least-squares
+   `rho` for users who need AR1.
+6. The PCA output-reduction wrapper.
+7. The multi-task GP (GPyTorch).
+8. The Gaussian copula wrapper, plus energy-score and variogram-score metrics
+   (with DTLZ2 ported as their benchmark).
+9. Std recalibration and the extrapolation flag.
+10. Model persistence.
+
+**Then wire active learning into the product:** the `mor_cli` ask/tell command
+and a Streamlit page (Active Learning candidate 6).
 
 New surrogates should follow the existing conventions: inherit from
 `ConformalMixin` (or `BaseSurrogate`), implement `predict(X, return_std=...)`,

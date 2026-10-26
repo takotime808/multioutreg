@@ -10,7 +10,9 @@ from sklearn.tree import DecisionTreeRegressor
 
 from multioutreg.gui.grid_search_core import RandomForestWithUncertainty
 
-from .app_harness import run_grid_search_app
+from streamlit.testing.v1 import AppTest
+
+from .app_harness import APP_PATH, _script, run_grid_search_app
 
 FAST_DEFS = [
     ("linear", LinearRegression, {}),
@@ -98,3 +100,29 @@ def test_app_runs_with_default_candidates(csv_path):
         checkboxes={"Skip computationally expensive models": True}, timeout=300)
     assert not at.exception, at.exception
     assert len(_best_models(at)) == 1
+
+
+def test_app_sample_data_runs_without_upload():
+    # Nothing uploaded (the stubbed uploader returns None): one click loads the
+    # bundled sample with inputs/outputs pre-selected, and a run needs no setup.
+    at = AppTest.from_function(_script, args=(APP_PATH, None, FAST_DEFS), default_timeout=120)
+    at.run()
+    assert not at.exception, at.exception
+    assert not at.multiselect  # no data, no column pickers yet
+    next(b for b in at.button if b.label == "Try with sample data").click()
+    at.run()
+    assert any("Using the sample dataset" in i.value for i in at.info)
+    by_label = {m.label: m for m in at.multiselect}
+    assert by_label["Select input features"].value == [f"feature_{i}" for i in range(5)]
+    outputs = ["output_pressure", "output_temperature", "output_velocity"]
+    assert by_label["Select output targets"].value == outputs
+
+    next(b for b in at.button if b.label == "Run Grid Search").click()
+    at.run()
+    assert not at.exception, at.exception
+    assert len(_best_models(at)) == 3
+    assert list(at.dataframe[-2].value.index) == outputs
+    # The sample stays loaded on later reruns, like an upload would.
+    at.run()
+    assert any("Using the sample dataset" in i.value for i in at.info)
+    assert len(_best_models(at)) == 3

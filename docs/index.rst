@@ -37,6 +37,7 @@ Notes about project.
    :caption: Resources
 
    integrated_surrogates
+   surrogate_hyperparameters
    surrogate_roadmap
    active_learning
    multiobjective_metrics
