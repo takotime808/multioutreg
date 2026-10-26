@@ -95,6 +95,10 @@ from multioutreg.gui.grid_search_core import (
 )
 
 
+SAMPLE_DATA_PATH = os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "data", "example_dataset_3_outputs.csv")
+
+
 @st.cache_data(show_spinner=False)
 def _load_csv(file) -> pd.DataFrame:
     return pd.read_csv(file)
@@ -103,18 +107,34 @@ def _load_csv(file) -> pd.DataFrame:
 # ----- Streamlit App -----
 st.title("Multi-Output Surrogate Model Grid Search & Report Generator")
 
-uploaded_file = st.file_uploader(
-    "Upload CSV file. Example files can be found in the repo: `multioutreg/docs/_static/example_datasets/`.",
-    type=["csv"]
-)
+uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
 
-if uploaded_file:
-    df = _load_csv(uploaded_file)
+# The sample dataset lets new users try the app without data of their own;
+# an upload always takes precedence over it.
+if uploaded_file is not None:
+    st.session_state["gs_use_sample"] = False
+elif st.button(
+    "Try with sample data",
+    help="300 rows of synthetic data: 5 input features and 3 outputs "
+         "(pressure, temperature, velocity).",
+):
+    st.session_state["gs_use_sample"] = True
+_using_sample = uploaded_file is None and st.session_state.get("gs_use_sample", False)
+data_source = SAMPLE_DATA_PATH if _using_sample else uploaded_file
+
+if data_source:
+    df = _load_csv(data_source)
+    if _using_sample:
+        st.info(
+            "Using the sample dataset. Inputs and outputs are pre-selected below; "
+            "click **Run Grid Search** to try it (about a minute with all models), "
+            "or upload a CSV to use your own data."
+        )
     st.write("## Preview of Data:", df.head())
 
     # Results live in session_state so they survive reruns (e.g. clicking the
     # download button); drop them when a different file is uploaded.
-    _source_id = getattr(uploaded_file, "file_id", uploaded_file)
+    _source_id = getattr(data_source, "file_id", data_source)
     if st.session_state.get("gs_source_id") != _source_id:
         st.session_state.pop("gs_results", None)
         st.session_state["gs_source_id"] = _source_id
@@ -274,8 +294,12 @@ if uploaded_file:
             )
 
     with st.form("column_selection"):
-        input_cols = st.multiselect("Select input features", options=df.columns)
-        output_cols = st.multiselect("Select output targets", options=df.columns)
+        _sample_outputs = [c for c in df.columns if c.startswith("output_")] if _using_sample else []
+        _sample_inputs = [c for c in df.columns if c not in _sample_outputs] if _using_sample else []
+        input_cols = st.multiselect(
+            "Select input features", options=df.columns, default=_sample_inputs)
+        output_cols = st.multiselect(
+            "Select output targets", options=df.columns, default=_sample_outputs)
 
         description = st.text_area("Optional: Project description")
         submitted = st.form_submit_button("Run Grid Search")
