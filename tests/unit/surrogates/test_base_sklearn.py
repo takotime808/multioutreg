@@ -92,3 +92,22 @@ def test_scale_sensitive_surrogates_ignore_input_units(name):
     a = getattr(sur, name)().fit(X, y).predict(X)
     b = getattr(sur, name)().fit(X_mm, y).predict(X_mm)
     np.testing.assert_allclose(a, b, rtol=1e-4, atol=1e-4)
+
+
+class _KwargsSwallowingRegressor(LinearRegression):
+    """Mimics LGBMRegressor: ``predict`` accepts ``**kwargs`` but returns only the mean."""
+
+    def predict(self, X, **kwargs):
+        return super().predict(X)
+
+
+@pytest.mark.parametrize("n_rows", [2, 7])
+def test_return_std_with_estimator_that_ignores_return_std(sample_data, n_rows):
+    # Regression: ``p, s = est.predict(X, return_std=True)`` raised for most
+    # sizes and silently split the mean array into (mean, std) for 2 rows.
+    X, Y = sample_data
+    base = BaseSurrogate(_KwargsSwallowingRegressor()).fit(X, Y)
+    mean, std = base.predict(X[:n_rows], return_std=True)
+    np.testing.assert_allclose(mean, base.predict(X[:n_rows]))
+    assert std.shape == (n_rows, Y.shape[1])
+    assert np.all(std == 0)
