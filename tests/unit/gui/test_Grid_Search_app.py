@@ -116,13 +116,34 @@ def test_app_sample_data_runs_without_upload():
     assert by_label["Select input features"].value == [f"feature_{i}" for i in range(5)]
     outputs = ["output_pressure", "output_temperature", "output_velocity"]
     assert by_label["Select output targets"].value == outputs
+    # Before any run: the pair plot is drawn from the pre-selected columns,
+    # the sample can be downloaded, and the report gets a description.
+    assert [e.label for e in at.expander if e.label == "Pair plot of the data"]
+    assert at.get("imgs")
+    assert any(b.label == "Download sample CSV" for b in at.get("download_button"))
+    assert at.text_area[0].value.startswith("Sample dataset:")
+    assert not any(b.label == "Try with sample data" for b in at.button)
 
     next(b for b in at.button if b.label == "Run Grid Search").click()
     at.run()
     assert not at.exception, at.exception
     assert len(_best_models(at)) == 3
     assert list(at.dataframe[-2].value.index) == outputs
+    assert any(b.label == "Download HTML Report" for b in at.get("download_button"))
+    assert [e.label for e in at.expander if e.label == "Pair plot of the data"]
     # The sample stays loaded on later reruns, like an upload would.
     at.run()
     assert any("Using the sample dataset" in i.value for i in at.info)
     assert len(_best_models(at)) == 3
+
+
+def test_app_sample_data_can_be_turned_off():
+    at = AppTest.from_function(_script, args=(APP_PATH, None, FAST_DEFS), default_timeout=120)
+    at.run()
+    next(b for b in at.button if b.label == "Try with sample data").click()
+    at.run()
+    next(b for b in at.button if b.label == "Stop using sample data").click()
+    at.run()
+    assert not at.exception, at.exception
+    assert not at.multiselect
+    assert any(b.label == "Try with sample data" for b in at.button)

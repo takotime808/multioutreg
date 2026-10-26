@@ -23,6 +23,12 @@ def _close_figures():
     plt.close("all")
 
 
+# Run the GUI's background plot / report jobs inline: worker processes would
+# not see the fake ``umap`` below, and inline runs are deterministic. The pool
+# itself is covered in tests/unit/gui/test_background.py.
+os.environ.setdefault("MOR_BACKGROUND_JOBS", "0")
+
+
 # ---------------------------------------------------------------------------
 # Fast UMAP stand-in
 # ---------------------------------------------------------------------------

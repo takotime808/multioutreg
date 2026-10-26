@@ -77,11 +77,12 @@ from sklearn.linear_model import ElasticNet as _ElasticNet, Lasso as _Lasso, Qua
 from multioutreg.time_series.ts_suitability import check_ts_suitability
 
 # NOTE: NOT used...yet.
-from multioutreg.figures.doe_plots import make_doe_plot
+from multioutreg.figures.doe_plots import make_doe_plot, pair_plot_b64
 from multioutreg.figures.model_comparison import plot_surrogate_model_summary
 from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
 
 
+from multioutreg.gui.background import submit as submit_background, warm_up
 from multioutreg.gui.grid_search_core import (
     RandomForestWithUncertainty,
     ExtraTreesWithUncertainty,
@@ -97,11 +98,70 @@ from multioutreg.gui.grid_search_core import (
 
 SAMPLE_DATA_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "data", "example_dataset_3_outputs.csv")
+SAMPLE_DESCRIPTION = (
+    "Sample dataset: 300 rows of synthetic data with 5 inputs (feature_0 to feature_4) "
+    "and 3 outputs (pressure, temperature, velocity)."
+)
 
 
 @st.cache_data(show_spinner=False)
 def _load_csv(file) -> pd.DataFrame:
     return pd.read_csv(file)
+
+
+def _start_pair_plot(df: pd.DataFrame, source_id: Any, inputs: List[str], outputs: List[str]):
+    """Start drawing the pair plot in a worker process, unless it is already running."""
+    key = (source_id, tuple(inputs), tuple(outputs))
+    current = st.session_state.get("gs_pair_job")
+    if current is None or current[0] != key:
+        cols = list(dict.fromkeys(list(inputs) + list(outputs)))
+        job = submit_background("plots", pair_plot_b64, df[cols], list(inputs), list(outputs))
+        st.session_state["gs_pair_job"] = (key, job)
+
+
+class _PairPlotSlot:
+    """The page's pair-plot placeholder, filled once the background job finishes.
+
+    :meth:`refresh` is cheap to call often (e.g. on every progress tick): it
+    draws the image once, and while the job runs it updates a waiting message
+    once a second, which also gives Streamlit a chance to stop the run when the
+    user clicks something.
+    """
+
+    def __init__(self):
+        self._slot = st.empty()
+        self._shown = False
+        self._start = time.perf_counter()
+        self._secs = -1
+
+    def refresh(self) -> bool:
+        """Show the plot if it's ready; return True when there is nothing left to wait for."""
+        current = st.session_state.get("gs_pair_job")
+        if current is None or self._shown:
+            return True
+        job = current[1]
+        if not job.done():
+            secs = int(time.perf_counter() - self._start)
+            if secs != self._secs:
+                self._slot.info(f"Drawing a pair plot of the data in the background ({secs}s)…")
+                self._secs = secs
+            return False
+        result = job.result()
+        with self._slot.container():
+            with st.expander("Pair plot of the data", expanded=True):
+                st.caption(
+                    "Every input and output against every other: scatter above the "
+                    "diagonal, 2-D histogram below it, each column's distribution on the "
+                    "diagonal. Input labels are blue, output labels orange. The top-left "
+                    "block shows how the inputs were sampled; the rows below it show which "
+                    "inputs drive each output."
+                )
+                if result["img_b64"]:
+                    st.image(f"data:image/png;base64,{result['img_b64']}", width="stretch")
+                if result["note"]:
+                    st.caption(result["note"])
+        self._shown = True
+        return True
 
 
 # ----- Streamlit App -----
@@ -113,7 +173,7 @@ uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
 # an upload always takes precedence over it.
 if uploaded_file is not None:
     st.session_state["gs_use_sample"] = False
-elif st.button(
+elif not st.session_state.get("gs_use_sample", False) and st.button(
     "Try with sample data",
     help="300 rows of synthetic data: 5 input features and 3 outputs "
          "(pressure, temperature, velocity).",
@@ -124,20 +184,47 @@ data_source = SAMPLE_DATA_PATH if _using_sample else uploaded_file
 
 if data_source:
     df = _load_csv(data_source)
-    if _using_sample:
-        st.info(
-            "Using the sample dataset. Inputs and outputs are pre-selected below; "
-            "click **Run Grid Search** to try it (about a minute with all models), "
-            "or upload a CSV to use your own data."
-        )
-    st.write("## Preview of Data:", df.head())
+    # Start the report workers now: their imports (UMAP, SHAP) then overlap
+    # with choosing columns and fitting models.
+    warm_up("report")
 
     # Results live in session_state so they survive reruns (e.g. clicking the
     # download button); drop them when a different file is uploaded.
     _source_id = getattr(data_source, "file_id", data_source)
     if st.session_state.get("gs_source_id") != _source_id:
-        st.session_state.pop("gs_results", None)
+        for _k in ("gs_results", "gs_pair_job"):
+            st.session_state.pop(_k, None)
         st.session_state["gs_source_id"] = _source_id
+
+    _sample_outputs = [c for c in df.columns if c.startswith("output_")] if _using_sample else []
+    _sample_inputs = [c for c in df.columns if c not in _sample_outputs] if _using_sample else []
+    if _using_sample:
+        st.info(
+            f"{SAMPLE_DESCRIPTION} Each output is driven mainly by one input (pressure by "
+            "feature_0, temperature by feature_2, velocity by feature_4), which the pair plot "
+            "below makes visible. Inputs and outputs are pre-selected; click "
+            "**Run Grid Search** to try it (about a minute with all models, or tick "
+            "*Skip computationally expensive models* under Advanced Settings for a quicker "
+            "run), or upload a CSV to use your own data."
+        )
+        _sc1, _sc2 = st.columns(2)
+        with _sc1:
+            with open(SAMPLE_DATA_PATH, "rb") as _fh:
+                st.download_button(
+                    "Download sample CSV", _fh.read(),
+                    file_name=os.path.basename(SAMPLE_DATA_PATH), mime="text/csv",
+                    help="See the expected format: one row per sample, one column per "
+                         "input or output.",
+                )
+        with _sc2:
+            if st.button("Stop using sample data"):
+                st.session_state["gs_use_sample"] = False
+                st.rerun()
+        # The columns are already known, so draw the pair plot right away.
+        _start_pair_plot(df, _source_id, _sample_inputs, _sample_outputs)
+
+    st.write("## Preview of Data:", df.head())
+    st.caption(f"{len(df):,} rows × {df.shape[1]} columns")
 
     # Missing value detection and per-column imputation choices
     _missing_summary = detect_missing(df)
@@ -294,15 +381,20 @@ if data_source:
             )
 
     with st.form("column_selection"):
-        _sample_outputs = [c for c in df.columns if c.startswith("output_")] if _using_sample else []
-        _sample_inputs = [c for c in df.columns if c not in _sample_outputs] if _using_sample else []
         input_cols = st.multiselect(
             "Select input features", options=df.columns, default=_sample_inputs)
         output_cols = st.multiselect(
             "Select output targets", options=df.columns, default=_sample_outputs)
 
-        description = st.text_area("Optional: Project description")
+        description = st.text_area(
+            "Optional: Project description",
+            value=SAMPLE_DESCRIPTION if _using_sample else "",
+        )
         submitted = st.form_submit_button("Run Grid Search")
+
+    # Below the form, so the Run button stays near the top. Filled by the
+    # pair-plot job when it finishes, which may be in the middle of a run.
+    _pair_slot = _PairPlotSlot()
 
     # if submitted:
     #     use_pca = st.session_state.use_pca
@@ -314,6 +406,9 @@ if data_source:
         st.warning("Select at least one input feature and one output target.")
 
     if submitted and input_cols and output_cols:
+        # Drawn in a worker process while the models fit; shown as soon as it's ready.
+        _start_pair_plot(df, _source_id, list(input_cols), list(output_cols))
+        _pair_slot.refresh()
         _notes: List[Tuple[str, str]] = []  # (st method, message), shown with the results
         _t_start = time.perf_counter()
         _status = st.status("Running grid search…", expanded=True)
@@ -477,6 +572,7 @@ if data_source:
 
         def _on_progress(done: int, total: int, label: str) -> None:
             _prog.progress(done / total, text=f"{label} ({done + 1}/{total})")
+            _pair_slot.refresh()
 
         try:
             result = select_per_target(
@@ -556,8 +652,11 @@ if data_source:
                 output_names=list(output_cols),
             )
 
-        _status.write("Building the HTML report (prediction, SHAP, PDP and UMAP plots)…")
-        html = generate_html_report(
+        # The report's plots (prediction, SHAP, PDP, UMAP, ...) are drawn in a
+        # worker process, so the results below show without waiting for them.
+        _report_job = submit_background(
+            "report",
+            generate_html_report,
             model_type=type(best_model).__name__,
             fidelity_levels=[],
             output_names=output_cols,
@@ -591,7 +690,10 @@ if data_source:
             imputation_summary=_imputation_summary,
         )
         _status.update(
-            label=f"Grid search complete in {time.perf_counter() - _t_start:.1f}s",
+            label=(
+                f"Grid search complete in {time.perf_counter() - _t_start:.1f}s; "
+                "the HTML report is being built in the background"
+            ),
             state="complete",
             expanded=False,
         )
@@ -607,7 +709,9 @@ if data_source:
             "uncertainty_metrics": pd.Series(uncertainty_metrics, name="value").to_frame(),
             "conformal_alpha": conformal_alpha_sel if use_conformal else None,
             "conformal_summary": conf_df,
-            "html": html,
+            "html": None,
+            "report_job": _report_job,
+            "report_error": None,
         }
 
     _res = st.session_state.get("gs_results")
@@ -641,5 +745,37 @@ if data_source:
             st.write(f"### Conformal Prediction Summary (alpha={_res['conformal_alpha']})")
             st.dataframe(_res["conformal_summary"])
 
-        st.download_button(
-            "Download HTML Report", _res["html"], file_name="model_report.html", mime="text/html")
+        _report_slot = st.empty()
+
+    # Wait for the background jobs at the very end, so everything above is
+    # already on screen. The loop updates the page every second, which lets a
+    # click interrupt it; the jobs keep running and the next run picks them up.
+    _wait_start = time.perf_counter()
+    _shown_secs = -1
+    while True:
+        _pair_ready = _pair_slot.refresh()
+        _report_job = _res.get("report_job") if _res is not None else None
+        _report_ready = _report_job is None or _report_job.done()
+        if _pair_ready and _report_ready:
+            break
+        _secs = int(time.perf_counter() - _wait_start)
+        if _report_job is not None and not _report_ready and _secs != _shown_secs:
+            _report_slot.info(
+                f"Building the HTML report in the background ({_secs}s)… "
+                "The results above are final; the download appears here when it's ready.")
+            _shown_secs = _secs
+        time.sleep(0.25)
+
+    if _res is not None:
+        if _res.get("report_job") is not None:
+            try:
+                _res["html"] = _res["report_job"].result()
+            except Exception as exc:
+                _res["report_error"] = f"Could not build the HTML report: {exc}"
+            _res["report_job"] = None
+        if _res["html"] is not None:
+            _report_slot.download_button(
+                "Download HTML Report", _res["html"], file_name="model_report.html",
+                mime="text/html")
+        elif _res["report_error"]:
+            _report_slot.error(_res["report_error"])
