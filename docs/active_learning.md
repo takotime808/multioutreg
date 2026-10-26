@@ -35,13 +35,14 @@ MF\*) refer to the tables on the {doc}`references` page.
 
 ## Current State
 
-`multioutreg` does not do active learning. Every fitting path
-(`AutoDetectMultiOutputRegressor.fit`, the grid-search CLIs, the GUI pages and
-the multi-fidelity surrogates) fits once on a fixed dataset. The
+Phases 1 and 2 are in `multioutreg.active` as a prototype (see
+[Delivery Phases](#delivery-phases)). They are usable from Python only. The
+product fitting paths (`AutoDetectMultiOutputRegressor.fit`, the grid-search
+CLIs and the GUI pages) still fit once on a fixed dataset, and the
 `multioutreg.sampling` module only *infers* which design a dataset came from
 (Random, LHS or Sobol).
 
-What can be reused:
+What the prototype builds on:
 
 | Building block | Where | Used for |
 |---|---|---|
