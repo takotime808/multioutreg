@@ -129,7 +129,11 @@ constraint-dependencies = [
 ]
 
 [tool.setuptools.packages.find]
-where = [".", "mor_cli", "multioutreg"]
+# Search from the root only: each `where` entry is a separate search root, so
+# listing "multioutreg" here also installed its subpackages as top-level
+# `gui`, `utils`, `surrogates`, ... and "." picked up `tests`.
+where = ["."]
+include = ["multioutreg*", "mor_cli*"]
 namespaces = false
 
 # Include html files in wheel distribution -- NO need for Manifest.in
