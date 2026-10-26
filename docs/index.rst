@@ -39,6 +39,7 @@ Notes about project.
    integrated_surrogates
    surrogate_hyperparameters
    surrogate_roadmap
+   gui_ux_roadmap
    active_learning
    multiobjective_metrics
    parallel_computing
