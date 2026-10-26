@@ -48,6 +48,10 @@ jobs:
     - name: Run tests with coverage
       id: tests
       continue-on-error: true
+      env:
+        # `--extra all` installs every surrogate backend, so a missing one is a
+        # broken install: fail test_all_surrogates_contract instead of skipping.
+        MULTIOUTREG_REQUIRE_ALL_SURROGATES: "1"
       run: pytest tests --cov=multioutreg --cov-report=xml --cov-report=html
 
     - name: Generate badge
