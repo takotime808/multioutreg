@@ -41,12 +41,14 @@ def make_lag_features(
         arr = np.asarray(series, dtype=float)
         index = None
 
+    if n_lags < 1 or horizon < 1:
+        raise ValueError(f"n_lags and horizon must be >= 1, got n_lags={n_lags}, horizon={horizon}")
     n = len(arr)
     n_samples = n - n_lags - horizon + 1
     if n_samples <= 0:
         raise ValueError(
             f"Series length {n} is too short for n_lags={n_lags} and horizon={horizon}. "
-            f"Need at least {n_lags + horizon + 1} observations."
+            f"Need at least {n_lags + horizon} observations."
         )
 
     X_lag = np.lib.stride_tricks.sliding_window_view(arr, n_lags)[:n_samples]

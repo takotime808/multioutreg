@@ -92,6 +92,8 @@ def to_unit_cube(X: np.ndarray, bounds: Optional[Tuple[np.ndarray, np.ndarray]] 
     X = np.asarray(X, dtype=float)
     if bounds is not None:
         lo, hi = (np.broadcast_to(np.asarray(b, dtype=float), X.shape[1:]) for b in bounds)
+        if np.any(hi <= lo):
+            raise ValueError("Every upper bound must exceed its lower bound.")
         return np.clip((X - lo) / (hi - lo), 0.0, 1.0)
     n = X.shape[0]
     lo, hi = X.min(axis=0), X.max(axis=0)
@@ -241,6 +243,10 @@ def detect_sampling_method(
     finite = np.all(np.isfinite(X), axis=1)
     if not finite.all():
         X = X[finite]
+        if X.shape[0] < 4:
+            raise ValueError(
+                f"Need at least 4 rows without missing or infinite values, got {X.shape[0]}"
+            )
     n = X.shape[0]
 
     grid_like, full, levels = grid_structure(X)

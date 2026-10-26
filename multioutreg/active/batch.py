@@ -49,6 +49,8 @@ def select_batch(
     U_cand = np.asarray(U_cand, dtype=np.float64)
     scores = np.asarray(scores, dtype=np.float64).ravel()
     n, d = U_cand.shape
+    if batch_size < 0:
+        raise ValueError(f"batch_size must be >= 0, got {batch_size}.")
     if batch_size > n:
         raise ValueError(f"batch_size={batch_size} exceeds the {n} candidates.")
     n_train = 0 if U_train is None else len(U_train)

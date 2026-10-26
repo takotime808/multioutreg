@@ -22,6 +22,7 @@ _mf_page = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_mf_page)
 
 _split_by_fidelity = _mf_page._split_by_fidelity
+_default_level_order = _mf_page._default_level_order
 _compute_metrics = _mf_page._compute_metrics
 generate_html_report = _mf_page.generate_html_report
 
@@ -129,6 +130,21 @@ def test_split_by_fidelity_float_dtype(two_level_csv_df):
 # ---------------------------------------------------------------------------
 # _compute_metrics tests
 # ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize(
+    "values, expected",
+    [
+        ([2, 10, 0, 1, 10, None], [0, 1, 2, 10]),  # numeric, not "10" < "2"
+        ([1.5, 0.0, 0.25], [0.0, 0.25, 1.5]),
+        (np.array([3, 0, 11, 2]), [0, 2, 3, 11]),
+        (["hi", "lo", "med"], ["hi", "lo", "med"]),  # text: user re-orders
+        ([1, "lo"], [1, "lo"]),  # mixed falls back to text order
+        ([], []),
+    ],
+)
+def test_default_level_order(values, expected):
+    assert _default_level_order(values) == expected
 
 
 def test_compute_metrics_keys():

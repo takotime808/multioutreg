@@ -137,6 +137,8 @@ def grid_search(
         ),
         seed=0,
         notes="Generated report.",
+        feature_names=feature_names_pca if use_pca else in_cols,
+        feature_names_pca=feature_names_pca,
         pca_explained_variance=pca_explained_variance,
         pca_variance_plot=pca_variance_plot,
         pca_method=pca_method,

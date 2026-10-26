@@ -323,6 +323,10 @@ bounds, so tests, docs and the notebook share one definition:
 Friedman 1, Gramacy & Lee, Himmelblau, ZDT, Viennet 2, Branin MF and the
 heterogeneous function are NumPy ports from BenchmarkFcns
 (<https://github.com/mazhar-ansari-ardeh/BenchmarkFcns>, MIT).
+BenchmarkFcns returns the high fidelity in column 0; the ports reverse this so
+that levels run `"lo"` → `"hi"`. Its heterogeneous function also has the two
+levels swapped relative to Mainini et al. (2022); the port follows the paper
+(`f_1` is the high level).
 
 ## Testing Plan
 

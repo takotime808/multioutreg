@@ -6,7 +6,7 @@ with, easier to read, and more worth coming back to. The grid search page,
 begin there. See [Multi-Fidelity GUI](multi_fidelity_gui.md) for the
 multi-fidelity page.
 
-*Last reviewed 2026-10-26, against `main` at #43 plus the `gui-sample-data` branch.*
+*Last reviewed 2026-10-26, against `main` at #45 plus the `fix-wheel-packages` branch.*
 
 ## Status at a Glance
 
@@ -15,11 +15,11 @@ multi-fidelity page.
 | 0 | Remove the duplicate pipeline run on the grid search page | Done (#43) |
 | 1 | Keep results on screen across reruns | Done (#43) |
 | 2 | Show progress during a run | Done (#43) |
-| 3 | Let people try the app without their own data | Sample data done (`gui-sample-data`); input checks open |
+| 3 | Let people try the app without their own data | Sample data done (#45); input checks open |
 | 4 | Show results in the app, not only in the downloaded report | Open |
 | 5 | Navigation and page structure | Open |
 | 6 | Engagement features | Open; hosted demo already exists |
-| 7 | Packaging: stray top-level folders in the wheel | Open |
+| 7 | Packaging: stray top-level folders in the wheel | Fixed (`fix-wheel-packages`) |
 
 ## Done
 
@@ -48,7 +48,7 @@ callback. The page shows an `st.status` box that steps through preparing data,
 PCA, pre-screening, a per-candidate progress bar, metrics and the report, and
 ends as "Grid search complete in Ns", or in an error state if the run fails.
 
-### 3a. Sample data (`gui-sample-data`)
+### 3a. Sample data (#45)
 
 When nothing is uploaded, a **Try with sample data** button loads
 `multioutreg/gui/data/example_dataset_3_outputs.csv`, a synthetic dataset with
@@ -57,6 +57,27 @@ button also works from a pip install. Inputs and outputs are pre-selected, so
 one click on **Run Grid Search** runs it. A run with all default models takes
 about 70 seconds and reaches R² of 0.98 or higher on every output. An upload
 always replaces the sample.
+
+### 7. Stray top-level packages in the wheel (`fix-wheel-packages`)
+
+`where = [".", "mor_cli", "multioutreg"]` in
+`[tool.setuptools.packages.find]` made each entry a separate search root, so
+the wheel installed 15 top-level packages instead of 2. Every subpackage of
+`multioutreg` was installed a second time under a bare name (`active`,
+`conformal`, `figures`, `gui`, `metrics`, `model_selection`, `performance`,
+`report`, `sampling`, `surrogates`, `time_series`, `utils`), and the whole test
+suite shipped as `tests`. Generic names like `utils` and `tests` clash with
+other packages that make the same mistake, and `surrogates.X` and
+`multioutreg.surrogates.X` were two separate classes.
+
+The fix is `where = ["."]` with `include = ["multioutreg*", "mor_cli*"]`. The
+wheel now contains only `multioutreg` and `mor_cli` (794K down to 337K), with
+the same 142 files under `multioutreg/` and both package-data files. In a fresh
+non-editable install, the stray names no longer import, the `multioutreg` CLI
+runs, and the grid search page runs the sample data end to end.
+
+Editable installs made before the fix keep the old mapping until they are
+reinstalled (`uv sync`, or `uv pip install --no-deps -e .`).
 
 ## Open
 
@@ -145,31 +166,16 @@ what to try next.
 5. Add a theme in `.streamlit/config.toml` (none exists yet).
 
 A hosted demo already exists (linked from the README), so it is not part of
-this item. Once 3a is merged, the demo also gets the sample-data button.
-
-### 7. Packaging: stray top-level folders in the wheel (Low)
-
-**Problem:** the built wheel contains top-level `gui/`, `report/` and `tests/`
-folders that duplicate files under `multioutreg/`. They come from
-`where = [".", "mor_cli", "multioutreg"]` in `[tool.setuptools.packages.find]`
-and can clash with other installed packages named `gui` or `tests`.
-
-**Plan:** find packages from the project root only, and keep `mor_cli` as a
-package of its own. Then build a wheel and check that its contents are only
-`multioutreg/` and `mor_cli/`.
-
-**Done when:** the wheel has no stray top-level folders, and
-`multioutreg` (the CLI), the GUI and the sample-data button work from a fresh
-non-editable install.
+this item. The demo gets the sample-data button (#45) once it is redeployed
+from `main`.
 
 ## Suggested Order
 
 1. **3b**: small, and it makes the first run fail safely.
-2. **7**: small, and best fixed before more package data is added.
-3. **4**: the largest gain for users, since the most useful output is currently
+2. **4**: the largest gain for users, since the most useful output is currently
    hidden in the download.
-4. **5**: after the legacy-page question is answered.
-5. **6**: builds on the shared navigation from item 5.
+3. **5**: after the legacy-page question is answered.
+4. **6**: builds on the shared navigation from item 5.
 
 ## Testing
 
