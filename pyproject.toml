@@ -152,11 +152,12 @@ omit = [
 ]
 [tool.coverage.report]
 exclude_lines = [
-    'except Exception:',
-    'pass',
-    'plt.show()',
-    # "except Exception:",
-    # "plt\\.show\\(\\)",
+    # 'except Exception:',
+    # 'pass',
+    # 'plt.show()',
+    'pragma: no cover',
+    '^\s*pass\s*$',
+    'plt\.show\(\)',
 ]
 
 # [tool.pytest.ini_options]
