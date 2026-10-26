@@ -3,6 +3,8 @@
 """Background jobs: inline mode, a real spawn pool, and the inline fallback."""
 
 import base64
+import sys
+import types
 
 import numpy as np
 import pandas as pd
@@ -35,6 +37,7 @@ def test_inline_errors_propagate(monkeypatch):
 @pytest.fixture
 def real_pool(monkeypatch):
     monkeypatch.setenv("MOR_BACKGROUND_JOBS", "1")
+    background._discard("plots")  # fresh workers, started by this test
     yield
     background._discard("plots")
 
@@ -58,3 +61,18 @@ def test_worker_error_is_raised_by_result(real_pool):
     job = background.submit("plots", _boom)
     with pytest.raises(ValueError, match="boom"):
         job.result()
+
+
+def test_workers_do_not_rerun_the_main_script(real_pool, tmp_path, monkeypatch):
+    # Streamlit registers the page script as __main__; a spawned worker would
+    # normally re-import it, i.e. run the whole page again.
+    marker = tmp_path / "page_ran"
+    script = tmp_path / "page.py"
+    script.write_text(f"open({str(marker)!r}, 'w').close()\n")
+    fake_main = types.ModuleType("__main__")
+    fake_main.__file__ = str(script)
+    monkeypatch.setitem(sys.modules, "__main__", fake_main)
+
+    assert background.submit("plots", sum, [1, 2, 3]).result() == 6
+    assert not marker.exists()
+    assert sys.modules["__main__"] is fake_main  # restored after the submit

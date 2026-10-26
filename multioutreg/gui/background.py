@@ -11,6 +11,10 @@ Processes, not threads: pyplot keeps global "current figure" state (the report
 helpers save whatever figure is current), and plotting is pure Python, so a
 thread would neither be safe nor run in parallel under the GIL.
 
+Each pool has a single worker: every worker re-imports numpy, sklearn and
+matplotlib (the report worker also SHAP and UMAP), and Streamlit Community
+Cloud allows as little as 690 MB (see ``docs/parallel_computing.md``).
+
 There are two pools. ``"plots"`` starts light, so a pair plot begins drawing
 within a second or two. ``"report"`` imports the report modules (and UMAP,
 which can take a minute to import) when its workers start; call
@@ -25,14 +29,18 @@ from __future__ import annotations
 
 import multiprocessing as mp
 import os
+import sys
 import threading
+import types
+from contextlib import contextmanager
 from concurrent.futures import Future, ProcessPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
-from typing import Any, Callable, Dict
+from typing import Any, Callable, Dict, Iterator
 
 _LOCK = threading.Lock()
 _EXECUTORS: Dict[str, ProcessPoolExecutor] = {}
 _NOT_RUN = object()
+_WORKERS = {"plots": 1, "report": 1}
 
 
 def background_enabled() -> bool:
@@ -52,20 +60,44 @@ def _init_worker(pool: str) -> None:
         import multioutreg.gui.grid_search_core  # noqa: F401  (pulls in UMAP, SHAP, ...)
 
 
+@contextmanager
+def _without_main_module() -> Iterator[None]:
+    """Stop new spawn workers from re-running the ``__main__`` module.
+
+    A spawned worker imports the parent's ``__main__`` before it runs anything.
+    Streamlit registers the page script as ``__main__``, so every worker would
+    run the whole page (in bare mode). Jobs are functions from real modules and
+    never need it, so workers started in this block get an empty stand-in.
+    Workers start inside ``submit`` (spawn pools start them on demand), so
+    callers hold ``_LOCK`` and wrap the submit.
+    """
+    real = sys.modules.get("__main__")
+    stub = types.ModuleType("__main__")
+    sys.modules["__main__"] = stub
+    try:
+        yield
+    finally:
+        if sys.modules.get("__main__") is stub:
+            sys.modules["__main__"] = real
+
+
 def _executor(pool: str) -> ProcessPoolExecutor:
-    with _LOCK:
-        ex = _EXECUTORS.get(pool)
-        if ex is None:
-            workers = max(2, min(4, (os.cpu_count() or 2) // 2))
-            # spawn, not fork: forking a process that has loaded OpenMP / torch can deadlock.
-            ex = ProcessPoolExecutor(
-                max_workers=workers,
-                mp_context=mp.get_context("spawn"),
-                initializer=_init_worker,
-                initargs=(pool,),
-            )
-            _EXECUTORS[pool] = ex
-        return ex
+    ex = _EXECUTORS.get(pool)
+    if ex is None:
+        # spawn, not fork: forking a process that has loaded OpenMP / torch can deadlock.
+        ex = ProcessPoolExecutor(
+            max_workers=_WORKERS.get(pool, 1),
+            mp_context=mp.get_context("spawn"),
+            initializer=_init_worker,
+            initargs=(pool,),
+        )
+        _EXECUTORS[pool] = ex
+    return ex
+
+
+def _submit(pool: str, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> Future:
+    with _LOCK, _without_main_module():
+        return _executor(pool).submit(fn, *args, **kwargs)
 
 
 def _discard(pool: str) -> None:
@@ -83,7 +115,7 @@ def warm_up(pool: str = "report") -> None:
     """Start *pool*'s worker processes now so their imports overlap with other work."""
     if background_enabled():
         try:
-            _executor(pool).submit(_noop)
+            _submit(pool, _noop)
         except Exception:
             _discard(pool)
 
@@ -102,7 +134,7 @@ class BackgroundJob:
         self._future: Future | None = None
         if background_enabled():
             try:
-                self._future = _executor(pool).submit(fn, *args, **kwargs)
+                self._future = _submit(pool, fn, *args, **kwargs)
             except Exception:
                 _discard(pool)
 

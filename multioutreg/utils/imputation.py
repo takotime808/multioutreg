@@ -104,7 +104,8 @@ def impute_train_test(
     X_train: np.ndarray,
     X_test: np.ndarray,
     n_neighbors: int = 5,
-) -> tuple[np.ndarray, np.ndarray]:
+    return_imputer: bool = False,
+):
     """KNN-impute missing input values without leaking test data.
 
     The imputer is fitted on the training inputs only and then applied to both
@@ -117,14 +118,24 @@ def impute_train_test(
         Input feature matrices, possibly containing NaN.
     n_neighbors : int, optional
         Number of nearest neighbours used by :class:`~sklearn.impute.KNNImputer`.
+    return_imputer : bool, optional
+        Also return the fitted imputer, e.g. to ship it in an exported model
+        pipeline. It is fitted on ``X_train`` even when nothing is missing, so
+        new data with gaps can still be filled at prediction time; on complete
+        rows its ``transform`` is the identity.
 
     Returns
     -------
     X_train_imputed, X_test_imputed : np.ndarray
+    imputer : KNNImputer
+        Only when ``return_imputer`` is true.
     """
     X_train = np.asarray(X_train, dtype=float)
     X_test = np.asarray(X_test, dtype=float)
-    if not (np.isnan(X_train).any() or np.isnan(X_test).any()):
+    has_missing = np.isnan(X_train).any() or np.isnan(X_test).any()
+    if not (has_missing or return_imputer):
         return X_train, X_test
-    imp = KNNImputer(n_neighbors=n_neighbors, keep_empty_features=True)
-    return imp.fit_transform(X_train), imp.transform(X_test)
+    imp = KNNImputer(n_neighbors=n_neighbors, keep_empty_features=True).fit(X_train)
+    if has_missing:
+        X_train, X_test = imp.transform(X_train), imp.transform(X_test)
+    return (X_train, X_test, imp) if return_imputer else (X_train, X_test)

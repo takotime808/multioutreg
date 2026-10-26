@@ -8,6 +8,7 @@ matplotlib.use("Agg")  # plotting helpers call plt.show(); never open desktop wi
 import streamlit as st
 import pandas as pd
 import numpy as np
+import json
 import os
 import time
 from typing import Dict, List, Tuple, Union, Any
@@ -90,16 +91,19 @@ from multioutreg.gui.grid_search_core import (
     KNeighborsRegressorWithUncertainty,
     BootstrapLinearRegression,
     PerTargetRegressorWithStd,
+    build_model_bundle,
+    build_model_pipeline,
     default_surrogate_defs,
     generate_html_report,
     select_per_target,
+    serialize_model_bundle,
 )
 
 
 SAMPLE_DATA_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "data", "example_dataset_3_outputs.csv")
 SAMPLE_DESCRIPTION = (
-    "Sample dataset: 300 rows of synthetic data with 5 inputs (feature_0 to feature_4) "
+    "300 rows of synthetic data with 5 inputs (feature_0 to feature_4) "
     "and 3 outputs (pressure, temperature, velocity)."
 )
 
@@ -173,12 +177,15 @@ uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
 # an upload always takes precedence over it.
 if uploaded_file is not None:
     st.session_state["gs_use_sample"] = False
-elif not st.session_state.get("gs_use_sample", False) and st.button(
-    "Try with sample data",
-    help="300 rows of synthetic data: 5 input features and 3 outputs "
-         "(pressure, temperature, velocity).",
-):
-    st.session_state["gs_use_sample"] = True
+elif not st.session_state.get("gs_use_sample", False):
+    # A callback runs before the script, so the button is gone on the very run
+    # that loads the sample.
+    st.button(
+        "Try with sample data",
+        help="300 rows of synthetic data: 5 input features and 3 outputs "
+             "(pressure, temperature, velocity).",
+        on_click=st.session_state.update, kwargs={"gs_use_sample": True},
+    )
 _using_sample = uploaded_file is None and st.session_state.get("gs_use_sample", False)
 data_source = SAMPLE_DATA_PATH if _using_sample else uploaded_file
 
@@ -200,7 +207,7 @@ if data_source:
     _sample_inputs = [c for c in df.columns if c not in _sample_outputs] if _using_sample else []
     if _using_sample:
         st.info(
-            f"{SAMPLE_DESCRIPTION} Each output is driven mainly by one input (pressure by "
+            f"Using the sample dataset: {SAMPLE_DESCRIPTION} Each output is driven mainly by one input (pressure by "
             "feature_0, temperature by feature_2, velocity by feature_4), which the pair plot "
             "below makes visible. Inputs and outputs are pre-selected; click "
             "**Run Grid Search** to try it (about a minute with all models, or tick "
@@ -217,9 +224,10 @@ if data_source:
                          "input or output.",
                 )
         with _sc2:
-            if st.button("Stop using sample data"):
-                st.session_state["gs_use_sample"] = False
-                st.rerun()
+            st.button(
+                "Stop using sample data",
+                on_click=st.session_state.update, kwargs={"gs_use_sample": False},
+            )
         # The columns are already known, so draw the pair plot right away.
         _start_pair_plot(df, _source_id, _sample_inputs, _sample_outputs)
 
@@ -388,7 +396,7 @@ if data_source:
 
         description = st.text_area(
             "Optional: Project description",
-            value=SAMPLE_DESCRIPTION if _using_sample else "",
+            value=f"Sample dataset: {SAMPLE_DESCRIPTION}" if _using_sample else "",
         )
         submitted = st.form_submit_button("Run Grid Search")
 
@@ -464,7 +472,7 @@ if data_source:
         X = df[input_cols].values
         y = df[output_cols].values
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
-        X_train, X_test = impute_train_test(X_train, X_test)
+        X_train, X_test, _imputer = impute_train_test(X_train, X_test, return_imputer=True)
         feature_names = list(input_cols)
 
         # # Show seaborn PairGrid plot with KDE in lower triangle
@@ -484,11 +492,20 @@ if data_source:
         pca_n_components = None
         feature_names_pca = None
         kaiser_rule_suggestion = None
+        _pca_transformer = None
+        _pca_settings = None
         if use_pca:
             _status.write("Applying PCA to input features…")
             _pca = fit_input_pca(X_train, X_test, pca_method, n_components, pca_threshold)
             X_train, X_test = _pca.X_train, _pca.X_test
             pca_n_components = _pca.n_components
+            _pca_transformer = _pca.transformer
+            _pca_settings = {
+                "standardize": True,
+                "method": pca_method,
+                "n_components": pca_n_components,
+                "threshold": pca_threshold if pca_method == "Explained variance threshold" else None,
+            }
             feature_names_pca = _pca.feature_names
             pca_variance_plot = generate_pca_variance_plot(
                 _pca.preview_pca,
@@ -629,6 +646,7 @@ if data_source:
         # Conformal prediction
         conformal_intervals = None
         conf_df = None
+        q = None
         if use_conformal:
             from multioutreg.conformal.base import BaseConformalPredictor
             from multioutreg.conformal.metrics import conformal_summary as _conf_summary
@@ -689,6 +707,30 @@ if data_source:
             calibration_residuals=residuals if use_conformal else None,
             imputation_summary=_imputation_summary,
         )
+
+        # The exported pipeline replays every step the app applied to the inputs
+        # (column order, KNN imputation, standardise + PCA) before the model.
+        _bundle = build_model_bundle(
+            build_model_pipeline(best_model, list(input_cols), _imputer, _pca_transformer),
+            list(input_cols),
+            list(output_cols),
+            best_combo,
+            pca_settings=_pca_settings,
+            conformal_alpha=conformal_alpha_sel if use_conformal else None,
+            conformal_quantiles=q,
+            data_split={
+                "test_size": 0.25,
+                "random_state": 0,
+                "calibration_fraction": 0.2 if use_conformal else None,
+                "validation_fraction": 0.2,
+            },
+        )
+        try:
+            _model_bytes = serialize_model_bundle(_bundle)
+        except Exception as exc:  # e.g. a surrogate holding an unpicklable handle
+            _model_bytes = None
+            _notes.append(("warning", f"The trained model could not be serialized: {exc}"))
+
         _status.update(
             label=(
                 f"Grid search complete in {time.perf_counter() - _t_start:.1f}s; "
@@ -712,6 +754,8 @@ if data_source:
             "html": None,
             "report_job": _report_job,
             "report_error": None,
+            "model_bytes": _model_bytes,
+            "model_config": json.dumps(_bundle["config"], indent=2),
         }
 
     _res = st.session_state.get("gs_results")
@@ -746,6 +790,47 @@ if data_source:
             st.dataframe(_res["conformal_summary"])
 
         _report_slot = st.empty()
+
+        st.write("### Export the Model")
+        if _res.get("model_bytes") is not None:
+            st.download_button(
+                "Download Trained Model (.joblib)",
+                _res["model_bytes"],
+                file_name="multioutreg_grid_search_model.joblib",
+                mime="application/octet-stream",
+                key="download_model",
+            )
+        st.download_button(
+            "Download Model Config (.json)",
+            _res["model_config"],
+            file_name="multioutreg_grid_search_config.json",
+            mime="application/json",
+            key="download_model_config",
+        )
+        st.caption(
+            "The .joblib file holds a fitted scikit-learn Pipeline with every step the "
+            "app applied (input columns, KNN imputer, standardise + PCA if used, the "
+            "selected model per output) plus the conformal quantiles. It contains the "
+            "training inputs (the imputer and GP-type models keep them), needs the same "
+            "multioutreg/scikit-learn versions to load (listed in the config) and, like "
+            "any pickle, should only be loaded from a source you trust. The .json "
+            "config describes the run so the model can be rebuilt and refitted."
+        )
+        with st.expander("Using the downloaded model", expanded=False):
+            st.code(
+                "import joblib\n"
+                "import pandas as pd\n\n"
+                'bundle = joblib.load("multioutreg_grid_search_model.joblib")\n'
+                'pipe = bundle["pipeline"]\n'
+                'df = pd.read_csv("new_data.csv")  # must contain bundle["input_columns"]\n'
+                "mean, std = pipe.predict(df, return_std=True)\n"
+                'pred = pd.DataFrame(mean, columns=bundle["output_columns"])\n\n'
+                "# Conformal intervals, if they were computed\n"
+                'if bundle["conformal"]:\n'
+                '    q = pd.Series(bundle["conformal"]["quantiles"])\n'
+                "    lower, upper = pred - q, pred + q\n",
+                language="python",
+            )
 
     # Wait for the background jobs at the very end, so everything above is
     # already on screen. The loop updates the page every second, which lets a

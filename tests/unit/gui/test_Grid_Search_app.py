@@ -2,10 +2,16 @@
 
 """End-to-end runs of the grid-search Streamlit app (see app_harness.py)."""
 
+import io
+import json
+
+import joblib
 import numpy as np
 import pandas as pd
 import pytest
 from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeRegressor
 
 from multioutreg.gui.grid_search_core import RandomForestWithUncertainty
@@ -147,3 +153,44 @@ def test_app_sample_data_can_be_turned_off():
     assert not at.exception, at.exception
     assert not at.multiselect
     assert any(b.label == "Try with sample data" for b in at.button)
+
+
+def test_app_exports_model_with_all_preprocessing(tmp_path):
+    # The downloaded pipeline must take raw rows (gaps included) to the same
+    # predictions the app scored: imputer -> scaler + PCA -> per-output models.
+    rng = np.random.default_rng(1)
+    X = rng.uniform(-2, 2, size=(160, 3))
+    df = pd.DataFrame({
+        "x0": X[:, 0], "x1": X[:, 1], "x2": X[:, 2],
+        "y_a": 2 * X[:, 0] + X[:, 2] + 0.05 * rng.normal(size=160),
+        "y_b": X[:, 1] ** 2 + 0.05 * rng.normal(size=160),
+    })
+    df.loc[::11, "x1"] = np.nan
+    path = tmp_path / "gaps.csv"
+    df.to_csv(path, index=False)
+
+    at = run_grid_search_app(str(path), ["x0", "x1", "x2"], ["y_a", "y_b"],
+                             checkboxes={"use_pca": True, "use_conformal": True},
+                             surrogate_defs=FAST_DEFS)
+    assert not at.exception, at.exception
+    labels = [b.label for b in at.get("download_button")]
+    assert "Download Trained Model (.joblib)" in labels
+    assert "Download Model Config (.json)" in labels
+
+    res = at.session_state["gs_results"]
+    bundle = joblib.load(io.BytesIO(res["model_bytes"]))
+    pipe = bundle["pipeline"]
+    assert [name for name, _ in pipe.steps] == ["columns", "imputer", "pca", "model"]
+    assert bundle["input_columns"] == ["x0", "x1", "x2"]
+    assert set(bundle["conformal"]["quantiles"]) == {"y_a", "y_b"}
+
+    # Same split as the app; raw test rows through the pipeline reproduce its metrics.
+    _, df_test = train_test_split(df, test_size=0.25, random_state=0)
+    pred = pipe.predict(df_test)
+    for i, name in enumerate(["y_a", "y_b"]):
+        assert r2_score(df_test[name], pred[:, i]) == pytest.approx(res["metrics"].loc[name, "r2"])
+
+    config = json.loads(res["model_config"])
+    assert [m["model"] for m in config["models"]] == _best_models(at)
+    assert config["preprocessing"]["pca"]["n_components"] == 2
+    assert config["conformal"] == bundle["conformal"]
