@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 import os
 from dataclasses import dataclass
-from typing import Dict, List, Tuple, Union, Any
+from typing import Callable, Dict, List, Optional, Tuple, Union, Any
 from scipy.stats import norm
 from sklearn.model_selection import train_test_split, ParameterGrid
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, root_mean_squared_error
@@ -429,6 +429,7 @@ def select_per_target(
     val_fraction: float = 0.2,
     random_state: int = 0,
     moe: Any = None,
+    on_progress: Optional[Callable[[int, int, str], None]] = None,
 ) -> GridSearchResult:
     """Pick the best config per output on a validation split of the training data.
 
@@ -440,6 +441,9 @@ def select_per_target(
 
     ``moe``, an unfitted joint multi-output model, replaces the per-output
     winners if its validation MSE (averaged over outputs) is lower.
+
+    ``on_progress(done, total, label)`` is called before each step (every
+    config, the MoE candidate, and the final refit) so a UI can show progress.
     """
     y = np.asarray(y)
     if y.ndim == 1:
@@ -453,7 +457,14 @@ def select_per_target(
     best: List[Any] = [None] * n_out
     best_mse = [np.inf] * n_out
     n_failed = 0
-    for name, factory, params in configs:
+    total = len(configs) + (moe is not None) + 1
+
+    def _report(done: int, label: str) -> None:
+        if on_progress is not None:
+            on_progress(done, total, label)
+
+    for i, (name, factory, params) in enumerate(configs):
+        _report(i, f"Fitting {name}" + (f" {params}" if params else ""))
         for j in range(n_out):
             try:
                 est = factory(**params)
@@ -470,16 +481,19 @@ def select_per_target(
         raise RuntimeError(f"Every candidate failed for output(s) {missing}")
 
     if moe is not None:
+        _report(len(configs), f"Fitting {type(moe).__name__}")
         try:
             moe_val = mean_squared_error(
                 y_val, np.asarray(clone(moe).fit(X_fit, y_fit).predict(X_val)))
         except Exception:
             moe_val = np.inf
         if moe_val < np.mean(best_mse):
+            _report(total - 1, "Refitting the selected model on all training data")
             return GridSearchResult(
                 model=moe.fit(X, y), combo=[{"model": type(moe).__name__}],
                 val_mse=[float(moe_val)] * n_out, moe_selected=True, n_failed=n_failed)
 
+    _report(total - 1, "Refitting the selected models on all training data")
     model = PerTargetRegressorWithStd(
         [factory(**params) for _, factory, params in best]).fit(X, y)
     return GridSearchResult(

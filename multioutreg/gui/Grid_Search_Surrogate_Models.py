@@ -9,9 +9,10 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import os
+import time
 from typing import Dict, List, Tuple, Union, Any
-from sklearn.model_selection import train_test_split, ParameterGrid
-from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, root_mean_squared_error
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, Matern
 from sklearn.ensemble import ExtraTreesRegressor, HistGradientBoostingRegressor, RandomForestRegressor, GradientBoostingRegressor
@@ -94,6 +95,11 @@ from multioutreg.gui.grid_search_core import (
 )
 
 
+@st.cache_data(show_spinner=False)
+def _load_csv(file) -> pd.DataFrame:
+    return pd.read_csv(file)
+
+
 # ----- Streamlit App -----
 st.title("Multi-Output Surrogate Model Grid Search & Report Generator")
 
@@ -103,8 +109,15 @@ uploaded_file = st.file_uploader(
 )
 
 if uploaded_file:
-    df = pd.read_csv(uploaded_file)
+    df = _load_csv(uploaded_file)
     st.write("## Preview of Data:", df.head())
+
+    # Results live in session_state so they survive reruns (e.g. clicking the
+    # download button); drop them when a different file is uploaded.
+    _source_id = getattr(uploaded_file, "file_id", uploaded_file)
+    if st.session_state.get("gs_source_id") != _source_id:
+        st.session_state.pop("gs_results", None)
+        st.session_state["gs_source_id"] = _source_id
 
     # Missing value detection and per-column imputation choices
     _missing_summary = detect_missing(df)
@@ -273,7 +286,14 @@ if uploaded_file:
     #     n_components = st.session_state.get("pca_n_components")
     #     pca_threshold = st.session_state.get("pca_threshold")
 
+    if submitted and not (input_cols and output_cols):
+        st.warning("Select at least one input feature and one output target.")
+
     if submitted and input_cols and output_cols:
+        _notes: List[Tuple[str, str]] = []  # (st method, message), shown with the results
+        _t_start = time.perf_counter()
+        _status = st.status("Running grid search…", expanded=True)
+        _status.write("Preparing data (missing values, train/test split)…")
         use_pca = st.session_state.use_pca
         pca_method = st.session_state.get("pca_method")
         n_components = st.session_state.get("pca_n_components")
@@ -346,6 +366,7 @@ if uploaded_file:
         feature_names_pca = None
         kaiser_rule_suggestion = None
         if use_pca:
+            _status.write("Applying PCA to input features…")
             _pca = fit_input_pca(X_train, X_test, pca_method, n_components, pca_threshold)
             X_train, X_test = _pca.X_train, _pca.X_test
             pca_n_components = _pca.n_components
@@ -360,16 +381,11 @@ if uploaded_file:
                 f"Kaiser rule suggests **{_pca.kaiser_k}** components "
                 "(eigenvalues > 1 on standardized inputs)."
             )
-            st.markdown(kaiser_rule_suggestion)
-            st.image(
-                f"data:image/png;base64,{pca_variance_plot}",
-                caption="Scree Plot",
-                width="stretch",
-            )
 
         surrogate_defs = default_surrogate_defs()
 
         if use_screening:
+            _status.write("Pre-screening models…")
             _screener = ModelScreener().fit(X_train, y_train)
             _eligible = _screener.screen_per_output(list(output_cols))
             # Keep a surrogate_def if not screened or if it passes for at least one output
@@ -394,10 +410,10 @@ if uploaded_file:
                 if d[0] in _eligible.index and not _eligible.loc[d[0]].any()
             ]
             if skipped:
-                st.info(
+                _notes.append(("info",
                     f"Pre-screening skipped {len(skipped)} model(s): "
                     + ", ".join(skipped)
-                )
+                ))
 
         _EXPENSIVE_MODELS = {"gpr", "ngb", "cpn", "ard_gp", "gpx", "kpls", "sgpr"}
         _EXPENSIVE_DISPLAY_NAMES = {
@@ -413,10 +429,10 @@ if uploaded_file:
             _skipped = [d[0] for d in surrogate_defs if d[0] in _EXPENSIVE_MODELS]
             surrogate_defs = [d for d in surrogate_defs if d[0] not in _EXPENSIVE_MODELS]
             if _skipped:
-                st.info(
+                _notes.append(("info",
                     f"Skipping {len(_skipped)} expensive model(s): "
                     + ", ".join(_EXPENSIVE_DISPLAY_NAMES.get(k, k) for k in _skipped)
-                )
+                ))
 
         # Conformal calibration must use data disjoint from both training and the
         # test set used to report coverage, so hold out part of the training split.
@@ -433,158 +449,27 @@ if uploaded_file:
 
         # Select on a validation split of the training data; the test set is
         # only used for the reported metrics.
+        _prog = _status.progress(0.0, text="Fitting candidates…")
+
+        def _on_progress(done: int, total: int, label: str) -> None:
+            _prog.progress(done / total, text=f"{label} ({done + 1}/{total})")
+
         try:
-            result = select_per_target(surrogate_defs, X_train, y_train, moe=moe)
+            result = select_per_target(
+                surrogate_defs, X_train, y_train, moe=moe, on_progress=_on_progress)
         except RuntimeError as exc:
+            _status.update(label="Grid search failed", state="error")
             st.error(str(exc))
             st.stop()
+        _prog.progress(1.0, text="Model selection done")
         best_model = result.model
         best_combo = result.combo
         best_pred, best_std = best_model.predict(X_test, return_std=True)
         if result.moe_selected:
-            st.info("MoE outperformed all per-target models and was selected.")
+            _notes.append(("info", "MoE outperformed all per-target models and was selected."))
         if result.n_failed:
-            st.caption(f"{result.n_failed} candidate fit(s) failed and were skipped.")
-
-        # # Show seaborn PairGrid plot with KDE in lower triangle
-        # if df.shape[1] >= 2:
-        #     st.write("### PairGrid Visualization (KDE Lower Triangle)")
-
-        #     numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
-        #     if len(numeric_cols) >= 2:
-        #         g = make_doe_plot(df=df, numeric_cols=numeric_cols)
-        #         st.pyplot(g.fig)
-        #     else:
-        #         st.info("Not enough numeric columns for pairwise plot.")
-
-        # PCA.
-        pca_variance_plot = None
-        pca_explained_variance = None
-        pca_n_components = None
-        feature_names_pca = None
-        kaiser_rule_suggestion = None
-        if use_pca:
-            _pca = fit_input_pca(X_train, X_test, pca_method, n_components, pca_threshold)
-            X_train, X_test = _pca.X_train, _pca.X_test
-            pca_n_components = _pca.n_components
-            feature_names_pca = _pca.feature_names
-            pca_variance_plot = generate_pca_variance_plot(
-                _pca.preview_pca,
-                n_selected=pca_n_components,
-                threshold=pca_threshold if pca_method == "Explained variance threshold" else None,
-            )
-            pca_explained_variance = _pca.preview_pca.explained_variance_ratio_.tolist()
-            kaiser_rule_suggestion = (
-                f"Kaiser rule suggests **{_pca.kaiser_k}** components "
-                "(eigenvalues > 1 on standardized inputs)."
-            )
-            st.markdown(kaiser_rule_suggestion)
-            st.image(
-                f"data:image/png;base64,{pca_variance_plot}",
-                caption="Scree Plot",
-                width="stretch",
-            )
-
-        surrogate_defs = default_surrogate_defs()
-
-        if use_screening:
-            _screener = ModelScreener().fit(X_train, y_train)
-            _eligible = _screener.screen_per_output(list(output_cols))
-            # Keep a surrogate_def if not screened or if it passes for at least one output
-            surrogate_defs = [
-                d for d in surrogate_defs
-                if d[0] not in _eligible.index or _eligible.loc[d[0]].any()
-            ]
-            skipped = [
-                d[0] for d in [
-                    ("gpr", None, None), ("rf", None, None), ("et", None, None),
-                    ("gb", None, None), ("knn", None, None), ("blr", None, None),
-                    ("svr", None, None), ("dt", None, None), ("cpn", None, None),
-                    ("mfs_lr", None, None), ("ngb", None, None),
-                    ("bayesian_ridge", None, None), ("rfgp", None, None),
-                    ("pbr", None, None), ("sgp", None, None), ("gpx", None, None),
-                    ("ard_gp", None, None), ("kpls", None, None),
-                    ("hgb", None, None), ("lgbm", None, None), ("xgb", None, None),
-                    ("elastic_net", None, None), ("lasso", None, None),
-                    ("quantile", None, None), ("catboost", None, None),
-                    ("sgpr", None, None),
-                ]
-                if d[0] in _eligible.index and not _eligible.loc[d[0]].any()
-            ]
-            if skipped:
-                st.info(
-                    f"Pre-screening skipped {len(skipped)} model(s): "
-                    + ", ".join(skipped)
-                )
-
-        _EXPENSIVE_MODELS = {"gpr", "ngb", "cpn", "ard_gp", "gpx", "kpls", "sgpr"}
-        _EXPENSIVE_DISPLAY_NAMES = {
-            "gpr": "Gaussian Process",
-            "ngb": "NGBoost",
-            "cpn": "Conformal Prediction Network",
-            "ard_gp": "ARD Gaussian Process",
-            "gpx": "GPX (Rust GP)",
-            "kpls": "KPLS (Kriging+PLS)",
-            "sgpr": "Sparse GP (GPyTorch)",
-        }
-        if skip_expensive:
-            _skipped = [d[0] for d in surrogate_defs if d[0] in _EXPENSIVE_MODELS]
-            surrogate_defs = [d for d in surrogate_defs if d[0] not in _EXPENSIVE_MODELS]
-            if _skipped:
-                st.info(
-                    f"Skipping {len(_skipped)} expensive model(s): "
-                    + ", ".join(_EXPENSIVE_DISPLAY_NAMES.get(k, k) for k in _skipped)
-                )
-
-        configs = [(name, Est, params) for name, Est, grid in surrogate_defs for params in ParameterGrid(grid)]
-
-        best_score = np.inf
-        best_combo = None
-        best_pred = None
-        best_std = None
-        best_model = None
-
-        for est_params in ParameterGrid({"combos": [configs] * y_train.shape[1]}):
-            try:
-                combo = est_params["combos"][:y_train.shape[1]]
-                estimators = [est(**params) for (_, est, params) in combo]
-                model = PerTargetRegressorWithStd(estimators)
-                model.fit(X_train, y_train)
-                pred, std = model.predict(X_test, return_std=True)
-                score = mean_squared_error(y_test, pred)
-                if score < best_score:
-                    best_score = score
-                    best_combo = [dict(model=name, **params) for (name, _, params) in combo]
-                    best_pred, best_std = pred, std
-                    best_model = model
-            except Exception:
-                continue
-
-        # Evaluate MoE as a joint multi-output candidate and replace best model if it wins
-        if use_moe:
-            from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
-            try:
-                moe = MixtureOfExpertsSurrogate(
-                    n_experts=moe_n_experts,
-                    gating_type=moe_gating_type,
-                    random_state=0,
-                )
-                moe.fit(X_train, y_train)
-                moe_pred, moe_std = moe.predict(X_test, return_std=True)
-                moe_score = mean_squared_error(y_test, moe_pred)
-                if moe_score < best_score:
-                    best_score = moe_score
-                    best_pred = moe_pred
-                    best_std = moe_std
-                    best_model = moe
-                    best_combo = [{
-                        "model": "MixtureOfExpertsSurrogate",
-                        "n_experts": moe_n_experts,
-                        "gating_type": moe_gating_type,
-                    }]
-                    st.info("MoE outperformed all per-target models and was selected.")
-            except Exception as exc:
-                st.warning(f"MoE evaluation failed: {exc}")
+            _notes.append(("caption", f"{result.n_failed} candidate fit(s) failed and were skipped."))
+        _status.write("Computing test-set metrics…")
 
         # # Show seaborn PairGrid plot with KDE in lower triangle
         # if df.shape[1] >= 2:
@@ -608,10 +493,6 @@ if uploaded_file:
         #     else:
         #         st.info("Not enough numeric columns for pairwise plot.")
 
-        st.write("### Best Model Configuration")
-        st.json(best_combo)
-
-        st.write("### Metrics Table")
         metrics = {}
         for i, name in enumerate(output_cols):
             y_true = y_test[:, i]
@@ -622,14 +503,12 @@ if uploaded_file:
                 "mae": mean_absolute_error(y_true, y_pred),
                 "mean_predicted_std": float(np.mean(best_std[:, i])),
             }
-        st.dataframe(pd.DataFrame(metrics).T)
 
         uncertainty_metrics = gaussian_uncertainty_metrics(y_test, best_pred, best_std)
-        st.write("### Uncertainty Calibration (Gaussian std, test set)")
-        st.dataframe(pd.Series(uncertainty_metrics, name="value").to_frame())
 
         # Conformal prediction
         conformal_intervals = None
+        conf_df = None
         if use_conformal:
             from multioutreg.conformal.base import BaseConformalPredictor
             from multioutreg.conformal.metrics import conformal_summary as _conf_summary
@@ -652,11 +531,10 @@ if uploaded_file:
                 alpha=conformal_alpha_sel,
                 output_names=list(output_cols),
             )
-            st.write(f"### Conformal Prediction Summary (alpha={conformal_alpha_sel})")
-            st.dataframe(conf_df)
 
+        _status.write("Building the HTML report (prediction, SHAP, PDP and UMAP plots)…")
         html = generate_html_report(
-            model_type="PerTargetRegressorWithStd",
+            model_type=type(best_model).__name__,
             fidelity_levels=[],
             output_names=output_cols,
             description=description,
@@ -686,5 +564,56 @@ if uploaded_file:
             calibration_residuals=residuals if use_conformal else None,
             imputation_summary=_imputation_summary,
         )
+        _status.update(
+            label=f"Grid search complete in {time.perf_counter() - _t_start:.1f}s",
+            state="complete",
+            expanded=False,
+        )
 
-        st.download_button("Download HTML Report", html, file_name="model_report.html", mime="text/html")
+        st.session_state["gs_results"] = {
+            "input_cols": list(input_cols),
+            "output_cols": list(output_cols),
+            "notes": _notes,
+            "kaiser_rule_suggestion": kaiser_rule_suggestion,
+            "pca_variance_plot": pca_variance_plot,
+            "best_combo": best_combo,
+            "metrics": pd.DataFrame(metrics).T,
+            "uncertainty_metrics": pd.Series(uncertainty_metrics, name="value").to_frame(),
+            "conformal_alpha": conformal_alpha_sel if use_conformal else None,
+            "conformal_summary": conf_df,
+            "html": html,
+        }
+
+    _res = st.session_state.get("gs_results")
+    if _res is not None:
+        if not submitted:
+            st.caption(
+                f"Showing the last run (inputs: {', '.join(_res['input_cols'])}; "
+                f"outputs: {', '.join(_res['output_cols'])}). "
+                "Click **Run Grid Search** to update."
+            )
+        for _kind, _msg in _res["notes"]:
+            getattr(st, _kind)(_msg)
+        if _res["pca_variance_plot"] is not None:
+            st.markdown(_res["kaiser_rule_suggestion"])
+            st.image(
+                f"data:image/png;base64,{_res['pca_variance_plot']}",
+                caption="Scree Plot",
+                width="stretch",
+            )
+
+        st.write("### Best Model Configuration")
+        st.json(_res["best_combo"])
+
+        st.write("### Metrics Table")
+        st.dataframe(_res["metrics"])
+
+        st.write("### Uncertainty Calibration (Gaussian std, test set)")
+        st.dataframe(_res["uncertainty_metrics"])
+
+        if _res["conformal_summary"] is not None:
+            st.write(f"### Conformal Prediction Summary (alpha={_res['conformal_alpha']})")
+            st.dataframe(_res["conformal_summary"])
+
+        st.download_button(
+            "Download HTML Report", _res["html"], file_name="model_report.html", mime="text/html")

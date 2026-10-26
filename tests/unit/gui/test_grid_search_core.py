@@ -60,6 +60,21 @@ def test_all_candidates_failing_raises(two_kinds_of_output):
         select_per_target([("broken", broken, {})], X, Y)
 
 
+@pytest.mark.parametrize("use_moe", [False, True])
+def test_on_progress_reports_every_step(two_kinds_of_output, use_moe):
+    X, Y = two_kinds_of_output
+    defs = [("dt", DecisionTreeRegressor, {"max_depth": [1, 2]}),
+            ("linear", LinearRegression, {})]
+    calls = []
+    select_per_target(defs, X, Y, moe=KNeighborsRegressor(5) if use_moe else None,
+                      on_progress=lambda done, total, label: calls.append((done, total, label)))
+    total = 3 + use_moe + 1  # three configs, optional MoE, final refit
+    assert [c[0] for c in calls] == list(range(total))
+    assert all(c[1] == total for c in calls)
+    assert calls[0][2] == "Fitting dt {'max_depth': 1}"
+    assert calls[-1][2].startswith("Refitting")
+
+
 def test_every_default_candidate_fits():
     # Regression: "mfs_lr" could never fit (its fit takes one (X, y) tuple).
     rng = np.random.default_rng(0)
