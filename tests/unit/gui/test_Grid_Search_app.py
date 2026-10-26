@@ -45,7 +45,8 @@ def test_app_selects_per_output_and_reports(csv_path):
     at = run_grid_search_app(csv_path, ["x0", "x1"], ["y_lin", "y_step"],
                              surrogate_defs=FAST_DEFS)
     assert not at.exception, at.exception
-    assert _best_models(at) == ["linear", "dt"]
+    # Picked on the validation split, not the test set: rf edges out dt on y_step.
+    assert _best_models(at) == ["linear", "rf"]
     metrics = at.dataframe[-2].value
     assert list(metrics.index) == ["y_lin", "y_step"]
     assert (metrics["r2"] > 0.9).all()
@@ -54,6 +55,30 @@ def test_app_selects_per_output_and_reports(csv_path):
     assert "dummy_metric" not in uq.index
     assert 0.0 <= uq["Empirical coverage of 95% Gaussian interval"] <= 1.0
     assert any(b.label == "Download HTML Report" for b in at.get("download_button"))
+
+
+def test_app_reports_progress(csv_path):
+    at = run_grid_search_app(csv_path, ["x0", "x1"], ["y_lin", "y_step"],
+                             surrogate_defs=FAST_DEFS)
+    assert not at.exception, at.exception
+    status = at.status[0]
+    assert status.state == "complete"
+    assert status.label.startswith("Grid search complete in")
+
+
+def test_app_results_survive_rerun(csv_path):
+    # Any widget interaction (e.g. the download button) reruns the script; the
+    # results used to vanish because they were only drawn on the submit run.
+    at = run_grid_search_app(csv_path, ["x0", "x1"], ["y_lin", "y_step"],
+                             checkboxes={"use_conformal": True},
+                             surrogate_defs=FAST_DEFS)
+    before = _best_models(at)
+    at.run()
+    assert not at.exception, at.exception
+    assert _best_models(at) == before
+    assert any("Conformal Prediction Summary" in m.value for m in at.markdown)
+    assert any(b.label == "Download HTML Report" for b in at.get("download_button"))
+    assert any("Showing the last run" in c.value for c in at.caption)
 
 
 def test_app_conformal_path_runs(csv_path):
