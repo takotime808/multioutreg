@@ -145,6 +145,8 @@ def upper_confidence_bound(mean, std, beta: float = 4.0, weights=None, minimize:
     With ``minimize=True`` this is the negated lower confidence bound, so that
     larger is still better.
     """
+    if beta < 0:
+        raise ValueError(f"beta must be >= 0, got {beta}.")
     mu, sigma = _scalarize(mean, std, weights)
     sign = -1.0 if minimize else 1.0
     return sign * mu + np.sqrt(beta) * sigma

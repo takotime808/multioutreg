@@ -30,19 +30,27 @@ class BaseSurrogate(ConformalMixin):
         return MultiOutputRegressor(estimator)
 
     def fit(self, X, Y):
-        self.model.fit(X, Y)
+        # MultiOutputRegressor needs a 2-D target; a 1-D Y is one output.
+        Y = np.asarray(Y)
+        self.model.fit(X, Y.reshape(-1, 1) if Y.ndim == 1 else Y)
         return self
 
     def predict(self, X, return_std=False):
         if return_std:
             # MultiOutputRegressor.predict does not accept return_std, so query
             # each per-output estimator directly. Estimators without native
-            # uncertainty fall back to zero std for that output.
+            # uncertainty fall back to zero std for that output. Some estimators
+            # (e.g. LightGBM) swallow unknown kwargs and return only the mean, so
+            # accept the result only when it is a (mean, std) tuple.
             preds, stds = [], []
             for est in self.model.estimators_:
                 try:
-                    p, s = est.predict(X, return_std=True)
+                    out = est.predict(X, return_std=True)
                 except TypeError:
+                    out = None
+                if isinstance(out, tuple) and len(out) == 2:
+                    p, s = out
+                else:
                     p = est.predict(X)
                     s = np.zeros_like(p)
                 preds.append(np.asarray(p).ravel())

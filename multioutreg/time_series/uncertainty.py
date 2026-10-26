@@ -42,8 +42,9 @@ def conformal_interval_from_residuals(
 ) -> Tuple[np.ndarray, np.ndarray]:
     """Compute split-conformal prediction intervals from calibration residuals.
 
-    Uses the standard split-conformal quantile:
-        q = ceil((n + 1) * (1 - alpha)) / n -th quantile of |residuals|
+    Uses the standard split-conformal quantile: the k-th smallest |residual|
+    with k = ceil((n + 1) * (1 - alpha)). When k > n (too few residuals for
+    the requested coverage) the interval is unbounded, with a warning.
 
     Parameters
     ----------
@@ -58,10 +59,10 @@ def conformal_interval_from_residuals(
     -------
     lower, upper : np.ndarray, each shape (horizon,)
     """
-    abs_resid = np.abs(np.asarray(cal_residuals, dtype=float))
-    n = len(abs_resid)
-    level = min(1.0, np.ceil((n + 1) * (1.0 - alpha)) / n)
-    q_hat = float(np.quantile(abs_resid, level))
+    from multioutreg.conformal.base import BaseConformalPredictor
+
+    abs_resid = np.abs(np.asarray(cal_residuals, dtype=float)).ravel()
+    q_hat = BaseConformalPredictor._conformal_quantile(abs_resid, alpha)
     point_pred = np.asarray(point_pred, dtype=float)
     return point_pred - q_hat, point_pred + q_hat
 
@@ -103,8 +104,8 @@ def propagate_uncertainty_recursive(
     for h in range(1, horizon + 1):
         if abs(rho) < 1e-9:
             var_h = sigma1 ** 2 * h
-        elif abs(rho - 1.0) < 1e-9:
-            # Random walk limit
+        elif abs(abs(rho) - 1.0) < 1e-9:
+            # |rho| = 1: every rho^(2k) is 1 (random-walk limit for either sign)
             var_h = sigma1 ** 2 * h
         else:
             var_h = sigma1 ** 2 * (1.0 - rho ** (2 * h)) / (1.0 - rho ** 2)

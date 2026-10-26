@@ -112,6 +112,7 @@ class CVPlusConformalPredictor(BaseConformalPredictor):
         """
         if not hasattr(self, "model_"):
             raise AttributeError("Predictor not fitted. Call fit() first.")
+        self._check_alpha(alpha)
 
         fold_preds = np.stack([
             self._ensure_2d(m.predict(X)) for m in self.fold_models_

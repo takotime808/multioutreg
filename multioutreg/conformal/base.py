@@ -75,6 +75,12 @@ class BaseConformalPredictor(ABC):
         return y
 
     @staticmethod
+    def _check_alpha(alpha: float) -> None:
+        """Raise unless the miscoverage level is strictly between 0 and 1."""
+        if not 0 < alpha < 1:
+            raise ValueError(f"alpha must be in (0, 1), got {alpha}")
+
+    @staticmethod
     def _conformal_quantile(scores: np.ndarray, alpha: float) -> float:
         """Compute the conformal quantile with finite-sample correction.
 
@@ -83,6 +89,7 @@ class BaseConformalPredictor(ABC):
         k > n there are too few calibration points for that guarantee, and the
         only valid interval is unbounded, so ``inf`` is returned.
         """
+        BaseConformalPredictor._check_alpha(alpha)
         scores = np.asarray(scores, dtype=float)
         n = len(scores)
         k = int(np.ceil((n + 1) * (1 - alpha)))

@@ -54,7 +54,19 @@ def walk_forward_splits(
     ------
     train_idx : np.ndarray of int
     test_idx  : np.ndarray of int
+
+    Raises
+    ------
+    ValueError
+        If ``step`` or ``horizon`` is below 1 (``step <= 0`` would never end).
     """
+    # Validate eagerly: a generator body would only run on the first next().
+    if step < 1 or horizon < 1:
+        raise ValueError(f"step and horizon must be >= 1, got step={step}, horizon={horizon}")
+    return _walk_forward(n, min_train, horizon, step, max_train)
+
+
+def _walk_forward(n, min_train, horizon, step, max_train):
     t = min_train
     while t + horizon <= n:
         if max_train is not None:
@@ -237,7 +249,8 @@ class TimeSeriesSplitWrapper:
     Parameters
     ----------
     n_splits : int, default 5
-        Approximate number of folds (used to compute ``step``).
+        Number of folds: the last ``n_splits`` walk-forward windows (fewer
+        when the series is too short for that many).
     min_train : int, default 30
     horizon : int, default 1
     """
@@ -248,7 +261,22 @@ class TimeSeriesSplitWrapper:
         self.horizon = horizon
 
     def get_n_splits(self, X=None, y=None, groups=None) -> int:
-        return self.n_splits
+        """``n_splits``, or the exact number of folds ``split(X)`` yields when X is given."""
+        if X is None:
+            return self.n_splits
+        return len(self._folds(len(X)))
+
+    def _folds(self, n: int) -> list:
+        available = n - self.min_train - self.horizon
+        step = max(1, available // self.n_splits)
+        folds = list(walk_forward_splits(
+            n=n,
+            min_train=self.min_train,
+            horizon=self.horizon,
+            step=step,
+        ))
+        # The step rounding can leave one extra window; drop the earliest.
+        return folds[-self.n_splits:] if folds else folds
 
     def split(
         self,
@@ -257,15 +285,7 @@ class TimeSeriesSplitWrapper:
         groups: Any = None,
     ) -> Iterator[Tuple[np.ndarray, np.ndarray]]:
         """Yield (train_idx, test_idx) arrays compatible with sklearn."""
-        n = len(X)
-        available = n - self.min_train - self.horizon
-        step = max(1, available // self.n_splits)
-        return walk_forward_splits(
-            n=n,
-            min_train=self.min_train,
-            horizon=self.horizon,
-            step=step,
-        )
+        return iter(self._folds(len(X)))
 
 
 # ------------------------------------------------------------------
