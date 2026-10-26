@@ -33,6 +33,7 @@ Notes about project.
    tutorials/cost_savings
    tutorials/imputation_methods
    tutorials/active_learning_missing_inputs
+   tutorials/using_the_exported_model
 
 .. toctree::
    :maxdepth: 2
