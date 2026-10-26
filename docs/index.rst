@@ -31,6 +31,7 @@ Notes about project.
    tutorials/multi_fidelity_surrogates
    tutorials/active_learning_benchmarks
    tutorials/cost_savings
+   tutorials/imputation_methods
 
 .. toctree::
    :maxdepth: 2
