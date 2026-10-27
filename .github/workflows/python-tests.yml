@@ -59,14 +59,15 @@ jobs:
       run: coverage-badge -o coverage.svg -f
 
     # Fallback badge if any earlier step failed (install or tests), so docs still build.
-    # always() is needed: without it this is skipped when the install step fails.
+    # !cancelled() is needed: without it this is skipped when the install step fails.
+    # Not always(): a cancelled run (e.g. superseded push) must not publish "failing".
     - name: Generate fallback badge when tests fail
-      if: ${{ always() && matrix.python-version == env.BADGE_PYTHON && steps.tests.outcome != 'success' }}
+      if: ${{ !cancelled() && matrix.python-version == env.BADGE_PYTHON && steps.tests.outcome != 'success' }}
       run: curl -sSL "https://img.shields.io/badge/coverage-failing-red.svg" -o coverage.svg
 
     # htmlcov/ may be missing if the install step failed; the badge is always there.
     - name: Upload coverage artifact
-      if: ${{ always() && matrix.python-version == env.BADGE_PYTHON }}
+      if: ${{ !cancelled() && matrix.python-version == env.BADGE_PYTHON }}
       uses: actions/upload-artifact@v4
       with:
         name: coverage-badge
