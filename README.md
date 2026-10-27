@@ -143,7 +143,7 @@ multioutreg ts-pipeline --help
 ## ☁️ Deployments ##
 
 🖥️ The deployed Streamlit application is available at:  
-[https://multioutreg-report.streamlit.app/](https://multioutreg-report.streamlit.app/)
+[https://multioutreg.streamlit.app/](https://multioutreg.streamlit.app/)
 
 📂 Example input files for testing the app can be found here:  
 [./docs/_static/example_datasets/](./docs/_static/example_datasets/)
