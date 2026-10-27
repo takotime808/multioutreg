@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+from multioutreg.utils.thread_limits import limit_native_threads
+
 # ------------------------------------------------------------------
 # Pure logic functions (extracted for testability — no Streamlit calls)
 # ------------------------------------------------------------------
@@ -277,6 +279,8 @@ SURROGATE_DISPLAY_NAMES = {
 # Streamlit UI
 # ------------------------------------------------------------------
 
+# Keep BLAS/OpenMP within the host's CPU quota (no-op without one).
+limit_native_threads()
 st.set_page_config(page_title="Time-Series Forecasting", layout="wide")
 st.title("Time-Series Forecasting")
 

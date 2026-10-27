@@ -78,6 +78,7 @@ from multioutreg.surrogates.kpls_smt import _KPLSEstimator, _KPLS_AVAILABLE
 from multioutreg.surrogates.lightgbm_sklearn import _LIGHTGBM_AVAILABLE, _LGBMRegressor
 from multioutreg.surrogates.xgboost_sklearn import _XGBOOST_AVAILABLE, _XGBRegressor
 from multioutreg.surrogates.catboost_sklearn import _CATBOOST_AVAILABLE, _CatBoostRegressor
+from multioutreg.utils.thread_limits import catboost_thread_kwargs
 from multioutreg.surrogates.sparse_gp_gpytorch import _GPYTORCH_AVAILABLE, _SGPREstimator
 from sklearn.linear_model import ElasticNet as _ElasticNet, Lasso as _Lasso, QuantileRegressor as _QuantileRegressor
 from multioutreg.surrogates.forest_uncertainty import estimate_noise_variance
@@ -368,6 +369,11 @@ def _scaled_factory(cls, **fixed):
     return lambda **params: _scaled(cls(**fixed, **params))
 
 
+def _threaded_catboost(**params):
+    """CatBoost with ``thread_count`` capped to the container's CPU quota."""
+    return _CatBoostRegressor(**catboost_thread_kwargs(), **params)
+
+
 def default_surrogate_defs() -> List[Tuple[str, Any, dict]]:
     """``(name, factory, param_grid)`` for every candidate the grid search tries.
 
@@ -410,7 +416,7 @@ def default_surrogate_defs() -> List[Tuple[str, Any, dict]]:
     if _XGBOOST_AVAILABLE:
         defs.append(("xgb", _XGBRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "max_depth": [4, 6]}))
     if _CATBOOST_AVAILABLE:
-        defs.append(("catboost", _CatBoostRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "depth": [4, 6], "verbose": [False]}))
+        defs.append(("catboost", _threaded_catboost, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "depth": [4, 6], "verbose": [False]}))
     if _GPYTORCH_AVAILABLE:
         defs.append(("sgpr", _SGPREstimator, {"n_inducing": [30, 50], "learning_rate": [0.05, 0.1]}))
     return defs

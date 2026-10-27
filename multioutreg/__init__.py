@@ -1,5 +1,13 @@
 # Copyright (c) 2025 takotime808
 
+# Load LightGBM's OpenMP runtime (libomp) before anything imports torch, which
+# ships its own (libiomp5). With torch loaded first, fitting LightGBM segfaults
+# on macOS. Optional dependency, so a missing or broken install is ignored.
+try:
+    import lightgbm  # noqa: F401
+except Exception:
+    pass
+
 from importlib import import_module
 
 from multioutreg.model_selection import AutoDetectMultiOutputRegressor

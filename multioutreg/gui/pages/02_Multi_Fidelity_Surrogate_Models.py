@@ -30,6 +30,7 @@ from sklearn.base import BaseEstimator, RegressorMixin
 from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
 from sklearn.model_selection import train_test_split
 
+from multioutreg.utils.thread_limits import limit_native_threads
 from multioutreg.model_selection.auto_detect import describe_cv, resolve_cv
 from multioutreg.figures.conformal_plots import (
     plot_conformal_intervals_ordered,
@@ -945,6 +946,8 @@ def _select_best_candidate(
 # Streamlit App
 # ---------------------------------------------------------------------------
 
+# Keep BLAS/OpenMP within the host's CPU quota (no-op without one).
+limit_native_threads()
 st.title("Multi-Fidelity Surrogate Model")
 st.info(
     "Upload a single CSV that contains a **fidelity level column** alongside your input "

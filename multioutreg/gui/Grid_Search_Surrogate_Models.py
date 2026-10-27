@@ -36,6 +36,7 @@ from jinja2 import Template
 #     generate_pca_variance_plot,
 # )
 
+from multioutreg.utils.thread_limits import limit_native_threads, max_threads
 from multioutreg.figures.error_histograms import generate_error_histogram
 from multioutreg.figures.shap_multioutput import generate_shap_plot
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
@@ -169,6 +170,8 @@ class _PairPlotSlot:
 
 
 # ----- Streamlit App -----
+# Keep BLAS/OpenMP within the host's CPU quota (no-op without one).
+limit_native_threads()
 st.title("Multi-Output Surrogate Model Grid Search & Report Generator")
 
 uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
@@ -360,6 +363,8 @@ if data_source:
 
         skip_expensive = st.checkbox(
             "Skip computationally expensive models",
+            # On by default where CPU is capped (e.g. the hosted demo).
+            value=max_threads() is not None,
             help=(
                 "Excludes Gaussian Process (O(N³)), NGBoost, and the Conformal "
                 "Prediction Network from the grid search. Recommended for large "
