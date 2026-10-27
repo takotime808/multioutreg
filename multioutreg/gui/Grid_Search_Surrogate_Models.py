@@ -8,6 +8,7 @@ matplotlib.use("Agg")  # plotting helpers call plt.show(); never open desktop wi
 import streamlit as st
 import pandas as pd
 import numpy as np
+import json
 import os
 import time
 from typing import Dict, List, Tuple, Union, Any
@@ -35,6 +36,7 @@ from jinja2 import Template
 #     generate_pca_variance_plot,
 # )
 
+from multioutreg.utils.thread_limits import limit_native_threads, max_threads
 from multioutreg.figures.error_histograms import generate_error_histogram
 from multioutreg.figures.shap_multioutput import generate_shap_plot
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
@@ -77,11 +79,12 @@ from sklearn.linear_model import ElasticNet as _ElasticNet, Lasso as _Lasso, Qua
 from multioutreg.time_series.ts_suitability import check_ts_suitability
 
 # NOTE: NOT used...yet.
-from multioutreg.figures.doe_plots import make_doe_plot
+from multioutreg.figures.doe_plots import make_doe_plot, pair_plot_b64
 from multioutreg.figures.model_comparison import plot_surrogate_model_summary
 from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
 
 
+from multioutreg.gui.background import submit as submit_background, warm_up
 from multioutreg.gui.grid_search_core import (
     RandomForestWithUncertainty,
     ExtraTreesWithUncertainty,
@@ -89,14 +92,21 @@ from multioutreg.gui.grid_search_core import (
     KNeighborsRegressorWithUncertainty,
     BootstrapLinearRegression,
     PerTargetRegressorWithStd,
+    build_model_bundle,
+    build_model_pipeline,
     default_surrogate_defs,
     generate_html_report,
     select_per_target,
+    serialize_model_bundle,
 )
 
 
 SAMPLE_DATA_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), "data", "example_dataset_3_outputs.csv")
+SAMPLE_DESCRIPTION = (
+    "300 rows of synthetic data with 5 inputs (feature_0 to feature_4) "
+    "and 3 outputs (pressure, temperature, velocity)."
+)
 
 
 @st.cache_data(show_spinner=False)
@@ -104,7 +114,64 @@ def _load_csv(file) -> pd.DataFrame:
     return pd.read_csv(file)
 
 
+def _start_pair_plot(df: pd.DataFrame, source_id: Any, inputs: List[str], outputs: List[str]):
+    """Start drawing the pair plot in a worker process, unless it is already running."""
+    key = (source_id, tuple(inputs), tuple(outputs))
+    current = st.session_state.get("gs_pair_job")
+    if current is None or current[0] != key:
+        cols = list(dict.fromkeys(list(inputs) + list(outputs)))
+        job = submit_background("plots", pair_plot_b64, df[cols], list(inputs), list(outputs))
+        st.session_state["gs_pair_job"] = (key, job)
+
+
+class _PairPlotSlot:
+    """The page's pair-plot placeholder, filled once the background job finishes.
+
+    :meth:`refresh` is cheap to call often (e.g. on every progress tick): it
+    draws the image once, and while the job runs it updates a waiting message
+    once a second, which also gives Streamlit a chance to stop the run when the
+    user clicks something.
+    """
+
+    def __init__(self):
+        self._slot = st.empty()
+        self._shown = False
+        self._start = time.perf_counter()
+        self._secs = -1
+
+    def refresh(self) -> bool:
+        """Show the plot if it's ready; return True when there is nothing left to wait for."""
+        current = st.session_state.get("gs_pair_job")
+        if current is None or self._shown:
+            return True
+        job = current[1]
+        if not job.done():
+            secs = int(time.perf_counter() - self._start)
+            if secs != self._secs:
+                self._slot.info(f"Drawing a pair plot of the data in the background ({secs}s)…")
+                self._secs = secs
+            return False
+        result = job.result()
+        with self._slot.container():
+            with st.expander("Pair plot of the data", expanded=True):
+                st.caption(
+                    "Every input and output against every other: scatter above the "
+                    "diagonal, 2-D histogram below it, each column's distribution on the "
+                    "diagonal. Input labels are blue, output labels orange. The top-left "
+                    "block shows how the inputs were sampled; the rows below it show which "
+                    "inputs drive each output."
+                )
+                if result["img_b64"]:
+                    st.image(f"data:image/png;base64,{result['img_b64']}", width="stretch")
+                if result["note"]:
+                    st.caption(result["note"])
+        self._shown = True
+        return True
+
+
 # ----- Streamlit App -----
+# Keep BLAS/OpenMP within the host's CPU quota (no-op without one).
+limit_native_threads()
 st.title("Multi-Output Surrogate Model Grid Search & Report Generator")
 
 uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
@@ -113,31 +180,62 @@ uploaded_file = st.file_uploader("Upload a CSV file", type=["csv"])
 # an upload always takes precedence over it.
 if uploaded_file is not None:
     st.session_state["gs_use_sample"] = False
-elif st.button(
-    "Try with sample data",
-    help="300 rows of synthetic data: 5 input features and 3 outputs "
-         "(pressure, temperature, velocity).",
-):
-    st.session_state["gs_use_sample"] = True
+elif not st.session_state.get("gs_use_sample", False):
+    # A callback runs before the script, so the button is gone on the very run
+    # that loads the sample.
+    st.button(
+        "Try with sample data",
+        help="300 rows of synthetic data: 5 input features and 3 outputs "
+             "(pressure, temperature, velocity).",
+        on_click=st.session_state.update, kwargs={"gs_use_sample": True},
+    )
 _using_sample = uploaded_file is None and st.session_state.get("gs_use_sample", False)
 data_source = SAMPLE_DATA_PATH if _using_sample else uploaded_file
 
 if data_source:
     df = _load_csv(data_source)
-    if _using_sample:
-        st.info(
-            "Using the sample dataset. Inputs and outputs are pre-selected below; "
-            "click **Run Grid Search** to try it (about a minute with all models), "
-            "or upload a CSV to use your own data."
-        )
-    st.write("## Preview of Data:", df.head())
+    # Start the report workers now: their imports (UMAP, SHAP) then overlap
+    # with choosing columns and fitting models.
+    warm_up("report")
 
     # Results live in session_state so they survive reruns (e.g. clicking the
     # download button); drop them when a different file is uploaded.
     _source_id = getattr(data_source, "file_id", data_source)
     if st.session_state.get("gs_source_id") != _source_id:
-        st.session_state.pop("gs_results", None)
+        for _k in ("gs_results", "gs_pair_job"):
+            st.session_state.pop(_k, None)
         st.session_state["gs_source_id"] = _source_id
+
+    _sample_outputs = [c for c in df.columns if c.startswith("output_")] if _using_sample else []
+    _sample_inputs = [c for c in df.columns if c not in _sample_outputs] if _using_sample else []
+    if _using_sample:
+        st.info(
+            f"Using the sample dataset: {SAMPLE_DESCRIPTION} Each output is driven mainly by one input (pressure by "
+            "feature_0, temperature by feature_2, velocity by feature_4), which the pair plot "
+            "below makes visible. Inputs and outputs are pre-selected; click "
+            "**Run Grid Search** to try it (about a minute with all models, or tick "
+            "*Skip computationally expensive models* under Advanced Settings for a quicker "
+            "run), or upload a CSV to use your own data."
+        )
+        _sc1, _sc2 = st.columns(2)
+        with _sc1:
+            with open(SAMPLE_DATA_PATH, "rb") as _fh:
+                st.download_button(
+                    "Download sample CSV", _fh.read(),
+                    file_name=os.path.basename(SAMPLE_DATA_PATH), mime="text/csv",
+                    help="See the expected format: one row per sample, one column per "
+                         "input or output.",
+                )
+        with _sc2:
+            st.button(
+                "Stop using sample data",
+                on_click=st.session_state.update, kwargs={"gs_use_sample": False},
+            )
+        # The columns are already known, so draw the pair plot right away.
+        _start_pair_plot(df, _source_id, _sample_inputs, _sample_outputs)
+
+    st.write("## Preview of Data:", df.head())
+    st.caption(f"{len(df):,} rows × {df.shape[1]} columns")
 
     # Missing value detection and per-column imputation choices
     _missing_summary = detect_missing(df)
@@ -265,6 +363,8 @@ if data_source:
 
         skip_expensive = st.checkbox(
             "Skip computationally expensive models",
+            # On by default where CPU is capped (e.g. the hosted demo).
+            value=max_threads() is not None,
             help=(
                 "Excludes Gaussian Process (O(N³)), NGBoost, and the Conformal "
                 "Prediction Network from the grid search. Recommended for large "
@@ -294,15 +394,20 @@ if data_source:
             )
 
     with st.form("column_selection"):
-        _sample_outputs = [c for c in df.columns if c.startswith("output_")] if _using_sample else []
-        _sample_inputs = [c for c in df.columns if c not in _sample_outputs] if _using_sample else []
         input_cols = st.multiselect(
             "Select input features", options=df.columns, default=_sample_inputs)
         output_cols = st.multiselect(
             "Select output targets", options=df.columns, default=_sample_outputs)
 
-        description = st.text_area("Optional: Project description")
+        description = st.text_area(
+            "Optional: Project description",
+            value=f"Sample dataset: {SAMPLE_DESCRIPTION}" if _using_sample else "",
+        )
         submitted = st.form_submit_button("Run Grid Search")
+
+    # Below the form, so the Run button stays near the top. Filled by the
+    # pair-plot job when it finishes, which may be in the middle of a run.
+    _pair_slot = _PairPlotSlot()
 
     # if submitted:
     #     use_pca = st.session_state.use_pca
@@ -314,6 +419,9 @@ if data_source:
         st.warning("Select at least one input feature and one output target.")
 
     if submitted and input_cols and output_cols:
+        # Drawn in a worker process while the models fit; shown as soon as it's ready.
+        _start_pair_plot(df, _source_id, list(input_cols), list(output_cols))
+        _pair_slot.refresh()
         _notes: List[Tuple[str, str]] = []  # (st method, message), shown with the results
         _t_start = time.perf_counter()
         _status = st.status("Running grid search…", expanded=True)
@@ -369,7 +477,7 @@ if data_source:
         X = df[input_cols].values
         y = df[output_cols].values
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
-        X_train, X_test = impute_train_test(X_train, X_test)
+        X_train, X_test, _imputer = impute_train_test(X_train, X_test, return_imputer=True)
         feature_names = list(input_cols)
 
         # # Show seaborn PairGrid plot with KDE in lower triangle
@@ -389,11 +497,20 @@ if data_source:
         pca_n_components = None
         feature_names_pca = None
         kaiser_rule_suggestion = None
+        _pca_transformer = None
+        _pca_settings = None
         if use_pca:
             _status.write("Applying PCA to input features…")
             _pca = fit_input_pca(X_train, X_test, pca_method, n_components, pca_threshold)
             X_train, X_test = _pca.X_train, _pca.X_test
             pca_n_components = _pca.n_components
+            _pca_transformer = _pca.transformer
+            _pca_settings = {
+                "standardize": True,
+                "method": pca_method,
+                "n_components": pca_n_components,
+                "threshold": pca_threshold if pca_method == "Explained variance threshold" else None,
+            }
             feature_names_pca = _pca.feature_names
             pca_variance_plot = generate_pca_variance_plot(
                 _pca.preview_pca,
@@ -477,6 +594,7 @@ if data_source:
 
         def _on_progress(done: int, total: int, label: str) -> None:
             _prog.progress(done / total, text=f"{label} ({done + 1}/{total})")
+            _pair_slot.refresh()
 
         try:
             result = select_per_target(
@@ -533,6 +651,7 @@ if data_source:
         # Conformal prediction
         conformal_intervals = None
         conf_df = None
+        q = None
         if use_conformal:
             from multioutreg.conformal.base import BaseConformalPredictor
             from multioutreg.conformal.metrics import conformal_summary as _conf_summary
@@ -556,8 +675,11 @@ if data_source:
                 output_names=list(output_cols),
             )
 
-        _status.write("Building the HTML report (prediction, SHAP, PDP and UMAP plots)…")
-        html = generate_html_report(
+        # The report's plots (prediction, SHAP, PDP, UMAP, ...) are drawn in a
+        # worker process, so the results below show without waiting for them.
+        _report_job = submit_background(
+            "report",
+            generate_html_report,
             model_type=type(best_model).__name__,
             fidelity_levels=[],
             output_names=output_cols,
@@ -590,8 +712,35 @@ if data_source:
             calibration_residuals=residuals if use_conformal else None,
             imputation_summary=_imputation_summary,
         )
+
+        # The exported pipeline replays every step the app applied to the inputs
+        # (column order, KNN imputation, standardise + PCA) before the model.
+        _bundle = build_model_bundle(
+            build_model_pipeline(best_model, list(input_cols), _imputer, _pca_transformer),
+            list(input_cols),
+            list(output_cols),
+            best_combo,
+            pca_settings=_pca_settings,
+            conformal_alpha=conformal_alpha_sel if use_conformal else None,
+            conformal_quantiles=q,
+            data_split={
+                "test_size": 0.25,
+                "random_state": 0,
+                "calibration_fraction": 0.2 if use_conformal else None,
+                "validation_fraction": 0.2,
+            },
+        )
+        try:
+            _model_bytes = serialize_model_bundle(_bundle)
+        except Exception as exc:  # e.g. a surrogate holding an unpicklable handle
+            _model_bytes = None
+            _notes.append(("warning", f"The trained model could not be serialized: {exc}"))
+
         _status.update(
-            label=f"Grid search complete in {time.perf_counter() - _t_start:.1f}s",
+            label=(
+                f"Grid search complete in {time.perf_counter() - _t_start:.1f}s; "
+                "the HTML report is being built in the background"
+            ),
             state="complete",
             expanded=False,
         )
@@ -607,7 +756,11 @@ if data_source:
             "uncertainty_metrics": pd.Series(uncertainty_metrics, name="value").to_frame(),
             "conformal_alpha": conformal_alpha_sel if use_conformal else None,
             "conformal_summary": conf_df,
-            "html": html,
+            "html": None,
+            "report_job": _report_job,
+            "report_error": None,
+            "model_bytes": _model_bytes,
+            "model_config": json.dumps(_bundle["config"], indent=2),
         }
 
     _res = st.session_state.get("gs_results")
@@ -641,5 +794,78 @@ if data_source:
             st.write(f"### Conformal Prediction Summary (alpha={_res['conformal_alpha']})")
             st.dataframe(_res["conformal_summary"])
 
+        _report_slot = st.empty()
+
+        st.write("### Export the Model")
+        if _res.get("model_bytes") is not None:
+            st.download_button(
+                "Download Trained Model (.joblib)",
+                _res["model_bytes"],
+                file_name="multioutreg_grid_search_model.joblib",
+                mime="application/octet-stream",
+                key="download_model",
+            )
         st.download_button(
-            "Download HTML Report", _res["html"], file_name="model_report.html", mime="text/html")
+            "Download Model Config (.json)",
+            _res["model_config"],
+            file_name="multioutreg_grid_search_config.json",
+            mime="application/json",
+            key="download_model_config",
+        )
+        st.caption(
+            "The .joblib file holds a fitted scikit-learn Pipeline with every step the "
+            "app applied (input columns, KNN imputer, standardise + PCA if used, the "
+            "selected model per output) plus the conformal quantiles. It contains the "
+            "training inputs (the imputer and GP-type models keep them), needs the same "
+            "multioutreg/scikit-learn versions to load (listed in the config) and, like "
+            "any pickle, should only be loaded from a source you trust. The .json "
+            "config describes the run so the model can be rebuilt and refitted."
+        )
+        with st.expander("Using the downloaded model", expanded=False):
+            st.code(
+                "import joblib\n"
+                "import pandas as pd\n\n"
+                'bundle = joblib.load("multioutreg_grid_search_model.joblib")\n'
+                'pipe = bundle["pipeline"]\n'
+                'df = pd.read_csv("new_data.csv")  # must contain bundle["input_columns"]\n'
+                "mean, std = pipe.predict(df, return_std=True)\n"
+                'pred = pd.DataFrame(mean, columns=bundle["output_columns"])\n\n'
+                "# Conformal intervals, if they were computed\n"
+                'if bundle["conformal"]:\n'
+                '    q = pd.Series(bundle["conformal"]["quantiles"])\n'
+                "    lower, upper = pred - q, pred + q\n",
+                language="python",
+            )
+
+    # Wait for the background jobs at the very end, so everything above is
+    # already on screen. The loop updates the page every second, which lets a
+    # click interrupt it; the jobs keep running and the next run picks them up.
+    _wait_start = time.perf_counter()
+    _shown_secs = -1
+    while True:
+        _pair_ready = _pair_slot.refresh()
+        _report_job = _res.get("report_job") if _res is not None else None
+        _report_ready = _report_job is None or _report_job.done()
+        if _pair_ready and _report_ready:
+            break
+        _secs = int(time.perf_counter() - _wait_start)
+        if _report_job is not None and not _report_ready and _secs != _shown_secs:
+            _report_slot.info(
+                f"Building the HTML report in the background ({_secs}s)… "
+                "The results above are final; the download appears here when it's ready.")
+            _shown_secs = _secs
+        time.sleep(0.25)
+
+    if _res is not None:
+        if _res.get("report_job") is not None:
+            try:
+                _res["html"] = _res["report_job"].result()
+            except Exception as exc:
+                _res["report_error"] = f"Could not build the HTML report: {exc}"
+            _res["report_job"] = None
+        if _res["html"] is not None:
+            _report_slot.download_button(
+                "Download HTML Report", _res["html"], file_name="model_report.html",
+                mime="text/html")
+        elif _res["report_error"]:
+            _report_slot.error(_res["report_error"])

@@ -5,9 +5,13 @@
 Kept free of Streamlit calls so it can be imported without running the app.
 """
 
+import io
+import json
+import os
+
+import joblib
 import pandas as pd
 import numpy as np
-import os
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional, Tuple, Union, Any
 from scipy.stats import norm
@@ -21,8 +25,8 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import LinearRegression, BayesianRidge
 from sklearn.svm import SVR
 from sklearn.tree import DecisionTreeRegressor
-from sklearn.base import BaseEstimator, RegressorMixin, clone
-from sklearn.pipeline import make_pipeline
+from sklearn.base import BaseEstimator, RegressorMixin, TransformerMixin, clone
+from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import StandardScaler
 from jinja2 import Template
 
@@ -74,6 +78,7 @@ from multioutreg.surrogates.kpls_smt import _KPLSEstimator, _KPLS_AVAILABLE
 from multioutreg.surrogates.lightgbm_sklearn import _LIGHTGBM_AVAILABLE, _LGBMRegressor
 from multioutreg.surrogates.xgboost_sklearn import _XGBOOST_AVAILABLE, _XGBRegressor
 from multioutreg.surrogates.catboost_sklearn import _CATBOOST_AVAILABLE, _CatBoostRegressor
+from multioutreg.utils.thread_limits import catboost_thread_kwargs
 from multioutreg.surrogates.sparse_gp_gpytorch import _GPYTORCH_AVAILABLE, _SGPREstimator
 from sklearn.linear_model import ElasticNet as _ElasticNet, Lasso as _Lasso, QuantileRegressor as _QuantileRegressor
 from multioutreg.surrogates.forest_uncertainty import estimate_noise_variance
@@ -364,6 +369,11 @@ def _scaled_factory(cls, **fixed):
     return lambda **params: _scaled(cls(**fixed, **params))
 
 
+def _threaded_catboost(**params):
+    """CatBoost with ``thread_count`` capped to the container's CPU quota."""
+    return _CatBoostRegressor(**catboost_thread_kwargs(), **params)
+
+
 def default_surrogate_defs() -> List[Tuple[str, Any, dict]]:
     """``(name, factory, param_grid)`` for every candidate the grid search tries.
 
@@ -406,7 +416,7 @@ def default_surrogate_defs() -> List[Tuple[str, Any, dict]]:
     if _XGBOOST_AVAILABLE:
         defs.append(("xgb", _XGBRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "max_depth": [4, 6]}))
     if _CATBOOST_AVAILABLE:
-        defs.append(("catboost", _CatBoostRegressor, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "depth": [4, 6], "verbose": [False]}))
+        defs.append(("catboost", _threaded_catboost, {"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "depth": [4, 6], "verbose": [False]}))
     if _GPYTORCH_AVAILABLE:
         defs.append(("sgpr", _SGPREstimator, {"n_inducing": [30, 50], "learning_rate": [0.05, 0.1]}))
     return defs
@@ -502,6 +512,124 @@ def select_per_target(
         val_mse=[float(m) for m in best_mse],
         n_failed=n_failed,
     )
+
+
+# ----- Exportable model -----
+class InputColumnSelector(BaseEstimator, TransformerMixin):
+    """First pipeline step: pick the training input columns, in training order.
+
+    Accepts a DataFrame (extra columns are ignored, missing ones raise) or an
+    array whose columns are already in ``columns`` order.
+    """
+
+    def __init__(self, columns):
+        self.columns = list(columns)
+
+    def fit(self, X=None, y=None) -> "InputColumnSelector":
+        self.columns_ = list(self.columns)
+        return self
+
+    def transform(self, X) -> np.ndarray:
+        if isinstance(X, pd.DataFrame):
+            missing = [c for c in self.columns_ if c not in X.columns]
+            if missing:
+                raise KeyError(f"Input is missing column(s) {missing}")
+            return X[self.columns_].to_numpy(dtype=float)
+        X = np.asarray(X, dtype=float)
+        if X.ndim != 2 or X.shape[1] != len(self.columns_):
+            raise ValueError(
+                f"Expected {len(self.columns_)} input columns {self.columns_}, "
+                f"got array of shape {X.shape}")
+        return X
+
+
+def build_model_pipeline(
+    model: Any,
+    input_cols: List[str],
+    imputer: Any = None,
+    input_transformer: Any = None,
+) -> Pipeline:
+    """Chain the already-fitted preprocessing steps and ``model`` into one Pipeline.
+
+    Steps, in the order the app applies them: ``columns``
+    (:class:`InputColumnSelector`), ``imputer`` (KNN, if given), ``pca``
+    (standardise + PCA, if given) and ``model``. Nothing is refitted.
+    ``pipeline.predict(X, return_std=True)`` is passed through to the model.
+    """
+    steps = [("columns", InputColumnSelector(input_cols).fit())]
+    if imputer is not None:
+        steps.append(("imputer", imputer))
+    if input_transformer is not None:
+        steps.append(("pca", input_transformer))
+    steps.append(("model", model))
+    return Pipeline(steps)
+
+
+def _package_versions() -> Dict[str, str]:
+    import sys
+    from importlib.metadata import PackageNotFoundError, version
+
+    versions = {"python": sys.version.split()[0]}
+    for pkg in ("multioutreg", "scikit-learn", "numpy", "joblib"):
+        try:
+            versions[pkg] = version(pkg)
+        except PackageNotFoundError:
+            versions[pkg] = "unknown"
+    return versions
+
+
+def build_model_bundle(
+    pipeline: Pipeline,
+    input_cols: List[str],
+    output_cols: List[str],
+    combo: List[dict],
+    pca_settings: Optional[dict] = None,
+    conformal_alpha: Optional[float] = None,
+    conformal_quantiles: Optional[np.ndarray] = None,
+    data_split: Optional[dict] = None,
+) -> Dict[str, Any]:
+    """Everything needed to reuse (``pipeline``) or rebuild (``config``) the model.
+
+    ``config`` is JSON-safe (non-JSON values such as GP kernels become their
+    ``repr``) and is what the app offers as the config download. Conformal
+    intervals are ``pipeline.predict(X) -/+ conformal["quantiles"][output]``.
+    """
+    conformal = None
+    if conformal_alpha is not None and conformal_quantiles is not None:
+        conformal = {
+            "alpha": float(conformal_alpha),
+            "quantiles": {name: float(q) for name, q in zip(output_cols, conformal_quantiles)},
+        }
+    imputer = pipeline.named_steps.get("imputer")
+    config = {
+        "input_columns": list(input_cols),
+        "output_columns": list(output_cols),
+        "preprocessing": {
+            "imputer": None if imputer is None else {
+                "type": type(imputer).__name__, "n_neighbors": imputer.n_neighbors},
+            "pca": pca_settings,
+        },
+        "models": combo,
+        "conformal": conformal,
+        "data_split": data_split,
+        "versions": _package_versions(),
+    }
+    config = json.loads(json.dumps(config, default=repr))
+    return {
+        "pipeline": pipeline,
+        "input_columns": list(input_cols),
+        "output_columns": list(output_cols),
+        "conformal": conformal,
+        "config": config,
+        "versions": config["versions"],
+    }
+
+
+def serialize_model_bundle(bundle: Dict[str, Any]) -> bytes:
+    """``joblib.dump`` the bundle into bytes, e.g. for a download button."""
+    buf = io.BytesIO()
+    joblib.dump(bundle, buf, compress=3)
+    return buf.getvalue()
 
 
 # ----- HTML Report Generation Wrapper -----

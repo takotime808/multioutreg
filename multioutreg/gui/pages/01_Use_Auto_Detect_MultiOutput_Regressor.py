@@ -33,6 +33,7 @@ except ImportError:
 #     generate_pca_variance_plot,
 # )
 
+from multioutreg.utils.thread_limits import limit_native_threads, max_threads
 from multioutreg.figures.error_histograms import generate_error_histogram
 from multioutreg.figures.shap_multioutput import (
     generate_shap_plot,
@@ -125,6 +126,8 @@ def _regret_status_line(label: str, value: Optional[float], bound: Optional[floa
 
 
 # ----- Streamlit App -----
+# Keep BLAS/OpenMP within the host's CPU quota (no-op without one).
+limit_native_threads()
 st.title("Auto-Detected Multi-Output Surrogate Model Grid Search & Report Generator")
 
 uploaded_file = st.file_uploader(
@@ -282,6 +285,8 @@ if uploaded_file:
 
         skip_expensive = st.checkbox(
             "Skip computationally expensive models",
+            # On by default where CPU is capped (e.g. the hosted demo).
+            value=max_threads() is not None,
             help=(
                 "Excludes Gaussian Process (O(N³)), Neural Network/MLP, and NGBoost "
                 "from the grid search. Recommended for large datasets or quick exploratory runs."

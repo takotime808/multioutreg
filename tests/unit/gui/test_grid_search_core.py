@@ -1,7 +1,13 @@
 # Copyright (c) 2026 takotime808
 
+import io
+import json
+
+import joblib
 import numpy as np
+import pandas as pd
 import pytest
+from sklearn.gaussian_process.kernels import RBF
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import ParameterGrid
 from sklearn.neighbors import KNeighborsRegressor
@@ -9,9 +15,14 @@ from sklearn.tree import DecisionTreeRegressor
 
 from multioutreg.gui.grid_search_core import (
     PerTargetRegressorWithStd,
+    build_model_bundle,
+    build_model_pipeline,
     default_surrogate_defs,
     select_per_target,
+    serialize_model_bundle,
 )
+from multioutreg.utils.imputation import impute_train_test
+from multioutreg.utils.pca_utils import fit_input_pca
 
 
 @pytest.fixture
@@ -97,3 +108,51 @@ def test_scale_sensitive_candidates_ignore_input_units(name):
     a = factory(**params).fit(X, y).predict(X)
     b = factory(**params).fit(X_mm, y).predict(X_mm)
     np.testing.assert_allclose(a, b, rtol=1e-4, atol=1e-4)
+
+
+def test_model_pipeline_replays_app_preprocessing(two_kinds_of_output):
+    X, Y = two_kinds_of_output
+    X = np.column_stack([X, X[:, 0] + X[:, 1]])
+    X[::17, 1] = np.nan
+    X_tr, X_te, Y_tr = X[:150], X[150:], Y[:150]
+    # Same steps, in the same order, as the app.
+    X_tr_i, X_te_i, imputer = impute_train_test(X_tr, X_te, return_imputer=True)
+    pca = fit_input_pca(X_tr_i, X_te_i, "Manual", 2)
+    model = select_per_target(
+        [("linear", LinearRegression, {}), ("dt", DecisionTreeRegressor, {"max_depth": [3]})],
+        pca.X_train, Y_tr).model
+    expected = model.predict(pca.X_test)
+
+    cols = ["a", "b", "c"]
+    pipe = build_model_pipeline(model, cols, imputer, pca.transformer)
+    assert [name for name, _ in pipe.steps] == ["columns", "imputer", "pca", "model"]
+    # A DataFrame with shuffled and extra columns is reordered by name.
+    df = pd.DataFrame(X_te, columns=cols)[["c", "a", "b"]].assign(extra=1.0)
+    np.testing.assert_allclose(pipe.predict(df), expected)
+    mean, std = pipe.predict(X_te, return_std=True)
+    np.testing.assert_allclose(mean, expected)
+    assert std.shape == expected.shape
+    with pytest.raises(KeyError):
+        pipe.predict(df.drop(columns="b"))
+
+    bundle = build_model_bundle(
+        pipe, cols, ["y0", "y1"], [{"model": "linear"}, {"model": "dt", "max_depth": 3}],
+        pca_settings={"method": "Manual", "n_components": 2},
+        conformal_alpha=0.1, conformal_quantiles=np.array([0.5, 1.5]))
+    loaded = joblib.load(io.BytesIO(serialize_model_bundle(bundle)))
+    np.testing.assert_allclose(loaded["pipeline"].predict(df), expected)
+    assert loaded["conformal"] == {"alpha": 0.1, "quantiles": {"y0": 0.5, "y1": 1.5}}
+    config = loaded["config"]
+    assert json.loads(json.dumps(config)) == config
+    assert config["preprocessing"]["imputer"] == {"type": "KNNImputer", "n_neighbors": 5}
+    assert config["preprocessing"]["pca"]["n_components"] == 2
+    assert config["versions"]["scikit-learn"]
+
+
+def test_model_bundle_config_is_json_safe_with_kernel_params():
+    pipe = build_model_pipeline(LinearRegression().fit([[0.0], [1.0]], [0.0, 1.0]), ["x"])
+    assert [name for name, _ in pipe.steps] == ["columns", "model"]
+    bundle = build_model_bundle(pipe, ["x"], ["y"], [{"model": "gpr", "kernel": RBF(2.0)}])
+    assert bundle["config"]["models"][0]["kernel"] == repr(RBF(2.0))
+    assert bundle["config"]["preprocessing"] == {"imputer": None, "pca": None}
+    assert bundle["conformal"] is None

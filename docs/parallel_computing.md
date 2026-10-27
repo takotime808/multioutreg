@@ -53,7 +53,7 @@ Other Streamlit behaviour that affects runtime:
 | The whole script reruns on every widget interaction | A download click or expander toggle can rebuild results that were already computed | `st.session_state` for results, `st.cache_data` / `st.cache_resource` for pure functions and fitted models |
 | One Python process serves all sessions | Two users running a grid search at once share the same 2 cores and 2.7 GB | Cap `n_jobs` per session; refuse or queue oversized jobs |
 | Container CPU count is not the host CPU count | `os.cpu_count()` can report the host's cores, far more than 2 | Size pools with `joblib.cpu_count()` (which respects cgroup quotas) or an explicit setting, never `os.cpu_count()` or `n_jobs=-1` |
-| No background workers | Long jobs block the session until they finish | Progress bars now. A job queue on separate compute later (see [Distributed Options](#distributed-options)) |
+| No background workers | Long jobs block the session until they finish | Progress bars. The grid search page draws its pair plot and HTML report in one-worker process pools (`gui/background.py`, see [Improving the GUI](gui_ux_roadmap.md)); model fitting still blocks. A job queue on separate compute later (see [Distributed Options](#distributed-options)) |
 
 ## Current State
 

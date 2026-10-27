@@ -15,7 +15,7 @@ multi-fidelity page.
 | 0 | Remove the duplicate pipeline run on the grid search page | Done (#43) |
 | 1 | Keep results on screen across reruns | Done (#43) |
 | 2 | Show progress during a run | Done (#43) |
-| 3 | Let people try the app without their own data | Sample data done (#45); input checks open |
+| 3 | Let people try the app without their own data | Sample data done (#45), walkthrough and background pair plot done; input checks open |
 | 4 | Show results in the app, not only in the downloaded report | Open |
 | 5 | Navigation and page structure | Open |
 | 6 | Engagement features | Open; hosted demo already exists |
@@ -57,6 +57,42 @@ button also works from a pip install. Inputs and outputs are pre-selected, so
 one click on **Run Grid Search** runs it. A run with all default models takes
 about 70 seconds and reaches R² of 0.98 or higher on every output. An upload
 always replaces the sample.
+
+### 3b. Sample data walkthrough and background plots (`sample-data-experience`)
+
+With the sample loaded, the page now:
+
+- says what the data is and what to look for (each output is driven mainly by
+  one input), offers **Download sample CSV** to show the expected format, a
+  **Stop using sample data** button, and a prefilled project description;
+- draws a **pair plot** of the selected inputs and outputs, right away for the
+  sample (its columns are known) and on **Run Grid Search** for an upload. It
+  is the "fast" grid from [Pair Plots in Reports](pair_plot_report.md):
+  scatter / 2-D histogram / histogram, blue input labels, orange output labels,
+  at most 1,000 rows and 10 variables (then outputs vs inputs only, then
+  skipped with a note). See `multioutreg.figures.doe_plots.pair_plot_b64`.
+
+Slow plots no longer hold up the run. `multioutreg/gui/background.py` runs them
+in worker processes (`spawn`, one worker per pool):
+
+| Job | Pool | Started | Shown |
+|---|---|---|---|
+| Pair plot (about 7 s for the sample's 8 variables on a 2014 laptop) | `plots` | Sample load, or Run | As soon as it is ready, including mid-run (the progress callback checks it) |
+| HTML report (prediction, SHAP, PDP, UMAP, ... plots) | `report` | After the test metrics | Metrics and tables show at once; the download button appears when the report is done |
+
+The `report` pool imports the report modules (UMAP takes up to a minute) when
+its worker starts, and the page starts it as soon as data is loaded, so that
+cost overlaps with choosing columns. The page waits for unfinished jobs only at
+the end of the script, updating a message every second, so a click still
+interrupts it; the jobs keep running and the next rerun picks them up. A job
+whose arguments cannot be pickled (or whose pool dies) runs inline instead.
+
+Processes rather than threads, because pyplot's "current figure" is global
+(`safe_plot_b64` saves whatever figure is current) and plotting holds the GIL.
+Each worker costs memory (see [Parallelization](parallel_computing.md)), which
+is why each pool has a single worker. Set `MOR_BACKGROUND_JOBS=0` to run
+everything inline, e.g. on a host with very little memory; the test suite does
+this in `tests/conftest.py`.
 
 ### 7. Stray top-level packages in the wheel (`fix-wheel-packages`)
 
