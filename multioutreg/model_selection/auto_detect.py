@@ -75,6 +75,7 @@ from multioutreg.surrogates.kpls_smt import _KPLSEstimator, _KPLS_AVAILABLE
 from multioutreg.surrogates.lightgbm_sklearn import _LIGHTGBM_AVAILABLE, _LGBMRegressor
 from multioutreg.surrogates.xgboost_sklearn import _XGBOOST_AVAILABLE, _XGBRegressor
 from multioutreg.surrogates.catboost_sklearn import _CATBOOST_AVAILABLE, _CatBoostRegressor
+from multioutreg.utils.thread_limits import catboost_thread_kwargs
 from multioutreg.surrogates.sparse_gp_gpytorch import _GPYTORCH_AVAILABLE
 
 from sklearn.linear_model import (
@@ -657,7 +658,7 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
             surrogate_constructors.append(XGBoostSurrogate)
 
         if _CATBOOST_AVAILABLE:
-            estimators.append(_CatBoostRegressor(n_estimators=200, verbose=False))
+            estimators.append(_CatBoostRegressor(n_estimators=200, verbose=False, **catboost_thread_kwargs()))
             param_spaces.append({"n_estimators": [100, 200], "learning_rate": [0.01, 0.05], "depth": [4, 6]})
             model_names.append("catboost")
             surrogate_constructors.append(CatBoostSurrogate)

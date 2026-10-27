@@ -6,6 +6,7 @@ import numpy as np
 from sklearn.multioutput import MultiOutputRegressor
 
 from multioutreg.surrogates.base_sklearn import BaseSurrogate
+from multioutreg.utils.thread_limits import catboost_thread_kwargs
 
 try:
     from catboost import CatBoostRegressor as _CatBoostRegressor
@@ -83,7 +84,7 @@ class CatBoostSurrogate(BaseSurrogate):
                 depth=depth,
                 loss_function=loss_function,
                 verbose=verbose,
-                **kwargs,
+                **{**catboost_thread_kwargs(), **kwargs},
             )
         )
 
@@ -164,7 +165,7 @@ class CatBoostSurrogate(BaseSurrogate):
                 depth=self.depth,
                 loss_function=loss_function,
                 verbose=self.verbose,
-                **self._extra_kwargs,
+                **{**catboost_thread_kwargs(), **self._extra_kwargs},
             )
         )
         return self
