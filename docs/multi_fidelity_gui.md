@@ -51,8 +51,9 @@ KNN-imputed, with the imputer fitted on each level's training split only.
    XGBoost, CatBoost and SparseGP when their packages are installed.
 3. **Selection.** Candidates are ranked by cross-validated MSE over the highest-fidelity training
    rows; lower-fidelity data is used in full in every fold. The CV scheme depends on the number
-   of highest-fidelity training rows (`select_cv_strategy`): leave-one-out for ≤ 20, repeated
-   5-fold (×3) for ≤ 100, shuffled 10-fold for ≤ 1000, shuffled 5-fold above that. The test set
+   of highest-fidelity training rows (`select_cv_strategy`): repeated k-fold (×3, with
+   k = max(2, min(5, n // 4))) for ≤ 100, shuffled 10-fold for ≤ 1000, shuffled 5-fold above
+   that. Leave-one-out is only used when asked for (`cv="loocv"`). The test set
    is not used.
 4. **Refit and evaluate.** The winner is refit on all training data and scored once on the
    highest-fidelity test set.
