@@ -37,6 +37,10 @@ Where to go next
    Install from source, plus the optional extras for XGBoost, LightGBM,
    Chronos forecasting and more.
 
+:doc:`how_it_works`
+   End-to-end flow diagram: data checks, the sample-size-dependent
+   evaluation plan, model selection, uncertainty and outputs.
+
 :doc:`quickstart`
    Fit a multi-output surrogate with uncertainty in Python, from the CLI, or
    in the GUI, using the bundled example datasets.
@@ -53,6 +57,7 @@ Where to go next
    :caption: Getting Started
 
    install
+   how_it_works
    quickstart
 
 .. toctree::
