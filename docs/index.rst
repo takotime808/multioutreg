@@ -1,63 +1,104 @@
-.. Test nbsphinx documentation master file, created by
-   sphinx-quickstart on Wed May 26 22:38:56 2021.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+multioutreg
+===========
 
-.. Rather than using: `.. include:: README.rst` and 
-   inside that file having `.. include:: ../README.md` 
-   just copy file and add to toctree, to preserve formatting.
+**Multi-output, multi-fidelity surrogate models with uncertainty quantification.**
 
-Notes about project.
+``multioutreg`` builds fast surrogate models of expensive simulations and
+experiments that have several outputs. It picks the best model for each output
+by cross-validation, predicts with calibrated uncertainty (including
+distribution-free conformal intervals), and writes the results to an HTML
+report. Active learning and multi-fidelity sampling choose which runs to do
+next, so the surrogate reaches a target accuracy with fewer of them.
 
-.. include:: _README_docs.md
-   :parser: myst_parser.sphinx_
+Use it from Python, from the ``multioutreg`` command line, or in the
+`hosted Streamlit app <https://multioutreg.streamlit.app/>`_ without
+installing anything.
 
+Fewer expensive runs
+--------------------
+
+Measured on benchmark problems with a known answer, at the same accuracy as
+the usual workflow:
+
+- **31x fewer simulator runs** to propagate input uncertainty: 320 runs on a
+  space-filling design instead of 10,000-sample Monte Carlo.
+- **35x fewer runs** to find an optimal design: Bayesian optimization needs 24
+  runs where random search needs 829.
+- **3.6x cheaper** surrogate training when a 10x cheaper low-fidelity model is
+  available, using multi-fidelity active learning.
+
+The full table, priced in money and compute time, is on
+:doc:`cost_savings`.
+
+Where to go next
+----------------
+
+:doc:`install`
+   Install from source, plus the optional extras for XGBoost, LightGBM,
+   Chronos forecasting and more.
+
+:doc:`quickstart`
+   Fit a multi-output surrogate with uncertainty in Python, from the CLI, or
+   in the GUI, using the bundled example datasets.
+
+:doc:`tutorials/multi_output_surrogates`
+   Start here for the tutorials: model selection, uncertainty, SHAP and
+   partial dependence, start to finish.
+
+:doc:`api`
+   Every module, class and function.
 
 .. toctree::
-   :caption: Installation and Usage
+   :hidden:
+   :caption: Getting Started
 
    install
-   usage
-   cost_savings
-   active_learning_savings
-   multi_fidelity_gui
+   quickstart
 
 .. toctree::
-   :maxdepth: 3
+   :hidden:
    :caption: Tutorials
 
    tutorials/multi_output_surrogates
-   tutorials/forecasting_with_chronos
    tutorials/multi_fidelity_surrogates
    tutorials/active_learning_benchmarks
    tutorials/cost_savings
    tutorials/imputation_methods
    tutorials/active_learning_missing_inputs
-   tutorials/using_the_exported_model
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Resources
+   :hidden:
+   :caption: Guides
 
+   multi_fidelity_gui
+   tutorials/using_the_exported_model
+   tutorials/forecasting_with_chronos
+
+.. toctree::
+   :hidden:
+   :caption: Why multioutreg
+
+   cost_savings
+   active_learning_savings
+
+.. toctree::
+   :hidden:
+   :caption: Reference
+
+   api
    integrated_surrogates
    surrogate_hyperparameters
-   surrogate_roadmap
-   gui_ux_roadmap
-   pair_plot_report
-   active_learning
    multiobjective_metrics
-   parallel_computing
    references
 
 .. toctree::
-   :maxdepth: 3
-   :caption: Usage
+   :hidden:
+   :caption: Development
 
-   api
-
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`modindex`
+   surrogate_roadmap
+   gui_ux_roadmap
+   docs_roadmap
+   active_learning
+   parallel_computing
+   pair_plot_report
+   AUDIT_CHECKLIST

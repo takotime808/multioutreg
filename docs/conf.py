@@ -16,8 +16,8 @@
 import os
 import sys
 
-sys.path.insert(0, os.path.abspath('../../multioutreg/multioutreg'))
-# sys.path.insert(0, os.path.abspath('../multioutreg'))
+# Repo root, so `multioutreg` is importable regardless of the checkout folder name.
+sys.path.insert(0, os.path.abspath('..'))
 
 
 # -- Project information -----------------------------------------------------
@@ -81,8 +81,7 @@ autoapi_options = [
     "show-module-summary",
 ]
 
-autoapi_dirs = ["../../multioutreg/multioutreg"]
-# autoapi_dirs = ["../multioutreg"]
+autoapi_dirs = ["../multioutreg"]
 
 # Used to avoid error for too many levels on relative imports
 # NOTE: to accomplish this, its better to use autoapi_ignore than exclude_patterns
@@ -187,39 +186,6 @@ html_show_sphinx = False
 html_css_files = ["css/active-learning-savings.css"]
 
 
-# ---------- MODIFY INCLUDED README IMAGE PATHS ----------
-from pathlib import Path
-import re
-
-def _patch_readme_for_docs():
-    docs_src = Path(__file__).parent
-    project_root = docs_src.parent  # repo root is one level above docs/
-    src_readme = project_root / "README.md"
-    dst_readme = docs_src / "_README_docs.md"
-
-    text = src_readme.read_text(encoding="utf-8")
-
-    # Rewrite common relative image/link patterns so they remain valid *from docs/source/*
-    # e.g. ![alt](images/foo.png) -> ../../images/foo.png
-    def _fix(match):
-        url = match.group(2)
-        # ignore absolute, URLs, anchors
-        if re.match(r"^([a-z]+:)?//", url) or url.startswith(("#", "/")):
-            return match.group(0)
-        fixed = f"../../{url.lstrip('./')}"
-        fixed = fixed.replace("../docs/", "")
-        # fixed = fixed.replace("docs/", "")
-        return f"{match.group(1)}{fixed}{match.group(3)}"
-
-    # Markdown images: ![alt](path)
-    text = re.sub(r"(!\[[^\]]*\]\()([^)]+)(\))", _fix, text)
-    # HTML <img src="...">
-    text = re.sub(r'(<img[^>]*\bsrc=")([^"]+)(")', _fix, text)
-
-    dst_readme.write_text(text, encoding="utf-8")
-
-def setup(app):
-    _patch_readme_for_docs()
 
 
 
