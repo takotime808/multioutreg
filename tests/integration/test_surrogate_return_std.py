@@ -16,6 +16,13 @@ from tests.unit.surrogates.test_all_surrogates_contract import (
     _skip_if_unavailable,
 )
 
+# Surrogates whose ``return_std=True`` mean comes from a different estimator than
+# the deterministic ``return_std=False`` pass, so the two only agree approximately.
+STOCHASTIC_MEAN = {
+    "BNNSurrogate": "averages MC-dropout passes",
+    "CatBoostSurrogate": "averages a virtual ensemble",
+}
+
 
 @pytest.fixture(scope="module")
 def data():
@@ -76,7 +83,12 @@ def test_predict_return_std_true(name, data, fitted):
     assert std.shape == (len(X_test), N_OUTPUTS)
     assert np.all(np.isfinite(std))
     assert np.all(std >= 0)
-    np.testing.assert_allclose(mean, model.predict(X_test, return_std=False), rtol=1e-6, atol=1e-8)
+    deterministic = model.predict(X_test, return_std=False)
+    if name in STOCHASTIC_MEAN:
+        # Same model, different estimator of its mean: stay within half a target std.
+        assert np.all(np.abs(mean - deterministic) <= 0.5 * Y.std(axis=0)), STOCHASTIC_MEAN[name]
+    else:
+        np.testing.assert_allclose(mean, deterministic, rtol=1e-6, atol=1e-8)
 
 
 @pytest.mark.parametrize("name", SURROGATE_NAMES)
