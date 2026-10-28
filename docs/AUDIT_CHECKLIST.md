@@ -375,7 +375,7 @@ n ≤ 100, 10-fold for n ≤ 1000 and 5-fold above that. The splits around it ar
 whatever n is. Thresholds marked *(convention)* have no literature source. References are at
 the end of this section. Time-series data is covered separately in Appendix A.
 
-- [ ] **S1. Fixed 25% test split.** `mor_cli/grid_search.py:69`,
+- [x] **S1. Fixed 25% test split.** `mor_cli/grid_search.py:69`,
   `mor_cli/grid_search_auto_detect.py:71`, `multioutreg/gui/Grid_Search_Surrogate_Models.py:479`,
   `multioutreg/gui/pages/01_Use_Auto_Detect_MultiOutput_Regressor.py:401`. A single train/test
   split gives an *unbiased* estimate at any n, whereas plain K-fold CV is strongly biased at
@@ -386,7 +386,14 @@ the end of this section. Time-series data is covered separately in Appendix A.
   *Fix:* when the test split would hold fewer than ~30 points *(convention)*, report nested CV
   (outer = the `resolve_cv` splitter, inner = model selection) instead of the holdout, and say
   so in the report. Keep the 25% holdout above that.
-- [ ] **S2. Conformal calibration takes a fixed 20% of the training split.**
+  *Done:* `plan_evaluation` (`multioutreg/model_selection/evaluation.py`) switches to nested CV
+  when `ceil(0.25·n) < 30`, i.e. n ≤ 116; `run_evaluation` carries it out with imputation, PCA,
+  pre-screening and selection all refitted inside each outer fold. Every row is then predicted
+  out-of-fold; the deployed model is refitted on all rows. The report's CV line says which
+  scheme ran. *Deviation:* the outer loop is one shuffled 5-fold run (one prediction per row
+  for the plots), not the `resolve_cv` splitter, and it is not repeated.
+  - [ ] Follow-up: repeated nested CV [Krstajic et al. 2014] for the headline metrics.
+- [x] **S2. Conformal calibration takes a fixed 20% of the training split.**
   `mor_cli/grid_search_auto_detect.py:110`, `Grid_Search_Surrogate_Models.py:581`, page 01 `:487`.
   Split conformal needs n_cal ≥ ⌈1/α⌉ − 1 calibration points for a finite interval
   (k = ⌈(n_cal+1)(1−α)⌉ ≤ n_cal). Below that, `conformal/base.py:96` returns `inf`. With
@@ -397,7 +404,15 @@ the end of this section. Time-series data is covered separately in Appendix A.
   ≈ 1 − α in practice. It is already implemented in `multioutreg/conformal/cv_plus.py`
   (`CVPlusConformalPredictor`) but not wired into the CLI or GUI. Report which method was used.
   If even n_train < ⌈1/α⌉ − 1, say in the UI that α is too small for this dataset.
-- [ ] **S3. LOO for n ≤ 20 in `select_cv_strategy`.** LOO is asymptotically inconsistent for
+  *Done:* `plan_evaluation` picks CV+ when the 20% calibration split would hold fewer than
+  `min_calibration_points(alpha)` rows, and adds a note (shown in the CLI and UI) when even
+  CV+ cannot give finite intervals. CV+ refits the whole selection on each fold, so its
+  guarantee holds for the selected model. `CVPlusConformalPredictor` now deep-copies
+  estimators without `get_params` (the vendored surrogates). Under nested CV, coverage is
+  measured on the out-of-fold intervals. *Approximation:* the exported Grid Search bundle
+  still stores a fixed ±q per output; under CV+ that q is the conformal quantile of the
+  out-of-fold residuals, and `data_split["conformal_method"]` records it.
+- [x] **S3. LOO for n ≤ 20 in `select_cv_strategy`.** LOO is asymptotically inconsistent for
   model selection, and Shao's fix is a *larger* validation fraction [Shao 1993]. For model
   selection, 10-fold is recommended over more folds even when computation allows [Kohavi 1995].
   Selection should rest on repeated CV, not a single CV run [Krstajic et al. 2014]. Repeated
@@ -406,18 +421,29 @@ the end of this section. Time-series data is covered separately in Appendix A.
   *(convention: about 4+ points per fold and 10 repeats; Krstajic et al. used 50)*. Keep
   `cv="loocv"` as an explicit opt-in. Leave 10-fold (101–1000) and 5-fold (> 1000, for compute
   cost) as they are. Update the docstring and `describe_cv` text to cite the sources.
-- [ ] **S4. The GUI Grid Search picks models on one 20% validation split**
+  *Done* with **3 repeats, not 10**: nested CV (S1) refits the selection 6 times, and CV+ (S2)
+  another 6 per fit, so 10 repeats made small-n runs several times slower. LOO is opt-in via
+  `cv="loocv"`; the R²-on-LOO fallback in `resolve_cv("auto")` is gone because auto never
+  returns LOO.
+- [x] **S4. The GUI Grid Search picks models on one 20% validation split**
   (`multioutreg/gui/grid_search_core.py:461`, `val_fraction=0.2`). It does not use
   `resolve_cv`, so at small n the choice rests on a handful of points and differs from the
   auto-detect path. *Fix:* score configs with `resolve_cv(n)` folds, i.e. average validation
   MSE per output over the folds.
-- [ ] **S5.** `model_selection/screening.py:232` hard-codes `cv=3` for its R² screens; use
+  *Done:* `select_per_target(cv="auto")` scores every config (and the MoE candidate) by mean MSE
+  over `resolve_cv` folds; `val_fraction=0.2` keeps the old single split. `PerTargetGridSearch`
+  wraps it as an estimator so nested CV and CV+ can refit it. Costs 5–15× more fits than one split.
+- [x] **S5.** `model_selection/screening.py:232` hard-codes `cv=3` for its R² screens; use
   `resolve_cv` (R² falls back to repeated k-fold there already).
+  *Done:* `test_nonlinear_dependency(cv="auto")` resolves its folds by sample size.
 
 **Done when:** one helper (e.g. `plan_evaluation(n, alpha, scoring)` next to `resolve_cv`)
 returns the outer estimate (holdout or nested CV), the inner splitter and the conformal method.
 The CLI and every GUI page use it, and the report and `results` metadata say which scheme ran.
 Tests cover the boundaries (n = 20/21, 100/101; n_cal just below and at ⌈1/α⌉ − 1).
+*Status:* done; tests in `tests/unit/model_selection/test_evaluation_plan.py` and
+`test_cv_strategy.py` (holdout/nested boundary at n = 116/117, split/CV+ boundary, the exact
+⌈1/α⌉ − 1 finite-interval boundary).
 
 **References**
 
