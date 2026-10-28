@@ -156,3 +156,14 @@ def test_model_bundle_config_is_json_safe_with_kernel_params():
     assert bundle["config"]["models"][0]["kernel"] == repr(RBF(2.0))
     assert bundle["config"]["preprocessing"] == {"imputer": None, "pca": None}
     assert bundle["conformal"] is None
+
+
+def test_selection_is_cross_validated_by_default(two_kinds_of_output):
+    X, Y = two_kinds_of_output
+    defs = [("linear", LinearRegression, {})]
+    result = select_per_target(defs, X, Y)
+    assert result.cv_description == "10-Fold CV (shuffled)"
+    small = select_per_target(defs, X[:40], Y[:40])
+    assert small.cv_description == "Repeated 5-Fold CV (x3 repeats)"
+    legacy = select_per_target(defs, X, Y, val_fraction=0.2)
+    assert legacy.cv_description == "a single 20% validation split"

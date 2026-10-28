@@ -7,10 +7,10 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 from typing import Optional
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, root_mean_squared_error
 
 from multioutreg.model_selection import AutoDetectMultiOutputRegressor
+from multioutreg.model_selection.evaluation import plan_evaluation, run_evaluation
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
 from multioutreg.utils.pca_utils import fit_input_pca
 from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
@@ -68,9 +68,41 @@ def grid_search_auto_detect(
         }
     X = df[in_cols].values
     y = df[out_cols].values
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
-    if use_imputation:
-        X_train, X_test = impute_train_test(X_train, X_test)
+
+    # How to estimate performance and calibrate intervals depends on n:
+    # nested CV when a 25% test split would be tiny, CV+ when a 20%
+    # calibration split is too small for conformal_alpha (AUDIT S1, S2).
+    plan = plan_evaluation(len(X), alpha=conformal_alpha if conformal else None)
+    for note in plan.notes:
+        typer.echo(note)
+
+    def preprocess(X_tr, X_te):
+        # Imputation and PCA are fitted on the training rows only.
+        if use_imputation:
+            X_tr, X_te = impute_train_test(X_tr, X_te)
+        pca = None
+        if use_pca:
+            pca = fit_input_pca(X_tr, X_te, pca_method, n_components, pca_threshold)
+            X_tr, X_te = pca.X_train, pca.X_test
+        return X_tr, X_te, pca
+
+    def make_model():
+        model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
+        if use_moe:
+            from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
+            model.register_multi_output_candidates([
+                MixtureOfExpertsSurrogate(
+                    n_experts=moe_n_experts,
+                    gating_type=moe_gating_type,
+                    random_state=0,
+                )
+            ])
+        return model
+
+    result = run_evaluation(make_model, X, y, plan, preprocess, on_step=typer.echo)
+    y_test, best_pred, best_std = result.y_true, result.pred, result.std
+    X_train = result.X_fit
+    best_model = result.model
 
     pca_variance_plot = None
     pca_explained_variance = None
@@ -79,8 +111,7 @@ def grid_search_auto_detect(
     kaiser_rule_suggestion = None
 
     if use_pca:
-        _pca = fit_input_pca(X_train, X_test, pca_method, n_components, pca_threshold)
-        X_train, X_test = _pca.X_train, _pca.X_test
+        _pca = result.info
         pca_n_components = _pca.n_components
         feature_names_pca = _pca.feature_names
         pca_explained_variance = _pca.preview_pca.explained_variance_ratio_.tolist()
@@ -94,33 +125,11 @@ def grid_search_auto_detect(
             "(eigenvalues > 1 on standardized inputs)."
         )
 
-    model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
-    if use_moe:
-        from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
-        model.register_multi_output_candidates([
-            MixtureOfExpertsSurrogate(
-                n_experts=moe_n_experts,
-                gating_type=moe_gating_type,
-                random_state=0,
-            )
-        ])
-    # Conformal calibration must use data disjoint from both training and the
-    # test set used to report coverage, so hold out part of the training split.
-    if conformal:
-        X_train, X_cal, y_train, y_cal = train_test_split(
-            X_train, y_train, test_size=0.2, random_state=0
-        )
-
-    model.fit(X_train, y_train)
-    best_pred, best_std = model.predict(X_test, return_std=True)
-    best_model = model
-
     # Conformal prediction intervals
     conformal_summary_df = None
     conformal_intervals = None
     if conformal:
-        model.calibrate_conformal(X_cal, y_cal)
-        y_lower, y_upper = model.predict_interval(X_test, alpha=conformal_alpha)
+        y_lower, y_upper = result.lower, result.upper
         conformal_intervals = (y_lower, y_upper)
         from multioutreg.conformal.metrics import conformal_summary as _conformal_summary
         conformal_summary_df = _conformal_summary(
@@ -157,9 +166,10 @@ def grid_search_auto_detect(
         best_std=best_std,
         best_model=best_model,
         X_train=X_train,
-        n_train=X_train.shape[0],
-        n_test=X_test.shape[0],
-        cross_validation=f"Model selection: {best_model.cv_description_}",
+        n_train=result.n_train,
+        n_test=result.n_test,
+        cross_validation=(f"Model selection: {best_model.cv_description_}. "
+                          f"Performance estimate: {plan.describe()}"),
         seed=0,
         notes="Generated report.",
         pca_explained_variance=pca_explained_variance,

@@ -19,8 +19,10 @@ from multioutreg.model_selection.auto_detect import (
 
 
 @pytest.mark.parametrize("n, cls, n_splits", [
-    (1, LeaveOneOut, None),
-    (20, LeaveOneOut, None),
+    (3, RepeatedKFold, 2),
+    (8, RepeatedKFold, 2),
+    (12, RepeatedKFold, 3),
+    (20, RepeatedKFold, 5),
     (21, RepeatedKFold, 5),
     (100, RepeatedKFold, 5),
     (101, KFold, 10),
@@ -46,7 +48,7 @@ def test_select_cv_strategy_is_seeded():
 
 
 def test_resolve_cv_forms():
-    assert isinstance(resolve_cv("auto", 10), LeaveOneOut)
+    assert isinstance(resolve_cv("auto", 10), RepeatedKFold)
     assert isinstance(resolve_cv("auto", 50), RepeatedKFold)
     assert isinstance(resolve_cv("loocv", 5000), LeaveOneOut)
     int_cv = resolve_cv(4, 100)
@@ -60,13 +62,20 @@ def test_resolve_cv_rejects_unknown_string():
         resolve_cv("kfold", 100)
 
 
-def test_resolve_cv_avoids_loo_for_r2():
-    # R² is undefined on a single held-out row, so "auto" must not pick LOO.
-    with pytest.warns(UserWarning, match="leave-one-out"):
+def test_auto_never_uses_loo():
+    # LOO is inconsistent for model selection (Shao 1993); "auto" uses repeated
+    # k-fold with >= 4 rows per fold, so R² is defined on every fold too.
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
         cv = resolve_cv("auto", 12, scoring="r2")
     assert isinstance(cv, RepeatedKFold)
     X = np.zeros((12, 1))
-    assert min(len(te) for _, te in cv.split(X)) >= 2
+    assert min(len(te) for _, te in cv.split(X)) >= 4
+
+
+def test_loocv_is_still_available_but_not_for_r2():
+    assert isinstance(resolve_cv("loocv", 12), LeaveOneOut)
     with pytest.raises(ValueError, match="loocv"):
         resolve_cv("loocv", 12, scoring="r2")
 
@@ -100,7 +109,7 @@ def _model(cv="auto", scoring="neg_mean_squared_error"):
 
 
 @pytest.mark.parametrize("n, description, n_folds", [
-    (12, "Leave-One-Out CV", 12),
+    (12, "Repeated 3-Fold CV (x3 repeats)", 9),
     (60, "Repeated 5-Fold CV (x3 repeats)", 15),
     (300, "10-Fold CV (shuffled)", 10),
 ])
@@ -118,8 +127,7 @@ def test_fit_resolves_cv_from_training_size(n, description, n_folds):
 def test_fit_with_r2_scoring_on_tiny_data_is_finite():
     X, y = make_regression(n_samples=12, n_features=3, n_targets=1, noise=0.1,
                            random_state=0)
-    with pytest.warns(UserWarning, match="leave-one-out"):
-        model = _model(scoring="r2").fit(X, y)
+    model = _model(scoring="r2").fit(X, y)
     assert isinstance(model.cv_strategy_, RepeatedKFold)
     assert all(np.isfinite(v["mean"]) for v in model.selection_scores_[0].values())
 

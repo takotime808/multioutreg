@@ -2,6 +2,7 @@
 
 """CV+ (cross-validation+) conformal prediction (Barber et al., 2021)."""
 
+import copy
 import warnings
 from typing import List, Optional, Tuple, Union
 
@@ -11,6 +12,15 @@ from sklearn.model_selection import KFold
 
 from multioutreg.conformal.base import BaseConformalPredictor
 from multioutreg.conformal.utils import absolute_residual_score
+
+
+def _fresh_copy(estimator):
+    """sklearn clone, or a deep copy for estimators without ``get_params``
+    (the vendored surrogates); ``fit`` then overwrites any fitted state."""
+    try:
+        return clone(estimator)
+    except TypeError:
+        return copy.deepcopy(estimator)
 
 
 class CVPlusConformalPredictor(BaseConformalPredictor):
@@ -33,7 +43,7 @@ class CVPlusConformalPredictor(BaseConformalPredictor):
     Parameters
     ----------
     estimator : sklearn-compatible regressor
-        Any regressor with fit/predict. Will be cloned for each fold.
+        Any regressor with fit/predict. Cloned (or deep-copied) for each fold.
     n_folds : int
         Number of cross-validation folds (default 5).
     random_state : int, optional
@@ -73,7 +83,7 @@ class CVPlusConformalPredictor(BaseConformalPredictor):
         self.fold_ids_ = np.full(n_samples, -1, dtype=int)
 
         for k, (train_idx, val_idx) in enumerate(kf.split(X)):
-            model_k = clone(self.estimator)
+            model_k = _fresh_copy(self.estimator)
             if self._n_outputs == 1:
                 model_k.fit(X[train_idx], y[train_idx].ravel())
             else:
@@ -85,7 +95,7 @@ class CVPlusConformalPredictor(BaseConformalPredictor):
             self.fold_models_.append(model_k)
 
         # Final model on all data for point predictions
-        self.model_ = clone(self.estimator)
+        self.model_ = _fresh_copy(self.estimator)
         if self._n_outputs == 1:
             self.model_.fit(X, y.ravel())
         else:

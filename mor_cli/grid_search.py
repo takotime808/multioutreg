@@ -6,16 +6,15 @@ import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 from typing import Optional
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
 from multioutreg.utils.pca_utils import fit_input_pca
 from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
 from multioutreg.gui.grid_search_core import (
-    default_surrogate_defs,
+    PerTargetGridSearch,
     generate_html_report,
-    select_per_target,
 )
+from multioutreg.model_selection.evaluation import plan_evaluation, run_evaluation
 
 app = typer.Typer(help="Grid search surrogate models and generate a report")
 
@@ -66,9 +65,41 @@ def grid_search(
         }
     X = df[in_cols].values
     y = df[out_cols].values
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
-    if use_imputation:
-        X_train, X_test = impute_train_test(X_train, X_test)
+
+    # Nested CV when a 25% test split would be tiny (AUDIT S1).
+    plan = plan_evaluation(len(X))
+    for note in plan.notes:
+        typer.echo(note)
+
+    def preprocess(X_tr, X_te):
+        # Imputation and PCA are fitted on the training rows only.
+        if use_imputation:
+            X_tr, X_te = impute_train_test(X_tr, X_te)
+        pca = None
+        if use_pca:
+            pca = fit_input_pca(X_tr, X_te, pca_method, n_components, pca_threshold)
+            X_tr, X_te = pca.X_train, pca.X_test
+        return X_tr, X_te, pca
+
+    moe_factory = None
+    if use_moe:
+        from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
+
+        def moe_factory():
+            return MixtureOfExpertsSurrogate(
+                n_experts=moe_n_experts, gating_type=moe_gating_type, random_state=0)
+
+    # Configs are selected by CV on the training rows; the evaluation rows
+    # (holdout, or the outer folds of nested CV) are only used for the metrics below.
+    result = run_evaluation(
+        lambda: PerTargetGridSearch(moe_factory=moe_factory), X, y, plan, preprocess,
+        on_step=typer.echo)
+    y_test, best_pred, best_std = result.y_true, result.pred, result.std
+    X_train = result.X_fit
+    search = result.model.result_
+    best_model = search.model
+    if search.moe_selected:
+        typer.echo("MoE outperformed all per-target models and was selected.")
 
     pca_variance_plot = None
     pca_explained_variance = None
@@ -77,8 +108,7 @@ def grid_search(
     kaiser_rule_suggestion = None
 
     if use_pca:
-        _pca = fit_input_pca(X_train, X_test, pca_method, n_components, pca_threshold)
-        X_train, X_test = _pca.X_train, _pca.X_test
+        _pca = result.info
         pca_n_components = _pca.n_components
         feature_names_pca = _pca.feature_names
         pca_explained_variance = _pca.preview_pca.explained_variance_ratio_.tolist()
@@ -91,20 +121,6 @@ def grid_search(
             f"Kaiser rule suggests **{_pca.kaiser_k}** components "
             "(eigenvalues > 1 on standardized inputs)."
         )
-
-    moe = None
-    if use_moe:
-        from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
-        moe = MixtureOfExpertsSurrogate(
-            n_experts=moe_n_experts, gating_type=moe_gating_type, random_state=0)
-
-    # Select on a validation split of the training data; the test set is only
-    # used for the metrics below.
-    result = select_per_target(default_surrogate_defs(), X_train, y_train, moe=moe)
-    best_model = result.model
-    best_pred, best_std = best_model.predict(X_test, return_std=True)
-    if result.moe_selected:
-        typer.echo("MoE outperformed all per-target models and was selected.")
 
     metrics = {}
     for i, name in enumerate(out_cols):
@@ -129,11 +145,11 @@ def grid_search(
         best_std=best_std,
         best_model=best_model,
         X_train=X_train,
-        n_train=X_train.shape[0],
-        n_test=X_test.shape[0],
+        n_train=result.n_train,
+        n_test=result.n_test,
         cross_validation=(
-            "Model selected per output on a 20% validation split of the training data; "
-            "metrics are on the held-out test set"
+            f"Model selected per output by {search.cv_description} on the training data. "
+            f"Performance estimate: {plan.describe()}"
         ),
         seed=0,
         notes="Generated report.",

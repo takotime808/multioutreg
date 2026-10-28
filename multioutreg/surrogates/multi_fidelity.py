@@ -4,10 +4,11 @@ from typing import Dict, Iterable, Tuple, Union
 
 import numpy as np
 
+from multioutreg.surrogates._clone import CloneMixin
 from multioutreg.surrogates.base_sklearn import BaseSurrogate
 
 
-class MultiFidelitySurrogate:
+class MultiFidelitySurrogate(CloneMixin):
     """Independent surrogate per fidelity level (no information transfer).
 
     Each level's model is fitted only on that level's data, and
@@ -33,10 +34,14 @@ class MultiFidelitySurrogate:
         fidelity_levels : Iterable[str]
             Ordered collection of fidelity level names.
         """
+        self.surrogate_cls = surrogate_cls
         self.fidelity_levels = list(fidelity_levels)
         self.models: Dict[str, BaseSurrogate] = {
             level: surrogate_cls() for level in self.fidelity_levels
         }
+
+    def get_params(self, deep: bool = True) -> dict:
+        return {"surrogate_cls": self.surrogate_cls, "fidelity_levels": self.fidelity_levels}
 
     def fit(
         self,
