@@ -392,6 +392,11 @@ the end of this section. Time-series data is covered separately in Appendix A.
   out-of-fold; the deployed model is refitted on all rows. The report's CV line says which
   scheme ran. *Deviation:* the outer loop is one shuffled 5-fold run (one prediction per row
   for the plots), not the `resolve_cv` splitter, and it is not repeated.
+  *Cost:* inside the outer folds, selection uses `cv="auto_single"` (the same folds without
+  repeats, about 3× cheaper); the final model keeps the full `cv`. Both CLI commands now skip
+  the slow candidates by default (`--skip-expensive`; `--all-models` restores them), as the
+  hosted app does. Before these two changes, a 38-row CLI run with every candidate took
+  21 min (grid search) and about 36 min (auto-detect).
   - [ ] Follow-up: repeated nested CV [Krstajic et al. 2014] for the headline metrics.
 - [x] **S2. Conformal calibration takes a fixed 20% of the training split.**
   `mor_cli/grid_search_auto_detect.py:110`, `Grid_Search_Surrogate_Models.py:581`, page 01 `:487`.
