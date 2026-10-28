@@ -156,3 +156,31 @@ def test_model_bundle_config_is_json_safe_with_kernel_params():
     assert bundle["config"]["models"][0]["kernel"] == repr(RBF(2.0))
     assert bundle["config"]["preprocessing"] == {"imputer": None, "pca": None}
     assert bundle["conformal"] is None
+
+
+def test_selection_is_cross_validated_by_default(two_kinds_of_output):
+    X, Y = two_kinds_of_output
+    defs = [("linear", LinearRegression, {})]
+    result = select_per_target(defs, X, Y)
+    assert result.cv_description == "10-Fold CV (shuffled)"
+    small = select_per_target(defs, X[:40], Y[:40])
+    assert small.cv_description == "Repeated 5-Fold CV (x3 repeats)"
+    legacy = select_per_target(defs, X, Y, val_fraction=0.2)
+    assert legacy.cv_description == "a single 20% validation split"
+
+
+def test_per_target_grid_search_estimator_refits_selection(two_kinds_of_output):
+    from multioutreg.conformal.cv_plus import CVPlusConformalPredictor
+    from multioutreg.gui.grid_search_core import PerTargetGridSearch
+
+    X, Y = two_kinds_of_output
+    defs = [("dt", DecisionTreeRegressor, {"max_depth": [1]}), ("linear", LinearRegression, {})]
+    search = PerTargetGridSearch(defs, moe_factory=lambda: KNeighborsRegressor(50))
+    pred, std = search.fit(X, Y).predict(X[:5], return_std=True)
+    assert pred.shape == std.shape == (5, 2)
+    assert [c["model"] for c in search.result_.combo] == ["linear", "dt"]
+    assert search.skipped_ == []
+    # CV+ can refit the whole selection per fold (it deep-copies the wrapper).
+    cvp = CVPlusConformalPredictor(search, n_folds=3, random_state=0).fit(X[:60], Y[:60])
+    lo, hi = cvp.predict_interval(X[60:65], alpha=0.2)
+    assert lo.shape == (5, 2) and np.all(lo < hi)

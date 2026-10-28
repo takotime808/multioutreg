@@ -1,0 +1,140 @@
+# Improving the Documentation
+
+A checklist for making these Sphinx docs easier to land on, navigate and learn
+from. Items are ordered by impact. See [Improving the GUI](gui_ux_roadmap.md)
+for the Streamlit app. The PyPI release decision is at the end.
+
+*Last reviewed 2026-10-28.*
+
+## Status at a Glance
+
+| # | Item | Status |
+|---|---|---|
+| 1 | Landing page instead of the README | Done |
+| 2 | A real Quickstart page | Done |
+| 3 | Separate user docs from internal planning | Done |
+| 4 | Clear toctree captions | Done |
+| 5 | A real multi-objective metrics page | Open |
+| 6 | Example reports gallery | Open |
+| 7 | Trim the API reference | Open |
+| 8 | Consistent tutorials | Open |
+| 9 | Furo theme options | Open |
+| 10 | Proper logo | Open |
+| 11 | `sphinx_design` and `intersphinx` | Open |
+| 12 | Repo-relative `autoapi_dirs` | Done |
+| 13 | Clean up `conf.py` | Open |
+
+## High Impact
+
+- [x] **1. Landing page instead of the README.** The home page included the
+  whole README: a placeholder line ("Notes about project."), GitHub workflow
+  badges, and links to `docs/...` and `examples/...` that break once rendered
+  (`_patch_readme_for_docs` only rewrote image paths). Replace it with a short
+  pitch, the measured savings, and links to Install, Quickstart, Tutorials,
+  API and the hosted app.
+- [x] **2. A real Quickstart page.** `usage.md` was six lines saying "run
+  `multioutreg`". The useful material lived in the README. Replace it with a
+  Quickstart covering the Python API, the CLI (every command, with an example)
+  and the GUI, each runnable against the bundled example datasets.
+- [x] **3. Separate user docs from internal planning.** "Resources" mixed
+  reference pages with roadmaps, plans and measurement reports that are
+  dated, cite PRs and branches, and describe unbuilt work. Regroup the
+  sidebar:
+
+  | Section | Pages |
+  |---|---|
+  | Getting Started | Install, Quickstart |
+  | Tutorials | The notebook tutorials |
+  | Guides | Multi-fidelity GUI, Chronos forecasting, using the exported model |
+  | Why multioutreg | Cost savings, active learning savings |
+  | Reference | API, integrated surrogates, hyperparameters, multi-objective metrics, references |
+  | Development | Roadmaps, plans, pair-plot study, audit checklist, this page |
+
+- [x] **4. Clear toctree captions.** "Installation and Usage" held the cost
+  savings and multi-fidelity GUI pages, and the API sat under a second
+  caption also called "Usage". Rename by the grouping above.
+
+## Medium Impact
+
+- [ ] **5. A real multi-objective metrics page.** `multiobjective_metrics.md`
+  only includes `multioutreg/metrics/README.md`. Give it a short example and
+  the hypervolume, scalarized and ε-indicator definitions in math (MathJax is
+  already enabled).
+- [ ] **6. Example reports gallery.** `docs/example_reports/*.html` and
+  `report_redesign/report_redesign.html` are not linked from any page. Add a
+  page with a screenshot and link per report, since reports are the main
+  output of the CLI and GUI.
+- [ ] **7. Trim the API reference.** autoapi documents `private-members`,
+  `special-members` and `undoc-members` across ~140 modules. Drop those
+  options and add a hand-written "Core API" page above the generated tree
+  listing the key classes (`AutoDetectMultiOutputRegressor`, `ActiveLearner`,
+  `MultiFidelityActiveLearner`, the conformal predictors, the surrogates).
+  Add a generated CLI reference (`sphinx-click` is installed in CI but not
+  enabled; the commands use `typer`, so check it works or use
+  `typer <module> utils docs`).
+- [ ] **8. Consistent tutorials.** `forecasting_with_chronos.md` is commands
+  with no output or explanation. Open every tutorial with what it covers, the
+  extras it needs and roughly how long it takes to run (the notebooks already
+  start with "What this tutorial covers"). Add a Binder or Colab badge via
+  `nbsphinx_prolog` (a draft is commented out in `conf.py`).
+
+## Polish
+
+- [ ] **9. Furo theme options.** Replace the announcement banner ("Live and
+  uncut...") with something useful, such as a link to the hosted app or the
+  latest release. Set `html_title`, `source_repository`, `source_branch` and
+  `source_directory` for "Edit this page" links, and add a GitHub footer icon.
+- [ ] **10. Proper logo.** `html_logo` is a favicon (`favicon.ico.png`).
+  Use a wordmark or SVG sized for the sidebar.
+- [ ] **11. `sphinx_design` and `intersphinx`.** Cards and grids for the
+  landing page, tabs for the Quickstart (Python / CLI / GUI), and
+  `sphinx.ext.intersphinx` so `numpy`, `scikit-learn` and `pandas` types link
+  out. Add the packages to the docs install step in `gh_pages.yml`.
+- [x] **12. Repo-relative `autoapi_dirs`.** It was
+  `../../multioutreg/multioutreg`, which only resolved when the checkout
+  folder was named `multioutreg` (and failed in worktrees). Now `../multioutreg`.
+- [ ] **13. Clean up `conf.py`.** About half of it is commented-out template
+  code (LaTeX, EPUB, nbsphinx prolog, alternative themes). The CI step also
+  installs packages the build does not use (`sphinx_rtd_theme`,
+  `sphinx-gallery`, `sphinxcontrib-bibtex`, `jupyter-black`).
+
+## Release Decision: Publish to PyPI?
+
+Today users install from a git checkout (`pip install -e .` or `uv sync`).
+The README has a commented-out PyPI badge, and `TODO.md` lists the release as
+an open question. As of 2026-10-28 the `multioutreg` name is free on PyPI.
+
+| | Pros | Cons |
+|---|---|---|
+| **Install** | `pip install multioutreg[xgboost]` replaces clone-and-sync, and extras become a menu users can pick from | Core install pulls `torch`, `chronos-forecasting`, `streamlit`, `shap` and `umap-learn` (several GB) even for users who only want a regressor |
+| **Reach** | Shows up in PyPI search, and other projects can depend on it with a version range | Gets attention before the API is stable (`0.0.1`, ~140 modules, many internal) |
+| **Versioning** | Tagged releases give users something to pin and cite, and give the docs a "latest release" link (item 9) | Every breaking change needs a version bump and changelog. There are no tags or `CHANGELOG` yet |
+| **Dependencies** | Forces trimming core deps into extras, which also speeds up CI and the Streamlit deploy | Strict pins (`numpy<2.0`, `pandas<2.2`, `pyarrow<26`) will clash with users' environments, and Intel macOS needs the `torch<2.3` caps that only `uv` applies |
+| **Name** | Claims `multioutreg` before someone else does | A placeholder upload is permanent. PyPI never lets a deleted version number be reused |
+| **Legal** | Shipping needs a real license, which settles how others may use the code | `LICENSE` says "All rights reserved", so a public wheel can't legally be used. A planned patent (`TODO.md`) is another reason to wait: get advice on disclosure before distributing more widely |
+| **Upkeep** | Releases can be automated with a tag-triggered GitHub Action and trusted publishing (no stored token) | Another workflow to maintain, plus user issues from platforms CI doesn't cover |
+
+**Decision (proposed): yes, but not yet.** Publish `0.1.0` once the blockers
+below are done. Until then, keep installing from git.
+
+Blockers, in order:
+
+- [ ] Settle the patent question and pick an open-source license
+  (MIT / BSD-3 / Apache-2.0). Apache-2.0 includes a patent grant, which
+  matters if the patent goes ahead.
+- [ ] Move `torch`, `chronos-forecasting`, `streamlit`, `shap` and
+  `umap-learn` out of core into extras (`[ts]`, `[gui]`, `[explain]`), and
+  check that `import multioutreg` works without them.
+- [ ] Loosen the `numpy`, `pandas` and `pyarrow` pins, or document why each
+  stays.
+- [ ] Fill in `authors`, `urls` and `classifiers` in `pyproject.toml`, and
+  start a `CHANGELOG.md`.
+- [ ] Add a release workflow: build the sdist and wheel, install the wheel in
+  a clean env, run the tests, publish to TestPyPI and then PyPI with trusted
+  publishing.
+- [ ] Update `install.md` and the README (uncomment the PyPI and license
+  badges).
+
+Optional now: reserve the name with a `0.0.0.dev0` placeholder that points to
+the GitHub repo. Only do this once the license is chosen, because the
+placeholder's metadata is public and permanent.

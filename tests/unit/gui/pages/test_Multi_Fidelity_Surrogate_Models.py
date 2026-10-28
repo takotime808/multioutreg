@@ -445,7 +445,7 @@ def test_select_best_candidate_cross_validates_hifi_rows_only():
 
 
 @pytest.mark.parametrize("n, expected", [
-    (12, "Leave-One-Out CV"),
+    (12, "Repeated 3-Fold CV (x3 repeats)"),
     (60, "Repeated 5-Fold CV (x3 repeats)"),
 ])
 def test_select_best_candidate_auto_cv_depends_on_hifi_size(n, expected):

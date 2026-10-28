@@ -2,6 +2,7 @@
 """Bounds, invariants and failure points of the time-series helpers."""
 
 import itertools
+import warnings
 
 import numpy as np
 import pandas as pd
@@ -235,6 +236,26 @@ def test_conformal_interval_from_residuals_rejects_bad_alpha():
 def test_conformal_interval_from_too_few_residuals_is_unbounded():
     lo, hi = conformal_interval_from_residuals(np.zeros(1), [1.0, 2.0, 3.0], alpha=0.1)
     assert np.isneginf(lo[0]) and np.isposinf(hi[0])
+
+
+@pytest.mark.parametrize("resid", [[1.0, np.nan, 3.0], [1.0, np.inf], [-np.inf]])
+def test_conformal_interval_from_residuals_rejects_non_finite_residuals(resid):
+    with pytest.raises(ValueError, match="finite"):
+        conformal_interval_from_residuals(np.zeros(1), resid)
+
+
+@pytest.mark.parametrize("n, alpha", [(4, 0.4), (9, 0.1), (2, 0.1), (19, 0.25)])
+def test_conformal_interval_from_residuals_exact_rank_coverage(n, alpha):
+    # Hold out each of n + 1 distinct scores in turn: the interval built from
+    # the other n must cover the held-out one in at least (1 - alpha) of cases.
+    scores = np.arange(n + 1, dtype=float)
+    covered = 0
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", UserWarning)  # k > n gives an unbounded interval
+        for i, score in enumerate(scores):
+            _, hi = conformal_interval_from_residuals(np.zeros(1), np.delete(scores, i), alpha)
+            covered += score <= hi[0]
+    assert covered / (n + 1) >= 1 - alpha
 
 
 def test_propagate_uncertainty_zero_horizon_is_empty():

@@ -956,7 +956,7 @@ st.info(
     "The page will **grid-search** over all combinations of multi-fidelity model type "
     "and base surrogate class, scoring each by cross-validation on the highest-fidelity "
     "training data (the CV scheme is chosen from the number of highest-fidelity rows: "
-    "leave-one-out for tiny datasets up to 5-fold for large ones). The best configuration "
+    "repeated k-fold for small datasets up to 5-fold for large ones). The best configuration "
     "is refit on all training data, evaluated once on the held-out test set, and "
     "reported.\n\n"
     "Example data can be downloaded from the **Other Dataset Examples** page."

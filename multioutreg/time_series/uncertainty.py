@@ -45,6 +45,7 @@ def conformal_interval_from_residuals(
     Uses the standard split-conformal quantile: the k-th smallest |residual|
     with k = ceil((n + 1) * (1 - alpha)). When k > n (too few residuals for
     the requested coverage) the interval is unbounded, with a warning.
+    Non-finite residuals raise ``ValueError``.
 
     Parameters
     ----------
@@ -62,6 +63,8 @@ def conformal_interval_from_residuals(
     from multioutreg.conformal.base import BaseConformalPredictor
 
     abs_resid = np.abs(np.asarray(cal_residuals, dtype=float)).ravel()
+    if not np.all(np.isfinite(abs_resid)):
+        raise ValueError("cal_residuals must contain only finite values")
     q_hat = BaseConformalPredictor._conformal_quantile(abs_resid, alpha)
     point_pred = np.asarray(point_pred, dtype=float)
     return point_pred - q_hat, point_pred + q_hat

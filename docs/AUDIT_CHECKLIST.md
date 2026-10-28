@@ -30,7 +30,8 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   ARIMA/SARIMA metrics are on the *differenced* series (in-sample one-step); LSTM on original
   scale (in-sample); `Ranker` averages ranks across these.
   *Fix:* hold out last H points, forecast every model on the original scale, then rank
-  (optionally Diebold–Mariano). **Open decision: holdout size H.** Full writeup:
+  (optionally Diebold–Mariano). **Decided:** sample-size-dependent rolling-origin evaluation
+  (all origins for small n, 10 for large n). Full writeup:
   [Appendix A](#appendix-a--item-6-time-series-model-ranking).
 
 ## High (wrong statistics / assumptions)
@@ -366,12 +367,115 @@ report. User guide: `docs/multi_fidelity_gui.md`.
 - [ ] **MF15.** `template.html` overview still says results cover "all model outputs and
   fidelities"; the multi-fidelity report evaluates only the highest fidelity.
 
+## Sample-size-dependent evaluation, non-time-series data (2026-10-28)
+
+The CV used to pick a model already depends on n: `select_cv_strategy`
+(`multioutreg/model_selection/auto_detect.py:92`) uses LOO for n ≤ 20, repeated 5-fold ×3 for
+n ≤ 100, 10-fold for n ≤ 1000 and 5-fold above that. The splits around it are fixed fractions
+whatever n is. Thresholds marked *(convention)* have no literature source. References are at
+the end of this section. Time-series data is covered separately in Appendix A.
+
+- [x] **S1. Fixed 25% test split.** `mor_cli/grid_search.py:69`,
+  `mor_cli/grid_search_auto_detect.py:71`, `multioutreg/gui/Grid_Search_Surrogate_Models.py:479`,
+  `multioutreg/gui/pages/01_Use_Auto_Detect_MultiOutput_Regressor.py:401`. A single train/test
+  split gives an *unbiased* estimate at any n, whereas plain K-fold CV is strongly biased at
+  small n [Vabalas et al. 2019]. So the holdout is not wrong, but at small n it is high-variance
+  (n = 20 → 5 test points) and keeps 25% of the data out of training. Nested CV also gives an
+  almost unbiased estimate and uses every point for testing [Varma & Simon 2006; Vabalas et al.
+  2019]. Repeat it to reduce variance [Krstajic et al. 2014].
+  *Fix:* when the test split would hold fewer than ~30 points *(convention)*, report nested CV
+  (outer = the `resolve_cv` splitter, inner = model selection) instead of the holdout, and say
+  so in the report. Keep the 25% holdout above that.
+  *Done:* `plan_evaluation` (`multioutreg/model_selection/evaluation.py`) switches to nested CV
+  when `ceil(0.25·n) < 30`, i.e. n ≤ 116; `run_evaluation` carries it out with imputation, PCA,
+  pre-screening and selection all refitted inside each outer fold. Every row is then predicted
+  out-of-fold; the deployed model is refitted on all rows. The report's CV line says which
+  scheme ran. *Deviation:* the outer loop is one shuffled 5-fold run (one prediction per row
+  for the plots), not the `resolve_cv` splitter, and it is not repeated.
+  *Cost:* inside the outer folds, selection uses `cv="auto_single"` (the same folds without
+  repeats, about 3× cheaper); the final model keeps the full `cv`. Both CLI commands now skip
+  the slow candidates by default (`--skip-expensive`; `--all-models` restores them), as the
+  hosted app does. Before these two changes, a 38-row CLI run with every candidate took
+  21 min (grid search) and about 36 min (auto-detect).
+  - [ ] Follow-up: repeated nested CV [Krstajic et al. 2014] for the headline metrics.
+- [x] **S2. Conformal calibration takes a fixed 20% of the training split.**
+  `mor_cli/grid_search_auto_detect.py:110`, `Grid_Search_Surrogate_Models.py:581`, page 01 `:487`.
+  Split conformal needs n_cal ≥ ⌈1/α⌉ − 1 calibration points for a finite interval
+  (k = ⌈(n_cal+1)(1−α)⌉ ≤ n_cal). Below that, `conformal/base.py:96` returns `inf`. With
+  20% of 75%, that means n ≳ 60 at α = 0.1 and n ≳ 127 at α = 0.05; smaller datasets show
+  unbounded intervals. *(This threshold is exact arithmetic, not a convention.)*
+  *Fix:* when n_cal < ⌈1/α⌉ − 1, use CV+ [Barber et al. 2021] instead. CV+ calibrates on every
+  training point via out-of-fold residuals, and its worst-case coverage is ≥ 1 − 2α, usually
+  ≈ 1 − α in practice. It is already implemented in `multioutreg/conformal/cv_plus.py`
+  (`CVPlusConformalPredictor`) but not wired into the CLI or GUI. Report which method was used.
+  If even n_train < ⌈1/α⌉ − 1, say in the UI that α is too small for this dataset.
+  *Done:* `plan_evaluation` picks CV+ when the 20% calibration split would hold fewer than
+  `min_calibration_points(alpha)` rows, and adds a note (shown in the CLI and UI) when even
+  CV+ cannot give finite intervals. CV+ refits the whole selection on each fold, so its
+  guarantee holds for the selected model. `CVPlusConformalPredictor` now deep-copies
+  estimators without `get_params` (the vendored surrogates). Under nested CV, coverage is
+  measured on the out-of-fold intervals. *Approximation:* the exported Grid Search bundle
+  still stores a fixed ±q per output; under CV+ that q is the conformal quantile of the
+  out-of-fold residuals, and `data_split["conformal_method"]` records it.
+- [x] **S3. LOO for n ≤ 20 in `select_cv_strategy`.** LOO is asymptotically inconsistent for
+  model selection, and Shao's fix is a *larger* validation fraction [Shao 1993]. For model
+  selection, 10-fold is recommended over more folds even when computation allows [Kohavi 1995].
+  Selection should rest on repeated CV, not a single CV run [Krstajic et al. 2014]. Repeated
+  10-fold also beat the .632+ bootstrap [Kim 2009].
+  *Fix:* for n ≤ 100 use `RepeatedKFold(n_splits=max(2, min(5, n // 4)), n_repeats=10)`
+  *(convention: about 4+ points per fold and 10 repeats; Krstajic et al. used 50)*. Keep
+  `cv="loocv"` as an explicit opt-in. Leave 10-fold (101–1000) and 5-fold (> 1000, for compute
+  cost) as they are. Update the docstring and `describe_cv` text to cite the sources.
+  *Done* with **3 repeats, not 10**: nested CV (S1) refits the selection 6 times, and CV+ (S2)
+  another 6 per fit, so 10 repeats made small-n runs several times slower. LOO is opt-in via
+  `cv="loocv"`; the R²-on-LOO fallback in `resolve_cv("auto")` is gone because auto never
+  returns LOO.
+- [x] **S4. The GUI Grid Search picks models on one 20% validation split**
+  (`multioutreg/gui/grid_search_core.py:461`, `val_fraction=0.2`). It does not use
+  `resolve_cv`, so at small n the choice rests on a handful of points and differs from the
+  auto-detect path. *Fix:* score configs with `resolve_cv(n)` folds, i.e. average validation
+  MSE per output over the folds.
+  *Done:* `select_per_target(cv="auto")` scores every config (and the MoE candidate) by mean MSE
+  over `resolve_cv` folds; `val_fraction=0.2` keeps the old single split. `PerTargetGridSearch`
+  wraps it as an estimator so nested CV and CV+ can refit it. Costs 5–15× more fits than one split.
+- [x] **S5.** `model_selection/screening.py:232` hard-codes `cv=3` for its R² screens; use
+  `resolve_cv` (R² falls back to repeated k-fold there already).
+  *Done:* `test_nonlinear_dependency(cv="auto")` resolves its folds by sample size.
+
+**Done when:** one helper (e.g. `plan_evaluation(n, alpha, scoring)` next to `resolve_cv`)
+returns the outer estimate (holdout or nested CV), the inner splitter and the conformal method.
+The CLI and every GUI page use it, and the report and `results` metadata say which scheme ran.
+Tests cover the boundaries (n = 20/21, 100/101; n_cal just below and at ⌈1/α⌉ − 1).
+*Status:* done; tests in `tests/unit/model_selection/test_evaluation_plan.py` and
+`test_cv_strategy.py` (holdout/nested boundary at n = 116/117, split/CV+ boundary, the exact
+⌈1/α⌉ − 1 finite-interval boundary).
+
+**References**
+
+- Barber, R. F., Candès, E. J., Ramdas, A., & Tibshirani, R. J. (2021). Predictive inference
+  with the jackknife+. *Annals of Statistics*, 49(1), 486–507. doi:10.1214/20-AOS1965
+- Kim, J.-H. (2009). Estimating classification error rate: repeated cross-validation, repeated
+  hold-out and bootstrap. *Computational Statistics & Data Analysis*, 53(11), 3735–3745.
+  doi:10.1016/j.csda.2009.04.009
+- Kohavi, R. (1995). A study of cross-validation and bootstrap for accuracy estimation and model
+  selection. *IJCAI*, 1137–1145.
+- Krstajic, D., Buturovic, L. J., Leahy, D. E., & Thomas, S. (2014). Cross-validation pitfalls
+  when selecting and assessing regression and classification models. *Journal of
+  Cheminformatics*, 6, 10. doi:10.1186/1758-2946-6-10
+- Shao, J. (1993). Linear model selection by cross-validation. *Journal of the American
+  Statistical Association*, 88(422), 486–494. doi:10.1080/01621459.1993.10476299
+- Vabalas, A., Gowen, E., Poliakoff, E., & Casson, A. J. (2019). Machine learning algorithm
+  validation with a limited sample size. *PLoS ONE*, 14(11), e0224365.
+  doi:10.1371/journal.pone.0224365
+- Varma, S., & Simon, R. (2006). Bias in error estimation when using cross-validation for model
+  selection. *BMC Bioinformatics*, 7, 91. doi:10.1186/1471-2105-7-91
+
 
 ---
 
 ## Appendix A — Item 6: time-series model ranking
 
-Status: **not started.** This is waiting on one decision, the holdout size H (see A.4).
+Status: **not started.** The evaluation scheme is decided (A.4).
 Everything below comes from reading the code. `ts-pipeline` has not been run on real data yet
 (see `TODO.md`), so the first step is to reproduce the problem (A.6, step 0).
 
@@ -445,29 +549,87 @@ You will hit these while doing item 6:
   `main.py:94-111` does save it. This is outside the scope of item 6, but it matters for A.5
   step 5.
 
-### A.4 The decision: holdout size H
+### A.4 The decision: sample-size-dependent rolling-origin evaluation
 
-All models are scored on the last H points of the series, so H decides what "best" means:
+**Decided (2026-10-28):** score models by rolling-origin evaluation. The number of origins
+depends on n: with few samples every possible origin is used (the time-series analogue of
+LOO-CV), and with many samples a fixed number of blocks is used (the analogue of k-fold).
+Each threshold below is either taken from the literature or marked as a convention.
 
-| Option | Pros | Cons |
-|--------|------|------|
-| **H = forecast horizon the user cares about** (new `--horizon`) | Scores exactly the task the model will be used for | Users must pick one; a small H (1–3) gives noisy scores |
-| **H = max(seasonal period, 10% of n)** | Works with no input; a full season means SARIMA is judged fairly | Arbitrary; may not match how the model is used |
-| **Fixed H (e.g. 10 or 14)** | Simple; matches the LSTM's current 10-step output | Takes too much from short series and too little from long ones |
-| **Rolling-origin backtest** (k folds of H) | Most reliable ranking; makes Diebold–Mariano meaningful | k× training cost; LSTM training already takes 200 epochs |
+**Why not ordinary LOO / shuffled k-fold.** Standard K-fold CV is valid only for purely
+autoregressive models with uncorrelated errors [Bergmeir, Hyndman & Koo 2018]. ARIMA with MA
+terms or differencing, SARIMA, and an LSTM fitted on overlapping windows do not meet that
+condition. For non-stationary series, out-of-sample methods that keep the time order give the
+most accurate estimates [Cerqueira, Torgo & Mozetič 2020]. Several forecast origins are better
+than a single fixed origin [Tashman 2000].
 
-**Recommendation (not yet agreed):** add `--holdout H` to `ts-pipeline` and the UI. Default it
-to `--horizon` when that is given, otherwise `max(s, ceil(0.1·n))`. Enforce a minimum training
-length (A.5 step 1) and fail with a clear error if the series is too short. Leave
-rolling-origin as an optional `--folds k` that defaults to 1.
+**The rule** (n = series length, s = detected seasonal period, 0 if none):
+
+1. **Forecast horizon H.** Use `--horizon` when given. Otherwise H = s if s ≥ 2, else H = 1.
+   *(Convention: a full season, so SARIMA is judged over one cycle. With no season, H = 1 is
+   the one-step-ahead LOO analogue.)*
+2. **Test region T** = the last `max(H, ceil(0.2·n))` points. "The size of the test set is
+   typically about 20% of the total sample … [and] should ideally be at least as large as the
+   maximum forecast horizon required" [Hyndman & Athanasopoulos, FPP3 §5.8].
+3. **Minimum training length** = `max(2·s, train_window + H, n_params + 1)`, i.e. at least two
+   full seasonal cycles (statsmodels `seasonal_decompose` / STL refuse fewer) and more
+   observations than parameters [Hyndman & Kostenko 2007, who also argue against fixed rules
+   such as "at least 50 points"]. If `n − T` is below this minimum, shrink T toward H. If
+   `n − H` is still below it, fail with a clear "series too short" error.
+4. **Origins.** Rolling origin with step 1 over the test region gives `m = T − H + 1` possible
+   origins [FPP3 §5.10, `stretch_tsibble(.step = 1)`]. Each origin refits on everything before
+   it (expanding window) and forecasts H steps.
+   - `m ≤ 10`: use **all m origins** (LOO analogue).
+   - `m > 10`: use **k = 10 evenly spaced origins** (k-fold analogue). *(The cap of 10 comes
+     from the i.i.d. literature, where 5- or 10-fold is the standard recommendation [Kohavi
+     1995; Hastie, Tibshirani & Friedman 2009, §7.10]. No time-series paper gives a specific
+     n cutoff. `--folds k` overrides it, e.g. `--folds 5` to halve LSTM cost.)*
+5. **Score and rank** with MASE [Hyndman & Koehler 2006], each origin scaled by the in-sample
+   seasonal-naive error of its own training window, then averaged over origins.
+6. **Significance:** a Diebold–Mariano test [Diebold & Mariano 1995] with the
+   Harvey–Leybourne–Newbold small-sample correction [Harvey, Leybourne & Newbold 1997] on the
+   pooled forecast errors of the best and second-best model. This is reported only and does
+   not decide the winner.
+
+**Cost control (not from the literature):** ARIMA/SARIMA select the order once per origin
+block and use `results.append(new_obs, refit=False)` between origins inside a block. The LSTM
+refits at each origin used, so a long series costs at most k = 10 fits.
+
+**References**
+
+- Bergmeir, C., Hyndman, R. J., & Koo, B. (2018). A note on the validity of cross-validation for
+  evaluating autoregressive time series prediction. *Computational Statistics & Data Analysis*,
+  120, 70–83. doi:10.1016/j.csda.2017.11.003
+- Cerqueira, V., Torgo, L., & Mozetič, I. (2020). Evaluating time series forecasting models: an
+  empirical study on performance estimation methods. *Machine Learning*, 109, 1997–2028.
+  doi:10.1007/s10994-020-05910-7
+- Diebold, F. X., & Mariano, R. S. (1995). Comparing predictive accuracy. *Journal of Business &
+  Economic Statistics*, 13(3), 253–263.
+- Harvey, D., Leybourne, S., & Newbold, P. (1997). Testing the equality of prediction mean
+  squared errors. *International Journal of Forecasting*, 13(2), 281–291.
+- Hastie, T., Tibshirani, R., & Friedman, J. (2009). *The Elements of Statistical Learning*
+  (2nd ed.), §7.10. Springer.
+- Hyndman, R. J., & Athanasopoulos, G. (2021). *Forecasting: Principles and Practice* (3rd ed.),
+  §5.8 and §5.10. OTexts. https://otexts.com/fpp3/
+- Hyndman, R. J., & Koehler, A. B. (2006). Another look at measures of forecast accuracy.
+  *International Journal of Forecasting*, 22(4), 679–688.
+- Hyndman, R. J., & Kostenko, A. V. (2007). Minimum sample size requirements for seasonal
+  forecasting models. *Foresight*, 6, 12–15.
+- Kohavi, R. (1995). A study of cross-validation and bootstrap for accuracy estimation and model
+  selection. *IJCAI*, 1137–1145.
+- Tashman, L. J. (2000). Out-of-sample tests of forecasting accuracy: an analysis and review.
+  *International Journal of Forecasting*, 16(4), 437–450.
 
 ### A.5 How to implement it
 
-1. **Split once, in the caller** (`mor_cli/ts_pipeline.py`, and the UI page at the same point).
-   `y = processed_data[target]`, `y_train = y[:-H]`, `y_test = y[-H:]`. Before splitting, check
-   `len(y_train) >= max(30, 2*s + 10, train_window + H + 20)`. These limits are rough: ARIMA up
-   to p = 7 needs a few dozen points, SARIMA needs at least two seasons, and the LSTM needs
-   enough training windows.
+1. **Build the origins once, in the caller** (`mor_cli/ts_pipeline.py`, and the UI page at the
+   same point), by extending the existing `WalkForwardCV` / `walk_forward_splits` in
+   `multioutreg/time_series/cv.py` rather than writing a new helper. It already does expanding
+   (or `max_train` rolling) windows with `min_train`, `horizon` and `step`, and GUI tab 3 uses
+   it. Add a constructor such as `WalkForwardCV.from_sample_size(n, horizon, seasonality,
+   min_train, max_folds=10)` that applies the A.4 rule: test region, all origins when m ≤ 10,
+   otherwise 10 evenly spaced origins. Even spacing needs either an explicit list of origins
+   or a computed `step`. Every model then sees the same origins.
 2. **Give every model the same interface:** `fit(y_train)` and then `forecast(H) -> np.ndarray`
    **on the original scale**. Keep `run()` as a thin wrapper for backwards compatibility.
    - ARIMA / SARIMA: keep the ADF test to choose `d`, but fit
@@ -483,14 +645,13 @@ rolling-origin as an optional `--folds k` that defaults to 1.
    `(y_test, y_hat)`: RMSE, MAE, MASE (scaled by `y_train`; fix item 26 first), and sMAPE
    instead of MAPE. Delete the per-model metric code in `algs/*.py` so the three models cannot
    drift apart again.
-4. **Ranking.** In `src/ranker.py`, rank on the holdout metrics. Use **MASE** as the main
-   metric because it does not depend on scale. Optionally keep the average rank as a
-   tie-break. When `--folds > 1`, report a Diebold–Mariano test (with the Harvey–Leybourne–Newbold
-   small-sample correction) between the best and second-best model. Report it only: with one
-   holdout of H ≈ 10 points the test has almost no power, so it must not decide the winner.
+4. **Ranking.** In `src/ranker.py`, rank on origin-averaged **MASE** (A.4 step 5), because it
+   does not depend on scale. Optionally keep the average rank as a tie-break. Report the
+   HLN-corrected Diebold–Mariano test (A.4 step 6) between the best and second-best model, but
+   do not let it decide the winner.
 5. **Refit the winner on the full series** before saving it or forecasting into the future.
-   Write the holdout metrics, H, and the train/test date ranges to `results.json`, so the user
-   can see what the ranking was based on.
+   Write H, T, the scheme used ("all origins" or "k = 10"), the origin dates, and the per-origin
+   and averaged metrics to `results.json`, so the user can see what the ranking was based on.
 
 ### A.6 Tests to add (`tests/unit/time_series/test_ts_ranking.py` — none exist today)
 
@@ -505,12 +666,15 @@ rolling-origin as an optional `--folds k` that defaults to 1.
    series with s = 7, SARIMA finds `s = 7`.
 5. **SARIMA `diff_count`** is 0 on stationary white noise.
 6. **CLI smoke test:** run `ts-pipeline` on a series of about 120 points with LSTM epochs
-   patched down (e.g. 2) → `results.json` contains `holdout`, per-model metrics and `best_model`.
-   The command should fail cleanly when the series is too short for the requested H.
+   patched down (e.g. 2) → `results.json` contains `horizon`, `scheme`, the origins, per-model
+   metrics and `best_model`. The command should fail cleanly when the series is too short for
+   the requested H.
 
 ### A.7 Done when
 
-- [ ] H is decided and exposed as `--holdout` (CLI) and as a UI input.
+- [x] Evaluation scheme decided (A.4, 2026-10-28).
+- [ ] `--horizon` and `--folds` exposed in the CLI and as UI inputs; the sample-size constructor
+  on `WalkForwardCV` unit-tested on the boundaries (m ≤ 10 vs m > 10, series too short, s = 0).
 - [ ] All models are scored out-of-sample on the original scale by one shared metric function.
 - [ ] `Ranker` uses those metrics; `results.json` records H and the metrics.
 - [ ] A.3 SARIMA bugs fixed (or logged as their own items); item 26 `mase` fixed.

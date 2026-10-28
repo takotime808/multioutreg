@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import functools
 import numbers
-import warnings
 from typing import Sequence
 
 import numpy as np
@@ -89,22 +88,32 @@ from sklearn.linear_model import (
 _NEEDS_MULTI_SAMPLE_FOLDS = {"r2", "explained_variance"}
 
 
-def select_cv_strategy(n_samples: int, random_state: int | None = 0):
+def select_cv_strategy(n_samples: int, random_state: int | None = 0, n_repeats: int = 3):
     """Return a CV splitter appropriate for a dataset of *n_samples* rows.
 
     Small datasets need low-variance error estimates and cannot spare data for
     large validation folds; large datasets make many folds expensive and do
     not need them.
 
-    - ``LeaveOneOut``                            when ``n_samples <= 20``
-    - ``RepeatedKFold(n_splits=5, n_repeats=3)`` when ``20 < n_samples <= 100``
-    - shuffled ``KFold(n_splits=10)``            when ``100 < n_samples <= 1000``
-    - shuffled ``KFold(n_splits=5)``             when ``n_samples > 1000``
+    - ``RepeatedKFold(n_splits=max(2, min(5, n // 4)), n_repeats=3)``
+      when ``n_samples <= 100`` (at least ~4 rows per fold)
+    - shuffled ``KFold(n_splits=10)`` when ``100 < n_samples <= 1000``
+    - shuffled ``KFold(n_splits=5)``  when ``n_samples > 1000``
+
+    Leave-one-out is not used by default: it is inconsistent for model
+    selection (Shao 1993), 10-fold is preferred to more folds even when compute
+    allows (Kohavi 1995), and selection should rest on repeated rather than
+    single CV runs (Krstajic et al. 2014). Pass ``cv="loocv"`` to force it.
+    The fold counts and the 3 repeats are conventions; see
+    ``docs/AUDIT_CHECKLIST.md`` (S3). ``n_repeats=1`` gives the same folds
+    without repeats (used inside nested-CV outer folds to save time).
     """
-    if n_samples <= 20:
-        return LeaveOneOut()
     if n_samples <= 100:
-        return RepeatedKFold(n_splits=5, n_repeats=3, random_state=random_state)
+        n_splits = max(2, min(5, n_samples // 4))
+        if n_repeats == 1:
+            return KFold(n_splits=n_splits, shuffle=True, random_state=random_state)
+        return RepeatedKFold(n_splits=n_splits, n_repeats=n_repeats,
+                             random_state=random_state)
     if n_samples <= 1000:
         return KFold(n_splits=10, shuffle=True, random_state=random_state)
     return KFold(n_splits=5, shuffle=True, random_state=random_state)
@@ -115,8 +124,10 @@ def resolve_cv(cv, n_samples: int, random_state: int | None = 0, scoring=None):
 
     Parameters
     ----------
-    cv : {"auto", "loocv"} | int | CV splitter
-        ``"auto"`` picks by dataset size via :func:`select_cv_strategy`;
+    cv : {"auto", "auto_single", "loocv"} | int | CV splitter
+        ``"auto"`` picks by dataset size via :func:`select_cv_strategy`
+        (never leave-one-out, so it suits every scorer); ``"auto_single"``
+        is the same without repeats (cheaper, noisier);
         ``"loocv"`` always uses ``LeaveOneOut``; an int means a *shuffled*
         ``KFold`` with that many splits (sklearn's int default is unshuffled,
         which gives unrepresentative folds on ordered data); anything else is
@@ -127,28 +138,21 @@ def resolve_cv(cv, n_samples: int, random_state: int | None = 0, scoring=None):
         Seed for shuffled / repeated splitters.
     scoring : str | None
         Scorer name. R²-type scorers are undefined on single-sample folds, so
-        ``"auto"`` falls back from ``LeaveOneOut`` to ``RepeatedKFold`` for
-        them and ``"loocv"`` raises.
+        ``"loocv"`` raises for them.
     """
     single_ok = scoring not in _NEEDS_MULTI_SAMPLE_FOLDS
     if isinstance(cv, str):
         if cv == "auto":
-            splitter = select_cv_strategy(n_samples, random_state)
-            if isinstance(splitter, LeaveOneOut) and not single_ok:
-                n_splits = max(2, min(5, n_samples // 2))
-                splitter = RepeatedKFold(n_splits=n_splits, n_repeats=3,
-                                         random_state=random_state)
-                warnings.warn(
-                    f"scoring={scoring!r} is undefined on leave-one-out folds; using "
-                    f"repeated {n_splits}-fold CV for {n_samples} samples instead.",
-                    UserWarning, stacklevel=2)
-            return splitter
+            return select_cv_strategy(n_samples, random_state)
+        if cv == "auto_single":
+            return select_cv_strategy(n_samples, random_state, n_repeats=1)
         if cv == "loocv":
             if not single_ok:
                 raise ValueError(f"cv='loocv' cannot be used with scoring={scoring!r}: "
                                  "the score is undefined on a single held-out sample")
             return LeaveOneOut()
-        raise ValueError(f"cv must be 'auto', 'loocv', an int or a CV splitter, got {cv!r}")
+        raise ValueError(
+            f"cv must be 'auto', 'auto_single', 'loocv', an int or a CV splitter, got {cv!r}")
     if isinstance(cv, numbers.Integral):
         return KFold(cv, shuffle=True, random_state=random_state)
     return check_cv(cv)
@@ -165,6 +169,26 @@ def describe_cv(cv) -> str:
     if isinstance(cv, numbers.Integral):
         return f"{cv}-Fold CV"
     return type(cv).__name__
+
+
+#: Candidates the hosted app and the CLI skip by default: slow to fit and
+#: rarely the winner on small tabular data.
+EXPENSIVE_MODEL_NAMES = frozenset({"gp", "mlp", "ngboost"})
+
+
+def drop_candidates(model: "AutoDetectMultiOutputRegressor", names) -> list[str]:
+    """Remove the named candidates from a ``with_vendored_surrogates`` model in place.
+
+    Returns the names that were removed.
+    """
+    names = set(names)
+    keep = [i for i, n in enumerate(model._model_names) if n not in names]
+    dropped = [n for n in model._model_names if n in names]
+    model.estimators = [model.estimators[i] for i in keep]
+    model.param_spaces = [model.param_spaces[i] for i in keep]
+    model._surrogate_constructors = [model._surrogate_constructors[i] for i in keep]
+    model._model_names = [model._model_names[i] for i in keep]
+    return dropped
 
 
 def _clone_surrogate(surrogate):
@@ -271,8 +295,8 @@ class AutoDetectMultiOutputRegressor(BaseEstimator, RegressorMixin):
     cv : {"auto", "loocv"} | int | CV splitter, default "auto"
         Cross-validation used to score every candidate. ``"auto"`` picks the
         scheme from the number of training rows at fit time (see
-        :func:`select_cv_strategy`): leave-one-out for tiny datasets, repeated
-        5-fold for small ones, 10-fold and then 5-fold as data grows.
+        :func:`select_cv_strategy`): repeated k-fold for small datasets,
+        10-fold and then 5-fold as data grows.
         ``"loocv"`` forces leave-one-out, an int means a shuffled ``KFold``
         with that many splits, and any sklearn splitter is used as given.
     scoring : str

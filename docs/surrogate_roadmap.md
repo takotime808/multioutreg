@@ -15,7 +15,7 @@ multi-output capabilities of `multioutreg`. See
 | Multi-objective metrics | Exact N-D `hypervolume()` (#36) | Decision regret as the default |
 | Multi-fidelity surrogates | — | All six candidates; the `rho` and Stacked VFM interval follow-ups |
 | Multi-output surrogates | — | All five candidates; joint metrics and conformal regions |
-| Cross-cutting | Benchmark suite | Items 2–11 |
+| Cross-cutting | Benchmark suite | Items 2–12 |
 
 ## Current State
 
@@ -162,6 +162,7 @@ All items except 1 are not started.
 | 9 | **Categorical and mixed-integer inputs** (`smt` mixed-integer kernels, GPyTorch categorical kernels) | Categorical columns are currently dropped (`gui/pages/lhs_detector_app.py`). | Medium |
 | 10 | **Missing outputs in per-output wrappers** | Mask missing values per output instead of dropping whole rows. Simpler than the multi-task GP route above, and common when simulation runs fail partway. | Low–Medium |
 | 11 | **Hyperparameter search beyond grid search** (random search, Optuna) | Model selection uses `GridSearchCV` only, which scales poorly as candidates and parameters grow. `ray[tune]` and `hyperopt` are commented out of `pyproject.toml`. | Low–Medium |
+| 12 | **Extrapolation for out-of-bounds (OOB) predictions** | Item 6 only detects OOB points; nothing controls what the surrogate returns there. Tree models (random forest, extra trees, the gradient-boosting family) hold the boundary value flat, GPs revert to their constant mean, and the networks are unconstrained, so the same OOB query gets very different answers across Auto-Detect candidates. Add a per-surrogate `extrapolation` policy, driven by the item 6 distance: `"warn"` (default), `"clip"` inputs to the training bounds, a fitted linear or polynomial trend added beyond the bounds (or a GP with a linear mean), and `std` inflated with distance from the design. Benchmark each policy on held-out OOB regions of the benchmark-suite problems. | Medium |
 
 ### Benchmark Suite
 

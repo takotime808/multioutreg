@@ -229,8 +229,12 @@ def test_multicollinearity(
 def test_nonlinear_dependency(
         X: np.ndarray, y: np.ndarray,
         gain_threshold: float = 0.05,
-        cv: int = 3) -> TestResult:
+        cv="auto") -> TestResult:
     """Cross-validated RF vs LinearRegression R² gain.
+
+    ``cv`` is resolved by sample size like model selection's
+    (:func:`~multioutreg.model_selection.auto_detect.resolve_cv`), so both
+    models are scored on the same, seeded folds.
 
     If a small RandomForest outperforms LinearRegression by more than
     *gain_threshold* in CV R², non-linear structure is confirmed.
@@ -244,8 +248,10 @@ def test_nonlinear_dependency(
     from sklearn.linear_model import LinearRegression
     from sklearn.ensemble import RandomForestRegressor
     from sklearn.model_selection import cross_val_score
+    from multioutreg.model_selection.auto_detect import resolve_cv
 
     y = np.asarray(y).ravel()
+    cv = resolve_cv(cv, len(y), random_state=0, scoring="r2")
     lr_r2 = float(np.mean(cross_val_score(
         LinearRegression(), X, y, cv=cv, scoring="r2")))
     rf_r2 = float(np.mean(cross_val_score(

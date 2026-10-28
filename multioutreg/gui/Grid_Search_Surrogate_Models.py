@@ -12,7 +12,6 @@ import json
 import os
 import time
 from typing import Dict, List, Tuple, Union, Any
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, Matern
@@ -61,7 +60,7 @@ from multioutreg.surrogates.rfgp_sklearn import _RFFEstimator
 from multioutreg.surrogates.polynomial_bayesian_ridge_sklearn import _PBREstimator
 from multioutreg.surrogates.nystroem_gp_sklearn import _NystroemEstimator
 from multioutreg.surrogates.ard_gp_sklearn import _ARDGPEstimator
-from multioutreg.model_selection.screening import ModelScreener
+from multioutreg.model_selection.evaluation import plan_evaluation, run_evaluation
 
 try:
     from ngboost import NGBRegressor as _NGBRegressor
@@ -96,7 +95,8 @@ from multioutreg.gui.grid_search_core import (
     build_model_pipeline,
     default_surrogate_defs,
     generate_html_report,
-    select_per_target,
+    EXPENSIVE_SURROGATES,
+    PerTargetGridSearch,
     serialize_model_bundle,
 )
 
@@ -476,20 +476,84 @@ if data_source:
 
         X = df[input_cols].values
         y = df[output_cols].values
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
-        X_train, X_test, _imputer = impute_train_test(X_train, X_test, return_imputer=True)
         feature_names = list(input_cols)
 
-        # # Show seaborn PairGrid plot with KDE in lower triangle
-        # if df.shape[1] >= 2:
-        #     st.write("### PairGrid Visualization (KDE Lower Triangle)")
+        # How performance is estimated and intervals calibrated depends on n:
+        # nested CV when a 25% test split would be tiny, CV+ when a 20%
+        # calibration split is too small for alpha (AUDIT S1, S2).
+        plan = plan_evaluation(len(X), alpha=conformal_alpha_sel if use_conformal else None)
+        for _note in plan.notes:
+            _notes.append(("info", _note))
 
-        #     numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
-        #     if len(numeric_cols) >= 2:
-        #         g = make_doe_plot(df=df, numeric_cols=numeric_cols)
-        #         st.pyplot(g.fig)
-        #     else:
-        #         st.info("Not enough numeric columns for pairwise plot.")
+        def _preprocess(X_tr, X_te):
+            # KNN imputation and PCA are fitted on the training rows only.
+            X_tr, X_te, imputer = impute_train_test(X_tr, X_te, return_imputer=True)
+            pca = None
+            if use_pca:
+                pca = fit_input_pca(X_tr, X_te, pca_method, n_components, pca_threshold)
+                X_tr, X_te = pca.X_train, pca.X_test
+            return X_tr, X_te, {"imputer": imputer, "pca": pca}
+
+        surrogate_defs = default_surrogate_defs()
+        if skip_expensive:
+            _skipped = [d[0] for d in surrogate_defs if d[0] in EXPENSIVE_SURROGATES]
+            surrogate_defs = [d for d in surrogate_defs if d[0] not in EXPENSIVE_SURROGATES]
+            if _skipped:
+                _notes.append(("info",
+                    f"Skipping {len(_skipped)} expensive model(s): "
+                    + ", ".join(EXPENSIVE_SURROGATES.get(k, k) for k in _skipped)
+                ))
+
+        _moe_factory = None
+        if use_moe:
+            from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
+
+            def _moe_factory():
+                return MixtureOfExpertsSurrogate(
+                    n_experts=moe_n_experts, gating_type=moe_gating_type, random_state=0)
+
+        # Configs are selected by CV on the training rows (pre-screening too,
+        # when on); the evaluation rows are only used for the reported metrics.
+        _prog = _status.progress(0.0, text="Fitting candidates…")
+        _stage = {"label": ""}
+
+        def _on_step(label: str) -> None:
+            _stage["label"] = label
+            _status.write(label + "…")
+
+        def _on_progress(done: int, total: int, label: str) -> None:
+            _prefix = f"{_stage['label']}: " if _stage["label"] else ""
+            _prog.progress(done / total, text=f"{_prefix}{label} ({done + 1}/{total})")
+            _pair_slot.refresh()
+
+        try:
+            evaluation = run_evaluation(
+                lambda: PerTargetGridSearch(
+                    surrogate_defs, moe_factory=_moe_factory,
+                    on_progress=_on_progress, pre_screen=use_screening),
+                X, y, plan, _preprocess, on_step=_on_step)
+        except RuntimeError as exc:
+            _status.update(label="Grid search failed", state="error")
+            st.error(str(exc))
+            st.stop()
+        _prog.progress(1.0, text="Model selection done")
+        _search = evaluation.model
+        result = _search.result_
+        best_model = result.model
+        best_combo = result.combo
+        y_test, best_pred, best_std = evaluation.y_true, evaluation.pred, evaluation.std
+        X_train = evaluation.X_fit
+        _imputer = evaluation.info["imputer"]
+        if _search.skipped_:
+            _notes.append(("info",
+                f"Pre-screening skipped {len(_search.skipped_)} model(s): "
+                + ", ".join(_search.skipped_)
+            ))
+        if result.moe_selected:
+            _notes.append(("info", "MoE outperformed all per-target models and was selected."))
+        if result.n_failed:
+            _notes.append(("caption", f"{result.n_failed} candidate fit(s) failed and were skipped."))
+        _status.write("Computing evaluation metrics…")
 
         # PCA.
         pca_variance_plot = None
@@ -500,9 +564,7 @@ if data_source:
         _pca_transformer = None
         _pca_settings = None
         if use_pca:
-            _status.write("Applying PCA to input features…")
-            _pca = fit_input_pca(X_train, X_test, pca_method, n_components, pca_threshold)
-            X_train, X_test = _pca.X_train, _pca.X_test
+            _pca = evaluation.info["pca"]
             pca_n_components = _pca.n_components
             _pca_transformer = _pca.transformer
             _pca_settings = {
@@ -523,118 +585,6 @@ if data_source:
                 "(eigenvalues > 1 on standardized inputs)."
             )
 
-        surrogate_defs = default_surrogate_defs()
-
-        if use_screening:
-            _status.write("Pre-screening models…")
-            _screener = ModelScreener().fit(X_train, y_train)
-            _eligible = _screener.screen_per_output(list(output_cols))
-            # Keep a surrogate_def if not screened or if it passes for at least one output
-            surrogate_defs = [
-                d for d in surrogate_defs
-                if d[0] not in _eligible.index or _eligible.loc[d[0]].any()
-            ]
-            skipped = [
-                d[0] for d in [
-                    ("gpr", None, None), ("rf", None, None), ("et", None, None),
-                    ("gb", None, None), ("knn", None, None), ("blr", None, None),
-                    ("svr", None, None), ("dt", None, None), ("cpn", None, None),
-                    ("mfs_lr", None, None), ("ngb", None, None),
-                    ("bayesian_ridge", None, None), ("rfgp", None, None),
-                    ("pbr", None, None), ("sgp", None, None), ("gpx", None, None),
-                    ("ard_gp", None, None), ("kpls", None, None),
-                    ("hgb", None, None), ("lgbm", None, None), ("xgb", None, None),
-                    ("elastic_net", None, None), ("lasso", None, None),
-                    ("quantile", None, None), ("catboost", None, None),
-                    ("sgpr", None, None),
-                ]
-                if d[0] in _eligible.index and not _eligible.loc[d[0]].any()
-            ]
-            if skipped:
-                _notes.append(("info",
-                    f"Pre-screening skipped {len(skipped)} model(s): "
-                    + ", ".join(skipped)
-                ))
-
-        _EXPENSIVE_MODELS = {"gpr", "ngb", "cpn", "ard_gp", "gpx", "kpls", "sgpr"}
-        _EXPENSIVE_DISPLAY_NAMES = {
-            "gpr": "Gaussian Process",
-            "ngb": "NGBoost",
-            "cpn": "Conformal Prediction Network",
-            "ard_gp": "ARD Gaussian Process",
-            "gpx": "GPX (Rust GP)",
-            "kpls": "KPLS (Kriging+PLS)",
-            "sgpr": "Sparse GP (GPyTorch)",
-        }
-        if skip_expensive:
-            _skipped = [d[0] for d in surrogate_defs if d[0] in _EXPENSIVE_MODELS]
-            surrogate_defs = [d for d in surrogate_defs if d[0] not in _EXPENSIVE_MODELS]
-            if _skipped:
-                _notes.append(("info",
-                    f"Skipping {len(_skipped)} expensive model(s): "
-                    + ", ".join(_EXPENSIVE_DISPLAY_NAMES.get(k, k) for k in _skipped)
-                ))
-
-        # Conformal calibration must use data disjoint from both training and the
-        # test set used to report coverage, so hold out part of the training split.
-        if use_conformal:
-            X_train, X_cal, y_train, y_cal = train_test_split(
-                X_train, y_train, test_size=0.2, random_state=0
-            )
-
-        moe = None
-        if use_moe:
-            from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
-            moe = MixtureOfExpertsSurrogate(
-                n_experts=moe_n_experts, gating_type=moe_gating_type, random_state=0)
-
-        # Select on a validation split of the training data; the test set is
-        # only used for the reported metrics.
-        _prog = _status.progress(0.0, text="Fitting candidates…")
-
-        def _on_progress(done: int, total: int, label: str) -> None:
-            _prog.progress(done / total, text=f"{label} ({done + 1}/{total})")
-            _pair_slot.refresh()
-
-        try:
-            result = select_per_target(
-                surrogate_defs, X_train, y_train, moe=moe, on_progress=_on_progress)
-        except RuntimeError as exc:
-            _status.update(label="Grid search failed", state="error")
-            st.error(str(exc))
-            st.stop()
-        _prog.progress(1.0, text="Model selection done")
-        best_model = result.model
-        best_combo = result.combo
-        best_pred, best_std = best_model.predict(X_test, return_std=True)
-        if result.moe_selected:
-            _notes.append(("info", "MoE outperformed all per-target models and was selected."))
-        if result.n_failed:
-            _notes.append(("caption", f"{result.n_failed} candidate fit(s) failed and were skipped."))
-        _status.write("Computing test-set metrics…")
-
-        # # Show seaborn PairGrid plot with KDE in lower triangle
-        # if df.shape[1] >= 2:
-        #     st.write("### PairGrid Visualization (KDE Lower Triangle)")
-
-        #     numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
-        #     if len(numeric_cols) >= 2:
-        #         g = make_doe_plot(df=df, numeric_cols=numeric_cols)
-        #         st.pyplot(g.fig)
-        #         del g
-        #         grid_plot = plot_surrogate_model_summary(
-        #                 X_train=X_train,
-        #                 X_test=X_test,
-        #                 Y_train=y_train,
-        #                 Y_test=y_test,
-        #                 model=best_model,
-        #                 savefig=False,
-        #         )
-        #         st.pyplot(grid_plot)
-        #         del grid_plot
-        #     else:
-        #         st.info("Not enough numeric columns for pairwise plot.")
-
         metrics = {}
         for i, name in enumerate(output_cols):
             y_true = y_test[:, i]
@@ -652,21 +602,23 @@ if data_source:
         conformal_intervals = None
         conf_df = None
         q = None
+        residuals = None
         if use_conformal:
             from multioutreg.conformal.base import BaseConformalPredictor
             from multioutreg.conformal.metrics import conformal_summary as _conf_summary
 
-            # Calibrate on the held-out calibration split, then score on test.
-            residuals = np.abs(y_cal - np.asarray(best_model.predict(X_cal)).reshape(y_cal.shape))
-            n_outputs = y_test.shape[1]
+            # Intervals on the evaluation rows come from the plan (split
+            # conformal or CV+). The exported model gets a fixed +/- q per
+            # output: the conformal quantile of the calibration residuals
+            # (out-of-fold residuals under CV+, which only approximates CV+).
+            residuals = evaluation.fit.residuals
             q = np.array([
                 BaseConformalPredictor._conformal_quantile(
                     residuals[:, j], conformal_alpha_sel
                 )
-                for j in range(n_outputs)
+                for j in range(residuals.shape[1])
             ])
-            y_lower = best_pred - q[np.newaxis, :]
-            y_upper = best_pred + q[np.newaxis, :]
+            y_lower, y_upper = evaluation.lower, evaluation.upper
             conformal_intervals = (y_lower, y_upper)
 
             conf_df = _conf_summary(
@@ -691,11 +643,11 @@ if data_source:
             best_std=best_std,
             best_model=best_model,
             X_train=X_train,
-            n_train=X_train.shape[0],
-            n_test=X_test.shape[0],
+            n_train=evaluation.n_train,
+            n_test=evaluation.n_test,
             cross_validation=(
-                "Model selected per output on a 20% validation split of the training data; "
-                "metrics are on the held-out test set"
+                f"Model selected per output by {result.cv_description} on the training data. "
+                f"Performance estimate: {plan.describe()}"
             ),
             seed=0,
             notes="Generated report.",
@@ -709,7 +661,7 @@ if data_source:
             kaiser_rule_suggestion=kaiser_rule_suggestion,
             conformal_intervals=conformal_intervals if use_conformal else None,
             conformal_alpha=conformal_alpha_sel if use_conformal else None,
-            calibration_residuals=residuals if use_conformal else None,
+            calibration_residuals=residuals,
             imputation_summary=_imputation_summary,
         )
 
@@ -724,10 +676,13 @@ if data_source:
             conformal_alpha=conformal_alpha_sel if use_conformal else None,
             conformal_quantiles=q,
             data_split={
-                "test_size": 0.25,
-                "random_state": 0,
-                "calibration_fraction": 0.2 if use_conformal else None,
-                "validation_fraction": 0.2,
+                "evaluation": plan.scheme,
+                "test_size": plan.test_size if plan.scheme == "holdout" else None,
+                "outer_folds": plan.outer_cv.n_splits if plan.outer_cv is not None else None,
+                "random_state": plan.random_state,
+                "conformal_method": plan.conformal,
+                "calibration_fraction": plan.calibration_size if plan.conformal == "split" else None,
+                "model_selection_cv": result.cv_description,
             },
         )
         try:

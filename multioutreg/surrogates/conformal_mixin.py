@@ -4,8 +4,10 @@
 
 import numpy as np
 
+from multioutreg.surrogates._clone import CloneMixin
 
-class ConformalMixin:
+
+class ConformalMixin(CloneMixin):
     """Mixin providing conformal prediction calibration and inference.
 
     Any surrogate that implements ``fit(X, Y)`` and ``predict(X)`` can

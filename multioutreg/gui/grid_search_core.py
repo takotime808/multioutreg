@@ -374,6 +374,19 @@ def _threaded_catboost(**params):
     return _CatBoostRegressor(**catboost_thread_kwargs(), **params)
 
 
+#: Slow candidates skipped by default on the hosted app and in the CLI,
+#: with display names.
+EXPENSIVE_SURROGATES = {
+    "gpr": "Gaussian Process",
+    "ngb": "NGBoost",
+    "cpn": "Conformal Prediction Network",
+    "ard_gp": "ARD Gaussian Process",
+    "gpx": "GPX (Rust GP)",
+    "kpls": "KPLS (Kriging+PLS)",
+    "sgpr": "Sparse GP (GPyTorch)",
+}
+
+
 def default_surrogate_defs() -> List[Tuple[str, Any, dict]]:
     """``(name, factory, param_grid)`` for every candidate the grid search tries.
 
@@ -427,39 +440,53 @@ class GridSearchResult:
     """Outcome of :func:`select_per_target`."""
     model: Any                   # fitted on all of X (PerTargetRegressorWithStd or MoE)
     combo: List[dict]            # winning config per output (or the MoE config)
-    val_mse: List[float]         # validation MSE of the winner, per output
+    val_mse: List[float]         # mean CV (or validation) MSE of the winner, per output
     moe_selected: bool = False
     n_failed: int = 0            # (config, output) fits that raised
+    cv_description: str = ""     # how the configs were scored, for reports
 
 
 def select_per_target(
     surrogate_defs: List[Tuple[str, Any, dict]],
     X: np.ndarray,
     y: np.ndarray,
-    val_fraction: float = 0.2,
+    val_fraction: Optional[float] = None,
     random_state: int = 0,
     moe: Any = None,
     on_progress: Optional[Callable[[int, int, str], None]] = None,
+    cv: Any = "auto",
 ) -> GridSearchResult:
-    """Pick the best config per output on a validation split of the training data.
+    """Pick the best config per output by cross-validated MSE on the training data.
 
-    Every ``(name, factory, params)`` config is fitted on ``1 - val_fraction`` of
-    (X, y) and scored by validation MSE, independently per output (outputs do
-    not interact in a ``PerTargetRegressorWithStd``, so this finds the same
-    winner as trying every combination). The winners are then refit on all of
-    (X, y). The test set is never seen, so metrics on it are unbiased.
+    Every ``(name, factory, params)`` config is scored by its mean MSE over the
+    folds of ``cv`` (resolved by sample size, as in
+    :func:`~multioutreg.model_selection.auto_detect.resolve_cv`), independently
+    per output (outputs do not interact in a ``PerTargetRegressorWithStd``, so
+    this finds the same winner as trying every combination). The winners are
+    then refit on all of (X, y). The test set is never seen, so metrics on it
+    are unbiased. Passing ``val_fraction`` instead scores on a single validation
+    split of that size (the old behaviour; high-variance at small n).
 
     ``moe``, an unfitted joint multi-output model, replaces the per-output
-    winners if its validation MSE (averaged over outputs) is lower.
+    winners if its mean CV MSE (averaged over outputs) is lower.
 
     ``on_progress(done, total, label)`` is called before each step (every
     config, the MoE candidate, and the final refit) so a UI can show progress.
     """
+    from multioutreg.model_selection.auto_detect import describe_cv, resolve_cv
+
     y = np.asarray(y)
     if y.ndim == 1:
         y = y.reshape(-1, 1)
-    X_fit, X_val, y_fit, y_val = train_test_split(
-        X, y, test_size=val_fraction, random_state=random_state)
+    if val_fraction is not None:
+        idx_fit, idx_val = train_test_split(
+            np.arange(len(X)), test_size=val_fraction, random_state=random_state)
+        splits = [(idx_fit, idx_val)]
+        cv_description = f"a single {val_fraction:.0%} validation split"
+    else:
+        splitter = resolve_cv(cv, len(X), random_state)
+        splits = list(splitter.split(X, y))
+        cv_description = describe_cv(splitter)
     configs = [(name, factory, params) for name, factory, grid in surrogate_defs
                for params in ParameterGrid(grid)]
 
@@ -477,10 +504,13 @@ def select_per_target(
         _report(i, f"Fitting {name}" + (f" {params}" if params else ""))
         for j in range(n_out):
             try:
-                est = factory(**params)
-                est.fit(X_fit, y_fit[:, j])
-                pred = np.asarray(est.predict(X_val)).reshape(-1)
-                mse = mean_squared_error(y_val[:, j], pred)
+                fold_mse = []
+                for tr, te in splits:
+                    est = factory(**params)
+                    est.fit(X[tr], y[tr, j])
+                    pred = np.asarray(est.predict(X[te])).reshape(-1)
+                    fold_mse.append(mean_squared_error(y[te, j], pred))
+                mse = float(np.mean(fold_mse))
             except Exception:
                 n_failed += 1
                 continue
@@ -493,15 +523,18 @@ def select_per_target(
     if moe is not None:
         _report(len(configs), f"Fitting {type(moe).__name__}")
         try:
-            moe_val = mean_squared_error(
-                y_val, np.asarray(clone(moe).fit(X_fit, y_fit).predict(X_val)))
+            moe_val = float(np.mean([
+                mean_squared_error(
+                    y[te], np.asarray(clone(moe).fit(X[tr], y[tr]).predict(X[te])))
+                for tr, te in splits]))
         except Exception:
             moe_val = np.inf
         if moe_val < np.mean(best_mse):
             _report(total - 1, "Refitting the selected model on all training data")
             return GridSearchResult(
                 model=moe.fit(X, y), combo=[{"model": type(moe).__name__}],
-                val_mse=[float(moe_val)] * n_out, moe_selected=True, n_failed=n_failed)
+                val_mse=[float(moe_val)] * n_out, moe_selected=True, n_failed=n_failed,
+                cv_description=cv_description)
 
     _report(total - 1, "Refitting the selected models on all training data")
     model = PerTargetRegressorWithStd(
@@ -511,7 +544,48 @@ def select_per_target(
         combo=[dict(model=name, **params) for name, _, params in best],
         val_mse=[float(m) for m in best_mse],
         n_failed=n_failed,
+        cv_description=cv_description,
     )
+
+
+class PerTargetGridSearch:
+    """Estimator form of :func:`select_per_target`: ``fit`` runs the selection.
+
+    Lets the whole selection be refitted per fold by nested CV and CV+
+    (:mod:`multioutreg.model_selection.evaluation`). ``moe_factory`` builds a
+    fresh joint candidate for each fit. ``pre_screen=True`` runs
+    :class:`~multioutreg.model_selection.screening.ModelScreener` on the rows
+    being fitted and drops candidates that fail it for every output. After
+    ``fit``, ``result_`` holds the :class:`GridSearchResult` and ``skipped_``
+    the screened-out candidate names.
+    """
+
+    def __init__(self, surrogate_defs=None, moe_factory=None, cv="auto",
+                 random_state=0, on_progress=None, pre_screen=False):
+        self.surrogate_defs = surrogate_defs
+        self.moe_factory = moe_factory
+        self.cv = cv
+        self.random_state = random_state
+        self.on_progress = on_progress
+        self.pre_screen = pre_screen
+
+    def fit(self, X, y) -> "PerTargetGridSearch":
+        defs = self.surrogate_defs if self.surrogate_defs is not None else default_surrogate_defs()
+        self.skipped_ = []
+        if self.pre_screen:
+            from multioutreg.model_selection.screening import ModelScreener
+            eligible = ModelScreener().fit(X, y).screen_per_output()
+            self.skipped_ = [d[0] for d in defs
+                             if d[0] in eligible.index and not eligible.loc[d[0]].any()]
+            defs = [d for d in defs if d[0] not in self.skipped_]
+        moe = self.moe_factory() if self.moe_factory is not None else None
+        self.result_ = select_per_target(
+            defs, X, y, random_state=self.random_state, moe=moe,
+            on_progress=self.on_progress, cv=self.cv)
+        return self
+
+    def predict(self, X, return_std: bool = False):
+        return self.result_.model.predict(X, return_std=return_std)
 
 
 # ----- Exportable model -----

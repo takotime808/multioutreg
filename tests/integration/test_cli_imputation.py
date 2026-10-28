@@ -12,6 +12,31 @@ INPUTS = "x0,x1,x2,x3,x4,x5"
 OUTPUTS = "y0,y1"
 
 
+@pytest.fixture(autouse=True)
+def cheap_candidates(monkeypatch):
+    """Search only fast linear candidates, as the GUI tests do.
+
+    40 rows take the nested-CV path, which refits the whole selection per
+    outer fold; the full candidate lists would take tens of minutes.
+    """
+    from sklearn.linear_model import BayesianRidge, LinearRegression
+
+    import mor_cli.grid_search as grid_search_cli
+    from multioutreg.model_selection import AutoDetectMultiOutputRegressor as ADR
+    from multioutreg.model_selection.auto_detect import drop_candidates
+
+    monkeypatch.setattr(grid_search_cli, "default_surrogate_defs", lambda: [
+        ("linear", LinearRegression, {}), ("bayesian_ridge", BayesianRidge, {})])
+    real_factory = ADR.__dict__["with_vendored_surrogates"]
+
+    def trimmed(cls, *args, **kwargs):
+        model = real_factory.__func__(cls, *args, **kwargs)
+        drop_candidates(model, set(model._model_names) - {"linear", "bayesian_ridge"})
+        return model
+
+    monkeypatch.setattr(ADR, "with_vendored_surrogates", classmethod(trimmed))
+
+
 @pytest.fixture
 def csv_with_gaps(tmp_path):
     rng = np.random.default_rng(0)
@@ -37,3 +62,18 @@ def test_cli_imputation_drops_missing_targets(app, csv_with_gaps, tmp_path):
     html = out_html.read_text(encoding="utf-8")
     assert "Rows dropped (missing target)" in html
     assert "Imputed (KNN, fit on training split)" in html
+    # 38 rows: a 25% test split would hold 10 rows, so the CLI uses nested CV.
+    assert "nested 5-fold CV" in result.output
+    assert "Nested 5-fold CV" in html
+
+
+def test_cli_auto_detect_small_n_uses_cv_plus(csv_with_gaps, tmp_path):
+    out_html = tmp_path / "report.html"
+    result = CliRunner().invoke(
+        auto_detect_app,
+        [str(csv_with_gaps), INPUTS, OUTPUTS, "--use-imputation", "--conformal",
+         "--conformal-alpha", "0.1", "--out-html", str(out_html)],
+    )
+    assert result.exit_code == 0, result.output
+    assert "CV+ is used instead" in result.output
+    assert "CV+ conformal intervals" in out_html.read_text(encoding="utf-8")

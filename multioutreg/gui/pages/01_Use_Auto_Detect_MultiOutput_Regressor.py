@@ -13,7 +13,6 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 from typing import Any, Dict, List, Optional, Union
-from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
 from jinja2 import Template
 try:
@@ -55,6 +54,8 @@ from multioutreg.figures.conformal_plots import (
     plot_conformal_vs_gaussian,
 )
 from multioutreg.model_selection import AutoDetectMultiOutputRegressor
+from multioutreg.model_selection.auto_detect import EXPENSIVE_MODEL_NAMES, drop_candidates
+from multioutreg.model_selection.evaluation import plan_evaluation, run_evaluation
 from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
 from multioutreg.utils.metric_utils import gaussian_uncertainty_metrics
 from multioutreg.time_series.ts_suitability import check_ts_suitability
@@ -398,21 +399,73 @@ if uploaded_file:
 
         X = df[input_cols].values
         y = df[output_cols].values
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=0)
-        X_train, X_test = impute_train_test(X_train, X_test)
         feature_names = list(input_cols)
         used_feature_names = feature_names
 
-        # # Show seaborn PairGrid plot with KDE in lower triangle
-        # if df.shape[1] >= 2:
-        #     st.write("### PairGrid Visualization (KDE Lower Triangle)")
+        # How performance is estimated and intervals calibrated depends on n:
+        # nested CV when a 25% test split would be tiny, CV+ when a 20%
+        # calibration split is too small for alpha (AUDIT S1, S2).
+        plan = plan_evaluation(len(X), alpha=conformal_alpha_sel if use_conformal else None)
+        for _note in plan.notes:
+            st.info(_note)
 
-        #     numeric_cols = df.select_dtypes(include=np.number).columns.tolist()
-        #     if len(numeric_cols) >= 2:
-        #         g = make_doe_plot(df=df, numeric_cols=numeric_cols)
-        #         st.pyplot(g.fig)
-        #     else:
-        #         st.info("Not enough numeric columns for pairwise plot.")
+        def _preprocess(X_tr, X_te):
+            # KNN imputation and PCA are fitted on the training rows only.
+            X_tr, X_te = impute_train_test(X_tr, X_te)
+            pca = None
+            if use_pca:
+                pca = fit_input_pca(X_tr, X_te, pca_method, n_components, pca_threshold)
+                X_tr, X_te = pca.X_train, pca.X_test
+            return X_tr, X_te, pca
+
+        _EXPENSIVE_DISPLAY_NAMES = {
+            "gp": "Gaussian Process",
+            "mlp": "Neural Network (MLP)",
+            "ngboost": "NGBoost",
+        }
+
+        def _make_model():
+            model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
+            mo_candidates = []
+            if use_bnn and _torch_available:
+                from multioutreg.surrogates.bnn_pytorch import BNNSurrogate
+                mo_candidates.append(
+                    BNNSurrogate(hidden_layer_sizes=(128, 64), max_epochs=300, random_state=0)
+                )
+            if use_moe:
+                from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
+                mo_candidates.append(
+                    MixtureOfExpertsSurrogate(
+                        n_experts=moe_n_experts,
+                        gating_type=moe_gating_type,
+                        random_state=0,
+                    )
+                )
+            if mo_candidates:
+                model.register_multi_output_candidates(mo_candidates)
+            if skip_expensive:
+                drop_candidates(model, EXPENSIVE_MODEL_NAMES)
+            return model
+
+        if skip_expensive:
+            _skipped = [n for n in AutoDetectMultiOutputRegressor.with_vendored_surrogates()._model_names
+                        if n in EXPENSIVE_MODEL_NAMES]
+            if _skipped:
+                st.info(
+                    f"Skipping {len(_skipped)} expensive model(s): "
+                    + ", ".join(_EXPENSIVE_DISPLAY_NAMES.get(n, n) for n in _skipped)
+                )
+
+        with st.status("Selecting and evaluating models…", expanded=False) as _eval_status:
+            evaluation = run_evaluation(
+                _make_model, X, y, plan, _preprocess,
+                on_step=lambda label: _eval_status.write(label + "…"))
+            _eval_status.update(label="Model selection done", state="complete")
+        y_test, best_pred, best_std = evaluation.y_true, evaluation.pred, evaluation.std
+        X_train = evaluation.X_fit
+        X_test = evaluation.X_eval
+        best_model = model = evaluation.model
+        best_combo = [m.__class__.__name__ for m in model.models_]
 
         # PCA.
         pca_variance_plot = None
@@ -421,8 +474,7 @@ if uploaded_file:
         feature_names_pca = None
         kaiser_rule_suggestion = None
         if use_pca:
-            _pca = fit_input_pca(X_train, X_test, pca_method, n_components, pca_threshold)
-            X_train, X_test = _pca.X_train, _pca.X_test
+            _pca = evaluation.info
             pca_n_components = _pca.n_components
             feature_names_pca = _pca.feature_names
             pca_variance_plot = generate_pca_variance_plot(
@@ -443,61 +495,12 @@ if uploaded_file:
             )
             used_feature_names = feature_names_pca
 
-        model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
-        _mo_candidates = []
-        if use_bnn and _torch_available:
-            from multioutreg.surrogates.bnn_pytorch import BNNSurrogate
-            _mo_candidates.append(
-                BNNSurrogate(hidden_layer_sizes=(128, 64), max_epochs=300, random_state=0)
-            )
-        if use_moe:
-            from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
-            _mo_candidates.append(
-                MixtureOfExpertsSurrogate(
-                    n_experts=moe_n_experts,
-                    gating_type=moe_gating_type,
-                    random_state=0,
-                )
-            )
-        if _mo_candidates:
-            model.register_multi_output_candidates(_mo_candidates)
-
-        _EXPENSIVE_MODEL_NAMES = {"gp", "mlp", "ngboost"}
-        _EXPENSIVE_DISPLAY_NAMES = {
-            "gp": "Gaussian Process",
-            "mlp": "Neural Network (MLP)",
-            "ngboost": "NGBoost",
-        }
-        if skip_expensive:
-            _keep = [i for i, n in enumerate(model._model_names) if n not in _EXPENSIVE_MODEL_NAMES]
-            _skipped = [model._model_names[i] for i in range(len(model._model_names)) if model._model_names[i] in _EXPENSIVE_MODEL_NAMES]
-            model.estimators = [model.estimators[i] for i in _keep]
-            model.param_spaces = [model.param_spaces[i] for i in _keep]
-            model._surrogate_constructors = [model._surrogate_constructors[i] for i in _keep]
-            model._model_names = [model._model_names[i] for i in _keep]
-            if _skipped:
-                st.info(
-                    f"Skipping {len(_skipped)} expensive model(s): "
-                    + ", ".join(_EXPENSIVE_DISPLAY_NAMES.get(n, n) for n in _skipped)
-                )
-
-        # Conformal calibration must use data disjoint from both training and the
-        # test set used to report coverage, so hold out part of the training split.
-        if use_conformal:
-            X_train, X_cal, y_train, y_cal = train_test_split(
-                X_train, y_train, test_size=0.2, random_state=0
-            )
-
-        model.fit(X_train, y_train)
-        best_pred, best_std = model.predict(X_test, return_std=True)
-        best_model = model
-        best_combo = [m.__class__.__name__ for m in model.models_]
+        st.caption(f"Performance estimate: {plan.describe()}.")
 
         # Conformal prediction
         conformal_intervals = None
         if use_conformal:
-            model.calibrate_conformal(X_cal, y_cal)
-            y_lower, y_upper = model.predict_interval(X_test, alpha=conformal_alpha_sel)
+            y_lower, y_upper = evaluation.lower, evaluation.upper
             conformal_intervals = (y_lower, y_upper)
 
             from multioutreg.conformal.metrics import conformal_summary as _conf_summary
@@ -630,9 +633,10 @@ if uploaded_file:
             best_std=best_std,
             best_model=best_model,
             X_train=X_train,
-            n_train=X_train.shape[0],
-            n_test=X_test.shape[0],
-            cross_validation=f"Model selection: {best_model.cv_description_}",
+            n_train=evaluation.n_train,
+            n_test=evaluation.n_test,
+            cross_validation=(f"Model selection: {best_model.cv_description_}. "
+                              f"Performance estimate: {plan.describe()}"),
             seed=0,
             notes="Generated report.",
             feature_names=used_feature_names,
@@ -645,7 +649,7 @@ if uploaded_file:
             shap_plot=shap_img,
             conformal_intervals=conformal_intervals if use_conformal else None,
             conformal_alpha=conformal_alpha_sel if use_conformal else None,
-            calibration_residuals=model._conformal_residuals if use_conformal else None,
+            calibration_residuals=evaluation.fit.residuals if use_conformal else None,
             imputation_summary=_imputation_summary,
             regret_metrics=regret_metrics,
             regret_bounds=regret_bounds,
