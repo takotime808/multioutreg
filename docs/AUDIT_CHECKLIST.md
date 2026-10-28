@@ -367,6 +367,78 @@ report. User guide: `docs/multi_fidelity_gui.md`.
 - [ ] **MF15.** `template.html` overview still says results cover "all model outputs and
   fidelities"; the multi-fidelity report evaluates only the highest fidelity.
 
+## Sample-size-dependent evaluation, non-time-series data (2026-10-28)
+
+The CV used to pick a model already depends on n: `select_cv_strategy`
+(`multioutreg/model_selection/auto_detect.py:92`) uses LOO for n ≤ 20, repeated 5-fold ×3 for
+n ≤ 100, 10-fold for n ≤ 1000 and 5-fold above that. The splits around it are fixed fractions
+whatever n is. Thresholds marked *(convention)* have no literature source. References are at
+the end of this section. Time-series data is covered separately in Appendix A.
+
+- [ ] **S1. Fixed 25% test split.** `mor_cli/grid_search.py:69`,
+  `mor_cli/grid_search_auto_detect.py:71`, `multioutreg/gui/Grid_Search_Surrogate_Models.py:479`,
+  `multioutreg/gui/pages/01_Use_Auto_Detect_MultiOutput_Regressor.py:401`. A single train/test
+  split gives an *unbiased* estimate at any n, whereas plain K-fold CV is strongly biased at
+  small n [Vabalas et al. 2019]. So the holdout is not wrong, but at small n it is high-variance
+  (n = 20 → 5 test points) and keeps 25% of the data out of training. Nested CV also gives an
+  almost unbiased estimate and uses every point for testing [Varma & Simon 2006; Vabalas et al.
+  2019]. Repeat it to reduce variance [Krstajic et al. 2014].
+  *Fix:* when the test split would hold fewer than ~30 points *(convention)*, report nested CV
+  (outer = the `resolve_cv` splitter, inner = model selection) instead of the holdout, and say
+  so in the report. Keep the 25% holdout above that.
+- [ ] **S2. Conformal calibration takes a fixed 20% of the training split.**
+  `mor_cli/grid_search_auto_detect.py:110`, `Grid_Search_Surrogate_Models.py:581`, page 01 `:487`.
+  Split conformal needs n_cal ≥ ⌈1/α⌉ − 1 calibration points for a finite interval
+  (k = ⌈(n_cal+1)(1−α)⌉ ≤ n_cal). Below that, `conformal/base.py:96` returns `inf`. With
+  20% of 75%, that means n ≳ 60 at α = 0.1 and n ≳ 127 at α = 0.05; smaller datasets show
+  unbounded intervals. *(This threshold is exact arithmetic, not a convention.)*
+  *Fix:* when n_cal < ⌈1/α⌉ − 1, use CV+ [Barber et al. 2021] instead. CV+ calibrates on every
+  training point via out-of-fold residuals, and its worst-case coverage is ≥ 1 − 2α, usually
+  ≈ 1 − α in practice. It is already implemented in `multioutreg/conformal/cv_plus.py`
+  (`CVPlusConformalPredictor`) but not wired into the CLI or GUI. Report which method was used.
+  If even n_train < ⌈1/α⌉ − 1, say in the UI that α is too small for this dataset.
+- [ ] **S3. LOO for n ≤ 20 in `select_cv_strategy`.** LOO is asymptotically inconsistent for
+  model selection, and Shao's fix is a *larger* validation fraction [Shao 1993]. For model
+  selection, 10-fold is recommended over more folds even when computation allows [Kohavi 1995].
+  Selection should rest on repeated CV, not a single CV run [Krstajic et al. 2014]. Repeated
+  10-fold also beat the .632+ bootstrap [Kim 2009].
+  *Fix:* for n ≤ 100 use `RepeatedKFold(n_splits=max(2, min(5, n // 4)), n_repeats=10)`
+  *(convention: about 4+ points per fold and 10 repeats; Krstajic et al. used 50)*. Keep
+  `cv="loocv"` as an explicit opt-in. Leave 10-fold (101–1000) and 5-fold (> 1000, for compute
+  cost) as they are. Update the docstring and `describe_cv` text to cite the sources.
+- [ ] **S4. The GUI Grid Search picks models on one 20% validation split**
+  (`multioutreg/gui/grid_search_core.py:461`, `val_fraction=0.2`). It does not use
+  `resolve_cv`, so at small n the choice rests on a handful of points and differs from the
+  auto-detect path. *Fix:* score configs with `resolve_cv(n)` folds, i.e. average validation
+  MSE per output over the folds.
+- [ ] **S5.** `model_selection/screening.py:232` hard-codes `cv=3` for its R² screens; use
+  `resolve_cv` (R² falls back to repeated k-fold there already).
+
+**Done when:** one helper (e.g. `plan_evaluation(n, alpha, scoring)` next to `resolve_cv`)
+returns the outer estimate (holdout or nested CV), the inner splitter and the conformal method.
+The CLI and every GUI page use it, and the report and `results` metadata say which scheme ran.
+Tests cover the boundaries (n = 20/21, 100/101; n_cal just below and at ⌈1/α⌉ − 1).
+
+**References**
+
+- Barber, R. F., Candès, E. J., Ramdas, A., & Tibshirani, R. J. (2021). Predictive inference
+  with the jackknife+. *Annals of Statistics*, 49(1), 486–507. doi:10.1214/20-AOS1965
+- Kim, J.-H. (2009). Estimating classification error rate: repeated cross-validation, repeated
+  hold-out and bootstrap. *Computational Statistics & Data Analysis*, 53(11), 3735–3745.
+  doi:10.1016/j.csda.2009.04.009
+- Kohavi, R. (1995). A study of cross-validation and bootstrap for accuracy estimation and model
+  selection. *IJCAI*, 1137–1145.
+- Krstajic, D., Buturovic, L. J., Leahy, D. E., & Thomas, S. (2014). Cross-validation pitfalls
+  when selecting and assessing regression and classification models. *Journal of
+  Cheminformatics*, 6, 10. doi:10.1186/1758-2946-6-10
+- Shao, J. (1993). Linear model selection by cross-validation. *Journal of the American
+  Statistical Association*, 88(422), 486–494. doi:10.1080/01621459.1993.10476299
+- Vabalas, A., Gowen, E., Poliakoff, E., & Casson, A. J. (2019). Machine learning algorithm
+  validation with a limited sample size. *PLoS ONE*, 14(11), e0224365.
+  doi:10.1371/journal.pone.0224365
+- Varma, S., & Simon, R. (2006). Bias in error estimation when using cross-validation for model
+  selection. *BMC Bioinformatics*, 7, 91. doi:10.1186/1471-2105-7-91
+
 
 ---
 
@@ -520,9 +592,13 @@ refits at each origin used, so a long series costs at most k = 10 fits.
 ### A.5 How to implement it
 
 1. **Build the origins once, in the caller** (`mor_cli/ts_pipeline.py`, and the UI page at the
-   same point) with one shared helper, e.g. `rolling_origins(n, H, s, min_train, k_max=10)`
-   in `multioutreg/time_series/`. It applies the A.4 rule and returns
-   `[(train_end, test_slice), ...]`. Every model then sees the same origins.
+   same point), by extending the existing `WalkForwardCV` / `walk_forward_splits` in
+   `multioutreg/time_series/cv.py` rather than writing a new helper. It already does expanding
+   (or `max_train` rolling) windows with `min_train`, `horizon` and `step`, and GUI tab 3 uses
+   it. Add a constructor such as `WalkForwardCV.from_sample_size(n, horizon, seasonality,
+   min_train, max_folds=10)` that applies the A.4 rule: test region, all origins when m ≤ 10,
+   otherwise 10 evenly spaced origins. Even spacing needs either an explicit list of origins
+   or a computed `step`. Every model then sees the same origins.
 2. **Give every model the same interface:** `fit(y_train)` and then `forecast(H) -> np.ndarray`
    **on the original scale**. Keep `run()` as a thin wrapper for backwards compatibility.
    - ARIMA / SARIMA: keep the ADF test to choose `d`, but fit
@@ -566,8 +642,8 @@ refits at each origin used, so a long series costs at most k = 10 fits.
 ### A.7 Done when
 
 - [x] Evaluation scheme decided (A.4, 2026-10-28).
-- [ ] `--horizon` and `--folds` exposed in the CLI and as UI inputs; `rolling_origins` unit-tested
-  on the boundaries (m ≤ 10 vs m > 10, series too short, s = 0).
+- [ ] `--horizon` and `--folds` exposed in the CLI and as UI inputs; the sample-size constructor
+  on `WalkForwardCV` unit-tested on the boundaries (m ≤ 10 vs m > 10, series too short, s = 0).
 - [ ] All models are scored out-of-sample on the original scale by one shared metric function.
 - [ ] `Ranker` uses those metrics; `results.json` records H and the metrics.
 - [ ] A.3 SARIMA bugs fixed (or logged as their own items); item 26 `mase` fixed.
