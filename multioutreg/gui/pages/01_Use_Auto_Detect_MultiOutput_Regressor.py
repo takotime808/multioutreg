@@ -54,6 +54,7 @@ from multioutreg.figures.conformal_plots import (
     plot_conformal_vs_gaussian,
 )
 from multioutreg.model_selection import AutoDetectMultiOutputRegressor
+from multioutreg.model_selection.auto_detect import EXPENSIVE_MODEL_NAMES, drop_candidates
 from multioutreg.model_selection.evaluation import plan_evaluation, run_evaluation
 from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
 from multioutreg.utils.metric_utils import gaussian_uncertainty_metrics
@@ -417,7 +418,6 @@ if uploaded_file:
                 X_tr, X_te = pca.X_train, pca.X_test
             return X_tr, X_te, pca
 
-        _EXPENSIVE_MODEL_NAMES = {"gp", "mlp", "ngboost"}
         _EXPENSIVE_DISPLAY_NAMES = {
             "gp": "Gaussian Process",
             "mlp": "Neural Network (MLP)",
@@ -444,16 +444,12 @@ if uploaded_file:
             if mo_candidates:
                 model.register_multi_output_candidates(mo_candidates)
             if skip_expensive:
-                keep = [i for i, n in enumerate(model._model_names) if n not in _EXPENSIVE_MODEL_NAMES]
-                model.estimators = [model.estimators[i] for i in keep]
-                model.param_spaces = [model.param_spaces[i] for i in keep]
-                model._surrogate_constructors = [model._surrogate_constructors[i] for i in keep]
-                model._model_names = [model._model_names[i] for i in keep]
+                drop_candidates(model, EXPENSIVE_MODEL_NAMES)
             return model
 
         if skip_expensive:
             _skipped = [n for n in AutoDetectMultiOutputRegressor.with_vendored_surrogates()._model_names
-                        if n in _EXPENSIVE_MODEL_NAMES]
+                        if n in EXPENSIVE_MODEL_NAMES]
             if _skipped:
                 st.info(
                     f"Skipping {len(_skipped)} expensive model(s): "

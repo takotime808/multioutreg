@@ -10,6 +10,7 @@ from typing import Optional
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, root_mean_squared_error
 
 from multioutreg.model_selection import AutoDetectMultiOutputRegressor
+from multioutreg.model_selection.auto_detect import EXPENSIVE_MODEL_NAMES, drop_candidates
 from multioutreg.model_selection.evaluation import plan_evaluation, run_evaluation
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
 from multioutreg.utils.pca_utils import fit_input_pca
@@ -35,6 +36,9 @@ def grid_search_auto_detect(
     moe_n_experts: int = typer.Option(4, help="Number of MoE experts"),
     moe_gating_type: str = typer.Option("linear", help="MoE gating type: linear or mlp"),
     use_imputation: bool = typer.Option(False, help="Apply KNN imputation to fill missing values in selected columns before training"),
+    skip_expensive: bool = typer.Option(
+        True, "--skip-expensive/--all-models",
+        help="Skip slow candidates (Gaussian processes, NGBoost, ...), as the hosted app does"),
     description: str = typer.Option("", help="Project description"),
     out_html: str = typer.Option("model_report_auto.html", help="Output HTML file"),
 ) -> None:
@@ -75,6 +79,9 @@ def grid_search_auto_detect(
     plan = plan_evaluation(len(X), alpha=conformal_alpha if conformal else None)
     for note in plan.notes:
         typer.echo(note)
+    if skip_expensive:
+        typer.echo("Skipping slow candidates (" + ", ".join(sorted(EXPENSIVE_MODEL_NAMES))
+                   + "); pass --all-models to include them.")
 
     def preprocess(X_tr, X_te):
         # Imputation and PCA are fitted on the training rows only.
@@ -88,6 +95,8 @@ def grid_search_auto_detect(
 
     def make_model():
         model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
+        if skip_expensive:
+            drop_candidates(model, EXPENSIVE_MODEL_NAMES)
         if use_moe:
             from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
             model.register_multi_output_candidates([

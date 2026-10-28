@@ -11,7 +11,9 @@ from multioutreg.figures.pca_plots import generate_pca_variance_plot
 from multioutreg.utils.pca_utils import fit_input_pca
 from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
 from multioutreg.gui.grid_search_core import (
+    EXPENSIVE_SURROGATES,
     PerTargetGridSearch,
+    default_surrogate_defs,
     generate_html_report,
 )
 from multioutreg.model_selection.evaluation import plan_evaluation, run_evaluation
@@ -32,6 +34,9 @@ def grid_search(
     moe_n_experts: int = typer.Option(4, help="Number of MoE experts"),
     moe_gating_type: str = typer.Option("linear", help="MoE gating type: linear or mlp"),
     use_imputation: bool = typer.Option(False, help="Apply KNN imputation to fill missing values in selected columns before training"),
+    skip_expensive: bool = typer.Option(
+        True, "--skip-expensive/--all-models",
+        help="Skip slow candidates (Gaussian processes, NGBoost, ...), as the hosted app does"),
     description: str = typer.Option("", help="Project description"),
     out_html: str = typer.Option("model_report.html", help="Output HTML file"),
 ) -> None:
@@ -91,9 +96,17 @@ def grid_search(
 
     # Configs are selected by CV on the training rows; the evaluation rows
     # (holdout, or the outer folds of nested CV) are only used for the metrics below.
+    surrogate_defs = default_surrogate_defs()
+    if skip_expensive:
+        skipped = [d[0] for d in surrogate_defs if d[0] in EXPENSIVE_SURROGATES]
+        surrogate_defs = [d for d in surrogate_defs if d[0] not in EXPENSIVE_SURROGATES]
+        if skipped:
+            typer.echo("Skipping slow candidates (" + ", ".join(skipped)
+                       + "); pass --all-models to include them.")
+
     result = run_evaluation(
-        lambda: PerTargetGridSearch(moe_factory=moe_factory), X, y, plan, preprocess,
-        on_step=typer.echo)
+        lambda: PerTargetGridSearch(surrogate_defs, moe_factory=moe_factory), X, y, plan,
+        preprocess, on_step=typer.echo)
     y_test, best_pred, best_std = result.y_true, result.pred, result.std
     X_train = result.X_fit
     search = result.model.result_

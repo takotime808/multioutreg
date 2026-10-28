@@ -280,6 +280,7 @@ def run_evaluation(
     plan: EvaluationPlan,
     preprocess: Optional[Callable[[np.ndarray, np.ndarray], tuple]] = None,
     on_step: Optional[Callable[[str], None]] = None,
+    fold_cv: Any = "auto_single",
 ) -> EvaluationResult:
     """Carry out *plan*: holdout or nested CV, with split or CV+ conformal.
 
@@ -287,6 +288,13 @@ def run_evaluation(
     outer fold and once for the final fit). ``preprocess(X_train, X_test)``
     returns ``(X_train', X_test', info)`` and must fit only on ``X_train``
     (imputation, PCA, ...). ``on_step(label)`` reports progress.
+
+    Under nested CV, models built for the outer folds get ``cv = fold_cv``
+    when they have a ``cv`` attribute (AutoDetect, ``PerTargetGridSearch``):
+    by default single-run k-fold instead of repeated k-fold, which cuts the
+    nested cost about 3x. Selection still happens inside each fold, so the
+    estimate stays honest; the final model keeps its own ``cv``. Pass
+    ``fold_cv=None`` to leave the models unchanged.
     """
     y = _as_2d(y)
     if preprocess is None:
@@ -294,9 +302,12 @@ def run_evaluation(
             return X_tr, X_te, None
     step = on_step or (lambda label: None)
 
-    def fit_and_predict(X_tr, y_tr, X_te):
+    def fit_and_predict(X_tr, y_tr, X_te, in_fold=False):
         X_tr, X_te, info = preprocess(X_tr, X_te)
-        fit = fit_with_conformal(make_model(), X_tr, y_tr, plan)
+        model = make_model()
+        if in_fold and fold_cv is not None and hasattr(model, "cv"):
+            model.cv = fold_cv
+        fit = fit_with_conformal(model, X_tr, y_tr, plan)
         pred, std = fit.model.predict(X_te, return_std=True)
         lower = upper = None
         if plan.conformal is not None:
@@ -311,7 +322,7 @@ def run_evaluation(
         return EvaluationResult(plan, y_te, pred, std, lower, upper, fit, X_tr, X_te, info)
 
     def fold_fit_predict(X_tr, y_tr, X_te):
-        *_, pred, std, lower, upper = fit_and_predict(X_tr, y_tr, X_te)
+        *_, pred, std, lower, upper = fit_and_predict(X_tr, y_tr, X_te, in_fold=True)
         return {"pred": pred, "std": std, "lower": lower, "upper": upper}
 
     oof = nested_cv_predict(

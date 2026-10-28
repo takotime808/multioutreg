@@ -374,6 +374,19 @@ def _threaded_catboost(**params):
     return _CatBoostRegressor(**catboost_thread_kwargs(), **params)
 
 
+#: Slow candidates skipped by default on the hosted app and in the CLI,
+#: with display names.
+EXPENSIVE_SURROGATES = {
+    "gpr": "Gaussian Process",
+    "ngb": "NGBoost",
+    "cpn": "Conformal Prediction Network",
+    "ard_gp": "ARD Gaussian Process",
+    "gpx": "GPX (Rust GP)",
+    "kpls": "KPLS (Kriging+PLS)",
+    "sgpr": "Sparse GP (GPyTorch)",
+}
+
+
 def default_surrogate_defs() -> List[Tuple[str, Any, dict]]:
     """``(name, factory, param_grid)`` for every candidate the grid search tries.
 

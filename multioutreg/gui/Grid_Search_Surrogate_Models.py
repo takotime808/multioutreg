@@ -95,6 +95,7 @@ from multioutreg.gui.grid_search_core import (
     build_model_pipeline,
     default_surrogate_defs,
     generate_html_report,
+    EXPENSIVE_SURROGATES,
     PerTargetGridSearch,
     serialize_model_bundle,
 )
@@ -494,23 +495,13 @@ if data_source:
             return X_tr, X_te, {"imputer": imputer, "pca": pca}
 
         surrogate_defs = default_surrogate_defs()
-        _EXPENSIVE_MODELS = {"gpr", "ngb", "cpn", "ard_gp", "gpx", "kpls", "sgpr"}
-        _EXPENSIVE_DISPLAY_NAMES = {
-            "gpr": "Gaussian Process",
-            "ngb": "NGBoost",
-            "cpn": "Conformal Prediction Network",
-            "ard_gp": "ARD Gaussian Process",
-            "gpx": "GPX (Rust GP)",
-            "kpls": "KPLS (Kriging+PLS)",
-            "sgpr": "Sparse GP (GPyTorch)",
-        }
         if skip_expensive:
-            _skipped = [d[0] for d in surrogate_defs if d[0] in _EXPENSIVE_MODELS]
-            surrogate_defs = [d for d in surrogate_defs if d[0] not in _EXPENSIVE_MODELS]
+            _skipped = [d[0] for d in surrogate_defs if d[0] in EXPENSIVE_SURROGATES]
+            surrogate_defs = [d for d in surrogate_defs if d[0] not in EXPENSIVE_SURROGATES]
             if _skipped:
                 _notes.append(("info",
                     f"Skipping {len(_skipped)} expensive model(s): "
-                    + ", ".join(_EXPENSIVE_DISPLAY_NAMES.get(k, k) for k in _skipped)
+                    + ", ".join(EXPENSIVE_SURROGATES.get(k, k) for k in _skipped)
                 ))
 
         _moe_factory = None
