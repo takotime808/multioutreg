@@ -1,5 +1,6 @@
 # Local additions
 .claude/worktrees/
+.claude/settings.local.json
 .DS_Store
 *.DS_Store
 .ipynb_checkpoints
