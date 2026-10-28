@@ -2,7 +2,7 @@
 
 A checklist for making these Sphinx docs easier to land on, navigate and learn
 from. Items are ordered by impact. See [Improving the GUI](gui_ux_roadmap.md)
-for the Streamlit app.
+for the Streamlit app. The PyPI release decision is at the end.
 
 *Last reviewed 2026-10-28.*
 
@@ -97,3 +97,44 @@ for the Streamlit app.
   code (LaTeX, EPUB, nbsphinx prolog, alternative themes). The CI step also
   installs packages the build does not use (`sphinx_rtd_theme`,
   `sphinx-gallery`, `sphinxcontrib-bibtex`, `jupyter-black`).
+
+## Release Decision: Publish to PyPI?
+
+Today users install from a git checkout (`pip install -e .` or `uv sync`).
+The README has a commented-out PyPI badge, and `TODO.md` lists the release as
+an open question. As of 2026-10-28 the `multioutreg` name is free on PyPI.
+
+| | Pros | Cons |
+|---|---|---|
+| **Install** | `pip install multioutreg[xgboost]` replaces clone-and-sync, and extras become a menu users can pick from | Core install pulls `torch`, `chronos-forecasting`, `streamlit`, `shap` and `umap-learn` (several GB) even for users who only want a regressor |
+| **Reach** | Shows up in PyPI search, and other projects can depend on it with a version range | Gets attention before the API is stable (`0.0.1`, ~140 modules, many internal) |
+| **Versioning** | Tagged releases give users something to pin and cite, and give the docs a "latest release" link (item 9) | Every breaking change needs a version bump and changelog. There are no tags or `CHANGELOG` yet |
+| **Dependencies** | Forces trimming core deps into extras, which also speeds up CI and the Streamlit deploy | Strict pins (`numpy<2.0`, `pandas<2.2`, `pyarrow<26`) will clash with users' environments, and Intel macOS needs the `torch<2.3` caps that only `uv` applies |
+| **Name** | Claims `multioutreg` before someone else does | A placeholder upload is permanent. PyPI never lets a deleted version number be reused |
+| **Legal** | Shipping needs a real license, which settles how others may use the code | `LICENSE` says "All rights reserved", so a public wheel can't legally be used. A planned patent (`TODO.md`) is another reason to wait: get advice on disclosure before distributing more widely |
+| **Upkeep** | Releases can be automated with a tag-triggered GitHub Action and trusted publishing (no stored token) | Another workflow to maintain, plus user issues from platforms CI doesn't cover |
+
+**Decision (proposed): yes, but not yet.** Publish `0.1.0` once the blockers
+below are done. Until then, keep installing from git.
+
+Blockers, in order:
+
+- [ ] Settle the patent question and pick an open-source license
+  (MIT / BSD-3 / Apache-2.0). Apache-2.0 includes a patent grant, which
+  matters if the patent goes ahead.
+- [ ] Move `torch`, `chronos-forecasting`, `streamlit`, `shap` and
+  `umap-learn` out of core into extras (`[ts]`, `[gui]`, `[explain]`), and
+  check that `import multioutreg` works without them.
+- [ ] Loosen the `numpy`, `pandas` and `pyarrow` pins, or document why each
+  stays.
+- [ ] Fill in `authors`, `urls` and `classifiers` in `pyproject.toml`, and
+  start a `CHANGELOG.md`.
+- [ ] Add a release workflow: build the sdist and wheel, install the wheel in
+  a clean env, run the tests, publish to TestPyPI and then PyPI with trusted
+  publishing.
+- [ ] Update `install.md` and the README (uncomment the PyPI and license
+  badges).
+
+Optional now: reserve the name with a `0.0.0.dev0` placeholder that points to
+the GitHub repo. Only do this once the license is chosen, because the
+placeholder's metadata is public and permanent.
