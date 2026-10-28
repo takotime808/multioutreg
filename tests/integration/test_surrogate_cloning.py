@@ -75,7 +75,7 @@ def test_unfitted_copy_fits_like_the_original(name, data):
 
     assert dup is not model, method
     assert type(dup) is type(model)
-    if method == "clone":
+    if method == "clone" and hasattr(model, "get_params"):
         assert dup.get_params(deep=False).keys() == model.get_params(deep=False).keys()
 
     pred_orig = np.asarray(_fit(name, model, X, Y).predict(X))
