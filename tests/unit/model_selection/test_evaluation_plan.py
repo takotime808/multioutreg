@@ -169,6 +169,26 @@ def test_run_evaluation(n, scheme, n_test):
         assert res.n_train == n and calls[-1] == n
 
 
+def test_run_evaluation_uses_cheaper_cv_inside_outer_folds():
+    from multioutreg.model_selection.evaluation import run_evaluation
+
+    X, y = _data(40)
+    seen = []
+
+    class Recorder(BayesianRidgeSurrogate):
+        cv = "auto"
+
+        def fit(self, X, y):
+            seen.append(self.cv)
+            return super().fit(X, y)
+
+    run_evaluation(Recorder, X, y, plan_evaluation(40))
+    assert seen == ["auto_single"] * 5 + ["auto"]      # 5 outer folds, then the final fit
+    seen.clear()
+    run_evaluation(Recorder, X, y, plan_evaluation(40), fold_cv=None)
+    assert seen == ["auto"] * 6
+
+
 def test_nested_cv_predict_requires_nested_plan():
     X, y = _data(300)
     with pytest.raises(ValueError, match="nested_cv"):

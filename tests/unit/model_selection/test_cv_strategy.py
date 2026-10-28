@@ -74,6 +74,26 @@ def test_auto_never_uses_loo():
     assert min(len(te) for _, te in cv.split(X)) >= 4
 
 
+@pytest.mark.parametrize("n, n_splits", [(12, 3), (60, 5)])
+def test_auto_single_drops_the_repeats(n, n_splits):
+    cv = resolve_cv("auto_single", n)
+    assert type(cv) is KFold and cv.n_splits == n_splits and cv.shuffle
+    assert type(resolve_cv("auto_single", 500)) is KFold
+
+
+def test_drop_candidates():
+    from multioutreg.model_selection.auto_detect import (
+        EXPENSIVE_MODEL_NAMES, drop_candidates)
+
+    model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
+    n = len(model._model_names)
+    dropped = drop_candidates(model, EXPENSIVE_MODEL_NAMES)
+    assert set(dropped) == EXPENSIVE_MODEL_NAMES & set(dropped) and "gp" in dropped
+    assert len(model.estimators) == len(model.param_spaces) == len(
+        model._surrogate_constructors) == len(model._model_names) == n - len(dropped)
+    assert not EXPENSIVE_MODEL_NAMES & set(model._model_names)
+
+
 def test_loocv_is_still_available_but_not_for_r2():
     assert isinstance(resolve_cv("loocv", 12), LeaveOneOut)
     with pytest.raises(ValueError, match="loocv"):
