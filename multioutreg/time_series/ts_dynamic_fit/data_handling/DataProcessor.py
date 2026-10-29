@@ -9,6 +9,9 @@ from typing import Optional, Dict, Any, Union
 warnings.filterwarnings('ignore')
 _logger = logging.getLogger(__name__)
 
+#: Ways ``preprocess_data`` can fill missing target values.
+FILL_METHODS = ('zero', 'ffill', 'interpolate')
+
 class DataProcessor:
     """
     Data engineering pipeline for time series preprocessing.
@@ -115,47 +118,76 @@ class DataProcessor:
         self, 
         datetime_col: str, 
         target_col: str, 
-        freq: str = '15min'
+        freq: Optional[str] = '15min',
+        fill: str = 'zero',
+        clip_outliers: bool = True,
     ) -> pd.DataFrame:
         """
         Preprocess time series data with transformations and cleaning.
-        
+
+        The defaults suit sales data: a missing value or period means nothing
+        was sold (0), and spikes are capped to ``[max(0, Q1 - 1.5 IQR),
+        Q3 + 1.5 IQR]``. For prices, returns, temperatures and other series
+        where 0 is a real value and extremes are the signal, use
+        ``fill='ffill'`` or ``'interpolate'`` and ``clip_outliers=False``; for
+        data on a trading calendar, ``freq='observed'`` keeps the timestamps
+        as they are instead of inserting weekends and holidays.
+
         Args:
             datetime_col (str): Name of datetime column
             target_col (str): Name of target variable column
-            freq (str): Resampling frequency
-        
+            freq (str | None): Resampling frequency, or ``'observed'`` / None
+                to keep the observed timestamps.
+            fill (str): How missing target values (including periods that
+                resampling inserts) are filled: ``'zero'``, ``'ffill'`` (last
+                value carried forward) or ``'interpolate'`` (linear in time).
+                With ``'ffill'`` / ``'interpolate'``, leading missing values
+                have nothing before them and are dropped.
+            clip_outliers (bool): Cap the target to the IQR fences above.
+
         Returns:
             pd.DataFrame: Preprocessed data
         """
         if self.data is None:
             raise ValueError("No data loaded")
-        
+        if fill not in FILL_METHODS:
+            raise ValueError(f"fill must be one of {FILL_METHODS}, got {fill!r}")
+
         # Work with a copy
         df = self.data.copy()
-        
+
         # Convert datetime column
         df[datetime_col] = pd.to_datetime(df[datetime_col])
-        
+
         # Set datetime as index
         df.set_index(datetime_col, inplace=True)
-        
+
         # Handle missing values
-        df[target_col] = df[target_col].fillna(0)  # Fill with 0 for sales data
-        
-        # Remove outliers using IQR method
-        Q1 = df[target_col].quantile(0.25)
-        Q3 = df[target_col].quantile(0.75)
-        IQR = Q3 - Q1
-        lower_bound = Q1 - 1.5 * IQR
-        upper_bound = Q3 + 1.5 * IQR
-        
-        # Cap outliers instead of removing them to preserve time structure
-        df[target_col] = df[target_col].clip(lower=max(0, lower_bound), upper=upper_bound)
-        
+        if fill == 'zero':
+            df[target_col] = df[target_col].fillna(0)  # Fill with 0 for sales data
+
+        if clip_outliers:
+            # Remove outliers using IQR method
+            Q1 = df[target_col].quantile(0.25)
+            Q3 = df[target_col].quantile(0.75)
+            IQR = Q3 - Q1
+            lower_bound = Q1 - 1.5 * IQR
+            upper_bound = Q3 + 1.5 * IQR
+
+            # Cap outliers instead of removing them to preserve time structure
+            df[target_col] = df[target_col].clip(lower=max(0, lower_bound), upper=upper_bound)
+
         # Ensure regular frequency
-        df = df.asfreq(freq, fill_value=0)
-        
+        if freq is not None and str(freq).lower() != 'observed':
+            df = df.asfreq(freq, fill_value=0) if fill == 'zero' else df.asfreq(freq)
+
+        if fill == 'ffill':
+            df[target_col] = df[target_col].ffill()
+        elif fill == 'interpolate':
+            df[target_col] = df[target_col].interpolate(method='time')
+        if fill != 'zero':
+            df = df.loc[df[target_col].notna().cummax()]
+
         self.processed_data = df
         if self.verbose: 
             self.log_to_file(f"Data preprocessed. Final shape: {df.shape}")

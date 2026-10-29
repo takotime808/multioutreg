@@ -7,7 +7,7 @@ The outputs in ``data/public/`` are inputs for the ``ts-pipeline`` CLI, e.g.::
         --datetime-col date --target-col passengers --freq MS
 
 See ``data/public/README.md`` for sources, licences and suggested flags.
-Re-run this script to refresh (the Mauna Loa CO2 series is updated monthly)::
+Re-run this script to refresh (Mauna Loa CO2 is updated monthly, EUR/USD daily)::
 
     python examples/example_data_ts/fetch_public_datasets.py
 """
@@ -31,6 +31,7 @@ URLS = {
     "births": f"{BROWNLEE}/daily-total-female-births.csv",
     "sunspots": f"{BROWNLEE}/monthly-sunspots.csv",
     "bike": "https://archive.ics.uci.edu/static/public/275/bike+sharing+dataset.zip",
+    "eurusd": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DEXUSEU",
 }
 
 
@@ -84,6 +85,11 @@ def main() -> None:
     hour["date"] = pd.to_datetime(hour["dteday"]) + pd.to_timedelta(hour["hr"], unit="h")
     # hour.csv omits hours with no rentals, so the series has real gaps.
     _write(hour.rename(columns={"cnt": "rentals"})[["date", "rentals"]], "bike_sharing_hourly.csv")
+
+    # FRED leaves bank holidays blank ("." in older exports); dropping them
+    # keeps the trading calendar.
+    df = _csv(_get(URLS["eurusd"]), na_values=["."])
+    _write(df.set_axis(["date", "usd_per_eur"], axis=1), "eurusd_daily.csv")
 
 
 if __name__ == "__main__":

@@ -30,7 +30,11 @@ DATASETS = {
     "sunspots_monthly.csv": ("sunspots", 2820, "1749-01-01", "MS", 0, 127),
     "bike_sharing_daily.csv": ("rentals", 731, "2011-01-01", "D", 0, 0),
     "bike_sharing_hourly.csv": ("rentals", 17379, "2011-01-01", "h", 165, 24),
+    # Business days; bank holidays (~10 a year) are missing, so None: see below.
+    "eurusd_daily.csv": ("usd_per_eur", 6974, "1999-01-04", "B", None, 0),
 }
+#: Series that gain rows when fetch_public_datasets.py is re-run.
+GROWING = {"co2_mauna_loa_monthly.csv", "eurusd_daily.csv"}
 
 
 def _load(name):
@@ -45,10 +49,12 @@ def test_dataset_is_a_tidy_series(name):
     assert pd.api.types.is_numeric_dtype(df[target]) and df[target].notna().all()
     assert df["date"].is_monotonic_increasing and df["date"].is_unique
     assert df["date"].iloc[0] == pd.Timestamp(first)
-    # Mauna Loa CO2 gains a row every month when the script is re-run.
-    assert len(df) >= rows if name.startswith("co2") else len(df) == rows
+    assert len(df) >= rows if name in GROWING else len(df) == rows
     full = pd.date_range(df["date"].iloc[0], df["date"].iloc[-1], freq=step)
-    assert len(full) - len(df) == missing
+    if missing is None:   # a trading calendar: holidays only, never weekends
+        assert 0 < len(full) - len(df) <= 0.05 * len(full)
+    else:
+        assert len(full) - len(df) == missing
     assert set(df["date"]) <= set(full)
 
 
@@ -96,6 +102,9 @@ def _fake_downloads():
         "births": b'\xef\xbb\xbf"Date","Births"\n"1959-01-01",35\n',
         "sunspots": b'"Month","Sunspots"\n"1749-01",58.0\n"1749-02",62.6\n',
         "bike": buf.getvalue(),
+        # FRED leaves holidays blank; older exports wrote ".".
+        "eurusd": (b"observation_date,DEXUSEU\n1999-01-04,1.1812\n1999-01-05,\n"
+                   b"1999-01-06,.\n1999-01-07,1.1632\n"),
     }
 
 
@@ -129,6 +138,9 @@ def test_fetch_script_parses_every_source(tmp_path, monkeypatch):
         "date": ["2011-01-01 00:00:00", "2011-01-01 01:00:00",
                  "2011-01-01 03:00:00", "2011-01-02 00:00:00"],
         "rentals": [16, 40, 32, 17]}
+    # Both holiday markers dropped: the trading calendar is what remains.
+    assert read("eurusd_daily.csv").to_dict("list") == {
+        "date": ["1999-01-04", "1999-01-07"], "usd_per_eur": [1.1812, 1.1632]}
 
 
 # ---- ts-pipeline end to end on real data ------------------------------------
@@ -152,3 +164,59 @@ def test_ts_pipeline_on_airpassengers(tmp_path):
     # 12-step forecasts from 3 origins about 8 apart: the Diebold-Mariano lag is
     # clipped, which used to be reported as "losses are identical".
     assert "identical" not in report["diebold_mariano"].get("reason", "")
+
+
+def _finance_run(tmp_path, csv, *extra):
+    from typer.testing import CliRunner
+
+    from mor_cli.ts_pipeline import app
+
+    out = tmp_path / "out"
+    res = CliRunner().invoke(app, [
+        str(csv), "--datetime-col", "date", "--target-col", "usd_per_eur",
+        "--freq", "observed", "--fill", "ffill", "--no-clip-outliers",
+        "--seasonality", "0", "--horizon", "5", "--folds", "3", "--lstm-epochs", "2",
+        "--out-dir", str(out), *extra])
+    return res, out
+
+
+def test_ts_pipeline_on_eurusd_log_returns(tmp_path):
+    prices = _load("eurusd_daily.csv").tail(300)
+    csv = tmp_path / "eurusd.csv"
+    prices.to_csv(csv, index=False)
+    res, out = _finance_run(tmp_path, csv, "--transform", "log-return")
+    assert res.exit_code == 0, res.output
+    report = json.loads((out / "results.json").read_text())
+
+    assert report["preprocessing"] == {"freq": "observed", "fill": "ffill",
+                                       "clip_outliers": False, "transform": "log-return"}
+    assert report["evaluation"]["horizon"] == 5
+    # On returns the baseline is "no change", the random walk in prices.
+    names = {m["Model"] for m in report["models"]}
+    assert "Zero" in names and "Naive" not in names
+    assert "diebold_mariano_baseline" in report
+    # Origins are trading days from the file: no weekends were inserted.
+    dates = set(prices["date"].astype(str))
+    origins = pd.to_datetime(report["evaluation"]["origin_dates"])
+    assert (origins.dayofweek < 5).all()
+    assert {str(d.date()) for d in origins} <= dates
+    # "forecast" is in log returns; "forecast_levels" is the same path as prices.
+    r = np.asarray(report["forecast"])
+    last = prices["usd_per_eur"].iloc[-1]
+    assert np.abs(r).max() < 0.05
+    np.testing.assert_allclose(report["forecast_levels"], last * np.exp(np.cumsum(r)))
+
+
+def test_ts_pipeline_rejects_bad_finance_options(tmp_path):
+    csv = tmp_path / "eurusd.csv"
+    _load("eurusd_daily.csv").tail(100).to_csv(csv, index=False)
+    res, _ = _finance_run(tmp_path, csv, "--transform", "pct")
+    assert res.exit_code == 1 and "--transform must be one of" in res.output
+    res, _ = _finance_run(tmp_path, csv, "--fill", "mean")
+    assert res.exit_code == 1 and "--fill must be one of" in res.output
+
+    neg = tmp_path / "neg.csv"
+    pd.DataFrame({"date": pd.bdate_range("2024-01-02", periods=60),
+                  "usd_per_eur": np.linspace(-1, 1, 60)}).to_csv(neg, index=False)
+    res, _ = _finance_run(tmp_path, neg, "--transform", "log-return")
+    assert res.exit_code == 1 and "strictly positive" in res.output

@@ -85,6 +85,24 @@ class NaiveForecaster:
         return np.resize(last, horizon).astype(float)
 
 
+class ZeroForecaster:
+    """Always 0: the baseline for a series of changes (differences, returns).
+
+    A forecast of no change is the random walk in levels -- the benchmark a
+    price model has to beat. ``Naive`` on changes ("the last return repeats")
+    is a much weaker one: its error variance is about twice that of 0.
+    """
+
+    name = "Zero"
+
+    def fit(self, y_train, order=None) -> "ZeroForecaster":
+        _as_1d(y_train)
+        return self
+
+    def forecast(self, horizon: int) -> np.ndarray:
+        return np.zeros(horizon)
+
+
 class ArimaForecaster:
     """ARIMA(p, d, q): ``d`` from the ADF test, (p, q) by AIC over 0..7."""
 
