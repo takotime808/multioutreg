@@ -104,6 +104,94 @@ def test_stacked_return_std_shape(two_level_data):
     assert np.all(stds >= 0)
 
 
+def _top_level_std(m, X):
+    """The top surrogate's own std, without lower-level propagation."""
+    X_aug = m._augment(np.asarray(X, dtype=np.float64), len(m.fidelity_levels) - 1)
+    return m.surrogates_[m.fidelity_levels[-1]].predict(X_aug, return_std=True)[1]
+
+
+def test_stacked_mc_zero_samples_returns_top_level_std(three_level_data):
+    """n_mc_samples=0 keeps the old std: the top surrogate's own."""
+    m = StackedVFMSurrogate(["lo", "mid", "hi"], GaussianProcessSurrogate, n_mc_samples=0)
+    m.fit(three_level_data)
+    X_hi, _ = three_level_data["hi"]
+    _, stds = m.predict(X_hi, return_std=True)
+    np.testing.assert_array_equal(stds, _top_level_std(m, X_hi))
+
+
+def test_stacked_mc_std_propagates_lower_levels(three_level_data):
+    """MC std is wider than the top level's own std; the mean is unchanged."""
+    m = StackedVFMSurrogate(["lo", "mid", "hi"], GaussianProcessSurrogate)
+    m.fit(three_level_data)
+    X = np.random.default_rng(1).standard_normal((40, 4))
+    preds, stds = m.predict(X, return_std=True)
+    np.testing.assert_array_equal(preds, m.predict(X))
+    assert stds.shape == preds.shape
+    assert stds.mean() > _top_level_std(m, X).mean()
+
+
+def test_stacked_mc_std_deterministic(two_level_data):
+    """Repeated calls give the same std (draws are seeded by random_state)."""
+    m = StackedVFMSurrogate(["lo", "hi"], GaussianProcessSurrogate)
+    m.fit(two_level_data)
+    X_hi, _ = two_level_data["hi"]
+    np.testing.assert_array_equal(
+        m.predict(X_hi, return_std=True)[1], m.predict(X_hi, return_std=True)[1]
+    )
+
+
+def test_stacked_mc_std_chunked(two_level_data, monkeypatch):
+    """Draws split into chunks still give a finite std of the right shape."""
+    import multioutreg.surrogates.stacked_vfm as svfm
+
+    m = StackedVFMSurrogate(["lo", "hi"], GaussianProcessSurrogate, n_mc_samples=7)
+    m.fit(two_level_data)
+    X_hi, Y_hi = two_level_data["hi"]
+    monkeypatch.setattr(svfm, "_MC_MAX_ROWS", 3 * len(X_hi))
+    _, stds = m.predict(X_hi, return_std=True)
+    assert stds.shape == Y_hi.shape
+    assert np.all(np.isfinite(stds)) and np.all(stds > 0)
+
+
+def test_stacked_mc_missing_attribute_uses_top_level_std(two_level_data):
+    """Models pickled before n_mc_samples existed keep the old std."""
+    m = StackedVFMSurrogate(["lo", "hi"], GaussianProcessSurrogate)
+    m.fit(two_level_data)
+    del m.n_mc_samples
+    X_hi, _ = two_level_data["hi"]
+    np.testing.assert_array_equal(m.predict(X_hi, return_std=True)[1], _top_level_std(m, X_hi))
+
+
+def test_stacked_mc_coverage_forrester():
+    """4-level GP stack on Forrester (examples/mf_surrogates.ipynb, seed 0).
+
+    The top level's own std covered about half the grid at 95%; with
+    lower-level uncertainty propagated it reaches nominal coverage.
+    """
+    f3 = lambda x: (6 * x - 2) ** 2 * np.sin(12 * x - 4)  # noqa: E731
+    fns = {
+        "f3": f3,
+        "f2": lambda x: (5.5 * x - 2.5) ** 2 * np.sin(12 * x - 4),
+        "f1": lambda x: 0.75 * f3(x) + 5 * (x - 0.5) - 2,
+        "f0": lambda x: 0.5 * f3(x) + 10 * (x - 0.5) - 5,
+    }
+    n = {"f3": 8, "f2": 25, "f1": 50, "f0": 80}
+    sigma = {"f3": 0.02, "f2": 0.05, "f1": 0.08, "f0": 0.10}
+    rng = np.random.default_rng(0)
+    data = {}
+    for lvl, k in n.items():
+        X = rng.uniform(0, 1, size=(k, 1))
+        data[lvl] = (X, fns[lvl](X) + rng.normal(scale=sigma[lvl], size=(k, 1)))
+
+    levels = ["f0", "f1", "f2", "f3"]
+    m = StackedVFMSurrogate(levels, GaussianProcessSurrogate)
+    m.fit({k: data[k] for k in levels})
+    X_test = np.linspace(0, 1, 300).reshape(-1, 1)
+    y_hat, y_std = m.predict(X_test, return_std=True)
+    coverage = np.mean(np.abs(f3(X_test) - y_hat) <= 1.96 * y_std)
+    assert coverage >= 0.95
+
+
 def test_stacked_augment_with_std(two_level_data):
     """augment_with_std=True fits without error and returns correct shape."""
     m = StackedVFMSurrogate(
@@ -220,6 +308,7 @@ def test_stacked_get_set_params():
     params = m.get_params()
     assert params["augment_with_std"] is True
     assert params["fidelity_levels"] == ["a", "b"]
+    assert params["n_mc_samples"] == 100
     m.set_params(augment_with_std=False)
     assert m.augment_with_std is False
 
