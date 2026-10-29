@@ -37,6 +37,7 @@ from multioutreg.surrogates.pca_output import PCAOutputSurrogate
 from multioutreg.surrogates.multitask_gp_gpytorch import MultiTaskGPSurrogate
 from multioutreg.surrogates.gaussian_copula import GaussianCopulaSurrogate
 from multioutreg.surrogates.std_recalibration import StdRecalibratedSurrogate
+from multioutreg.surrogates.mfk_smt import MFKSurrogate
 
 __all__ = [
     "ConformalMixin",
@@ -76,5 +77,6 @@ __all__ = [
     "MultiTaskGPSurrogate",
     "GaussianCopulaSurrogate",
     "StdRecalibratedSurrogate",
+    "MFKSurrogate",
 ]
 
