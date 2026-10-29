@@ -240,11 +240,18 @@ Open unless marked done:
   likelihood over `rho`, as in Kennedy–O'Hagan). `MFKSurrogate` now does the
   latter and fits `rho` = 2.00 on Forrester, so users needing AR1 have an
   unbiased option; `AdditiveCorrectionVFM` itself is unchanged.
-- **Stacked VFM intervals:** the same notebook shows the 4-level GP stack is
-  the most accurate model but only about half the test grid falls inside its
-  nominal 95% band, because the top-level `std` treats lower-level
-  predictions as exact. Propagate lower-level variance (e.g. by sampling the
-  lower-level posteriors) or recalibrate by default.
+- ~~**Stacked VFM intervals**~~: done. The same notebook showed the 4-level
+  GP stack covering only about half the test grid with its nominal 95% band,
+  because the top-level `std` treated lower-level predictions as exact.
+  `StackedVFMSurrogate.predict(..., return_std=True)` now propagates
+  lower-level uncertainty by Monte Carlo (`n_mc_samples=100`, seeded by
+  `random_state`): each lower level's prediction is drawn from
+  `N(mean, std)` and passed up the stack, and the std combines the top
+  level's own std with the spread of its mean across draws. Coverage on the
+  notebook's grid goes from 0.53 to 1.00; the point prediction is unchanged.
+  The bands are now conservative (draws are independent per level and the GP
+  std includes observation noise); use `conformal_predict()` for tight
+  calibrated intervals, or `n_mc_samples=0` for the old std.
 - **More benchmark notebooks:** the Forrester notebook is the first piece of
   the benchmark suite (candidate 1); the notebooks planned under
   [Benchmark Suite](#benchmark-suite) are the next pieces.
