@@ -1,6 +1,5 @@
 # Copyright (c) 2025 takotime808
 
-import umap
 import warnings
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,7 +26,9 @@ def generate_umap_plot(
     (Monte Carlo tests of stratification, discrepancy and nearest-neighbour
     spacing against simulated designs). UMAP is only used for the picture: it
     does not preserve distances, so its embedding cannot tell designs apart.
-    If UMAP fails, the plot falls back to a PCA projection.
+    If ``umap-learn`` is not installed or UMAP fails, the plot falls back to a
+    PCA projection. ``umap`` is imported here, not at module level, so the
+    module imports without it and the fallback can run.
 
     Parameters
     ----------
@@ -61,6 +62,8 @@ def generate_umap_plot(
     projection = "UMAP"
     if X.shape[1] >= 2 and X.shape[0] > 3:
         try:
+            import umap  # slow to import, and optional
+
             reducer = umap.UMAP(
                 n_neighbors=min(n_neighbors, X.shape[0] - 1),
                 min_dist=min_dist,

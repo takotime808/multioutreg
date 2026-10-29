@@ -110,11 +110,15 @@ def _parse_weight_matrix(txt: str, m: int) -> Optional[np.ndarray]:
     return W / sums
 
 
-def _auto_reference_point(Y_true: np.ndarray, Y_pred: np.ndarray, margin_pct: float) -> np.ndarray:
-    """Minimization reference point: worst + margin_pct% of span (1.0 fallback when span == 0)."""
-    allY = np.vstack([Y_true, Y_pred])
-    span = np.ptp(allY, axis=0)
-    return allY.max(axis=0) + np.where(span > 0, (margin_pct / 100.0) * span, 1.0)
+def _auto_reference_point(Y_true: np.ndarray, margin_pct: float) -> np.ndarray:
+    """Minimization reference point: worst true value + margin_pct% of span (1.0 fallback when span == 0).
+
+    Decision regret only ever measures hypervolume of true values, so the predictions
+    do not enter the reference point.
+    """
+    Y_true = np.asarray(Y_true, dtype=float)
+    span = np.ptp(Y_true, axis=0)
+    return Y_true.max(axis=0) + np.where(span > 0, (margin_pct / 100.0) * span, 1.0)
 
 
 def _regret_status_line(label: str, value: Optional[float], bound: Optional[float]) -> str:
@@ -554,7 +558,7 @@ if uploaded_file:
         st.write("### Uncertainty Calibration (Gaussian std, test set)")
         st.dataframe(pd.Series(uncertainty_metrics, name="value").to_frame())
 
-        # Multi-objective regret (predicted vs. true Pareto front on the test set)
+        # Multi-objective decision regret: true test values at the candidates the predictions pick
         _m = y_test.shape[1]
         hv_ref_mode = st.session_state.hv_ref_mode
         weights_mode = st.session_state.weights_mode
@@ -569,13 +573,13 @@ if uploaded_file:
             else:
                 st.warning("Invalid custom reference point; falling back to auto 10%.")
                 hv_margin_pct = 10.0
-                reference_point = _auto_reference_point(y_test, best_pred, hv_margin_pct)
+                reference_point = _auto_reference_point(y_test, hv_margin_pct)
         else:
             hv_margin_pct = (
                 float(st.session_state.get("hv_margin_pct", 10.0))
                 if hv_ref_mode == "Auto with margin (%)" else 10.0
             )
-            reference_point = _auto_reference_point(y_test, best_pred, hv_margin_pct)
+            reference_point = _auto_reference_point(y_test, hv_margin_pct)
 
         if _m == 1:
             regret_weights = 1.0
@@ -668,6 +672,12 @@ if uploaded_file:
     _arts = st.session_state.get("mor_artifacts")
     if _arts:
         st.write("### Multi-Objective Regret")
+        st.caption(
+            "Decision regret: the test rows on the model's predicted Pareto front are the "
+            "picks, and each metric measures how much worse their true values are than the "
+            "true Pareto front of the test set. Zero is ideal; over-promising predictions "
+            "do not lower it."
+        )
         for _key, _label in [
             ("hv", "Hypervolume regret"),
             ("scalar", "Scalarized regret (mean)"),

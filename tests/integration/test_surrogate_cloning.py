@@ -1,10 +1,12 @@
 # Copyright (c) 2026 takotime808
 """Every exported surrogate can be copied for refitting (CV folds, conformal, AutoDetect).
 
-``sklearn.base.clone`` is tried first. The vendored surrogates do not all expose
-``get_params``, so when clone raises ``TypeError`` a ``copy.deepcopy`` fallback is
-accepted instead, mirroring ``multioutreg.conformal.cv_plus._fresh_copy`` and
-``multioutreg.model_selection.auto_detect._clone_surrogate``.
+``sklearn.base.clone`` is tried first. When clone raises ``TypeError`` a
+``copy.deepcopy`` fallback is accepted instead, mirroring
+``multioutreg.conformal.cv_plus._fresh_copy`` and
+``multioutreg.model_selection.auto_detect._clone_surrogate``. Every surrogate also
+has ``get_params`` / ``set_params`` (the generic ones come from ``CloneMixin``), so
+the package's own surrogates work in the conformal predictors.
 """
 
 import copy
@@ -14,6 +16,7 @@ import pytest
 from sklearn.base import clone
 
 import multioutreg.surrogates as surrogates_pkg
+from multioutreg.conformal import CVPlusConformalPredictor, SplitConformalPredictor
 from multioutreg.conformal.cv_plus import _fresh_copy
 from multioutreg.model_selection.auto_detect import _clone_surrogate
 from tests.unit.surrogates.test_all_surrogates_contract import (
@@ -126,3 +129,35 @@ def test_library_copy_helpers_handle_every_surrogate(name, copier, data):
     pred = np.asarray(_fit(name, dup, X, Y).predict(X))
     assert pred.shape == Y.shape
     assert np.all(np.isfinite(pred))
+
+
+@pytest.mark.parametrize("name", SURROGATE_NAMES)
+def test_get_params_rebuilds_an_equivalent_surrogate(name):
+    _skip_if_unavailable(name)
+    model = _build(name)
+    params = model.get_params(deep=False)
+    rebuilt = type(model)(**params)
+    assert rebuilt.get_params(deep=False).keys() == params.keys()
+    assert model.set_params() is model
+
+
+def test_set_params_rebuilds_a_wrapper_surrogate(data):
+    X, Y = data
+    model = surrogates_pkg.KNeighborsSurrogate(n_neighbors=10)
+    assert model.get_params(deep=False) == {"scale_inputs": True, "n_neighbors": 10}
+    assert model.fit(X, Y).set_params(n_neighbors=1) is model
+    assert model.get_params(deep=False)["n_neighbors"] == 1
+    # One neighbour reproduces the training targets exactly.
+    np.testing.assert_allclose(model.fit(X, Y).predict(X), Y)
+    assert clone(model).get_params(deep=False)["n_neighbors"] == 1
+
+
+@pytest.mark.parametrize("predictor", [SplitConformalPredictor, CVPlusConformalPredictor])
+@pytest.mark.parametrize("name", [n for n in SURROGATE_NAMES if SPECS[n]["kind"] == "plain"])
+def test_conformal_predictors_accept_package_surrogates(name, predictor, data):
+    _skip_if_unavailable(name)
+    X, Y = data
+    y = Y[:, 0]
+    lower, upper = predictor(_build(name), random_state=0).fit(X, y).predict_interval(X[:5], alpha=0.2)
+    assert np.shape(lower) == np.shape(upper)
+    assert np.all(np.asarray(upper) >= np.asarray(lower))
