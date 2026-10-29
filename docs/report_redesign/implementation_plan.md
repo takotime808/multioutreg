@@ -1,7 +1,36 @@
 # Plan: ship the redesigned report as a downloadable file
 
-Status: draft (2026-10-28). Design reference: `docs/report_redesign/report_redesign.html`
-(mockups A–D: front page, per-output, error bars, fidelity & drivers).
+Status: **implemented** (2026-10-28), phases 1–5; the redesigned report is the default.
+Design reference: `docs/_extra/report_redesign/report_redesign.html` (mockups A–D: front
+page, per-output, error bars, fidelity & drivers), served with the docs at
+`report_redesign/report_redesign.html`.
+
+### What shipped
+
+- `multioutreg/report/data.py`, `verdict.py`, `build.py`, `render.py`, with
+  `templates/report_v2.html.j2`, `static/report_v2.css` and `static/report_v2.js` (no
+  dependencies, inlined into every report).
+- All three report callers branch on `report_style` (`"v2"` default, `"classic"`). The
+  classic path is unchanged: with embedded images masked (they vary between runs even
+  on the old code), its HTML is identical to the previous version for all three callers.
+- GUI: a **Report format** radio on each page, and **Download report data (.json)**
+  next to the HTML download (`multioutreg/gui/report_controls.py`). CLI:
+  `--report-style`, plus real uncertainty metrics in place of the `dummy_metric`
+  placeholder both commands passed.
+- CV fold spread: `CV RMSE std` on the multi-fidelity page's rows, and
+  `GridSearchResult.cv_table` (one row per config, with the outputs it won) from
+  `select_per_target`. SHAP shares and PDP grids come from
+  `figures.shap_multioutput.shap_importance_table` (seeded, so reports are
+  reproducible) and `figures.pdp_plots.pdp_grid_data`.
+- `_summary_points` moved to `multioutreg.report.verdict.summary_points` (page 02
+  imports it under the old name).
+- Docs: {doc}`../reading_the_report`, {doc}`../example_reports`, and
+  `examples/make_example_reports.py`, which regenerates the examples in both styles.
+
+Departures from the plan: the classic path stays in each caller rather than going
+through `render_report` (that is what keeps it byte-for-byte unchanged); the "Skipped"
+lines come from `build_report_data` instead of `safe_plot_b64` callers, because the v2
+path no longer draws those PNGs at all; and the regret table lives in section 2.
 
 ## Goal
 
@@ -150,12 +179,17 @@ Run with the usual workaround: `OMP_NUM_THREADS=1` and `import lightgbm` first.
 
 ## Parity checklist before v2 becomes the default
 
-- [ ] Every section and table in `template.html` has a home in v2 (main body or appendix)
-- [ ] Imputation summary, regret metrics and PCA sections are present when their inputs are
-- [ ] Opens offline from disk in Chrome, Firefox and Safari with no console errors
-- [ ] Readable with JS disabled (verdict, scorecard, tables)
-- [ ] Prints to PDF with every output and the appendix shown
-- [ ] File size within budget on the largest example dataset
+- [x] Every section and table in `template.html` has a home in v2 (main body or appendix)
+- [x] Imputation summary, regret metrics and PCA sections are present when their inputs are
+- [ ] Opens offline from disk in Chrome, Firefox and Safari with no console errors.
+  *Chrome (headless) checked: every chart slot draws, no errors, on the synthetic
+  fixture and all three examples. Firefox and Safari not yet checked.*
+- [x] Readable with JS disabled (verdict, scorecard, tables are server-rendered; a
+  `<noscript>` line says charts need JavaScript)
+- [x] Prints to PDF with every output and the appendix shown (Chrome; 15 pages for the
+  3-output fixture)
+- [x] File size within budget on the largest example dataset (155–200 KB for the
+  examples; a 6-output, 500-point fixture is under 2 MB in the tests)
 
 ## Open questions
 
