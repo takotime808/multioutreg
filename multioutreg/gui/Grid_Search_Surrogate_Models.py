@@ -84,6 +84,7 @@ from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, imp
 
 
 from multioutreg.gui.background import submit as submit_background, warm_up
+from multioutreg.gui.report_controls import report_downloads, report_format_control
 from multioutreg.gui.grid_search_core import (
     RandomForestWithUncertainty,
     ExtraTreesWithUncertainty,
@@ -403,6 +404,7 @@ if data_source:
             "Optional: Project description",
             value=f"Sample dataset: {SAMPLE_DESCRIPTION}" if _using_sample else "",
         )
+        report_style = report_format_control()
         submitted = st.form_submit_button("Run Grid Search")
 
     # Below the form, so the Run button stays near the top. Filled by the
@@ -663,6 +665,8 @@ if data_source:
             conformal_alpha=conformal_alpha_sel if use_conformal else None,
             calibration_residuals=residuals,
             imputation_summary=_imputation_summary,
+            grid_search_results=result.cv_table,
+            report_style=report_style,
         )
 
         # The exported pipeline replays every step the app applied to the inputs
@@ -819,8 +823,7 @@ if data_source:
                 _res["report_error"] = f"Could not build the HTML report: {exc}"
             _res["report_job"] = None
         if _res["html"] is not None:
-            _report_slot.download_button(
-                "Download HTML Report", _res["html"], file_name="model_report.html",
-                mime="text/html")
+            report_downloads(_res["html"], "model_report.html", "gs_report",
+                             container=_report_slot.container())
         elif _res["report_error"]:
             _report_slot.error(_res["report_error"])
