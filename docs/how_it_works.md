@@ -5,6 +5,8 @@ arrows are steps that run separately from the main grid search: sampling-design
 detection has its own CLI command and GUI page, and active learning (460) is
 driven from the library (`multioutreg.active.ActiveLearner`), not the GUI.
 
+### Option A: Mermaid (current)
+
 ```mermaid
 flowchart LR
     %% ---------- 410 Interfaces ----------
@@ -103,6 +105,18 @@ flowchart LR
     MET & INT & SENS --> REP
     BEST --> BUN
 ```
+
+### Option B: Graphviz
+
+Source: `docs/diagrams/architecture.dot`
+
+![End-to-end architecture, rendered with Graphviz](_static/diagrams/architecture_graphviz.svg)
+
+### Option C: D2
+
+Source: `docs/diagrams/architecture.d2`
+
+![End-to-end architecture, rendered with D2](_static/diagrams/architecture_d2.svg)
 
 ## Stages
 
