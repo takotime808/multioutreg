@@ -128,27 +128,42 @@ def _skip_if_unavailable(name):
     pytest.skip(msg)
 
 
-def _build_and_fit(name, X, Y):
-    """Construct ``name`` and fit it on (X, Y), adapting to its fit API."""
+def build_surrogate(name):
+    """Construct an unfitted ``name`` surrogate from its spec."""
     cls = getattr(surrogates_pkg, name)
     spec = SPECS[name]
     kind = spec["kind"]
-    if kind == "plain":
-        return cls(**spec["kwargs"]).fit(X, Y)
     linear = surrogates_pkg.LinearRegressionSurrogate
+    if kind == "plain":
+        return cls(**spec["kwargs"])
+    if kind == "multi_fidelity":
+        return cls(linear, ["hi"])
+    if kind == "stacked_vfm":
+        return cls(["lo", "hi"], surrogate_cls=linear, oof_cv=3)
+    if kind == "additive_vfm":
+        return cls(lo_surrogate_cls=linear, hi_surrogate_cls=linear, oof_cv=3)
+    if kind == "mfk":
+        return cls(["lo", "hi"], n_start=2)
+    raise AssertionError(f"unknown spec kind {kind!r}")
+
+
+def fit_surrogate(name, model, X, Y):
+    """Fit ``model`` (built by ``build_surrogate(name)``) on (X, Y), adapting to its fit API."""
+    kind = SPECS[name]["kind"]
+    if kind == "plain":
+        return model.fit(X, Y)
+    if kind == "multi_fidelity":
+        return model.fit((X, Y))
     # A cheap, deterministic low-fidelity version of Y for the VFM models.
     Y_lo = 0.8 * Y + 0.1
-    if kind == "multi_fidelity":
-        return cls(linear, ["hi"]).fit((X, Y))
-    if kind == "stacked_vfm":
-        return cls(["lo", "hi"], surrogate_cls=linear, oof_cv=3).fit({"lo": (X, Y_lo), "hi": (X, Y)})
-    if kind == "additive_vfm":
-        return cls(lo_surrogate_cls=linear, hi_surrogate_cls=linear, oof_cv=3).fit(
-            {"lo": (X, Y_lo), "hi": (X, Y)}
-        )
     if kind == "mfk":
-        return cls(["lo", "hi"], n_start=2).fit({"lo": (X, Y_lo), "hi": (X[::2], Y[::2])})
-    raise AssertionError(f"unknown spec kind {kind!r}")
+        # Co-kriging wants nested designs: high fidelity is a subset of low.
+        return model.fit({"lo": (X, Y_lo), "hi": (X[::2], Y[::2])})
+    return model.fit({"lo": (X, Y_lo), "hi": (X, Y)})
+
+
+def _build_and_fit(name, X, Y):
+    return fit_surrogate(name, build_surrogate(name), X, Y)
 
 
 def test_every_exported_surrogate_has_a_spec():
