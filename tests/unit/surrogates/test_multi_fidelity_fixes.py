@@ -182,6 +182,44 @@ def test_additive_constant_lo_prediction_falls_back_to_rho_one():
     np.testing.assert_array_equal(m.rho_, [1.0])
 
 
+def _forrester_data(n_hi=8, seed=0):
+    from multioutreg.active.benchmarks import forrester, forrester_lo
+
+    rng = np.random.default_rng(seed)
+    X_lo, X_hi = rng.uniform(0, 1, (80, 1)), rng.uniform(0, 1, (n_hi, 1))
+    data = {"lo": (X_lo, forrester_lo(X_lo)), "hi": (X_hi, forrester(X_hi))}
+    Xt = np.linspace(0, 1, 200).reshape(-1, 1)
+    return data, Xt, forrester(Xt)
+
+
+def test_additive_joint_rho_recovers_forrester_where_slope_is_biased():
+    """f_hi - 2 f_lo is linear in x, so the plain slope is biased."""
+    data, Xt, Yt = _forrester_data()
+    kw = dict(lo_surrogate_cls=GaussianProcessSurrogate, hi_surrogate_cls=GaussianProcessSurrogate)
+    joint = AdditiveCorrectionVFM(**kw).fit(data)
+    slope = AdditiveCorrectionVFM(rho="slope", **kw).fit(data)
+
+    assert joint.rho_ == pytest.approx([2.0], abs=0.05)
+    assert abs(slope.rho_[0] - 2.0) > 0.3
+    mse = lambda m: np.mean((m.predict(Xt) - Yt) ** 2)
+    assert mse(joint) < 0.1 * mse(slope)
+
+
+def test_additive_joint_rho_falls_back_to_slope_with_few_hi_points():
+    data, _, _ = _forrester_data(n_hi=3)  # n_hi <= n_features + 2
+    kw = dict(lo_surrogate_cls=LinearRegressionSurrogate, hi_surrogate_cls=LinearRegressionSurrogate)
+    np.testing.assert_array_equal(
+        AdditiveCorrectionVFM(**kw).fit(data).rho_,
+        AdditiveCorrectionVFM(rho="slope", **kw).fit(data).rho_,
+    )
+
+
+def test_additive_rho_rejects_unknown_string():
+    data, _, _ = _forrester_data()
+    with pytest.raises(ValueError, match="rho must be"):
+        AdditiveCorrectionVFM(LinearRegressionSurrogate, LinearRegressionSurrogate, rho="ml").fit(data)
+
+
 def test_additive_noisy_nested_lo_oof_avoids_in_sample_blowup():
     """With noisy, nested lo data, in-sample f_lo gave a badly wrong rho."""
     data, Xt, Yt = _ar1_data(seed=0, lo_noise=0.5, n_lo=120, n_hi=25)
