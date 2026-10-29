@@ -93,6 +93,7 @@ from multioutreg.gui.results_tabs import (
     fill_report_tab,
     refresh_explain_tab,
     render_results,
+    show_report_pending,
 )
 from multioutreg.gui.grid_search_core import (
     RandomForestWithUncertainty,
@@ -739,7 +740,8 @@ if data_source:
         _status.update(
             label=(
                 f"Grid search complete in {time.perf_counter() - _t_start:.1f}s; "
-                "the HTML report is being built in the background"
+                "the HTML report is being built in the background (download it from "
+                "the Report tab or under Export when it's ready)"
             ),
             state="complete",
             expanded=False,
@@ -779,7 +781,8 @@ if data_source:
             getattr(st, _kind)(_msg)
         _slots = render_results(_res)
 
-        st.write("### Export the Model")
+        st.write("### Export the Report and Model")
+        _slots["export_report"] = st.empty()
         if _res.get("model_bytes") is not None:
             st.download_button(
                 "Download Trained Model (.joblib)",
@@ -843,9 +846,7 @@ if data_source:
             break
         _secs = int(time.perf_counter() - _wait_start)
         if _report_job is not None and not _report_ready and _secs != _shown_secs:
-            _slots["report"].info(
-                f"Building the HTML report in the background ({_secs}s)… "
-                "The results above are final; the download appears here when it's ready.")
+            show_report_pending(_slots, _secs)
             _shown_secs = _secs
         time.sleep(0.25)
 
@@ -853,6 +854,8 @@ if data_source:
         if _res.get("report_job") is not None:
             try:
                 _res["html"] = _res["report_job"].result()
+                st.toast("HTML report ready: download it under **Export** or in the "
+                         "**Report** tab.", icon="📄")
             except Exception as exc:
                 _res["report_error"] = f"Could not build the HTML report: {exc}"
             _res["report_job"] = None

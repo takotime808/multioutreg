@@ -72,8 +72,9 @@ def test_app_builds_both_report_formats(csv_path):
                              radios={"Report format": "Both"}, surrogate_defs=FAST_DEFS)
     assert not at.exception, at.exception
     labels = [b.label for b in at.get("download_button")]
-    assert "Download HTML Report (Redesigned)" in labels
-    assert "Download HTML Report (Classic)" in labels
+    # Once in the Report tab and once in the export section.
+    assert labels.count("Download HTML Report (Redesigned)") == 2
+    assert labels.count("Download HTML Report (Classic)") == 2
     reports = at.session_state["gs_results"]["html"]
     assert set(reports) == {"v2", "classic"}
     assert 'id="report-data"' in reports["v2"]

@@ -397,8 +397,33 @@ def render_results(res: Dict[str, Any]):
     return {"report": report_slot, "explain": explain_slot, "tabs": tabs}
 
 
+def _report_export(res: Dict[str, Any], slot) -> None:
+    """The report downloads again in the export section, where people look for them."""
+    from multioutreg.gui.report_controls import report_downloads_all
+
+    reports = res.get("html")
+    if reports:
+        report_downloads_all(reports, "model_report.html", "gs_export_report",
+                             container=slot.container())
+    elif res.get("report_error"):
+        slot.error(res["report_error"])
+
+
+def show_report_pending(slots: Dict[str, Any], secs: int) -> None:
+    """Say the report is still building, in the Report tab and the export section."""
+    slots["report"].info(
+        f"Building the HTML report in the background ({secs}s)… "
+        "The results above are final; the download appears here when it's ready.")
+    if "export_report" in slots:
+        slots["export_report"].info(
+            f"Building the HTML report in the background ({secs}s)… Its download "
+            "buttons appear here and in the **Report** tab when it's ready.")
+
+
 def fill_report_tab(res: Dict[str, Any], slots: Dict[str, Any]) -> None:
     _report(res, slots["report"])
+    if "export_report" in slots:
+        _report_export(res, slots["export_report"])
 
 
 def refresh_explain_tab(res: Dict[str, Any], slots: Dict[str, Any]) -> None:

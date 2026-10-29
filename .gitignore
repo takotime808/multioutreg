@@ -18,7 +18,6 @@ docs/sources/build
 outputs/
 nbsphinx-template/
 catboost_info/
-TODO.md
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
