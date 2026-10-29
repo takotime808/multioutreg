@@ -144,6 +144,18 @@ def test_seasonal_series_detects_period_and_sarima_uses_it():
     assert plan.horizon == 7
 
 
+def test_sarima_skips_seasons_longer_than_the_cap():
+    from multioutreg.time_series.ts_dynamic_fit.src.forecasters import SARIMA_MAX_SEASON
+
+    rng = np.random.default_rng(1)
+    s = SARIMA_MAX_SEASON + 1
+    t = np.arange(3 * s)
+    y = 20 + 5 * np.sin(2 * np.pi * t / s) + rng.normal(0, 0.3, t.size)
+    model = SarimaForecaster(seasonality=s).fit(y)
+    assert model.order_[1] == (0, 0, 0, 0)
+    assert model.forecast(s).shape == (s,)
+
+
 def test_choose_d():
     rng = np.random.default_rng(0)
     assert choose_d(rng.normal(size=200)) == 0
@@ -198,11 +210,31 @@ def test_diebold_mariano():
     assert out["statistic"] < 0 and out["p_value"] < 0.01
     same = diebold_mariano(good, good)
     assert np.isnan(same["p_value"]) and "identical" in same["reason"]
+    shifted = diebold_mariano(good, good + 1.0)
+    assert np.isnan(shifted["p_value"]) and "same at every origin" in shifted["reason"]
     assert np.isnan(diebold_mariano([1.0], [2.0])["p_value"])
     # HLN shrinks the statistic toward 0 for multi-step (lagged) losses.
     a = diebold_mariano(good[:20], bad[:20], lag=0)["statistic"]
     b = diebold_mariano(good[:20], bad[:20], lag=2)["statistic"]
     assert np.isfinite(a) and np.isfinite(b)
+
+
+def test_diebold_mariano_clipped_lag_is_not_called_identical():
+    # 5 origins of 12-step forecasts 4-5 points apart (AirPassengers): lag 8 is
+    # clipped to n - 1 = 4, where the long-run variance is exactly 0. That was
+    # reported as "losses are identical" for SARIMA vs Naive, MAE 20 vs 45.
+    sarima = np.array([0.41, 1.83, 0.19, 0.17, 0.32])
+    naive = np.array([0.94, 2.10, 3.18, 3.33, 2.47])
+    out = diebold_mariano(sarima, naive, lag=8)
+    assert np.isnan(out["p_value"])
+    assert "identical" not in out["reason"] and "too few origins" in out["reason"]
+    # Rounding can leave the lag n - 1 variance slightly positive, and the HLN
+    # factor there is 0: that printed stat=-0.000, p=1.000 on sunspots.
+    rng = np.random.default_rng(0)
+    for n in (2, 3, 5, 8):
+        for _ in range(50):
+            out = diebold_mariano(rng.random(n), rng.random(n) + 0.5, lag=n - 1)
+            assert np.isnan(out["statistic"]) and "too few origins" in out["reason"]
 
 
 # ---- legacy run() fixes (items 23, 24, A.3) ------------------------------

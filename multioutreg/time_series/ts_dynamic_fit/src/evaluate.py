@@ -119,9 +119,21 @@ def diebold_mariano(loss_a, loss_b, lag: int = 0) -> dict:
     lag = max(0, min(int(lag), n - 1))
     gamma = [float(np.dot(dc[k:], dc[:n - k]) / n) for k in range(lag + 1)]
     var = gamma[0] + 2 * sum(gamma[1:])
-    if var <= 0:   # identical losses (e.g. both models chose the same order)
+    if not np.any(d):   # e.g. both models chose the same order
         return {"statistic": float("nan"), "p_value": float("nan"), "n": n,
                 "reason": "the two models' losses are identical"}
+    if np.ptp(d) <= 1e-12 * np.abs(d).max():
+        return {"statistic": float("nan"), "p_value": float("nan"), "n": n,
+                "reason": "the loss difference is the same at every origin"}
+    if lag >= n - 1 or var <= 0:
+        # At lag = n - 1 the autocovariances of the demeaned d sum to exactly 0
+        # (rounding can leave a tiny positive var) and the HLN factor
+        # (n - h)(n - h + 1) / n is 0; below it the estimate can still go
+        # negative. Overlapping h-step forecasts need more origins than lags.
+        return {"statistic": float("nan"), "p_value": float("nan"), "n": n,
+                "reason": (f"too few origins ({n}) to estimate the loss variance "
+                           f"with {lag} autocovariance lag(s) from overlapping "
+                           "forecasts; use more --folds or a shorter --horizon")}
     dm = d.mean() / math.sqrt(var / n)
     h = lag + 1
     hln = math.sqrt(max((n + 1 - 2 * h + h * (h - 1) / n) / n, 0.0))

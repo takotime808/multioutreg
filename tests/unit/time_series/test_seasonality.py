@@ -55,6 +55,15 @@ def test_constant_and_short_series():
     assert detect_seasonal_period([1.0, 2.0, 3.0]) is None
 
 
+@pytest.mark.parametrize("period, n", [(52, 260), (132, 700), (365, 1100)])
+def test_finds_long_periods(period, n):
+    # The scan used to stop at lag 100, so 132 (sunspots, monthly) and 365
+    # (yearly, daily) were never found; with the cap lifted, the earliest noise
+    # wiggle on the broad ACF hump won instead (~10% short: 330 for 365).
+    found = [detect_seasonal_period(_seasonal(period, n, s)) for s in range(10)]
+    assert all(f is not None and abs(f - period) <= 0.05 * period for f in found), found
+
+
 # --- SARIMA.detect_seasonal_period (item 22) --------------------------------
 
 def _sarima(values):
