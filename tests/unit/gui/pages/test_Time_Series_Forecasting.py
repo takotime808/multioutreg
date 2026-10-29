@@ -145,17 +145,20 @@ def test_run_chronos_forecast_mocked():
 # ---- _run_ts_pipeline --------------------------------------------------
 
 def test_run_ts_pipeline_returns_keys():
-    """_run_ts_pipeline returns the expected keys (at least ARIMA succeeds)."""
+    """_run_ts_pipeline ranks the models and returns the documented keys."""
     df = _make_ts_df(n=80)
+    # Only the plumbing is under test: two folds and a short LSTM keep it fast.
     out = _run_ts_pipeline(
         df,
         target_col="value",
         datetime_col="date",
         freq="1D",
         verbose=False,
+        folds=2,
+        lstm_epochs=2,
     )
-    # If any model succeeded we get the standard output dict
-    if "error" not in out:
-        assert "perf_df" in out
-        assert "best_model" in out
-        assert isinstance(out["perf_df"], pd.DataFrame)
+    assert "error" not in out, out.get("error")
+    assert {"perf_df", "best_model", "ranking", "series", "validation", "failures"} <= out.keys()
+    assert isinstance(out["perf_df"], pd.DataFrame) and len(out["perf_df"]) >= 1
+    assert out["best_model"] == out["ranking"].best_model
+    assert len(out["series"]) == len(df)
