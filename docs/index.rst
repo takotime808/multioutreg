@@ -92,6 +92,7 @@ Where to go next
    :caption: Tutorials
 
    tutorials/multi_output_surrogates
+   tutorials/joint_scores
    tutorials/multi_fidelity_surrogates
    tutorials/active_learning_benchmarks
    tutorials/cost_savings
