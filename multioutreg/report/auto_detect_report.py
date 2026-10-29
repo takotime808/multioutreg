@@ -27,6 +27,8 @@ from multioutreg.figures.conformal_plots import (
     plot_conformal_intervals_ordered,
     plot_conformal_vs_gaussian,
 )
+from multioutreg.report.build import build_report_data
+from multioutreg.report.render import render_report, resolve_style
 
 
 # ----- HTML Report Generation Wrapper -----
@@ -64,6 +66,8 @@ def generate_html_report(
     regret_metrics: Dict[str, float] | None = None,
     regret_bounds: Dict[str, Optional[float]] | None = None,
     regret_settings: Dict[str, Any] | None = None,
+    selection_scores: List[dict] | None = None,
+    report_style: str | None = None,
 ) -> str:
     """
     Generate an HTML report summarizing surrogate model results, including performance metrics,
@@ -142,12 +146,46 @@ def generate_html_report(
         Optional max-acceptable value per regret key, shown as PASS/FAIL.
     regret_settings : Dict[str, Any] | None, optional
         Settings used to compute the regret (reference point, weights mode, ...).
+    selection_scores : List[dict] | None, optional
+        ``AutoDetectMultiOutputRegressor.selection_scores_`` (per-output CV
+        scores of every candidate), shown in the v2 model-selection section.
+    report_style : str | None, optional
+        ``"v2"`` (the redesigned report, default) or ``"classic"``. A
+        ``template_path`` or ``MOR_TEMPLATE_PATH`` override always renders the
+        classic report; otherwise ``MOR_REPORT_STYLE`` sets the default.
 
     Returns
     -------
     str
         Fully rendered HTML report as a string, ready to be saved or displayed.
     """
+    if resolve_style(report_style, template_path) == "v2":
+        if feature_names is None or len(feature_names) != X_train.shape[1]:
+            feature_names = [f"feature_{i}" for i in range(X_train.shape[1])]
+        sampling_plot, sampling_explanation = generate_umap_plot(X_train)
+        data = build_report_data(
+            title="Auto-Detected Surrogate Modeling Report",
+            model_type=model_type, output_names=list(output_names), description=description,
+            notes=notes, metrics=metrics, uncertainty_metrics=uncertainty_metrics,
+            y_test=y_test, best_pred=best_pred, best_std=best_std, best_model=best_model,
+            X_train=X_train, input_names=list(feature_names), n_train=n_train, n_test=n_test,
+            cross_validation=cross_validation, seed=seed, fidelity_levels=fidelity_levels,
+            conformal_intervals=conformal_intervals, conformal_alpha=conformal_alpha,
+            calibration_residuals=calibration_residuals,
+            imputation_summary=imputation_summary, selection_scores=selection_scores,
+            regret_metrics=regret_metrics, regret_bounds=regret_bounds,
+            regret_settings=regret_settings,
+            pca_explained_variance=pca_explained_variance, pca_variance_plot=pca_variance_plot,
+            pca_method=pca_method, pca_threshold=pca_threshold,
+            pca_n_components=pca_n_components, kaiser_rule_suggestion=kaiser_rule_suggestion,
+            sampling_plot=sampling_plot, sampling_explanation=sampling_explanation,
+        )
+        if data.shap is None and shap_plot:
+            data.figures.append({"key": "shap", "section": "sec-5", "title": "Mean |SHAP| per input",
+                                 "caption": "Computed by the page, one panel per output.",
+                                 "img_b64": shap_plot})
+        return render_report(data)
+
     DEFAULT_TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), "template.html")
     
     # For unit tests
