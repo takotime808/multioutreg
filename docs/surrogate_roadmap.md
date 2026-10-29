@@ -11,11 +11,11 @@ multi-output capabilities of `multioutreg`. See
 | Area | Done | Open |
 |---|---|---|
 | Active learning | Acquisitions, query-by-committee, batch selection, the loop, cost-aware multi-fidelity acquisition (`multioutreg.active`, prototype) | Max-value entropy search, CLI and GUI, NaN std in Auto-Detect |
-| Benchmarks | 17 problems in `multioutreg.active.benchmarks.BENCHMARKS`; AL, cost-savings, multi-output and hypervolume notebooks | DTLZ2 and the rest of the port list; the multi-fidelity and Himmelblau notebooks |
-| Multi-objective metrics | Exact N-D `hypervolume()` (#36); decision regret as the default, front comparison as `front_*` | — |
+| Benchmarks | 18 problems in `multioutreg.active.benchmarks.BENCHMARKS`, including DTLZ2; AL, cost-savings, multi-output and hypervolume notebooks | The rest of the port list; the multi-fidelity and Himmelblau notebooks |
+| Multi-objective metrics | Exact N-D `hypervolume()` (#36); decision regret as the default, front comparison as `front_*`; joint `energy_score` and `variogram_score` | Multivariate CRPS variants, joint coverage of prediction regions |
 | Multi-fidelity surrogates | — | All six candidates; the `rho` and Stacked VFM interval follow-ups |
-| Multi-output surrogates | — | All five candidates; joint metrics and conformal regions |
-| Cross-cutting | Benchmark suite | Items 2–12 |
+| Multi-output surrogates | Multi-task GP (1), PCA output reduction (2), Gaussian copula (5); energy and variogram scores | `RegressorChain` (3), natively joint models (4); joint conformal regions |
+| Cross-cutting | Benchmark suite (1), std recalibration (2), model persistence (5), extrapolation flag (6) | Items 3, 4, 7–12; wiring 2, 5 and 6 into the GUI, CLI and report |
 
 ## Current State
 
@@ -290,13 +290,33 @@ see:
 **Then the original first batch, minus the benchmark suite:**
 
 5. `MFKSurrogate` (SMT co-kriging). This also replaces the biased least-squares
-   `rho` for users who need AR1.
-6. The PCA output-reduction wrapper.
-7. The multi-task GP (GPyTorch).
-8. The Gaussian copula wrapper, plus energy-score and variogram-score metrics
-   (with DTLZ2 ported as their benchmark).
-9. Std recalibration and the extrapolation flag.
-10. Model persistence.
+   `rho` for users who need AR1. *Open:* `smt` is not installed in the dev
+   environment, so this waits on installing the `smt` extra.
+6. ~~The PCA output-reduction wrapper.~~ Done: `PCAOutputSurrogate`
+   (`surrogates/pca_output.py`). Fits any surrogate on the top-k components of
+   standardized `Y` (`n_components` is a count or a variance fraction); the std
+   adds the training truncation error, and `return_cov=True` gives the full
+   output covariance.
+7. ~~The multi-task GP (GPyTorch).~~ Done: `MultiTaskGPSurrogate`
+   (`surrogates/multitask_gp_gpytorch.py`). ICM kernel in Hadamard form with a
+   noise level per output; `Y` may contain NaN for unobserved outputs, and
+   `output_corr_` holds the learned correlation.
+8. ~~The Gaussian copula wrapper, plus energy-score and variogram-score metrics
+   (with DTLZ2 ported as their benchmark).~~ Done: `GaussianCopulaSurrogate` (`surrogates/gaussian_copula.py`; `R` from
+   rank-normalized out-of-fold residuals), `energy_score`, `variogram_score`
+   and `gaussian_samples` in `multioutreg.metrics`, and `dtlz2` / `dtlz_front`
+   (any number of objectives) in `multioutreg.active.benchmarks`.
+9. ~~Std recalibration and the extrapolation flag.~~ Done:
+   `StdRecalibratedSurrogate` (`surrogates/std_recalibration.py`; per-output
+   std factors from out-of-fold predictions via uncertainty-toolbox, or
+   closed-form NLL) and `ExtrapolationDetector`
+   (`sampling/extrapolation.py`; `knn`, `mahalanobis`, `hull` or `box`).
+   Neither is wired into the GUI, CLI or report yet.
+10. ~~Model persistence.~~ Done: `multioutreg.persistence.save_model` /
+    `load_model`, storing input and output names, fidelity levels and package
+    versions, and warning on a version mismatch. `load_model` also opens the
+    Grid Search app's download and plain `joblib` dumps. The GUI pages still
+    use their own serializers.
 
 **Then wire active learning into the product:** the `mor_cli` ask/tell command
 and a Streamlit page (Active Learning candidate 6).
