@@ -26,7 +26,9 @@ def report_format_control(key: str = "report_format") -> Tuple[str, ...]:
         help=(
             "Redesigned: verdict and scorecard first, one section per question, "
             "interactive charts, prints cleanly. Classic: the previous layout. "
-            "Both: build both from the same run, to compare them side by side."
+            "Both: build both from the same run, to compare them side by side. "
+            "Classic takes longer to build: it draws its SHAP and partial-dependence "
+            "plots as images."
         ),
     )
     return REPORT_FORMATS[label]

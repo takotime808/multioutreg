@@ -16,8 +16,8 @@ matplotlib (the report worker also SHAP and UMAP), and Streamlit Community
 Cloud allows as little as 690 MB (see ``docs/parallel_computing.md``).
 
 There are two pools. ``"plots"`` starts light, so a pair plot begins drawing
-within a second or two. ``"report"`` imports the report modules (and UMAP,
-which can take a minute to import) when its workers start; call
+within a second or two. ``"report"`` imports the report modules and warms up UMAP
+(about 30 s to import and compile) when its workers start; call
 :func:`warm_up` early so that cost is paid while the user is still choosing
 columns.
 
@@ -57,7 +57,24 @@ def _init_worker(pool: str) -> None:
     except ImportError:
         pass
     if pool == "report":
-        import multioutreg.gui.grid_search_core  # noqa: F401  (pulls in UMAP, SHAP, ...)
+        import multioutreg.gui.grid_search_core  # noqa: F401  (pulls in SHAP, ...)
+        _warm_umap()
+
+
+def _warm_umap() -> None:
+    """Import UMAP and run a tiny fit, so numba compiles it before the first report.
+
+    ``generate_umap_plot`` imports UMAP lazily; left until the report, the
+    import (~20 s) and first-fit compile (~10 s) land after "Run Grid Search".
+    """
+    try:
+        import numpy as np
+        import umap
+
+        X = np.random.default_rng(0).uniform(size=(30, 3))
+        umap.UMAP(n_components=2, n_neighbors=5, random_state=0).fit_transform(X)
+    except Exception:
+        pass
 
 
 @contextmanager
