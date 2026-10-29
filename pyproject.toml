@@ -138,7 +138,7 @@ namespaces = false
 
 # Include html files in wheel distribution -- NO need for Manifest.in
 [tool.setuptools.package-data]
-"multioutreg.report" = ["*.html"]
+"multioutreg.report" = ["*.html", "templates/*.j2", "static/*.css", "static/*.js"]
 "multioutreg.gui" = ["data/*.csv"]
 
 [project.scripts]
