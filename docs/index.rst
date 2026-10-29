@@ -33,24 +33,49 @@ The full table, priced in money and compute time, is on
 Where to go next
 ----------------
 
-:doc:`install`
-   Install from source, plus the optional extras for XGBoost, LightGBM,
-   Chronos forecasting and more.
+.. grid:: 1 2 2 3
+   :gutter: 3
 
-:doc:`how_it_works`
-   End-to-end flow diagram: data checks, the sample-size-dependent
-   evaluation plan, model selection, uncertainty and outputs.
+   .. grid-item-card:: Install
+      :link: install
+      :link-type: doc
 
-:doc:`quickstart`
-   Fit a multi-output surrogate with uncertainty in Python, from the CLI, or
-   in the GUI, using the bundled example datasets.
+      From source, plus the optional extras for XGBoost, LightGBM, Chronos
+      forecasting and more.
 
-:doc:`tutorials/multi_output_surrogates`
-   Start here for the tutorials: model selection, uncertainty, SHAP and
-   partial dependence, start to finish.
+   .. grid-item-card:: Quickstart
+      :link: quickstart
+      :link-type: doc
 
-:doc:`api`
-   Every module, class and function.
+      Fit a multi-output surrogate with uncertainty from Python, the CLI or the GUI,
+      on the bundled example datasets.
+
+   .. grid-item-card:: How it works
+      :link: how_it_works
+      :link-type: doc
+
+      Data checks, the sample-size-dependent evaluation plan, model selection,
+      uncertainty and outputs, end to end.
+
+   .. grid-item-card:: Reading the report
+      :link: reading_the_report
+      :link-type: doc
+
+      The verdict, the seven questions the report answers and the rules behind
+      them, with :doc:`example reports <example_reports>` to open.
+
+   .. grid-item-card:: Tutorials
+      :link: tutorials/multi_output_surrogates
+      :link-type: doc
+
+      Model selection, uncertainty, SHAP and partial dependence, multi-fidelity and
+      active learning, start to finish.
+
+   .. grid-item-card:: API reference
+      :link: core_api
+      :link-type: doc
+
+      The core classes first, then every module, and the CLI commands.
 
 .. toctree::
    :hidden:
@@ -59,6 +84,8 @@ Where to go next
    install
    how_it_works
    quickstart
+   reading_the_report
+   example_reports
 
 .. toctree::
    :hidden:
@@ -90,7 +117,9 @@ Where to go next
    :hidden:
    :caption: Reference
 
+   core_api
    api
+   cli
    integrated_surrogates
    surrogate_hyperparameters
    multiobjective_metrics
@@ -103,6 +132,7 @@ Where to go next
    surrogate_roadmap
    gui_ux_roadmap
    docs_roadmap
+   report_redesign/implementation_plan
    active_learning
    parallel_computing
    pair_plot_report
