@@ -224,3 +224,24 @@ def test_generate_shap_plot_multicolumn_slot_estimator():
     for val in plots.values():
         assert isinstance(val, str)
         base64.b64decode(val)  # must be valid base64
+
+
+def test_generate_shap_plot_caps_rows_and_summarises_background(monkeypatch):
+    """A full-data background made the explainer slow; it is now a k-means summary."""
+    import numpy as np
+    import shap
+    from multioutreg.figures import shap_multioutput as mod
+
+    X, Y = make_regression(n_samples=120, n_features=4, n_targets=2, noise=0.1, random_state=0)
+    model = MultiOutputRegressor(RandomForestRegressor(n_estimators=5, random_state=0)).fit(X, Y)
+    seen = []
+    real = shap.Explainer
+
+    def spy(fn, background, *args, **kwargs):
+        explainer = real(fn, background, *args, **kwargs)
+        return lambda rows: seen.append((len(np.asarray(background)), len(rows))) or explainer(rows)
+
+    monkeypatch.setattr(mod.shap, "Explainer", spy)
+    plots = generate_shap_plot(model, X, ["a", "b"], max_rows=40, background_size=8)
+    assert set(plots) == {"a", "b"}
+    assert seen == [(8, 40), (8, 40)]
