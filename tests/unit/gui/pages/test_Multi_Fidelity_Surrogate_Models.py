@@ -621,6 +621,7 @@ def test_report_renders_new_sections_with_real_template():
         description="", metrics=metrics, uncertainty_metrics={}, y_test=Y,
         best_pred=pred, best_std=std, best_model=model, X_train=X, n_train=30,
         n_test=30, cross_validation="", seed=0, notes="", input_names=["a", "b"],
+        report_style="classic",
     )
     plain = generate_html_report(**common)
     for heading in ("<h2>Summary", "<h2>Fidelity Levels", "High-Fidelity-Only Baseline",
@@ -642,6 +643,40 @@ def test_report_renders_new_sections_with_real_template():
     assert "<li>Point one.</li>" in html
     assert "ValueError: boom" in html and "0.250" in html
     assert "+0.0%" in html and "(Linear)" in html
+    assert 'class="best"' in html and "Error: x" in html
+
+
+def test_v2_report_renders_mf_sections():
+    from multioutreg.surrogates import LinearRegressionSurrogate
+
+    rng = np.random.default_rng(0)
+    X = rng.random((30, 2))
+    Y = X @ np.array([[1.0], [2.0]])
+    model = LinearRegressionSurrogate().fit(X, Y)
+    pred, std = model.predict(X, return_std=True)
+    pred, std = np.asarray(pred).reshape(-1, 1), np.asarray(std).reshape(-1, 1) + 0.1
+    metrics = _compute_metrics(Y, pred, std, ["y"])
+    html = generate_html_report(
+        model_type="m", fidelity_levels=["lo", "hi"], output_names=["y"],
+        description="", metrics=metrics, uncertainty_metrics={}, y_test=Y,
+        best_pred=pred, best_std=std, best_model=model, X_train=X, n_train=30,
+        n_test=30, cross_validation="", seed=0, notes="", input_names=["a", "b"],
+        summary_points=["Point one."],
+        level_summary=[{"level": "lo", "output": "y", "n_train": 5, "n_test": 2,
+                        "mean": 0.0, "std": 1.0, "r": None, "r2": None,
+                        "error": "ValueError: boom"},
+                       {"level": "hi", "output": "y", "n_train": 5, "n_test": 2,
+                        "mean": 0.0, "std": 1.0, "r": 0.5, "r2": 0.25, "error": None}],
+        baseline_comparison=_baseline_comparison(metrics, metrics),
+        baseline_label="Linear",
+        grid_search_results=_gs_rows(),
+        best_candidate_name="A",
+        report_style="v2",
+    )
+    assert 'id="report-data"' in html and "Verdict" in html
+    assert "<li>Point one.</li>" in html
+    assert "ValueError: boom" in html and "(Linear)" in html
+    assert "No gain" in html  # MF RMSE equals the HF-only RMSE
     assert 'class="best"' in html and "Error: x" in html
 
 
