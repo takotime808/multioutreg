@@ -232,8 +232,9 @@ where `corr_l` is the correlation between level-`l` and high-fidelity
 predictions over the candidate pool (one value per output, clipped to
 `[0, 1]`). This is cruder: it does not change with `x`; in a stacked model
 the high level is built on the lower one's predictions, so the two correlate
-by construction (the trust factor below is what keeps this honest); and
-`StackedVFMSurrogate` reports only the top level's own std (see its
+by construction (the trust factor below is what keeps this honest). The
+high-fidelity `var_hi` of `StackedVFMSurrogate` does include lower-level
+uncertainty, propagated by Monte Carlo (see `n_mc_samples` in its
 docstring). It is the fallback, not the main path.
 
 ### Cost-Aware Acquisitions
@@ -291,9 +292,9 @@ pool and takes the best. For MF-EI with AR1 models, `corr_l(x)` is
 - Batches that mix levels (for example 1 high-fidelity run plus 10
   low-fidelity runs per HPC allocation) need a batch-cost model; the
   prototype picks one query at a time.
-- `StackedVFMSurrogate` should propagate lower-level uncertainty (Monte
-  Carlo through the augmented features) before its std is used for
-  acquisition; until then the correlation fallback is used.
+- `StackedVFMSurrogate` propagates lower-level uncertainty into its std,
+  but not into a per-level variance reduction, so it still uses the
+  correlation fallback for that.
 - Fidelity as a continuous input (roadmap MF item 3) would turn the level
   choice into a search over a continuous cost dial.
 

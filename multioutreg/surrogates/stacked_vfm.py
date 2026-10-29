@@ -32,6 +32,9 @@ import numpy as np
 
 from multioutreg.surrogates.conformal_mixin import ConformalMixin
 
+# Rows per surrogate call when propagating uncertainty by Monte Carlo.
+_MC_MAX_ROWS = 50_000
+
 
 def _as_2d(a) -> np.ndarray:
     a = np.asarray(a, dtype=np.float64)
@@ -158,7 +161,16 @@ class StackedVFMSurrogate(ConformalMixin):
         training points use the full model, as does ``predict``. ``None`` or
         ``0`` uses in-sample predictions (the old behaviour).
     random_state : int or None, default 0
-        Seed for the out-of-fold split.
+        Seed for the out-of-fold split and the Monte Carlo draws.
+    n_mc_samples : int, default 100
+        Draws used by ``predict(..., return_std=True)`` to propagate
+        lower-level uncertainty. Each lower level's prediction is replaced
+        by a sample from ``N(mean, std)`` and passed up the stack; the
+        returned std combines the top level's own std with the spread of its
+        mean across draws. Without this the top level treats lower-level
+        predictions as exact and its intervals are much too narrow. ``0``
+        returns the top level's std alone (the old behaviour). Lower-level
+        surrogates must support ``predict(X, return_std=True)``.
 
     Attributes
     ----------
@@ -203,6 +215,7 @@ class StackedVFMSurrogate(ConformalMixin):
         output_dim_mismatch: Literal["error", "truncate", "pad"] = "error",
         oof_cv: Optional[int] = 5,
         random_state: Optional[int] = 0,
+        n_mc_samples: int = 100,
     ):
         if len(fidelity_levels) < 2:
             raise ValueError(
@@ -216,6 +229,7 @@ class StackedVFMSurrogate(ConformalMixin):
         self.output_dim_mismatch = output_dim_mismatch
         self.oof_cv = oof_cv
         self.random_state = random_state
+        self.n_mc_samples = n_mc_samples
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -241,7 +255,12 @@ class StackedVFMSurrogate(ConformalMixin):
 
         return cls(**params)
 
-    def _augment(self, X: np.ndarray, level_idx: int) -> np.ndarray:
+    def _augment(
+        self,
+        X: np.ndarray,
+        level_idx: int,
+        rng: Optional[np.random.Generator] = None,
+    ) -> np.ndarray:
         """Augment ``X`` with predictions from all levels < ``level_idx``.
 
         Chains augmentation sequentially: the augmented X for level i is
@@ -255,6 +274,9 @@ class StackedVFMSurrogate(ConformalMixin):
         level_idx : int
             Target level index; predictions from levels 0..level_idx-1 are
             appended.
+        rng : np.random.Generator or None
+            If given, each lower-level prediction is replaced by one draw
+            from ``N(pred, std)`` (Monte Carlo propagation, see ``predict``).
 
         Returns
         -------
@@ -275,15 +297,12 @@ class StackedVFMSurrogate(ConformalMixin):
                     surrogate_i, X, X_current, self.augment_with_std
                 )
                 aug_cols = np.hstack([pred_i, std_i]) if self.augment_with_std else pred_i
-            elif self.augment_with_std:
+            elif self.augment_with_std or rng is not None:
                 pred_i, std_i = surrogate_i.predict(X_current, return_std=True)
-                pred_i = np.asarray(pred_i, dtype=np.float64)
-                std_i = np.asarray(std_i, dtype=np.float64)
-                if pred_i.ndim == 1:
-                    pred_i = pred_i.reshape(-1, 1)
-                if std_i.ndim == 1:
-                    std_i = std_i.reshape(-1, 1)
-                aug_cols = np.hstack([pred_i, std_i])
+                pred_i, std_i = _as_2d(pred_i), _as_2d(std_i)
+                if rng is not None:
+                    pred_i = pred_i + std_i * rng.standard_normal(pred_i.shape)
+                aug_cols = np.hstack([pred_i, std_i]) if self.augment_with_std else pred_i
             else:
                 pred_i = surrogate_i.predict(X_current, return_std=False)
                 pred_i = np.asarray(pred_i, dtype=np.float64)
@@ -426,13 +445,13 @@ class StackedVFMSurrogate(ConformalMixin):
             Fidelity level to predict at.  Defaults to the highest level
             (last entry in ``fidelity_levels``).
         return_std : bool, default False
-            If True, also return the predictive standard deviation from the
-            final-level surrogate.
-
-            Limitation: only the final-level surrogate's intrinsic std is
-            returned.  Uncertainty accumulated through lower-level predictions
-            is NOT analytically propagated, which underestimates total
-            uncertainty.  Use ``conformal_predict()`` for calibrated intervals.
+            If True, also return the predictive standard deviation. Lower-level
+            uncertainty is propagated by Monte Carlo (``n_mc_samples`` draws):
+            the std is the root mean square, over draws, of the top level's
+            std and of its mean's deviation from ``y_pred``. ``y_pred`` itself
+            is the plug-in prediction, the same as with ``return_std=False``.
+            With ``n_mc_samples=0`` only the top level's own std is returned,
+            which underestimates the total uncertainty.
 
         Returns
         -------
@@ -467,7 +486,30 @@ class StackedVFMSurrogate(ConformalMixin):
         else:
             X_aug = self._augment(X, level_idx)
 
-        return self.surrogates_[level].predict(X_aug, return_std=return_std)
+        # Models pickled before n_mc_samples existed keep the old behaviour.
+        n_mc = getattr(self, "n_mc_samples", 0)
+        if not return_std or level_idx == 0 or not n_mc:
+            return self.surrogates_[level].predict(X_aug, return_std=return_std)
+
+        top = self.surrogates_[level]
+        y_pred = top.predict(X_aug)
+        y_pred_2d = _as_2d(y_pred)
+        n = X.shape[0]
+        rng = np.random.default_rng(self.random_state)
+        # Second moment about y_pred, E[sd^2 + (mu - y_pred)^2], accumulated
+        # over chunks of draws to bound the rows predicted at once.
+        sq_sum = np.zeros_like(y_pred_2d)
+        chunk = max(1, _MC_MAX_ROWS // max(n, 1))
+        for start in range(0, n_mc, chunk):
+            k = min(chunk, n_mc - start)
+            # One block of rows per draw; each block gets its own lower-level samples.
+            X_draws = self._augment(np.tile(X, (k, 1)), level_idx, rng=rng)
+            mu, sd = top.predict(X_draws, return_std=True)
+            mu = _as_2d(mu).reshape(k, n, -1)
+            sd = _as_2d(sd).reshape(k, n, -1)
+            sq_sum += np.sum(sd ** 2 + (mu - y_pred_2d) ** 2, axis=0)
+        y_std = np.sqrt(sq_sum / n_mc)
+        return y_pred, y_std.reshape(np.shape(y_pred))
 
     def _conformal_point_predict(self, X: np.ndarray) -> np.ndarray:
         """Called by ConformalMixin; predicts at the highest fidelity level."""
@@ -486,6 +528,7 @@ class StackedVFMSurrogate(ConformalMixin):
             "output_dim_mismatch": self.output_dim_mismatch,
             "oof_cv": self.oof_cv,
             "random_state": self.random_state,
+            "n_mc_samples": self.n_mc_samples,
         }
 
     def set_params(self, **params) -> "StackedVFMSurrogate":

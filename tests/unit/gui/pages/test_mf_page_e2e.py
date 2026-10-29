@@ -118,14 +118,15 @@ def test_conformal_run_with_imputed_input(tmp_path):
     assert "Conformal Prediction Summary" in text
 
 
-@pytest.mark.xfail(strict=True, raises=AssertionError, reason=(
-    "page bug: too few calibration rows give infinite conformal intervals, and "
-    "_plot_conformal_summary passes them to set_xlim (ValueError: Axis limits "
-    "cannot be NaN or Inf) instead of reporting the problem"))
 def test_conformal_with_too_few_calibration_rows_is_reported_not_raised(csv):
     # 30 hi-fi rows -> 22 train -> 5 calibration rows (9 needed at alpha=0.1).
     at = run_page(csv, ["a", "b"], ["y1"], checkboxes=CONFORMAL)
     assert not at.exception, [e.message for e in at.exception]
+    assert any("Conformal prediction skipped: 5 calibration rows" in w.value
+               and "at least 9 are needed" in w.value for w in at.warning)
+    text = _text(at)
+    assert "Grid Search Results" in text
+    assert "Conformal Prediction Summary" not in text
 
 
 @pytest.mark.parametrize("inputs, outputs, message", [

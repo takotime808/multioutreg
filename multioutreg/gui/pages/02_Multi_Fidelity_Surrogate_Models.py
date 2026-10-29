@@ -1179,6 +1179,20 @@ if uploaded_file:
                 )
                 for j in range(n_outputs)
             ])
+            if not np.all(np.isfinite(q)):
+                # Too few calibration rows: the only valid interval is unbounded,
+                # so report it instead of plotting infinite widths.
+                n_required = int(np.ceil(1 / conformal_alpha_sel)) - 1
+                st.warning(
+                    f"Conformal prediction skipped: {X_cal.shape[0]} calibration rows "
+                    f"are too few for alpha={conformal_alpha_sel} (at least "
+                    f"{n_required} are needed). Add highest-fidelity rows or "
+                    "increase alpha."
+                )
+                use_conformal = False
+                residuals = None
+
+        if use_conformal:
             y_lower = best_pred - q[np.newaxis, :]
             y_upper = best_pred + q[np.newaxis, :]
             conformal_intervals = (y_lower, y_upper)
