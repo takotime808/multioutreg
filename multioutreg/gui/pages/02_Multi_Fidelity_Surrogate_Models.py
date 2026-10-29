@@ -62,6 +62,10 @@ from multioutreg.sampling.detect import detect_sampling_method
 from multioutreg.utils.figure_utils import plot_to_b64, safe_plot_b64
 from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
 from multioutreg.utils.metric_utils import gaussian_uncertainty_metrics
+from multioutreg.report.verdict import summary_points as _summary_points
+from multioutreg.report.build import build_report_data
+from multioutreg.report.render import render_report, resolve_style
+from multioutreg.gui.report_controls import report_downloads, report_format_control
 
 
 # ---------------------------------------------------------------------------
@@ -97,8 +101,9 @@ def generate_html_report(
     baseline_label: str | None = None,
     grid_search_results: List[dict] | None = None,
     best_candidate_name: str | None = None,
+    report_style: str | None = None,
 ) -> str:
-    """Render a Jinja2 HTML report from model evaluation results.
+    """Render an HTML report from model evaluation results.
 
     ``best_model`` is explained by SHAP / PDP, so pass a
     :class:`_HighestFidelityView` to explain the level that is evaluated.
@@ -109,7 +114,36 @@ def generate_html_report(
     (defaults to ``X_train``).
     The remaining optional arguments fill the Summary, Fidelity Levels,
     HF-only baseline and Model Selection sections; each is omitted when None.
+    ``report_style`` is ``"v2"`` (the redesigned report, default) or
+    ``"classic"``; a ``MOR_TEMPLATE_PATH`` override always renders classic.
     """
+    shap_names = input_names  # the classic SHAP plots keep SHAP's labels when None
+    if input_names is None:
+        input_names = [f"x{j}" for j in range(X_train.shape[1])]
+    if X_design is None:
+        X_design = X_train
+    if not isinstance(X_design, dict):
+        X_design = {(fidelity_levels or ["design"])[-1]: X_design}
+
+    if resolve_style(report_style) == "v2":
+        sampling_plot, sampling_explanation = _sampling_plot(X_design, input_names)
+        data = build_report_data(
+            title="Multi-Fidelity Surrogate Modeling Report",
+            model_type=model_type, output_names=list(output_names), description=description,
+            notes=notes, metrics=metrics, uncertainty_metrics=uncertainty_metrics,
+            y_test=y_test, best_pred=best_pred, best_std=best_std, best_model=best_model,
+            X_train=X_train, input_names=list(input_names), n_train=n_train, n_test=n_test,
+            cross_validation=cross_validation, seed=seed, fidelity_levels=fidelity_levels,
+            conformal_intervals=conformal_intervals, conformal_alpha=conformal_alpha,
+            calibration_residuals=calibration_residuals,
+            imputation_summary=imputation_summary, level_summary=level_summary,
+            baseline_comparison=baseline_comparison, baseline_label=baseline_label,
+            grid_search_results=grid_search_results, best_candidate_name=best_candidate_name,
+            summary_points=summary_points,
+            sampling_plot=sampling_plot, sampling_explanation=sampling_explanation,
+        )
+        return render_report(data)
+
     prediction_plots: Dict[str, str] = {}
     prediction_plots["all_in_one"] = safe_plot_b64(
         plot_intervals_ordered_multi,
@@ -129,7 +163,7 @@ def generate_html_report(
         )
 
     shap_plots = generate_shap_plot(
-        best_model, X_train, output_names, feature_names=input_names
+        best_model, X_train, output_names, feature_names=shap_names
     )
 
     unc_img = safe_plot_b64(
@@ -148,16 +182,10 @@ def generate_html_report(
         }
     ]
 
-    if input_names is None:
-        input_names = [f"x{j}" for j in range(X_train.shape[1])]
     pdp_plots = generate_pdp_plot(
         best_model, X_train, output_names, feature_names=list(input_names)
     )
 
-    if X_design is None:
-        X_design = X_train
-    if not isinstance(X_design, dict):
-        X_design = {(fidelity_levels or ["design"])[-1]: X_design}
     sampling_umap_plot, sampling_method_explanation = _sampling_plot(
         X_design, input_names
     )
@@ -431,130 +459,6 @@ def _baseline_comparison(
             "hf_r2": b["r2"],
         })
     return rows
-
-
-def _summary_points(
-    best_cand: dict,
-    gs_rows: List[dict],
-    metrics: Dict[str, Dict[str, float]],
-    baseline_rows: List[dict] | None,
-    baseline_label: str,
-    level_rows: List[dict],
-    level_names: List[str],
-    uncertainty_metrics: Dict[str, float],
-    best_std: np.ndarray,
-    n_test: int,
-    conformal_coverage: float | None = None,
-    conformal_alpha: float | None = None,
-) -> List[str]:
-    """Plain-language findings derived from the computed metrics."""
-    pts: List[str] = []
-
-    ok = sorted(
-        (r for r in gs_rows if r["CV MSE"] is not None), key=lambda r: r["CV MSE"]
-    )
-    msg = (
-        f"Best configuration: {best_cand['name']} "
-        f"(CV MSE {ok[0]['CV MSE']:.4g}, chosen from {len(ok)} working "
-        f"candidates"
-    )
-    if len(ok) > 1 and ok[0]["CV MSE"] > 0:
-        gap = 100.0 * (ok[1]["CV MSE"] - ok[0]["CV MSE"]) / ok[0]["CV MSE"]
-        msg += f"; runner-up {ok[1]['Model']} is {gap:.0f}% worse"
-    n_failed = len(gs_rows) - len(ok)
-    if n_failed:
-        msg += f"; {n_failed} failed to fit"
-    pts.append(msg + ").")
-
-    r2s = [m["r2"] for m in metrics.values()]
-    pts.append(
-        f"Highest-fidelity test R² is {min(r2s):.3f}"
-        + (f" to {max(r2s):.3f} across outputs." if len(r2s) > 1 else ".")
-    )
-
-    if baseline_rows:
-        mf = float(np.mean([r["mf_rmse"] for r in baseline_rows]))
-        hf = float(np.mean([r["hf_rmse"] for r in baseline_rows]))
-        change = 100.0 * (mf - hf) / hf if hf > 0 else 0.0
-        if best_cand["mf_type"] == "independent":
-            pts.append(
-                "The winner fits each level independently, so its highest-fidelity "
-                "predictions do not use the lower-fidelity data: it is the HF-only "
-                f"{baseline_label} model (test RMSE {mf:.4g}). No coupled "
-                "multi-fidelity model beat high-fidelity data alone in cross-validation "
-                "for this dataset."
-            )
-        elif change <= -5:
-            pts.append(
-                f"Using the lower-fidelity data reduced mean test RMSE by {-change:.0f}% "
-                f"compared with an HF-only {baseline_label} ({mf:.4g} vs {hf:.4g})."
-            )
-        elif change >= 5:
-            pts.append(
-                f"The multi-fidelity model's mean test RMSE is {change:.0f}% worse than "
-                f"an HF-only {baseline_label} ({mf:.4g} vs {hf:.4g}); the lower-fidelity "
-                "data is not helping and an HF-only model may be preferable."
-            )
-        else:
-            pts.append(
-                f"Mean test RMSE is within 5% of an HF-only {baseline_label} "
-                f"({mf:.4g} vs {hf:.4g}): no clear gain from the lower-fidelity data."
-            )
-    else:
-        pts.append(f"The HF-only {baseline_label} baseline could not be fitted.")
-
-    lower = [r for r in level_rows if r["level"] != level_names[-1]]
-    weak = sorted({
-        r["level"] for r in lower if r["r"] is None or abs(r["r"]) < 0.5
-    })
-    rs = [abs(r["r"]) for r in lower if r["r"] is not None]
-    if weak:
-        pts.append(
-            "Weakly related lower level(s): "
-            + ", ".join(f"'{lv}'" for lv in weak)
-            + " (|r| < 0.5 with the highest-fidelity test outputs for at least one "
-            "output), so they carry little usable information."
-        )
-    elif rs:
-        pts.append(
-            f"All lower levels track the highest fidelity closely (|r| ≥ {min(rs):.2f}), "
-            "so they are informative even where their R² is lower because of bias."
-        )
-
-    cov_key = next(k for k in uncertainty_metrics if k.startswith("Empirical coverage"))
-    cov = uncertainty_metrics[cov_key]
-    if not np.any(best_std > 0):
-        pts.append(
-            "The model reports no predictive uncertainty (std = 0); "
-            "use conformal intervals for error bars."
-        )
-    elif cov < 0.85:
-        pts.append(
-            f"The model's Gaussian uncertainty is overconfident: the 95% interval "
-            f"covers only {cov:.0%} of test points"
-            + (", so use the conformal intervals instead." if conformal_coverage is not None
-               else "; enable conformal intervals for calibrated error bars.")
-        )
-    elif cov > 0.99:
-        pts.append(
-            f"The 95% Gaussian interval covers {cov:.0%} of test points; the predicted "
-            "std may be conservative (intervals wider than needed)."
-        )
-    else:
-        pts.append(f"The 95% Gaussian interval covers {cov:.0%} of test points, close to nominal.")
-
-    if conformal_coverage is not None and conformal_alpha is not None:
-        pts.append(
-            f"Conformal {1 - conformal_alpha:.0%} intervals cover {conformal_coverage:.0%} "
-            "of test points."
-        )
-
-    if n_test < 30:
-        pts.append(
-            f"The test set has only {n_test} highest-fidelity points, so these metrics "
-            "(and the comparison above) are noisy."
-        )
-    return pts
 
 
 def _plot_conformal_summary(conf_df: pd.DataFrame) -> None:
@@ -912,12 +816,13 @@ def _select_best_candidate(
         if on_progress is not None:
             on_progress(i, cand)
         try:
-            fold_sse, n_val = [], 0
+            fold_sse, fold_rmse, n_val = [], [], 0
             for tr, va in splits:
                 fit_data = {**train_data, hi_name: (X_hi[tr], Y_hi[tr])}
                 model = _fit_candidate(cand, fit_data, level_names)
                 y_pred, _ = _predict_highest(model, cand, X_hi[va], level_names)
                 fold_sse.append(float(np.sum((Y_hi[va] - y_pred) ** 2)))
+                fold_rmse.append(np.sqrt(fold_sse[-1] / (len(va) * Y_hi.shape[1])))
                 n_val += len(va)
             mse = sum(fold_sse) / (n_val * Y_hi.shape[1])
             r2 = 1.0 - sum(fold_sse) * len(X_hi) / (n_val * ss_tot) if ss_tot > 0 else np.nan
@@ -925,6 +830,8 @@ def _select_best_candidate(
                 "Model": cand["name"],
                 "CV MSE": round(mse, 6),
                 "CV RMSE": round(float(np.sqrt(mse)), 6),
+                # Spread of the per-fold RMSE, so near-ties are visible in the report.
+                "CV RMSE std": round(float(np.std(fold_rmse)), 6),
                 "CV R²": round(float(r2), 4),
                 "Status": "OK",
             })
@@ -936,6 +843,7 @@ def _select_best_candidate(
                 "Model": cand["name"],
                 "CV MSE": None,
                 "CV RMSE": None,
+                "CV RMSE std": None,
                 "CV R²": None,
                 "Status": f"Error: {exc}",
             })
@@ -1065,6 +973,7 @@ if uploaded_file:
         )
 
         description = st.text_area("Optional: project description")
+        report_style = report_format_control()
         submitted = st.form_submit_button("Run Grid Search")
 
     # ------------------------------------------------------------------
@@ -1355,14 +1264,10 @@ if uploaded_file:
                     baseline_label=_base_label,
                     grid_search_results=gs_sorted,
                     best_candidate_name=best_name,
+                    report_style=report_style,
                 )
         except Exception as exc:
             st.error(f"Report generation failed: {exc}")
             st.stop()
 
-        st.download_button(
-            "Download HTML Report",
-            html,
-            file_name="mf_model_report.html",
-            mime="text/html",
-        )
+        report_downloads(html, "mf_model_report.html", "mf_report")
