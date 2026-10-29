@@ -12,7 +12,7 @@ import os
 import joblib
 import pandas as pd
 import numpy as np
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Callable, Dict, List, Optional, Tuple, Union, Any
 from scipy.stats import norm
 from sklearn.model_selection import train_test_split, ParameterGrid
@@ -48,6 +48,8 @@ from multioutreg.figures.pca_plots import generate_pca_variance_plot
 from multioutreg.figures.pdp_plots import generate_pdp_plot
 from multioutreg.utils.figure_utils import safe_plot_b64
 from multioutreg.figures.umap_plot_classify import generate_umap_plot
+from multioutreg.report.build import build_report_data
+from multioutreg.report.render import render_report, resolve_style
 from multioutreg.figures.prediction_plots import plot_predictions_with_error_bars
 # from multioutreg.figures.shap_multioutput import plot_multioutput_shap_bar_subplots
 from multioutreg.figures.coverage_plots import plot_coverage
@@ -444,6 +446,9 @@ class GridSearchResult:
     moe_selected: bool = False
     n_failed: int = 0            # (config, output) fits that raised
     cv_description: str = ""     # how the configs were scored, for reports
+    # One row per config for reports: CV MSE / RMSE averaged over outputs, the
+    # fold spread of the RMSE, and the outputs it was selected for.
+    cv_table: List[dict] = field(default_factory=list)
 
 
 def select_per_target(
@@ -493,7 +498,10 @@ def select_per_target(
     n_out = y.shape[1]
     best: List[Any] = [None] * n_out
     best_mse = [np.inf] * n_out
+    best_cfg = [-1] * n_out
     n_failed = 0
+    # fold_scores[i][j] = per-fold MSE of config i on output j (None if it failed)
+    fold_scores: List[List[Any]] = []
     total = len(configs) + (moe is not None) + 1
 
     def _report(done: int, label: str) -> None:
@@ -502,6 +510,7 @@ def select_per_target(
 
     for i, (name, factory, params) in enumerate(configs):
         _report(i, f"Fitting {name}" + (f" {params}" if params else ""))
+        fold_scores.append([None] * n_out)
         for j in range(n_out):
             try:
                 fold_mse = []
@@ -514,27 +523,37 @@ def select_per_target(
             except Exception:
                 n_failed += 1
                 continue
+            fold_scores[i][j] = fold_mse
             if mse < best_mse[j]:
-                best_mse[j], best[j] = mse, (name, factory, params)
+                best_mse[j], best[j], best_cfg[j] = mse, (name, factory, params), i
     missing = [j for j in range(n_out) if best[j] is None]
     if missing:
         raise RuntimeError(f"Every candidate failed for output(s) {missing}")
 
+    cv_table = _cv_table(configs, fold_scores, best_cfg)
+
     if moe is not None:
         _report(len(configs), f"Fitting {type(moe).__name__}")
         try:
-            moe_val = float(np.mean([
+            moe_folds = [
                 mean_squared_error(
                     y[te], np.asarray(clone(moe).fit(X[tr], y[tr]).predict(X[te])))
-                for tr, te in splits]))
-        except Exception:
-            moe_val = np.inf
+                for tr, te in splits]
+            moe_val = float(np.mean(moe_folds))
+        except Exception as exc:
+            moe_folds, moe_val = None, np.inf
+            cv_table.append(_cv_row(type(moe).__name__, None, f"Error: {exc}"))
+        if moe_folds is not None:
+            cv_table.append(_cv_row(type(moe).__name__, moe_folds))
         if moe_val < np.mean(best_mse):
+            for row in cv_table:
+                row["Selected for"] = []
+            cv_table[-1]["Selected for"] = list(range(n_out))
             _report(total - 1, "Refitting the selected model on all training data")
             return GridSearchResult(
                 model=moe.fit(X, y), combo=[{"model": type(moe).__name__}],
                 val_mse=[float(moe_val)] * n_out, moe_selected=True, n_failed=n_failed,
-                cv_description=cv_description)
+                cv_description=cv_description, cv_table=_sort_cv_table(cv_table))
 
     _report(total - 1, "Refitting the selected models on all training data")
     model = PerTargetRegressorWithStd(
@@ -545,7 +564,46 @@ def select_per_target(
         val_mse=[float(m) for m in best_mse],
         n_failed=n_failed,
         cv_description=cv_description,
+        cv_table=_sort_cv_table(cv_table),
     )
+
+
+def _cv_row(label: str, fold_mse: Optional[List[float]], status: str = "OK") -> dict:
+    """A report row from per-fold MSEs (already averaged over outputs)."""
+    if fold_mse is None:
+        return {"Model": label, "CV MSE": None, "CV RMSE": None, "CV RMSE std": None,
+                "CV R²": None, "Status": status, "Selected for": []}
+    fold_mse = np.asarray(fold_mse, dtype=float)
+    return {
+        "Model": label,
+        "CV MSE": round(float(fold_mse.mean()), 6),
+        "CV RMSE": round(float(np.sqrt(fold_mse.mean())), 6),
+        "CV RMSE std": round(float(np.std(np.sqrt(fold_mse))), 6),
+        "CV R²": None,
+        "Status": status,
+        "Selected for": [],
+    }
+
+
+def _cv_table(configs, fold_scores, best_cfg) -> List[dict]:
+    """One row per config: fold MSEs averaged over the outputs it fitted."""
+    rows = []
+    for i, (name, _, params) in enumerate(configs):
+        label = name + (f" {params}" if params else "")
+        ok = [f for f in fold_scores[i] if f is not None]
+        if not ok:
+            rows.append(_cv_row(label, None, "Error: failed for every output"))
+            continue
+        status = "OK" if len(ok) == len(fold_scores[i]) else (
+            f"Failed for {len(fold_scores[i]) - len(ok)} output(s)")
+        row = _cv_row(label, np.mean(np.asarray(ok, dtype=float), axis=0), status)
+        row["Selected for"] = [j for j, b in enumerate(best_cfg) if b == i]
+        rows.append(row)
+    return rows
+
+
+def _sort_cv_table(rows: List[dict]) -> List[dict]:
+    return sorted(rows, key=lambda r: (r["CV MSE"] is None, r["CV MSE"] or 0.0))
 
 
 class PerTargetGridSearch:
@@ -736,6 +794,8 @@ def generate_html_report(
     conformal_alpha: float | None = None,
     calibration_residuals: np.ndarray | None = None,
     imputation_summary: dict | None = None,
+    grid_search_results: List[dict] | None = None,
+    report_style: str | None = None,
 ) -> str:
     """
     Generate an HTML report from model training and evaluation results.
@@ -798,12 +858,43 @@ def generate_html_report(
     calibration_residuals : np.ndarray | None, optional
         ``|y_cal - y_cal_pred|`` from the held-out conformal calibration set.
         The Gaussian-vs-conformal coverage plot is drawn only when given.
+    imputation_summary : dict | None, optional
+        Rows before/after cleaning and the action taken per column.
+    grid_search_results : List[dict] | None, optional
+        ``GridSearchResult.cv_table``: one row per candidate config, shown in
+        the v2 report's model-selection section.
+    report_style : str | None, optional
+        ``"v2"`` (the redesigned report, default) or ``"classic"``. Defaults to
+        the ``MOR_REPORT_STYLE`` environment variable, then ``"v2"``.
 
     Returns
     -------
     str
         Rendered HTML report.
     """
+    if resolve_style(report_style) == "v2":
+        if feature_names is None or len(feature_names) != X_train.shape[1]:
+            feature_names = feature_names_pca
+        if feature_names is None or len(feature_names) != X_train.shape[1]:
+            feature_names = [f"feature_{i}" for i in range(X_train.shape[1])]
+        sampling_plot, sampling_explanation = generate_umap_plot(X_train)
+        data = build_report_data(
+            title="Surrogate Modeling Report",
+            model_type=model_type, output_names=list(output_names), description=description,
+            notes=notes, metrics=metrics, uncertainty_metrics=uncertainty_metrics,
+            y_test=y_test, best_pred=best_pred, best_std=best_std, best_model=best_model,
+            X_train=X_train, input_names=list(feature_names), n_train=n_train, n_test=n_test,
+            cross_validation=cross_validation, seed=seed, fidelity_levels=fidelity_levels,
+            conformal_intervals=conformal_intervals, conformal_alpha=conformal_alpha,
+            calibration_residuals=calibration_residuals,
+            imputation_summary=imputation_summary, grid_search_results=grid_search_results,
+            pca_explained_variance=pca_explained_variance, pca_variance_plot=pca_variance_plot,
+            pca_method=pca_method, pca_threshold=pca_threshold,
+            pca_n_components=pca_n_components, kaiser_rule_suggestion=kaiser_rule_suggestion,
+            sampling_plot=sampling_plot, sampling_explanation=sampling_explanation,
+        )
+        return render_report(data)
+
     # prediction_plots = generate_prediction_plot(y_test, best_pred, best_std, output_names)
     # # pdp_plots = generate_pdp_plot(output_names)
     # pdp_plots = generate_pdp_plot(best_model, X_train, output_names, feature_names=input_cols)
