@@ -25,6 +25,11 @@ import numpy as np
 MAX_D = 2
 #: Largest AR / MA order in the ARIMA grid (p, q in 0..7).
 ARIMA_MAX_ORDER = 7
+#: Longest season SARIMA models. The state-space fit slows sharply with s:
+#: one (1,0,1)(1,0,1,s) fit takes ~10 s at s = 52 and ~90 s at s = 123, and the
+#: search runs 16 of them. Longer seasons (365 for daily data) still set the
+#: horizon and the seasonal-naive baseline; SARIMA then fits without a season.
+SARIMA_MAX_SEASON = 52
 
 
 def _as_1d(y) -> np.ndarray:
@@ -128,8 +133,9 @@ class SarimaForecaster:
     """SARIMA(p, d, q)(P, 0, Q, s) over p, q, P, Q in {0, 1}.
 
     ``d`` comes from the ADF test and ``s`` from the ACF of the differenced
-    series (or ``seasonality``). Without a season (s < 2, or fewer than two
-    seasons plus two points of data) it reduces to ARIMA(p, d, q), p, q <= 1.
+    series (or ``seasonality``). Without a season (s < 2, s above
+    :data:`SARIMA_MAX_SEASON`, or fewer than two seasons plus two points of
+    data) it reduces to ARIMA(p, d, q), p, q <= 1.
     """
 
     name = "SARIMA"
@@ -159,7 +165,7 @@ class SarimaForecaster:
             s = self.seasonality
             if s is None:
                 s = detect_seasonal_period(np.diff(y, n=d) if d else y) or 0
-            seasonal = s >= 2 and y.size >= 2 * s + 2
+            seasonal = 2 <= s <= SARIMA_MAX_SEASON and y.size >= 2 * s + 2
             grid = [((p, d, q), (P, 0, Q, s) if seasonal else (0, 0, 0, 0))
                     for p in (0, 1) for q in (0, 1)
                     for P in ((0, 1) if seasonal else (0,))
