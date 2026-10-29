@@ -84,7 +84,16 @@ from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, imp
 
 
 from multioutreg.gui.background import submit as submit_background, warm_up
-from multioutreg.gui.report_controls import report_downloads, report_format_control
+from multioutreg.gui.report_controls import report_format_control
+from multioutreg.report.render import render_styles
+from multioutreg.report.build import build_report_data
+from multioutreg.gui.input_checks import check_run_inputs
+from multioutreg.gui.results_tabs import (
+    compute_explanations,
+    fill_report_tab,
+    refresh_explain_tab,
+    render_results,
+)
 from multioutreg.gui.grid_search_core import (
     RandomForestWithUncertainty,
     ExtraTreesWithUncertainty,
@@ -404,8 +413,23 @@ if data_source:
             "Optional: Project description",
             value=f"Sample dataset: {SAMPLE_DESCRIPTION}" if _using_sample else "",
         )
-        report_style = report_format_control()
+        report_styles = report_format_control()
         submitted = st.form_submit_button("Run Grid Search")
+
+        # Check the choices before any fitting, and show the problems in the form.
+        _input_problems = []
+        if submitted and input_cols and output_cols:
+            _input_problems = check_run_inputs(
+                df, list(input_cols), list(output_cols),
+                conformal_alpha=conformal_alpha_sel if use_conformal else None,
+                drop_row_cols=[c for c in list(input_cols) + list(output_cols)
+                               if st.session_state.get(f"imp_{c}") == "Drop rows"],
+            )
+            for _p in _input_problems:
+                if _p.kind in ("too_few_rows", "conformal_rows"):
+                    st.warning(_p.message)
+                else:
+                    st.error(_p.message)
 
     # Below the form, so the Run button stays near the top. Filled by the
     # pair-plot job when it finishes, which may be in the middle of a run.
@@ -420,7 +444,7 @@ if data_source:
     if submitted and not (input_cols and output_cols):
         st.warning("Select at least one input feature and one output target.")
 
-    if submitted and input_cols and output_cols:
+    if submitted and input_cols and output_cols and not _input_problems:
         # Drawn in a worker process while the models fit; shown as soon as it's ready.
         _start_pair_plot(df, _source_id, list(input_cols), list(output_cols))
         _pair_slot.refresh()
@@ -629,11 +653,29 @@ if data_source:
                 output_names=list(output_cols),
             )
 
+        # The tabs draw from the same numbers as the report (no SHAP/PDP here:
+        # those come from the background job below).
+        _report_data = build_report_data(
+            output_names=list(output_cols), y_test=y_test, best_pred=best_pred,
+            best_std=best_std, metrics=metrics, uncertainty_metrics=uncertainty_metrics,
+            model_type=type(best_model).__name__, n_train=evaluation.n_train,
+            n_test=evaluation.n_test, cross_validation=result.cv_description,
+            conformal_intervals=conformal_intervals, conformal_alpha=(
+                conformal_alpha_sel if use_conformal else None),
+            calibration_residuals=residuals, grid_search_results=result.cv_table,
+            explain=False,
+        ).to_dict(include_images=False)
+        _explain_job = submit_background(
+            "plots", compute_explanations, best_model, X_train, list(output_cols),
+            list(feature_names_pca if use_pca else feature_names))
+
         # The report's plots (prediction, SHAP, PDP, UMAP, ...) are drawn in a
         # worker process, so the results below show without waiting for them.
         _report_job = submit_background(
             "report",
+            render_styles,
             generate_html_report,
+            report_styles,
             model_type=type(best_model).__name__,
             fidelity_levels=[],
             output_names=output_cols,
@@ -666,7 +708,6 @@ if data_source:
             calibration_residuals=residuals,
             imputation_summary=_imputation_summary,
             grid_search_results=result.cv_table,
-            report_style=report_style,
         )
 
         # The exported pipeline replays every step the app applied to the inputs
@@ -720,11 +761,15 @@ if data_source:
             "report_error": None,
             "model_bytes": _model_bytes,
             "model_config": json.dumps(_bundle["config"], indent=2),
+            "report_data": _report_data,
+            "cv_table": result.cv_table,
+            "explain": None,
+            "explain_job": _explain_job,
         }
 
     _res = st.session_state.get("gs_results")
     if _res is not None:
-        if not submitted:
+        if not submitted or _input_problems:
             st.caption(
                 f"Showing the last run (inputs: {', '.join(_res['input_cols'])}; "
                 f"outputs: {', '.join(_res['output_cols'])}). "
@@ -732,28 +777,7 @@ if data_source:
             )
         for _kind, _msg in _res["notes"]:
             getattr(st, _kind)(_msg)
-        if _res["pca_variance_plot"] is not None:
-            st.markdown(_res["kaiser_rule_suggestion"])
-            st.image(
-                f"data:image/png;base64,{_res['pca_variance_plot']}",
-                caption="Scree Plot",
-                width="stretch",
-            )
-
-        st.write("### Best Model Configuration")
-        st.json(_res["best_combo"])
-
-        st.write("### Metrics Table")
-        st.dataframe(_res["metrics"])
-
-        st.write("### Uncertainty Calibration (Gaussian std, test set)")
-        st.dataframe(_res["uncertainty_metrics"])
-
-        if _res["conformal_summary"] is not None:
-            st.write(f"### Conformal Prediction Summary (alpha={_res['conformal_alpha']})")
-            st.dataframe(_res["conformal_summary"])
-
-        _report_slot = st.empty()
+        _slots = render_results(_res)
 
         st.write("### Export the Model")
         if _res.get("model_bytes") is not None:
@@ -805,11 +829,21 @@ if data_source:
         _pair_ready = _pair_slot.refresh()
         _report_job = _res.get("report_job") if _res is not None else None
         _report_ready = _report_job is None or _report_job.done()
-        if _pair_ready and _report_ready:
+        _explain_job = _res.get("explain_job") if _res is not None else None
+        if _explain_job is not None and _explain_job.done():
+            try:
+                _res["explain"] = _explain_job.result()
+            except Exception as exc:
+                _res["explain"] = {"shap": None, "pdp": None,
+                                   "errors": [f"{type(exc).__name__}: {exc}"]}
+            _res["explain_job"] = None
+            refresh_explain_tab(_res, _slots)
+            _explain_job = None
+        if _pair_ready and _report_ready and _explain_job is None:
             break
         _secs = int(time.perf_counter() - _wait_start)
         if _report_job is not None and not _report_ready and _secs != _shown_secs:
-            _report_slot.info(
+            _slots["report"].info(
                 f"Building the HTML report in the background ({_secs}s)… "
                 "The results above are final; the download appears here when it's ready.")
             _shown_secs = _secs
@@ -822,8 +856,4 @@ if data_source:
             except Exception as exc:
                 _res["report_error"] = f"Could not build the HTML report: {exc}"
             _res["report_job"] = None
-        if _res["html"] is not None:
-            report_downloads(_res["html"], "model_report.html", "gs_report",
-                             container=_report_slot.container())
-        elif _res["report_error"]:
-            _report_slot.error(_res["report_error"])
+        fill_report_tab(_res, _slots)
