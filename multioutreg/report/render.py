@@ -15,7 +15,7 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, Iterable, List, Optional
 
 import numpy as np
 from jinja2 import Environment, FileSystemLoader, select_autoescape
@@ -46,6 +46,20 @@ def resolve_style(style: Optional[str] = None, template_path: Any = None) -> str
     if chosen not in STYLES:
         raise ValueError(f"Unknown report style {chosen!r}; use one of {STYLES}")
     return chosen
+
+
+def render_styles(render: Callable[..., str], styles: Iterable[str], **kwargs: Any) -> Dict[str, str]:
+    """Call ``render(report_style=s, **kwargs)`` once per style; returns ``{style: html}``.
+
+    Styles that resolve to the same one (e.g. both under ``MOR_TEMPLATE_PATH``)
+    are rendered once. Module-level, so it can run as a background job.
+    """
+    out: Dict[str, str] = {}
+    for style in styles:
+        resolved = resolve_style(style)
+        if resolved not in out:
+            out[resolved] = render(report_style=resolved, **kwargs)
+    return out
 
 
 def json_for_script(text: str) -> str:
