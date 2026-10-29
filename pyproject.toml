@@ -126,6 +126,8 @@ constraint-dependencies = [
   "torch<2.3; sys_platform == 'darwin' and platform_machine == 'x86_64'",
   "llvmlite<0.44; sys_platform == 'darwin' and platform_machine == 'x86_64'",
   "numba<0.61; sys_platform == 'darwin' and platform_machine == 'x86_64'",
+  # ray (pulled in by neuralforecast) dropped Intel macOS wheels after 2.49.
+  "ray<2.50; sys_platform == 'darwin' and platform_machine == 'x86_64'",
 ]
 
 [tool.setuptools.packages.find]
