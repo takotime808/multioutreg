@@ -294,7 +294,7 @@ def build_findings(data: Dict[str, Any], th: Thresholds = Thresholds(),
     failed = [r["label"] for r in reg.get("rows", []) if r.get("status") == "crit"]
     if failed:
         cards.append({
-            "claim": "The predicted Pareto front misses its regret bound",
+            "claim": "The model's Pareto-optimal picks miss a regret bound",
             "detail": f"{_names(failed)} exceed the maximum you set.",
             "status": "crit", "section": "sec-2", "plot": None})
 
@@ -356,7 +356,8 @@ def build_next_steps(data: Dict[str, Any], th: Thresholds = Thresholds()) -> Lis
     reg = data.get("regret") or {}
     if any(r.get("status") == "crit" for r in reg.get("rows", [])):
         steps.append({"html": "<b>Improve the outputs that drive the Pareto front</b> before "
-                      "using the model for trade-off studies; the regret bound is not met.",
+                      "using the model to pick designs: the true values of its picks fall short "
+                      "of the regret bound.",
                       "section": "Section 2"})
     if not steps:
         steps.append({"html": "<b>Use the model.</b> Re-run this report when new data "
