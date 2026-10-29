@@ -38,7 +38,7 @@ def _render(mod, **kwargs):
         best_model=None, X_train=rng.normal(size=(30, 2)), n_train=30, n_test=20,
         cross_validation="", seed=0, notes="",
         conformal_intervals=(pred - 0.2, pred + 0.2), conformal_alpha=0.1,
-        **kwargs,
+        **{"report_style": "classic", **kwargs},  # the plots below are classic-only
     )
 
 
@@ -60,3 +60,17 @@ def test_conformal_vs_gaussian_skipped_without_calibration_residuals(report_modu
     mod, calls = report_module
     _render(mod)
     assert _vs_gaussian_calls(calls) == []
+
+
+def test_v2_conformal_curve_uses_calibration_residuals(report_module):
+    # The v2 report computes the curves itself: with residuals of 7 (far wider than the
+    # test errors), every conformal level covers every test point.
+    import json
+
+    from multioutreg.report.render import report_json_from_html
+
+    mod, _ = report_module
+    html = _render(mod, calibration_residuals=np.full((15, 2), 7.0), report_style="v2")
+    out = json.loads(report_json_from_html(html))["outputs"][0]
+    assert out["conf_curve"][-1] == 1.0 and min(out["conf_curve"]) == 1.0
+    assert out["conformal"]["n_cal"] == 15
