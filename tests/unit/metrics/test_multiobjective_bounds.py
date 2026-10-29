@@ -7,10 +7,13 @@ import pytest
 from multioutreg.metrics.multiobjective_regret import (
     RegretTracker,
     epsilon_regret,
+    front_epsilon_regret,
     hypervolume,
     hypervolume_regret,
+    front_hypervolume_regret,
     pareto_mask,
     scalarized_regret,
+    front_scalarized_regret,
 )
 
 
@@ -137,60 +140,60 @@ def test_hypervolume_scales_with_product_of_axis_scales(cloud):
 # ---------------------------------------------------------------------------
 
 
-def test_hypervolume_regret_is_zero_for_identical_and_non_negative_otherwise(cloud):
-    assert hypervolume_regret(cloud, cloud) == 0.0
+def test_front_hypervolume_regret_is_zero_for_identical_and_non_negative_otherwise(cloud):
+    assert front_hypervolume_regret(cloud, cloud) == 0.0
     worse = cloud + 0.3
-    assert hypervolume_regret(cloud, worse) > 0
+    assert front_hypervolume_regret(cloud, worse) > 0
     # A better predicted front is clipped to zero regret, never negative.
-    assert hypervolume_regret(worse, cloud) == 0.0
+    assert front_hypervolume_regret(worse, cloud) == 0.0
 
 
-def test_hypervolume_regret_reference_dimension_mismatch_raises(cloud):
+def test_front_hypervolume_regret_reference_dimension_mismatch_raises(cloud):
     with pytest.raises(ValueError, match="dimensionality"):
-        hypervolume_regret(cloud, cloud, reference_point=[1.0])
+        front_hypervolume_regret(cloud, cloud, reference_point=[1.0])
 
 
-def test_epsilon_regret_equals_uniform_shift(cloud):
-    assert epsilon_regret(cloud, cloud + 0.25) == pytest.approx(0.25)
-    assert epsilon_regret(cloud, cloud - 0.25) == 0.0
+def test_front_epsilon_regret_equals_uniform_shift(cloud):
+    assert front_epsilon_regret(cloud, cloud + 0.25) == pytest.approx(0.25)
+    assert front_epsilon_regret(cloud, cloud - 0.25) == 0.0
 
 
 @pytest.mark.parametrize("shape_t, shape_p", [((0, 2), (3, 2)), ((3, 2), (0, 2))])
-def test_epsilon_regret_empty_front_is_infinite(shape_t, shape_p):
-    assert epsilon_regret(np.zeros(shape_t), np.zeros(shape_p)) == np.inf
+def test_front_epsilon_regret_empty_front_is_infinite(shape_t, shape_p):
+    assert front_epsilon_regret(np.zeros(shape_t), np.zeros(shape_p)) == np.inf
 
 
-def test_epsilon_regret_1d_empty_is_infinite():
-    assert epsilon_regret(np.zeros(0), np.array([1.0])) == np.inf
+def test_front_epsilon_regret_1d_empty_is_infinite():
+    assert front_epsilon_regret(np.zeros(0), np.array([1.0])) == np.inf
 
 
-def test_scalarized_regret_zero_for_identical(cloud):
+def test_front_scalarized_regret_zero_for_identical(cloud):
     W = np.random.default_rng(2).dirichlet(np.ones(2), size=8)
-    np.testing.assert_allclose(scalarized_regret(cloud, cloud, W, reduce="none"), 0.0)
+    np.testing.assert_allclose(front_scalarized_regret(cloud, cloud, W, reduce="none"), 0.0)
 
 
-def test_scalarized_regret_negative_weights_are_clipped():
+def test_front_scalarized_regret_negative_weights_are_clipped():
     Yt = np.array([[0.0, 0.0]])
     Yp = np.array([[1.0, 0.0]])
     # [-1, 1] -> clip [0, 1]: objective 0 does not count.
-    assert scalarized_regret(Yt, Yp, [-1.0, 1.0]) == pytest.approx(0.0)
+    assert front_scalarized_regret(Yt, Yp, [-1.0, 1.0]) == pytest.approx(0.0)
 
 
-def test_scalarized_regret_all_zero_weights_become_uniform():
+def test_front_scalarized_regret_all_zero_weights_become_uniform():
     Yt, Yp = np.array([[0.0, 0.0]]), np.array([[1.0, 3.0]])
-    assert scalarized_regret(Yt, Yp, [0.0, 0.0]) == pytest.approx(
-        scalarized_regret(Yt, Yp, [0.5, 0.5])
+    assert front_scalarized_regret(Yt, Yp, [0.0, 0.0]) == pytest.approx(
+        front_scalarized_regret(Yt, Yp, [0.5, 0.5])
     )
 
 
-def test_scalarized_regret_is_invariant_to_weight_scale():
+def test_front_scalarized_regret_is_invariant_to_weight_scale():
     Yt, Yp = np.array([[0.0, 0.0]]), np.array([[1.0, 3.0]])
-    assert scalarized_regret(Yt, Yp, [1.0, 3.0]) == pytest.approx(scalarized_regret(Yt, Yp, [10.0, 30.0]))
+    assert front_scalarized_regret(Yt, Yp, [1.0, 3.0]) == pytest.approx(front_scalarized_regret(Yt, Yp, [10.0, 30.0]))
 
 
-def test_scalarized_regret_dict_percentiles_are_ordered(cloud):
+def test_front_scalarized_regret_dict_percentiles_are_ordered(cloud):
     W = np.random.default_rng(3).dirichlet(np.ones(2), size=20)
-    d = scalarized_regret(cloud, cloud * 1.2 + 0.1, W, reduce="dict")
+    d = front_scalarized_regret(cloud, cloud * 1.2 + 0.1, W, reduce="dict")
     assert d["p10"] <= d["median"] <= d["p90"] <= d["max"]
 
 
@@ -203,14 +206,14 @@ def test_scalarized_regret_dict_percentiles_are_ordered(cloud):
         (np.ones((1, 1, 2)), "scalar, 1-D, or 2-D"),
     ],
 )
-def test_scalarized_regret_bad_weights_raise(cloud, weights, match):
+def test_front_scalarized_regret_bad_weights_raise(cloud, weights, match):
     with pytest.raises(ValueError, match=match):
-        scalarized_regret(cloud, cloud, weights)
+        front_scalarized_regret(cloud, cloud, weights)
 
 
-def test_scalarized_regret_unknown_reduce_raises(cloud):
+def test_front_scalarized_regret_unknown_reduce_raises(cloud):
     with pytest.raises(ValueError, match="reduce"):
-        scalarized_regret(cloud, cloud, [0.5, 0.5], reduce="sum")
+        front_scalarized_regret(cloud, cloud, [0.5, 0.5], reduce="sum")
 
 
 # ---------------------------------------------------------------------------

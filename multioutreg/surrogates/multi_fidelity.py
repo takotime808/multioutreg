@@ -20,7 +20,8 @@ class MultiFidelitySurrogate(CloneMixin):
     ``StackedVFMSurrogate`` (any number of levels) or
     ``AdditiveCorrectionVFM`` (two levels, ``f_hi = rho * f_lo + delta``).
 
-    ``predict`` defaults to the *first* (lowest) level.
+    ``predict`` defaults to the *last* (highest) level, the one a
+    multi-fidelity study is usually after; pass ``level`` for any other.
     """
 
     def __init__(self, surrogate_cls, fidelity_levels: Iterable[str]):
@@ -32,7 +33,7 @@ class MultiFidelitySurrogate(CloneMixin):
             Class or callable used to instantiate a surrogate for each fidelity
             level.
         fidelity_levels : Iterable[str]
-            Ordered collection of fidelity level names.
+            Fidelity level names, ordered from lowest to highest.
         """
         self.surrogate_cls = surrogate_cls
         self.fidelity_levels = list(fidelity_levels)
@@ -69,9 +70,13 @@ class MultiFidelitySurrogate(CloneMixin):
         level: str | None = None,
         return_std: bool = False,
     ):
-        """Predict with the surrogate corresponding to ``level``."""
+        """Predict with the surrogate corresponding to ``level``.
+
+        ``level=None`` uses the highest fidelity level (the last in
+        ``fidelity_levels``).
+        """
         if level is None:
-            level = self.fidelity_levels[0]
+            level = self.fidelity_levels[-1]
         if level not in self.models:
             raise ValueError(f"Unknown fidelity level: {level}")
         return self.models[level].predict(X, return_std=return_std)

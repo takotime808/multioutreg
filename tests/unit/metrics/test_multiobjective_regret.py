@@ -5,8 +5,11 @@ import pytest
 from multioutreg.metrics import (
     pareto_mask,
     hypervolume_regret,
+    front_hypervolume_regret,
     scalarized_regret,
+    front_scalarized_regret,
     epsilon_regret,
+    front_epsilon_regret,
     RegretTracker,
 )
 
@@ -23,73 +26,73 @@ def test_pareto_mask_known_2d_minimization():
     assert mask.tolist() == [True, True, True, False]
 
 
-def test_hypervolume_regret_1d_exact_ref():
+def test_front_hypervolume_regret_1d_exact_ref():
     # 1D exact HV: HV = max(0, ref - min(front))
     Y_true = np.array([[0.0], [1.0], [2.0]])
     Y_pred = np.array([[0.1], [1.2]])
     ref = np.array([3.0])
 
-    r = hypervolume_regret(Y_true, Y_pred, reference_point=ref, minimize=True)
+    r = front_hypervolume_regret(Y_true, Y_pred, reference_point=ref, minimize=True)
     # HV_true = 3.0 - 0.0 = 3.0; HV_pred = 3.0 - 0.1 = 2.9; regret = 0.1
     assert pytest.approx(r, rel=0, abs=1e-12) == 0.1
 
 
-def test_hypervolume_regret_2d_identical_zero():
+def test_front_hypervolume_regret_2d_identical_zero():
     Y = np.array([[0., 2.], [1., 1.], [2., 0.]])
-    r = hypervolume_regret(Y, Y, reference_point=np.array([3., 3.]), minimize=True)
+    r = front_hypervolume_regret(Y, Y, reference_point=np.array([3., 3.]), minimize=True)
     assert pytest.approx(r, abs=1e-12) == 0.0
 
 
-def test_scalarized_regret_shapes_and_values_m1():
+def test_front_scalarized_regret_shapes_and_values_m1():
     # m = 1, scalar weights should be accepted; r = min(Yt) - min(Yp)
     Yt = np.array([[0.5], [0.7], [1.2]])
     Yp = np.array([[0.6], [0.8]])
     # Expected: 0.5 - 0.6 = -0.1
-    r_scalar = scalarized_regret(Yt, Yp, weights=1.0, reduce="mean")
+    r_scalar = front_scalarized_regret(Yt, Yp, weights=1.0, reduce="mean")
     assert isinstance(r_scalar, float)
     assert pytest.approx(r_scalar, abs=1e-12) == -0.1
 
     # Also accept (k,) weights when m==1
-    r_vec = scalarized_regret(Yt, Yp, weights=np.array([1.0, 2.0, 3.0]), reduce="none")
+    r_vec = front_scalarized_regret(Yt, Yp, weights=np.array([1.0, 2.0, 3.0]), reduce="none")
     assert r_vec.shape == (3,)
     # All entries equal to same value because m==1 (they get normalized per-row)
     assert np.allclose(r_vec, r_vec[0])
 
 
-def test_scalarized_regret_m2_valid_and_invalid_weights():
+def test_front_scalarized_regret_m2_valid_and_invalid_weights():
     Yt = np.array([[0., 2.], [1., 1.], [2., 0.]])
     Yp = np.array([[0.5, 1.7], [1.2, 0.9], [2.2, 0.1]])
 
     # Valid shapes
-    r_mean = scalarized_regret(Yt, Yp, weights=np.array([0.5, 0.5]), reduce="mean")
+    r_mean = front_scalarized_regret(Yt, Yp, weights=np.array([0.5, 0.5]), reduce="mean")
     assert isinstance(r_mean, float)
 
-    r_none = scalarized_regret(
+    r_none = front_scalarized_regret(
         Yt, Yp, weights=np.array([[0.5, 0.5], [0.2, 0.8]]), reduce="none"
     )
     assert r_none.shape == (2,)
 
     # Invalid: 1-D weights length != m should raise
     with pytest.raises(ValueError):
-        scalarized_regret(Yt, Yp, weights=np.array([1.0, 2.0, 3.0]), reduce="mean")
+        front_scalarized_regret(Yt, Yp, weights=np.array([1.0, 2.0, 3.0]), reduce="mean")
 
 
-def test_epsilon_regret_identical_zero_and_shifted_positive():
+def test_front_epsilon_regret_identical_zero_and_shifted_positive():
     # Identical fronts -> epsilon 0
     Ft = np.array([[0., 2.], [1., 1.], [2., 0.]])
-    assert pytest.approx(epsilon_regret(Ft, Ft, True), abs=1e-12) == 0.0
+    assert pytest.approx(front_epsilon_regret(Ft, Ft, True), abs=1e-12) == 0.0
 
     # If predicted front is uniformly worse by +0.2 in all dims, eps = 0.2
     Fp = Ft + 0.2
-    eps = epsilon_regret(Ft, Fp, True)
+    eps = front_epsilon_regret(Ft, Fp, True)
     assert pytest.approx(eps, abs=1e-12) == 0.2
 
 
-def test_epsilon_regret_1d_exact():
+def test_front_epsilon_regret_1d_exact():
     Ft = np.array([[0.2], [0.5], [1.0]])
     Fp = np.array([[0.6], [0.8]])
     # 1D: eps = min(Fp) - min(Ft), clipped to >=0 = 0.6 - 0.2 = 0.4
-    eps = epsilon_regret(Ft, Fp, True)
+    eps = front_epsilon_regret(Ft, Fp, True)
     assert pytest.approx(eps, abs=1e-12) == 0.4
 
 
@@ -110,7 +113,7 @@ def test_tracker_runs_and_accumulates_m2():
 def test_tracker_runs_m1():
     tracker = RegretTracker(minimize=True, n_weight_samples=3)
     Yt = np.array([[0.5], [0.9], [1.1]])
-    Yp = np.array([[0.6], [1.0]])
+    Yp = np.array([[0.6], [1.0], [1.2]])
     res = tracker.step(Yt, Yp)
     assert {"hv", "scalar", "eps"} <= set(res.keys())
     assert len(tracker.history["scalar"]) == 1
@@ -179,15 +182,15 @@ def test_hypervolume_maximization_and_default_reference():
         hypervolume(F, reference_point=[1.0, 1.0])
 
 
-def test_hypervolume_regret_3d_is_exact():
+def test_front_hypervolume_regret_3d_is_exact():
     rng = np.random.default_rng(6)
     Y_true = rng.random((10, 3))
     ref = np.full(3, 1.5)
-    assert hypervolume_regret(Y_true, Y_true, reference_point=ref) == 0.0
+    assert front_hypervolume_regret(Y_true, Y_true, reference_point=ref) == 0.0
     Y_pred = Y_true + 0.1
     expected = _hv_inclusion_exclusion(Y_true[pareto_mask(Y_true)], ref) - _hv_inclusion_exclusion(
         Y_pred[pareto_mask(Y_pred)], ref)
-    assert hypervolume_regret(Y_true, Y_pred, reference_point=ref) == pytest.approx(expected, rel=1e-12)
+    assert front_hypervolume_regret(Y_true, Y_pred, reference_point=ref) == pytest.approx(expected, rel=1e-12)
 
 
 def test_hypervolume_agrees_with_pymoo_when_installed():
@@ -210,7 +213,8 @@ def test_package_exports_match_module():
     import multioutreg.metrics as pkg
     assert set(pkg.__all__) == {
         "pareto_mask", "hypervolume", "hypervolume_regret",
-        "scalarized_regret", "epsilon_regret", "RegretTracker",
+        "scalarized_regret", "epsilon_regret", "front_hypervolume_regret",
+        "front_scalarized_regret", "front_epsilon_regret", "RegretTracker",
     }
     for name in pkg.__all__:
         assert getattr(pkg, name) is getattr(mor, name)
@@ -361,127 +365,226 @@ def test_hypervolume_falls_back_when_pymoo_missing(monkeypatch):
     assert hypervolume(F, reference_point=ref) == pytest.approx(_hv_inclusion_exclusion(F, ref), rel=1e-12)
 
 
-# --------------------------- hypervolume_regret ---------------------------
+# --------------------------- front_hypervolume_regret ---------------------------
 
-def test_hypervolume_regret_equals_hv_difference():
+def test_front_hypervolume_regret_equals_hv_difference():
     rng = np.random.default_rng(9)
     Yt = rng.random((12, 2))
     Yp = Yt + rng.normal(0.0, 0.05, Yt.shape)
     ref = np.full(2, 1.5)
     expected = hypervolume(Yt, reference_point=ref) - hypervolume(Yp, reference_point=ref)
-    assert hypervolume_regret(Yt, Yp, reference_point=ref) == pytest.approx(max(0.0, expected))
+    assert front_hypervolume_regret(Yt, Yp, reference_point=ref) == pytest.approx(max(0.0, expected))
 
 
-def test_hypervolume_regret_clipped_at_zero_when_pred_is_better():
+def test_front_hypervolume_regret_clipped_at_zero_when_pred_is_better():
     Yt = np.array([[1.0, 2.0], [2.0, 1.0]])
-    assert hypervolume_regret(Yt, Yt - 0.5, reference_point=[3.0, 3.0]) == 0.0
+    assert front_hypervolume_regret(Yt, Yt - 0.5, reference_point=[3.0, 3.0]) == 0.0
 
 
-def test_hypervolume_regret_default_reference_and_validation():
+def test_front_hypervolume_regret_default_reference_and_validation():
     Yt = np.array([[0.0, 1.0], [1.0, 0.0]])
     Yp = np.array([[0.5, 1.5], [1.5, 0.5]])
     ref = mor._default_reference_point([Yt, Yp])
-    assert hypervolume_regret(Yt, Yp) == pytest.approx(hypervolume_regret(Yt, Yp, reference_point=ref))
+    assert front_hypervolume_regret(Yt, Yp) == pytest.approx(front_hypervolume_regret(Yt, Yp, reference_point=ref))
     with pytest.raises(ValueError, match="reference_point"):
-        hypervolume_regret(Yt, Yp, reference_point=[1.0, 2.0, 3.0])
+        front_hypervolume_regret(Yt, Yp, reference_point=[1.0, 2.0, 3.0])
 
 
-def test_hypervolume_regret_maximization_and_empty_pred():
+def test_front_hypervolume_regret_maximization_and_empty_pred():
     Yt = np.array([[0.0, 2.0], [1.0, 1.0], [2.0, 0.0]])
     Yp = Yt - 0.3  # worse when maximizing
-    r = hypervolume_regret(Yt, Yp, reference_point=[1.0, 1.0], minimize=False)
-    assert r == pytest.approx(hypervolume_regret(-Yt, -Yp, reference_point=[1.0, 1.0]))
+    r = front_hypervolume_regret(Yt, Yp, reference_point=[1.0, 1.0], minimize=False)
+    assert r == pytest.approx(front_hypervolume_regret(-Yt, -Yp, reference_point=[1.0, 1.0]))
     assert r > 0
     # No predicted points: regret is the whole true hypervolume.
-    assert hypervolume_regret(Yt, np.empty((0, 2)), reference_point=[3.0, 3.0]) == pytest.approx(
+    assert front_hypervolume_regret(Yt, np.empty((0, 2)), reference_point=[3.0, 3.0]) == pytest.approx(
         hypervolume(Yt, reference_point=[3.0, 3.0]))
 
 
-# --------------------------- scalarized_regret ---------------------------
+# --------------------------- front_scalarized_regret ---------------------------
 
-def test_scalarized_regret_scalar_weight_requires_single_objective():
+def test_front_scalarized_regret_scalar_weight_requires_single_objective():
     Y = np.array([[0.0, 1.0], [1.0, 0.0]])
     with pytest.raises(ValueError, match="Scalar weight"):
-        scalarized_regret(Y, Y, weights=1.0)
+        front_scalarized_regret(Y, Y, weights=1.0)
 
 
-def test_scalarized_regret_2d_weights_wrong_width_and_3d_weights():
+def test_front_scalarized_regret_2d_weights_wrong_width_and_3d_weights():
     Y = np.array([[0.0, 1.0], [1.0, 0.0]])
     with pytest.raises(ValueError, match="second dimension"):
-        scalarized_regret(Y, Y, weights=np.ones((2, 3)))
+        front_scalarized_regret(Y, Y, weights=np.ones((2, 3)))
     with pytest.raises(ValueError, match="scalar, 1-D, or 2-D"):
-        scalarized_regret(Y, Y, weights=np.ones((1, 1, 2)))
+        front_scalarized_regret(Y, Y, weights=np.ones((1, 1, 2)))
 
 
-def test_scalarized_regret_weights_are_clipped_and_normalized():
+def test_front_scalarized_regret_weights_are_clipped_and_normalized():
     Yt = np.array([[0.0, 2.0], [1.0, 1.0], [2.0, 0.0]])
     Yp = Yt + np.array([0.2, 0.4])
     # Unnormalized and negative entries map to the same simplex vector.
-    a = scalarized_regret(Yt, Yp, weights=[[2.0, 2.0]], reduce="none")
-    b = scalarized_regret(Yt, Yp, weights=[[0.5, 0.5]], reduce="none")
+    a = front_scalarized_regret(Yt, Yp, weights=[[2.0, 2.0]], reduce="none")
+    b = front_scalarized_regret(Yt, Yp, weights=[[0.5, 0.5]], reduce="none")
     assert np.allclose(a, b)
-    c = scalarized_regret(Yt, Yp, weights=[[-3.0, 1.0]], reduce="none")
-    d = scalarized_regret(Yt, Yp, weights=[[0.0, 1.0]], reduce="none")
+    c = front_scalarized_regret(Yt, Yp, weights=[[-3.0, 1.0]], reduce="none")
+    d = front_scalarized_regret(Yt, Yp, weights=[[0.0, 1.0]], reduce="none")
     assert np.allclose(c, d) and c[0] == pytest.approx(-0.4)
 
 
-def test_scalarized_regret_zero_weight_rows_become_uniform():
+def test_front_scalarized_regret_zero_weight_rows_become_uniform():
     Yt = np.array([[0.0, 2.0], [1.0, 1.0], [2.0, 0.0]])
     Yp = Yt + np.array([0.2, 0.4])
-    uniform = scalarized_regret(Yt, Yp, weights=[0.5, 0.5], reduce="none")
-    assert np.allclose(scalarized_regret(Yt, Yp, weights=[0.0, 0.0], reduce="none"), uniform)
-    mixed = scalarized_regret(Yt, Yp, weights=[[0.0, 0.0], [1.0, 0.0]], reduce="none")
+    uniform = front_scalarized_regret(Yt, Yp, weights=[0.5, 0.5], reduce="none")
+    assert np.allclose(front_scalarized_regret(Yt, Yp, weights=[0.0, 0.0], reduce="none"), uniform)
+    mixed = front_scalarized_regret(Yt, Yp, weights=[[0.0, 0.0], [1.0, 0.0]], reduce="none")
     assert mixed[0] == pytest.approx(uniform[0])
     assert mixed[1] == pytest.approx(-0.2)
 
 
-def test_scalarized_regret_reduce_options():
+def test_front_scalarized_regret_reduce_options():
     Yt = np.zeros((3, 2))
     Yp = np.ones((3, 2)) * np.array([1.0, 3.0])
     W = np.array([[1.0, 0.0], [0.5, 0.5], [0.0, 1.0], [0.25, 0.75]])
-    r = scalarized_regret(Yt, Yp, weights=W, reduce="none")
+    r = front_scalarized_regret(Yt, Yp, weights=W, reduce="none")
     assert np.allclose(r, [-1.0, -2.0, -3.0, -2.5])
-    assert scalarized_regret(Yt, Yp, weights=W, reduce="mean") == pytest.approx(np.mean(r))
-    assert scalarized_regret(Yt, Yp, weights=W, reduce="median") == pytest.approx(np.median(r))
-    assert scalarized_regret(Yt, Yp, weights=W, reduce="max") == pytest.approx(-1.0)
-    d = scalarized_regret(Yt, Yp, weights=W, reduce="dict")
+    assert front_scalarized_regret(Yt, Yp, weights=W, reduce="mean") == pytest.approx(np.mean(r))
+    assert front_scalarized_regret(Yt, Yp, weights=W, reduce="median") == pytest.approx(np.median(r))
+    assert front_scalarized_regret(Yt, Yp, weights=W, reduce="max") == pytest.approx(-1.0)
+    d = front_scalarized_regret(Yt, Yp, weights=W, reduce="dict")
     assert set(d) == {"mean", "median", "max", "p10", "p90"}
     assert d["p10"] == pytest.approx(np.percentile(r, 10))
     assert d["p90"] == pytest.approx(np.percentile(r, 90))
     assert all(isinstance(v, float) for v in d.values())
     with pytest.raises(ValueError, match="reduce"):
-        scalarized_regret(Yt, Yp, weights=W, reduce="sum")
+        front_scalarized_regret(Yt, Yp, weights=W, reduce="sum")
 
 
-def test_scalarized_regret_maximization():
+def test_front_scalarized_regret_maximization():
     Yt = np.array([[3.0, 1.0], [1.0, 3.0]])
     Yp = np.array([[2.0, 1.0], [1.0, 2.0]])
-    r = scalarized_regret(Yt, Yp, weights=[0.5, 0.5], minimize=False)
+    r = front_scalarized_regret(Yt, Yp, weights=[0.5, 0.5], minimize=False)
     # min over -w.Y: true -2, pred -1.5 -> -0.5
     assert r == pytest.approx(-0.5)
 
 
-# --------------------------- epsilon_regret ---------------------------
+# --------------------------- front_epsilon_regret ---------------------------
 
-def test_epsilon_regret_empty_fronts_are_infinite():
+def test_front_epsilon_regret_empty_fronts_are_infinite():
     Y2 = np.array([[0.0, 1.0], [1.0, 0.0]])
-    assert epsilon_regret(Y2, np.empty((0, 2))) == np.inf
-    assert epsilon_regret(np.empty((0, 2)), Y2) == np.inf
-    assert epsilon_regret(np.array([[1.0]]), np.empty((0, 1))) == np.inf
+    assert front_epsilon_regret(Y2, np.empty((0, 2))) == np.inf
+    assert front_epsilon_regret(np.empty((0, 2)), Y2) == np.inf
+    assert front_epsilon_regret(np.array([[1.0]]), np.empty((0, 1))) == np.inf
 
 
-def test_epsilon_regret_clipped_when_pred_dominates():
+def test_front_epsilon_regret_clipped_when_pred_dominates():
     Yt = np.array([[0.0, 2.0], [1.0, 1.0], [2.0, 0.0]])
-    assert epsilon_regret(Yt, Yt - 0.3) == 0.0
-    assert epsilon_regret(np.array([1.0, 2.0]), np.array([0.5])) == 0.0
+    assert front_epsilon_regret(Yt, Yt - 0.3) == 0.0
+    assert front_epsilon_regret(np.array([1.0, 2.0]), np.array([0.5])) == 0.0
 
 
-def test_epsilon_regret_partial_coverage_and_maximization():
+def test_front_epsilon_regret_partial_coverage_and_maximization():
     Yt = np.array([[0.0, 2.0], [1.0, 1.0], [2.0, 0.0]])
     Yp = np.array([[0.0, 2.0], [2.0, 0.0]])  # misses the knee point
-    assert epsilon_regret(Yt, Yp) == pytest.approx(1.0)
-    assert epsilon_regret(-Yt, -Yp, minimize=False) == pytest.approx(1.0)
-    assert epsilon_regret(Yt, Yp, minimize=[True, True]) == pytest.approx(1.0)
+    assert front_epsilon_regret(Yt, Yp) == pytest.approx(1.0)
+    assert front_epsilon_regret(-Yt, -Yp, minimize=False) == pytest.approx(1.0)
+    assert front_epsilon_regret(Yt, Yp, minimize=[True, True]) == pytest.approx(1.0)
+
+
+# --------------------------- decision regret (the defaults) ---------------------------
+
+# Three candidates on a true front; the predictions rank them wrongly.
+_YT = np.array([[0.0, 2.0], [1.0, 1.0], [2.0, 0.0]])
+
+
+def test_decision_regret_scores_the_true_values_at_the_picks():
+    Yp = np.array([[1.0, 1.0], [0.0, 0.0], [1.0, 1.0]])  # the model picks only candidate 1
+    ref = [3.0, 3.0]
+    # True HV = 3 + 2 + 1 = 6; the pick [1, 1] alone dominates 2 * 2 = 4.
+    assert hypervolume_regret(_YT, Yp, reference_point=ref) == pytest.approx(2.0)
+    assert hypervolume_regret(_YT, Yp, reference_point=ref) == pytest.approx(
+        front_hypervolume_regret(_YT, _YT[pareto_mask(Yp)], reference_point=ref))
+    # [1, 1] is 1.0 short of both corners on its worst objective.
+    assert epsilon_regret(_YT, Yp) == pytest.approx(1.0)
+
+
+def test_decision_scalarized_regret_by_hand():
+    Yp = _YT[::-1]  # predictions for candidates 0 and 2 are swapped
+    W = np.array([[1.0, 0.0], [0.0, 1.0], [0.5, 0.5]])
+    # w=[1,0] picks candidate 2 (true 2 vs best 0); w=[0,1] picks candidate 0 (true 2 vs 0);
+    # w=[.5,.5] ties everywhere, picks candidate 0, whose true value 1 is the best.
+    assert np.allclose(scalarized_regret(_YT, Yp, W, reduce="none"), [2.0, 2.0, 0.0])
+
+
+def test_optimistic_shift_does_not_lower_decision_regret():
+    rng = np.random.default_rng(3)
+    Yt = rng.uniform(size=(60, 2))
+    Yp = Yt + np.abs(rng.normal(scale=0.1, size=Yt.shape))  # slightly pessimistic
+    optimistic = Yp - [0.0, 0.5]
+    ref = [2.0, 2.0]
+    W = rng.dirichlet(np.ones(2), size=8)
+    # The front comparison rewards over-promising ...
+    assert front_hypervolume_regret(Yt, optimistic, reference_point=ref) == 0.0
+    assert front_hypervolume_regret(Yt, Yp, reference_point=ref) > 0.0
+    # ... decision regret does not: the shift leaves the picks unchanged.
+    assert hypervolume_regret(Yt, optimistic, reference_point=ref) == pytest.approx(
+        hypervolume_regret(Yt, Yp, reference_point=ref))
+    assert hypervolume_regret(Yt, Yp, reference_point=ref) > 0.0
+    assert epsilon_regret(Yt, optimistic) == pytest.approx(epsilon_regret(Yt, Yp))
+    assert scalarized_regret(Yt, Yp - 0.5, W) == pytest.approx(scalarized_regret(Yt, Yp, W))
+
+
+def test_decision_regret_is_zero_for_perfect_and_non_negative_otherwise():
+    rng = np.random.default_rng(8)
+    Yt = rng.uniform(size=(30, 3))
+    W = rng.dirichlet(np.ones(3), size=6)
+    assert hypervolume_regret(Yt, Yt) == 0.0
+    assert epsilon_regret(Yt, Yt) == 0.0
+    assert np.allclose(scalarized_regret(Yt, Yt, W, reduce="none"), 0.0)
+    for _ in range(5):
+        Yp = rng.uniform(size=Yt.shape)
+        assert hypervolume_regret(Yt, Yp) >= 0.0
+        assert epsilon_regret(Yt, Yp) >= 0.0
+        assert np.all(scalarized_regret(Yt, Yp, W, reduce="none") >= 0.0)
+
+
+def test_decision_default_reference_uses_y_true_only():
+    Yp = _YT[::-1] * 10.0
+    ref = mor._default_reference_point([_YT])
+    assert hypervolume_regret(_YT, Yp) == pytest.approx(hypervolume_regret(_YT, Yp, reference_point=ref))
+
+
+def test_decision_regret_maximization_matches_negation():
+    rng = np.random.default_rng(5)
+    Yt, Yp = rng.uniform(size=(20, 2)), rng.uniform(size=(20, 2))
+    flip = np.array([1.0, -1.0])
+    W = rng.dirichlet(np.ones(2), size=4)
+    ref = mor._default_reference_point([Yt * flip])
+    assert hypervolume_regret(Yt, Yp, reference_point=ref, minimize=[True, False]) == pytest.approx(
+        hypervolume_regret(Yt * flip, Yp * flip, reference_point=ref))
+    assert scalarized_regret(Yt, Yp, W, minimize=[True, False]) == pytest.approx(
+        scalarized_regret(Yt * flip, Yp * flip, W))
+    assert epsilon_regret(Yt, Yp, minimize=[True, False]) == pytest.approx(
+        epsilon_regret(Yt * flip, Yp * flip))
+
+
+def test_constant_prediction_picks_every_candidate():
+    # Identical predicted rows are mutually non-dominated, so every candidate is picked.
+    Yp = np.ones_like(_YT)
+    assert hypervolume_regret(_YT, Yp) == 0.0
+    assert epsilon_regret(_YT, Yp) == 0.0
+    # The scalarized pick breaks ties by taking the first candidate.
+    assert scalarized_regret(_YT, Yp, [1.0, 0.0]) == pytest.approx(0.0)
+    assert scalarized_regret(_YT, Yp, [0.0, 1.0]) == pytest.approx(2.0)
+
+
+@pytest.mark.parametrize("fn, kwargs", [
+    (hypervolume_regret, {}),
+    (scalarized_regret, {"weights": [0.5, 0.5]}),
+    (epsilon_regret, {}),
+])
+def test_decision_regret_requires_paired_candidates(fn, kwargs):
+    with pytest.raises(ValueError, match="same candidates"):
+        fn(_YT, _YT[:2], **kwargs)
+    with pytest.raises(ValueError, match="at least one candidate"):
+        fn(np.empty((0, 2)), np.empty((0, 2)), **kwargs)
 
 
 # --------------------------- RegretTracker ---------------------------
@@ -520,7 +623,8 @@ def test_tracker_keeps_user_weights_and_reference_point():
     assert out["hv"] == pytest.approx(hypervolume_regret(Yt, Yp, reference_point=ref))
     assert out["scalar"] == pytest.approx(scalarized_regret(Yt, Yp, weights=W))
     assert out["eps"] == pytest.approx(epsilon_regret(Yt, Yp))
-    assert out["eps"] == pytest.approx(0.25)
+    # A uniform shift leaves the picks unchanged, so decision regret is zero.
+    assert out == {"hv": 0.0, "scalar": 0.0, "eps": 0.0}
 
 
 def test_tracker_default_reference_matches_functional_api():
@@ -535,16 +639,16 @@ def test_tracker_mixed_minimize_and_1d_inputs():
     Yp = np.array([[1.5, 4.0], [2.5, 5.0]])
     t = RegretTracker(minimize=[True, False])
     out = t.step(Yt, Yp)
-    ref = mor._default_reference_point([Yt * [1, -1], Yp * [1, -1]])
+    ref = mor._default_reference_point([Yt * [1, -1]])
     assert out["hv"] == pytest.approx(
         hypervolume_regret(Yt, Yp, reference_point=ref, minimize=[True, False]))
     assert out["eps"] == pytest.approx(epsilon_regret(Yt, Yp, minimize=[True, False]))
 
     t1 = RegretTracker()
-    res = t1.step([0.2, 0.5], [0.4])
+    res = t1.step([0.2, 0.5], [0.4, 0.3])  # the model picks the second candidate
     assert t1.weights.shape == (16, 1)
-    assert res["eps"] == pytest.approx(0.2)
-    assert res["scalar"] == pytest.approx(-0.2)
+    assert res["eps"] == pytest.approx(0.3)
+    assert res["scalar"] == pytest.approx(0.3)
 
 
 def test_tracker_rejects_mismatched_objectives():

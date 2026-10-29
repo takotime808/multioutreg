@@ -278,7 +278,7 @@
         <h2>Multi-Objective Regret</h2>
         <p>
             <i>
-                Regret compares the Pareto front implied by the model's predictions with the true Pareto front of the test set (all objectives minimized). Hypervolume regret measures lost dominated volume, scalarized regret the mean loss over weighted-sum preferences, and &epsilon;-regret the additive shift needed for the predicted front to weakly dominate the true front. Zero is ideal for all three.
+                Decision regret: the test rows on the Pareto front of the model's predictions are the model's picks, and each metric measures how much worse the <b>true</b> values of those picks are than the true Pareto front of the test set (all objectives minimized). Hypervolume regret measures the dominated volume lost, scalarized regret the mean loss over weighted-sum preferences when the predicted best row is chosen, and &epsilon;-regret the additive improvement the picks would need to weakly dominate the true front. Zero is ideal for all three, and predictions that over-promise do not lower them.
             </i>
         </p>
         <table>

@@ -474,7 +474,7 @@ def test_predict_highest_uses_highest_level_for_independent():
     model = MultiFidelitySurrogate(LinearRegressionSurrogate, ["lo", "hi"]).fit(train_data)
     X = np.array([[1.0]])
     y_pred, y_std = _predict_highest(model, cand, X, ["lo", "hi"])
-    # hi level is y = 3x; lo level (the predict() default) is y = -3x
+    # hi level is y = 3x; lo level is y = -3x
     assert y_pred.shape == (1, 1) and y_std.shape == (1, 1)
     assert y_pred[0, 0] == pytest.approx(3.0, abs=1e-6)
 
