@@ -13,6 +13,41 @@ git clone https://github.com/takotime808/multioutreg.git && cd multioutreg
 pip install .
 ```
 
+## At a glance
+
+::::{tab-set}
+
+:::{tab-item} Python
+```python
+from multioutreg import AutoDetectMultiOutputRegressor
+
+model = AutoDetectMultiOutputRegressor.with_vendored_surrogates().fit(X_train, Y_train)
+mean, std = model.predict(X_test, return_std=True)
+```
+:::
+
+:::{tab-item} Command line
+```bash
+multioutreg grid_search \
+    docs/_static/example_datasets/example_dataset_3_outputs.csv \
+    "feature_0,feature_1,feature_2,feature_3,feature_4" \
+    "output_pressure,output_temperature,output_velocity" \
+    --out-html report.html
+```
+:::
+
+:::{tab-item} GUI
+```bash
+.venv/bin/streamlit run multioutreg/gui/Grid_Search_Surrogate_Models.py
+```
+Or use the [hosted app](https://multioutreg.streamlit.app/) without installing anything.
+:::
+
+::::
+
+Each route ends with the same HTML report; {doc}`reading_the_report` explains it and
+{doc}`example_reports` has finished examples.
+
 ## Python
 
 `AutoDetectMultiOutputRegressor` cross-validates every candidate model on every
@@ -94,8 +129,8 @@ multioutreg grid_search_auto_detect \
 
 This cross-validates every vendored surrogate on every output, so expect it to
 run for a while: about 20 minutes on a laptop CPU, even for this 10-row file.
-Open `report.html` for per-output metrics, uncertainty plots and the chosen
-models.
+Open `report.html`: it starts with a verdict (which outputs are ready to use) and a
+scorecard, then the evidence for each finding. See {doc}`reading_the_report`.
 
 Check how a design was sampled, leaving out the response column:
 
