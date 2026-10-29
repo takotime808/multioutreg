@@ -238,6 +238,39 @@ def zdt_front(name: str, n: int = 500) -> np.ndarray:
     return F[keep]
 
 
+def dtlz2(X, n_objectives: int = 3):
+    """DTLZ2 (Deb et al. 2005) on [0, 1]^d with ``n_objectives`` outputs.
+
+    The first ``m - 1`` inputs place a point on the positive orthant of the
+    unit sphere; the rest push it outwards by ``1 + g`` with
+    ``g = sum((x_i - 0.5)^2)``, so the true front is the unit sphere
+    (``g = 0``) and the outputs are strongly dependent. Needs ``d >= m``.
+    """
+    X = np.asarray(X, dtype=np.float64)
+    m = int(n_objectives)
+    if m < 2 or X.shape[1] < m:
+        raise ValueError(f"DTLZ2 with {m} objectives needs n_objectives >= 2 and at least {m} inputs.")
+    g = ((X[:, m - 1:] - 0.5) ** 2).sum(axis=1)
+    theta = np.pi / 2 * X[:, : m - 1]
+    cos, sin = np.cos(theta), np.sin(theta)
+    F = np.empty((X.shape[0], m))
+    for k in range(m):
+        # f_k = prod_{i < m-1-k} cos(theta_i), times sin(theta_{m-1-k}) for k > 0.
+        f = np.prod(cos[:, : m - 1 - k], axis=1)
+        if k > 0:
+            f = f * sin[:, m - 1 - k]
+        F[:, k] = f
+    return (1 + g)[:, None] * F
+
+
+def dtlz_front(name: str = "dtlz2", n: int = 500, n_objectives: int = 3, seed=0) -> np.ndarray:
+    """``n`` random points on the true Pareto front of ``"dtlz2"``: the unit sphere's positive orthant."""
+    if name != "dtlz2":
+        raise ValueError(f"No analytic front for {name!r}. Available: ['dtlz2'].")
+    Z = np.abs(np.random.default_rng(seed).normal(size=(n, int(n_objectives))))
+    return Z / np.linalg.norm(Z, axis=1, keepdims=True)
+
+
 def viennet2(X):
     """Viennet 2 on [-4, 4]^2: three quadratic outputs of different shape."""
     X = np.asarray(X, dtype=np.float64)
@@ -314,15 +347,21 @@ def get_benchmark(name: str, cost_ratio: float = 10.0, n_features: Optional[int]
     Multi-fidelity benchmarks have levels ``"lo"`` and ``"hi"`` with costs
     ``1`` and ``cost_ratio``. ``n_features`` sets the input dimension of the
     scalable ZDT problems (default 6; the literature uses 30, which needs far
-    more training points); the other benchmarks have a fixed dimension.
+    more training points) and of DTLZ2 (default 7, three objectives); the
+    other benchmarks have a fixed dimension.
     """
     mf = {"lo": 1.0, "hi": float(cost_ratio)}
-    scalable = name.startswith("zdt")
+    scalable = name.startswith(("zdt", "dtlz"))
     if n_features is not None and not scalable:
-        raise ValueError(f"Benchmark {name!r} has a fixed input dimension; n_features applies to ZDT only.")
-    d = 6 if n_features is None else int(n_features)
-    if scalable and d < 2:
+        raise ValueError(f"Benchmark {name!r} has a fixed input dimension; n_features applies to ZDT and DTLZ only.")
+    if n_features is not None:
+        d = int(n_features)
+    else:
+        d = 7 if name.startswith("dtlz") else 6
+    if name.startswith("zdt") and d < 2:
         raise ValueError("ZDT benchmarks need n_features >= 2.")
+    if name.startswith("dtlz") and d < 3:
+        raise ValueError("DTLZ2 (3 objectives) needs n_features >= 3.")
     table = {
         "forrester": lambda: Benchmark("forrester", [[0, 1]], {"lo": forrester_lo, "hi": forrester}, dict(mf), -6.02074),
         "branin": lambda: Benchmark("branin", [[-5, 10], [0, 15]], {"hi": branin}, minimum=0.397887),
@@ -341,6 +380,7 @@ def get_benchmark(name: str, cost_ratio: float = 10.0, n_features: Optional[int]
         "zdt2": lambda: Benchmark("zdt2", [[0, 1]] * d, {"hi": zdt2}),
         "zdt3": lambda: Benchmark("zdt3", [[0, 1]] * d, {"hi": zdt3}),
         "viennet2": lambda: Benchmark("viennet2", [[-4, 4]] * 2, {"hi": viennet2}),
+        "dtlz2": lambda: Benchmark("dtlz2", [[0, 1]] * d, {"hi": dtlz2}),
     }
     if name not in table:
         raise ValueError(f"Unknown benchmark {name!r}. Available: {sorted(table)}.")
@@ -351,5 +391,5 @@ BENCHMARKS = (
     "forrester", "branin", "currin", "branin_currin",
     "ishigami", "hartmann3", "park", "borehole",
     "branin_mf", "heterogeneous", "friedman1", "gramacy_lee",
-    "himmelblau", "zdt1", "zdt2", "zdt3", "viennet2",
+    "himmelblau", "zdt1", "zdt2", "zdt3", "viennet2", "dtlz2",
 )
