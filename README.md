@@ -44,7 +44,7 @@ with uncertainty estimation. Example notebooks in `examples/` demonstrate the
 plotting functions and performance metrics. A new script `examples/report.py`
 shows how to create an HTML report using a Jinja2 template that collects all
 metrics and figures in one document. Output reports are shown in the docs
-directory: [example_reports](docs/example_reports/).
+directory: [example_reports](docs/_extra/example_reports/).
 
 The `AutoDetectMultiOutputRegressor` can now automatically search across all
 vendor-provided surrogates. See [`examples/AutoDetectMultiOutputRegressor.ipynb`](./examples/AutoDetectMultiOutputRegressor.ipynb) 
