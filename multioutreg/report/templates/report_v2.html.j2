@@ -179,7 +179,7 @@
       {% if d.regret %}
       <div class="panel" style="padding:16px">
         <div class="panel-head"><h3>Multi-Objective Regret (across outputs)</h3>
-          <p>How far the Pareto front implied by the predictions is from the true front of the test set (all objectives minimized). Zero is ideal.</p></div>
+          <p>Decision regret: the test rows on the Pareto front of the predictions are the model's picks, and each metric measures how much worse the <b>true</b> values of those picks are than the true Pareto front of the test set (all objectives minimized). Zero is ideal, and predictions that over-promise do not lower it.</p></div>
         <div class="tablewrap"><table>
           <thead><tr><th>Metric</th><th class="num">Value</th><th class="num">Max allowed</th><th>Status</th></tr></thead>
           <tbody>{% for r in d.regret.rows %}<tr><td>{{ r.label }}</td><td class="num">{{ r.value|num }}</td><td class="num">{{ r.bound|num }}</td><td>{% if r.status == "good" %}{{ chip("good", "PASS") }}{% elif r.status == "crit" %}{{ chip("crit", "FAIL") }}{% else %}—{% endif %}</td></tr>{% endfor %}</tbody>
