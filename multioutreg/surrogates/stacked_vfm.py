@@ -10,7 +10,8 @@ Two classes are provided:
   nonlinear cross-fidelity information transfer with any existing surrogate.
 
 * AdditiveCorrectionVFM — Two-level autoregressive correction (Kennedy-O'Hagan AR1).
-  A per-output scale rho is fitted by least squares of Y_hi on f_lo(X_hi), a
+  A per-output scale rho is fitted by least squares of Y_hi on f_lo(X_hi) and
+  a linear trend in x, a
   correction surrogate is trained on delta = Y_hi - rho * f_lo(X_hi), and the
   prediction is f_hi(x) = rho * f_lo(x) + delta(x).
 
@@ -544,8 +545,9 @@ class AdditiveCorrectionVFM(ConformalMixin):
 
         f_hi(x) = rho * f_lo(x) + delta(x)
 
-    ``rho`` (one per output) is the least-squares slope of ``Y_hi`` on
-    ``f_lo(X_hi)``, and ``delta`` is a surrogate fitted to
+    ``rho`` (one per output) is fitted by least squares of ``Y_hi`` on
+    ``f_lo(X_hi)`` together with a linear trend in ``x``, and ``delta`` is a
+    surrogate fitted to
     ``Y_hi - rho * f_lo(X_hi)``.  Both ``f_lo`` and ``delta`` are arbitrary
     surrogate models, so the correction can be nonlinear.  With a fixed
     ``rho=1`` the low-fidelity model is assumed to be on the same scale as the
@@ -580,11 +582,17 @@ class AdditiveCorrectionVFM(ConformalMixin):
         Constructor kwargs for the low-fidelity surrogate.
     hi_surrogate_params : dict | None
         Constructor kwargs for the correction surrogate.
-    rho : "fit" or float, default "fit"
+    rho : "fit", "slope" or float, default "fit"
         Scale on the low-fidelity prediction. ``"fit"`` estimates it per output
-        by least squares (with an intercept, which ``delta`` absorbs); when the
-        low-fidelity prediction is constant on the high-fidelity inputs it
-        falls back to 1.  A number fixes it (``rho=1.0`` is the plain additive
+        jointly with a linear trend, by least squares of ``Y_hi`` on
+        ``[f_lo(X_hi), X_hi, 1]``, so a discrepancy that trends with ``x``
+        does not bias it (on Forrester it recovers ``rho = 2``).  It falls
+        back to ``"slope"`` when there are no more than ``n_features + 2``
+        high-fidelity points, or when ``f_lo`` is (nearly) linear in ``X`` on
+        them.  ``"slope"`` is the plain least-squares slope of ``Y_hi`` on
+        ``f_lo(X_hi)`` (with an intercept, which ``delta`` absorbs), the
+        estimate used before; when ``f_lo`` is constant on the high-fidelity
+        inputs it is 1.  A number fixes it (``rho=1.0`` is the plain additive
         correction).  A fitted ``rho`` also multiplies the low-fidelity
         model's own error, so with a biased or strongly smoothed ``f_lo``
         (e.g. a random forest on few points) ``rho=1.0`` can predict better;
@@ -664,18 +672,51 @@ class AdditiveCorrectionVFM(ConformalMixin):
         params = dict(self.hi_surrogate_params) if self.hi_surrogate_params else {}
         return cls(**params)
 
-    def _fit_rho(self, y_lo: np.ndarray, Y_hi: np.ndarray) -> np.ndarray:
-        """Per-output scale on ``f_lo``: fixed, or the OLS slope of Y_hi on f_lo."""
-        n_out = Y_hi.shape[1]
-        if not (isinstance(self.rho, str) and self.rho == "fit"):
-            return np.full(n_out, float(self.rho))
-        rho = np.ones(n_out)
+    @staticmethod
+    def _slope(y_lo: np.ndarray, Y_hi: np.ndarray, ok: np.ndarray) -> np.ndarray:
+        """OLS slope of each ``Y_hi`` column on ``y_lo``; 1 where ``y_lo`` is constant."""
+        rho = np.ones(Y_hi.shape[1])
         yc = y_lo - y_lo.mean(axis=0)
         var = (yc ** 2).sum(axis=0)
-        # f_lo (numerically) constant on X_hi: slope undefined, keep rho = 1.
-        ok = var > 1e-12 * np.maximum((y_lo ** 2).sum(axis=0), 1e-300)
+        ok = ok & AdditiveCorrectionVFM._varies(y_lo)
         cov = (yc * (Y_hi - Y_hi.mean(axis=0))).sum(axis=0)
         rho[ok] = cov[ok] / var[ok]
+        return rho
+
+    @staticmethod
+    def _varies(y_lo: np.ndarray) -> np.ndarray:
+        """False where f_lo is (numerically) constant on X_hi: rho is then undefined, so 1."""
+        var = ((y_lo - y_lo.mean(axis=0)) ** 2).sum(axis=0)
+        return var > 1e-12 * np.maximum((y_lo ** 2).sum(axis=0), 1e-300)
+
+    def _fit_rho(self, y_lo: np.ndarray, Y_hi: np.ndarray, X_hi: np.ndarray) -> np.ndarray:
+        """Per-output scale on ``f_lo``: fixed, the plain slope, or the joint estimate."""
+        n_out = Y_hi.shape[1]
+        if not isinstance(self.rho, str):
+            return np.full(n_out, float(self.rho))
+        if self.rho == "slope":
+            return self._slope(y_lo, Y_hi, np.ones(n_out, dtype=bool))
+        if self.rho != "fit":
+            raise ValueError(f"rho must be 'fit', 'slope' or a number, got {self.rho!r}.")
+
+        # Joint fit of Y_hi on [f_lo, X, 1]: the plain slope is biased whenever
+        # delta trends with x (e.g. Forrester, where it fits 0.6 instead of 2).
+        # By Frisch-Waugh, rho is the slope of the parts of Y_hi and f_lo that
+        # [X, 1] does not explain.
+        n, d = X_hi.shape
+        if n <= d + 2:
+            return self._slope(y_lo, Y_hi, np.ones(n_out, dtype=bool))
+        A = np.column_stack([X_hi, np.ones(n)])
+        resid = lambda B: B - A @ np.linalg.lstsq(A, B, rcond=None)[0]
+        r_lo, r_hi = resid(y_lo), resid(Y_hi)
+        ss_lo = (r_lo ** 2).sum(axis=0)
+        # f_lo (nearly) linear in X: rho is not identified jointly, so use the
+        # plain slope for that output.
+        joint = self._varies(y_lo) & (
+            ss_lo > 1e-4 * ((y_lo - y_lo.mean(axis=0)) ** 2).sum(axis=0)
+        )
+        rho = self._slope(y_lo, Y_hi, ~joint)
+        rho[joint] = (r_lo * r_hi).sum(axis=0)[joint] / ss_lo[joint]
         return rho
 
     # ------------------------------------------------------------------
@@ -740,7 +781,7 @@ class AdditiveCorrectionVFM(ConformalMixin):
             self._make_lo_surrogate, X_lo, X_lo, Y_lo, self.oof_cv, self.random_state
         )
         y_lo_at_hi, _ = oof.predict(self.surrogate_lo_, X_hi, X_hi, False)
-        self.rho_ = self._fit_rho(y_lo_at_hi, Y_hi)
+        self.rho_ = self._fit_rho(y_lo_at_hi, Y_hi, X_hi)
         delta = Y_hi - self.rho_ * y_lo_at_hi
 
         self.surrogate_delta_ = self._make_hi_surrogate()

@@ -13,7 +13,7 @@ multi-output capabilities of `multioutreg`. See
 | Active learning | Acquisitions, query-by-committee, batch selection, the loop, cost-aware multi-fidelity acquisition (`multioutreg.active`, prototype) | Max-value entropy search, CLI and GUI, NaN std in Auto-Detect |
 | Benchmarks | 18 problems in `multioutreg.active.benchmarks.BENCHMARKS`, including DTLZ2; AL, cost-savings, multi-output and hypervolume notebooks | The rest of the port list; the multi-fidelity and Himmelblau notebooks |
 | Multi-objective metrics | Exact N-D `hypervolume()` (#36); decision regret as the default, front comparison as `front_*`; joint `energy_score` and `variogram_score` | Multivariate CRPS variants, joint coverage of prediction regions |
-| Multi-fidelity surrogates | `MFKSurrogate` (candidate 1: SMT co-kriging, maximum-likelihood `rho`) | The other five candidates; the Stacked VFM interval follow-up |
+| Multi-fidelity surrogates | `MFKSurrogate` (candidate 1: SMT co-kriging, maximum-likelihood `rho`); Stacked VFM intervals; joint `rho` in `AdditiveCorrectionVFM` | The other five candidates |
 | Multi-output surrogates | Multi-task GP (1), PCA output reduction (2), Gaussian copula (5); energy and variogram scores | `RegressorChain` (3), natively joint models (4); joint conformal regions |
 | Cross-cutting | Benchmark suite (1), std recalibration (2), model persistence (5), extrapolation flag (6) | Items 3, 4, 7–12; wiring 2, 5 and 6 into the GUI, CLI and report |
 
@@ -230,16 +230,18 @@ systematic bi-fidelity versions of classic optimization functions.
 Left over after the old feature branches were rebuilt on `main` (#29–#31).
 Open unless marked done:
 
-- **Fitted `rho` in `AdditiveCorrectionVFM`:** found by
-  `examples/mf_surrogates.ipynb` (4-level Forrester, reference XC4). `rho` is
-  the least-squares slope of `Y_hi` on `f_lo(X_hi)`, which is biased whenever
-  the discrepancy `f_hi - rho * f_lo` is correlated with `f_lo`. On Forrester
-  f4 → f1 it fits 0.44 where 2 makes the correction linear, and `rho=1` beats
-  it up to 18 high-fidelity points. Estimate `rho` jointly with `delta`
-  (regress on `[f_lo(X), X]`, or maximise the correction GP's marginal
-  likelihood over `rho`, as in Kennedy–O'Hagan). `MFKSurrogate` now does the
-  latter and fits `rho` = 2.00 on Forrester, so users needing AR1 have an
-  unbiased option; `AdditiveCorrectionVFM` itself is unchanged.
+- ~~**Fitted `rho` in `AdditiveCorrectionVFM`**~~: done. Found by
+  `examples/mf_surrogates.ipynb` (4-level Forrester, reference XC4): the
+  least-squares slope of `Y_hi` on `f_lo(X_hi)` is biased whenever the
+  discrepancy `f_hi - rho * f_lo` is correlated with `f_lo`, and on Forrester
+  it fitted about 0.6 where 2 makes the correction linear. `rho="fit"` now
+  regresses `Y_hi` on `[f_lo(X_hi), X_hi, 1]` jointly and keeps the `f_lo`
+  coefficient. Over 10 seeds with 8 high-fidelity points it fits 2.00 ± 0.03
+  and the median RMSE drops from 2.8 to 0.13 (`rho=1`: 1.7). It falls back to
+  the plain slope (still available as `rho="slope"`) with no more than
+  `n_features + 2` high-fidelity points, or when `f_lo` is nearly linear in
+  `X`. A nonlinear discrepancy still biases it; `MFKSurrogate` estimates `rho`
+  by maximum likelihood.
 - ~~**Stacked VFM intervals**~~: done. The same notebook showed the 4-level
   GP stack covering only about half the test grid with its nominal 95% band,
   because the top-level `std` treated lower-level predictions as exact.
@@ -272,10 +274,11 @@ Open unless marked done:
   `get_params` / `set_params` built from the constructor arguments, so `SplitConformalPredictor`
   and `CVPlusConformalPredictor` accept the package's own surrogates (tested for every plain
   surrogate). Using them in `GridSearchCV` still needs `__sklearn_tags__` (scikit-learn ≥ 1.6).
-- **SHAP figure run time:** `figures.shap_multioutput.generate_shap_plot` uses SHAP's exact
-  explainer, which took 86 s for 100 rows of the 10-input Friedman 1 problem with a GP. A
-  `KernelExplainer` on k-means background data gave the same ranking in about 2 s. Cap the
-  rows or switch explainers for non-tree models.
+- ~~**SHAP figure run time**~~: done. `figures.shap_multioutput.generate_shap_plot`
+  explained every row against the full data as background, which took 37 s for
+  100 rows of the 10-input Friedman 1 problem with a GP. It now explains up to
+  `max_rows=200` rows against a k-means summary (`background_size=10`): 3 s,
+  with the same feature ranking (mean |SHAP| correlation 0.9995).
 - **Branch cleanup:** the local `ts-review` branch and
   `origin/main-backup-pre-ai` are fully merged and can be deleted. Tag any
   tip whose source is still needed (e.g. `archive/crossval-datasize-dep` on

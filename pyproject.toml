@@ -30,6 +30,7 @@ dependencies = [
   # "hyperopt>=0.2",
   # "textual",
   "streamlit>=1.50",  # width="stretch" replaces deprecated use_column_width
+  "plotly",  # imported at module level by multioutreg/gui/results_tabs.py
   # ----- Below this line are duplicates from [ts] below...this is necessary for the
   "chronos-forecasting>=1.5.0",
   "torch>=2.1",
