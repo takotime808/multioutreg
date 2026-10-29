@@ -189,6 +189,36 @@ Weights can be `(k, m)`, `(m,)`, `(k,)` (if `m==1`), or scalar (if `m==1`).
 
 ---
 
+## Joint predictive scores
+
+The regrets above score *where a model's predictions land*. `energy_score` and `variogram_score`
+score its *joint predictive distribution*: whether the uncertainty it reports for several
+outputs together, including how they co-vary, matches what happens. Per-output metrics
+cannot see this. Both are proper scores (lower is better) computed from samples of shape
+`(n_rows, n_samples, n_outputs)`.
+
+```python
+from multioutreg.metrics import energy_score, variogram_score, gaussian_samples
+
+mean, cov = model.predict(X_test, return_cov=True)   # or return_std=True for independent outputs
+S = gaussian_samples(mean, cov, n_samples=500, seed=0)
+es = energy_score(Y_test, S)          # multivariate CRPS (Gneiting & Raftery 2007)
+vs = variogram_score(Y_test, S, p=0.5)  # sensitive to wrong correlation (Scheuerer & Hamill 2015)
+```
+
+- **Energy score** reduces to the CRPS for one output. It is dominated by errors in the means,
+  so it separates correct from wrong dependence only weakly.
+- **Variogram score** compares pairwise output differences, so it reacts strongly to a wrong
+  correlation and ignores a shift shared by all outputs. Report it with a marginal score.
+- Both use distances across outputs, so standardize outputs on very different scales first.
+- `energy_score` builds an `(n, S, S, m)` array; keep `n_samples` to a few hundred for large `n`.
+
+Surrogates that return a covariance: `GaussianCopulaSurrogate`, `PCAOutputSurrogate` and
+`MultiTaskGPSurrogate`. The `dtlz2` benchmark (`multioutreg.active.benchmarks`, front from
+`dtlz_front`) has strongly dependent outputs for testing them.
+
+---
+
 ## Defaults summary
 
 - **HV reference**: data-dependent worst + **10%** span (per objective) if not provided, from `Y_true` for decision regret and from both arrays for `front_hypervolume_regret`.  
