@@ -24,6 +24,8 @@ from tests.unit.surrogates.test_all_surrogates_contract import (
     SURROGATE_NAMES,
     _skip_if_unavailable,
 )
+from tests.unit.surrogates.test_all_surrogates_contract import build_surrogate as _build
+from tests.unit.surrogates.test_all_surrogates_contract import fit_surrogate as _fit
 
 
 @pytest.fixture(scope="module")
@@ -32,33 +34,6 @@ def data():
     X = rng.uniform(-1, 1, size=(60, 2))
     Y = np.column_stack([np.sin(3 * X[:, 0]) + X[:, 1], X[:, 0] * X[:, 1]])
     return X, Y + 0.05 * rng.normal(size=Y.shape)
-
-
-def _build(name):
-    """Construct an unfitted ``name`` surrogate from its contract-test spec."""
-    cls = getattr(surrogates_pkg, name)
-    spec = SPECS[name]
-    kind = spec["kind"]
-    linear = surrogates_pkg.LinearRegressionSurrogate
-    if kind == "plain":
-        return cls(**spec["kwargs"])
-    if kind == "multi_fidelity":
-        return cls(linear, ["hi"])
-    if kind == "stacked_vfm":
-        return cls(["lo", "hi"], surrogate_cls=linear, oof_cv=3)
-    if kind == "additive_vfm":
-        return cls(lo_surrogate_cls=linear, hi_surrogate_cls=linear, oof_cv=3)
-    raise AssertionError(f"unknown spec kind {kind!r}")
-
-
-def _fit(name, model, X, Y):
-    kind = SPECS[name]["kind"]
-    if kind == "plain":
-        return model.fit(X, Y)
-    if kind == "multi_fidelity":
-        return model.fit((X, Y))
-    # A cheap, deterministic low-fidelity version of Y for the VFM models.
-    return model.fit({"lo": (X, 0.8 * Y + 0.1), "hi": (X, Y)})
 
 
 def _clone_or_fallback(model):
