@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+{# Copyright (c) 2026 takotime808
+   v2 report. Rendered by multioutreg.report.render.render_report with autoescape on.
+   Everything that carries the message is server-side HTML; [data-chart] slots are
+   filled by the inlined report_v2.js from the #report-data JSON. #}
+{% macro chip(status, text=None) -%}
+{%- set labels = {"good": "Pass", "warn": "Caution", "crit": "Fail", "neutral": "No gain"} -%}
+{%- if status -%}<span class="chip {{ status }}">{{ text or labels[status] }}</span>{%- else -%}<span class="chip skip">{{ text or "n/a" }}</span>{%- endif -%}
+{%- endmacro %}
+{% macro sw(i) -%}<i class="swatch" style="background:var(--s{{ (i % 8) + 1 }})"></i>{%- endmacro %}
+{% macro skips(section) -%}
+{% for s in skipped_by.get(section, []) %}
+<div class="skipped"><span class="chip skip">Skipped</span> {{ s.reason }}</div>
+{% endfor %}
+{%- endmacro %}
+{% macro pngs(section) -%}
+{% for f in figures_by.get(section, []) %}
+<figure class="pngfig fig" style="margin:0">
+  <h4>{{ f.title }}</h4>
+  {% if f.img_b64 %}<img src="data:image/png;base64,{{ f.img_b64 }}" alt="{{ f.title }}">{% endif %}
+  {% if f.caption %}<figcaption class="cap">{{ f.caption }}</figcaption>{% endif %}
+</figure>
+{% endfor %}
+{%- endmacro %}
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="multioutreg {{ run.version }}">
+<title>{{ run.title }}</title>
+<style>{{ css }}</style>
+</head>
+<body class="no-js">
+<script>document.body.className = "js";</script>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">multioutreg <span>· {{ run.title }}</span></div>
+    <div class="tools js-only">
+      <button type="button" class="btn" id="btn-theme" title="Switch between system, light and dark">Theme: system</button>
+      <button type="button" class="btn" id="btn-print">Print / Save as PDF</button>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+<div class="report">
+  <nav class="rail" aria-label="Report sections">
+    <div class="eyebrow">Report sections</div>
+    <a href="#sec-1"><i>1</i>Can I use it?</a>
+    <a href="#sec-2"><i>2</i>Accuracy per output</a>
+    <a href="#sec-3"><i>3</i>Error bars</a>
+    <a href="#sec-4"><i>4</i>Low-fidelity data</a>
+    <a href="#sec-5"><i>5</i>What drives outputs</a>
+    <a href="#sec-6"><i>6</i>Data adequacy</a>
+    <a href="#sec-7"><i>7</i>Model selection</a>
+    <a href="#appendix"><i>A</i>Appendix</a>
+    <div class="meta">
+      <span>{{ run.model }}</span>
+      <span>data {{ run.data_hash }}{% if run.dataset %} · {{ run.dataset }}{% endif %}</span>
+      <span>seed {{ run.seed if run.seed is not none else "not fixed" }} · v{{ run.version }}</span>
+      <span>{{ run.date }}</span>
+    </div>
+  </nav>
+
+  <div class="content">
+    <header class="rhead" id="top">
+      <div class="eyebrow">{{ run.title }}</div>
+      <h1>{{ run.output_names|join(", ") }}{% if run.fidelity_levels %} from {{ run.fidelity_levels|length }} fidelity levels{% endif %}</h1>
+      {% if run.description %}<p class="desc">{{ run.description }}</p>{% endif %}
+      <div class="runmeta">
+        <span><b>Model</b> {{ run.model }}</span>
+        {% if run.fidelity_levels %}<span><b>Levels</b> {{ run.fidelity_levels|join(" → ") }}</span>{% endif %}
+        <span><b>Train</b> {{ run.n_train }}</span>
+        <span><b>Test</b> {{ run.n_test }}</span>
+        <span><b>Run</b> {{ run.date }} · data {{ run.data_hash }}</span>
+      </div>
+    </header>
+    <noscript><div class="skipped"><span class="chip skip">Charts off</span> Charts need JavaScript. The verdict, scorecard, findings and every table work without it.</div></noscript>
+
+    <!-- 1 · Can I use it? -->
+    <section class="sec" id="sec-1">
+      <div class="verdict {{ d.verdict.status }}">
+        <div class="vicon" aria-hidden="true">{{ "✓" if d.verdict.status == "good" else "✕" if d.verdict.status == "crit" else "!" }}</div>
+        <div>
+          <div class="eyebrow">Verdict</div>
+          <h2>{{ d.verdict.headline }}</h2>
+          {% if d.verdict.why %}<p>{{ d.verdict.why }}</p>{% endif %}
+          <div class="chips">
+            {% for o in outputs %}<span>{{ chip("good" if o.status.overall == "neutral" else o.status.overall, o.name ~ ": " ~ ready[o.status.overall]) }}</span>{% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="qnum">1 · Can I use it?</div><h2>Scorecard</h2>
+          <p>Each criterion is judged against a target or a baseline, shown under the value. Thresholds are in the appendix.</p></div>
+        <div class="tablewrap"><table id="scorecard">
+          <thead><tr><th>Output</th><th>Accuracy</th><th>Error bars</th>{% if has_mf %}<th>Low-fidelity data</th>{% endif %}<th>Overall</th></tr></thead>
+          <tbody>
+          {% for o in outputs %}
+            <tr>
+              <td>{{ sw(o.idx) }}<b>{{ o.name }}</b><span class="sub">n = {{ o.n }} test points</span></td>
+              <td>{{ chip(o.status.accuracy) }} <span class="val">R² {{ "%.3f"|format(o.r2) if o.r2 is not none else "—" }}</span><span class="sub">target ≥ {{ "%.2f"|format(th.r2_good) }}</span></td>
+              <td>
+                {% if o.has_std %}{{ chip(o.status.gaussian, "Gaussian") }} <span class="val">{{ o.gauss95|pct }}</span>{% else %}{{ chip("crit", "No std") }}{% endif %}
+                {% if o.conformal %}<br><span style="display:inline-block;margin-top:6px">{{ chip(o.status.conformal, "Conformal") }} <span class="val">{{ o.conformal.coverage|pct }}</span></span>{% endif %}
+                <span class="sub">95% target: expected {{ (th.coverage_target - band)|pct }}–100% at n = {{ run.n_test_points }}</span>
+              </td>
+              {% if has_mf %}<td>{% if o.status.mf %}{{ chip(o.status.mf, {"good": "Helps", "warn": "Hurts", "neutral": "No gain"}[o.status.mf]) }} <span class="val">{{ o.mf_change_pct|spct }} RMSE</span><span class="sub">vs HF-only model</span>{% else %}{{ chip(None) }}{% endif %}</td>{% endif %}
+              <td>{{ chip("good" if o.status.overall == "neutral" else o.status.overall, ready[o.status.overall]) }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table></div>
+      </div>
+
+      {% if d.findings %}
+      <div class="panel">
+        <div class="panel-head"><h2>Key findings</h2><p>Each finding comes with the chart that supports it. Follow the link for the full section.</p></div>
+        <div class="findings">
+          {% for c in d.findings %}
+          <div class="finding">
+            <div>{{ chip(c.status, {"good": "Finding", "neutral": "Note", "warn": "Caution", "crit": "Problem"}[c.status]) }}</div>
+            <div><h3>{{ c.claim }}</h3><p>{{ c.detail }}</p></div>
+            {% if c.plot %}<div class="chart" data-chart="{{ c.plot }}" data-mini="1"></div>{% else %}<div></div>{% endif %}
+            <a class="go" href="#{{ c.section }}">See the evidence →</a>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="panel">
+        <div class="panel-head"><h2>What to do next</h2></div>
+        <ul class="todo">
+          {% for s in d.next_steps %}<li><div>{{ s.html|safe }}</div><span>{{ s.section }}</span></li>{% endfor %}
+        </ul>
+      </div>
+    </section>
+
+    <!-- 2 · Accuracy -->
+    <section class="sec panel" id="sec-2">
+      <div class="panel-head"><div class="qnum">2 · How accurate is each output?</div><h2>{{ headlines["sec-2"] }}</h2>
+        <p>Every output on its {{ run.n_test_points }} held-out test points{% if run.highest_level %} (highest fidelity, {{ run.highest_level }}){% endif %}. Each output keeps its color in every chart.</p></div>
+      {% if outputs|length > 1 %}
+      <div class="outtabs js-only" role="group" aria-label="Output">
+        {% for o in outputs %}<button type="button" data-out="{{ o.idx }}" aria-pressed="{{ 'true' if loop.first else 'false' }}">{{ sw(o.idx) }}{{ o.name }}</button>{% endfor %}
+        <button type="button" data-out="all" aria-pressed="false">Show all</button>
+      </div>
+      {% endif %}
+      <div class="outblocks{% if outputs|length > 1 %} single{% endif %}">
+      {% for o in outputs %}
+        <div class="outblock{% if loop.first %} on{% endif %}" id="out-{{ o.idx }}" data-out="{{ o.idx }}">
+          <div class="outhead"><h3>{{ sw(o.idx) }}{{ o.name }}</h3>{{ chip("good" if o.status.overall == "neutral" else o.status.overall, ready[o.status.overall]) }}</div>
+          <div class="stats">
+            <div class="stat"><div class="eyebrow">Test R²</div><div class="v num">{{ "%.3f"|format(o.r2) if o.r2 is not none else "—" }}</div>{{ chip(o.status.accuracy) }}<div class="ref">target ≥ {{ "%.2f"|format(th.r2_good) }}</div></div>
+            <div class="stat"><div class="eyebrow">RMSE</div><div class="v num">{{ o.rmse|num }}</div>{% if o.status.mf %}{{ chip(o.status.mf, (o.mf_change_pct|spct) ~ " vs HF") }}<div class="ref">HF-only {{ o.hf_rmse|num }}</div>{% else %}<div class="ref">{{ "%.1f"|format(100 * o.rmse / o.range) if o.rmse is not none else "—" }}% of test range</div>{% endif %}</div>
+            <div class="stat"><div class="eyebrow">MAE</div><div class="v num">{{ o.mae|num }}</div><div class="ref">{{ "%.1f"|format(100 * o.mae / o.range) if o.mae is not none else "—" }}% of test range</div></div>
+            <div class="stat"><div class="eyebrow">Gaussian 95%</div><div class="v num">{{ o.gauss95|pct if o.has_std else "—" }}</div>{{ chip(o.status.gaussian, None if o.has_std else "No std") }}<div class="ref">expected {{ (th.coverage_target - band)|pct }}–100%</div></div>
+            {% if o.conformal %}<div class="stat"><div class="eyebrow">Conformal {{ o.conformal.nominal|pct }}</div><div class="v num">{{ o.conformal.coverage|pct }}</div>{{ chip(o.status.conformal) }}<div class="ref">target {{ o.conformal.nominal|pct }}</div></div>{% endif %}
+          </div>
+          <div class="grid2">
+            <div class="fig"><h4>Predicted vs observed</h4><div class="look"><b>Look for:</b> points on the diagonal; error bars that cross it.</div><div class="chart" data-chart="parity:{{ o.idx }}"></div></div>
+            <div class="fig"><h4>Residuals vs predicted</h4><div class="look">
+              {% if o.trend and o.trend.significant %}<b>Finding:</b> residuals trend with the prediction (slope {{ "%.2f"|format(o.trend.slope) }}, p = {{ "%.2g"|format(o.trend.p) }}): a systematic bias.
+              {% else %}<b>Look for:</b> a flat cloud around zero. No significant trend here{% if o.trend %} (p = {{ "%.2g"|format(o.trend.p) }}){% endif %}.{% endif %}</div>
+              <div class="chart" data-chart="resid:{{ o.idx }}"></div></div>
+            <div class="fig"><h4>Residual distribution</h4><div class="look"><b>Look for:</b> centred on zero, no long tail on one side.</div><div class="chart" data-chart="hist:{{ o.idx }}"></div></div>
+            <div class="fig"><h4>{{ "95% intervals" if o.has_std else "Conformal intervals" }}, ordered by observed value</h4><div class="look">
+              {% set expected = (0.05 * o.n)|round|int %}
+              {% if o.has_std and o.outside95 > 2 * expected and o.outside95 > 2 %}<b>Finding:</b> {{ o.outside95 }} of {{ o.n }} points fall outside their 95% interval (about {{ expected }} expected). The error bars are too narrow.
+              {% elif o.has_std %}<b>Look for:</b> about 1 in 20 points outside its bar. Here: {{ o.outside95 }} of {{ o.n }}.
+              {% else %}<b>Look for:</b> points outside their interval.{% endif %}</div>
+              <div class="chart" data-chart="ordered:{{ o.idx }}"></div></div>
+          </div>
+        </div>
+      {% endfor %}
+      </div>
+      {% if d.regret %}
+      <div class="panel" style="padding:16px">
+        <div class="panel-head"><h3>Multi-Objective Regret (across outputs)</h3>
+          <p>Decision regret: the test rows on the Pareto front of the predictions are the model's picks, and each metric measures how much worse the <b>true</b> values of those picks are than the true Pareto front of the test set (all objectives minimized). Zero is ideal, and predictions that over-promise do not lower it.</p></div>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Metric</th><th class="num">Value</th><th class="num">Max allowed</th><th>Status</th></tr></thead>
+          <tbody>{% for r in d.regret.rows %}<tr><td>{{ r.label }}</td><td class="num">{{ r.value|num }}</td><td class="num">{{ r.bound|num }}</td><td>{% if r.status == "good" %}{{ chip("good", "PASS") }}{% elif r.status == "crit" %}{{ chip("crit", "FAIL") }}{% else %}—{% endif %}</td></tr>{% endfor %}</tbody>
+        </table></div>
+      </div>
+      {% endif %}
+    </section>
+
+    <!-- 3 · Error bars -->
+    <section class="sec panel" id="sec-3">
+      <div class="panel-head"><div class="qnum">3 · Can I trust the error bars?</div><h2>{{ headlines["sec-3"] }}</h2>
+        <p>Observed against nominal coverage. A curve inside the shaded band is consistent with good calibration for {{ run.n_test_points }} test points; below it the bars are too narrow (overconfident), above it they are conservative.</p></div>
+      <div class="legend js-only"><span><i class="lg-line lg-dash" style="border-color:var(--fg2)"></i>Gaussian (prediction ± z·std)</span>{% if has_conformal %}<span><i class="lg-line" style="border-color:var(--fg)"></i>Conformal, in the output's color</span>{% endif %}<span><i class="lg-band"></i>Expected from test-set noise</span></div>
+      <div class="grid3">{% for o in outputs %}<div class="fig"><div class="chart" data-chart="calib:{{ o.idx }}"></div></div>{% endfor %}</div>
+      <div class="grid2">
+        <div class="fig"><h4>Coverage at 95%</h4><div class="look">Share of test points inside the 95% interval. The band is the range expected from noise for n = {{ run.n_test_points }}.</div><div class="chart" data-chart="cov95"></div></div>
+        <div class="fig"><h4>What the coverage costs</h4><div class="look">Mean interval width as a % of each output's test-set range. Wider is safer but less useful.</div><div class="chart" data-chart="width"></div></div>
+      </div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Output</th><th class="num">Gaussian 95%</th><th class="num">Width</th>{% if has_conformal %}<th class="num">Conformal</th><th class="num">Width</th>{% endif %}<th>Expected</th></tr></thead>
+        <tbody>{% for o in outputs %}<tr>
+          <td>{{ sw(o.idx) }}{{ o.name }}</td>
+          <td class="num">{{ o.gauss95|pct if o.has_std else "no std" }}</td>
+          <td class="num">{{ ("%.0f%%"|format(o.width_gauss_pct)) if o.width_gauss_pct is not none else "—" }}</td>
+          {% if has_conformal %}<td class="num">{% if o.conformal %}{{ o.conformal.coverage|pct }} <span class="sub">at {{ o.conformal.nominal|pct }}</span>{% else %}—{% endif %}</td>
+          <td class="num">{{ ("%.0f%%"|format(o.width_conf_pct)) if o.width_conf_pct is not none else "—" }}</td>{% endif %}
+          <td>≥ {{ (th.coverage_target - band)|pct }} for 95%</td></tr>{% endfor %}</tbody>
+      </table></div>
+      {% if d.uncertainty_metrics %}
+      <details><summary>Average uncertainty metrics</summary>
+        <dl class="kv">{% for k, v in d.uncertainty_metrics.items() %}<dt>{{ k }}</dt><dd class="num">{{ v|num }}</dd>{% endfor %}</dl>
+      </details>
+      {% endif %}
+      {% if d.conformal_alpha is not none %}<p class="lead">Conformal intervals are distribution-free: they contain the true value with at least the nominal probability on average, provided calibration and test points are exchangeable{% if outputs[0].conformal and outputs[0].conformal.n_cal %} (calibrated on {{ outputs[0].conformal.n_cal }} held-out points){% endif %}.</p>{% else %}
+      <div class="skipped"><span class="chip skip">Skipped</span> Conformal intervals were not requested for this run, so only the model's own (Gaussian) error bars are checked.</div>{% endif %}
+      {{ skips("sec-3") }}
+    </section>
+
+    <!-- 4 · Low-fidelity data -->
+    <section class="sec panel" id="sec-4">
+      <div class="panel-head"><div class="qnum">4 · Did the low-fidelity data help?</div>
+      {% if has_mf or d.levels %}
+        <h2>{{ headlines.get("sec-4", "Fidelity levels") }}</h2>
+        {% if has_mf %}<p>Test RMSE of the multi-fidelity model, indexed to the same base model ({{ d.baseline_label or "base" }}) trained on high-fidelity data only (= 100%). Indexing puts outputs with different units on one axis.</p>{% endif %}
+      </div>
+        {% if has_mf %}
+        <div class="chart" data-chart="dumbbell"></div>
+        <div class="legend js-only"><span><i class="lg-dot" style="background:var(--muted)"></i>HF-only baseline</span><span><i class="lg-dot" style="background:var(--fg)"></i>Multi-fidelity model</span><span><i class="lg-band"></i>within ±{{ "%.0f"|format(th.mf_hurt) }}%: no clear gain</span></div>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Output</th><th class="num">MF RMSE</th><th class="num">HF-only RMSE</th><th class="num">Change</th><th class="num">MF R²</th><th class="num">HF-only R²</th></tr></thead>
+          <tbody>{% for o in outputs if o.status.mf %}<tr><td>{{ sw(o.idx) }}{{ o.name }}</td><td class="num">{{ o.rmse|num }}</td><td class="num">{{ o.hf_rmse|num }}</td><td class="num">{{ o.mf_change_pct|spct(1) }}</td><td class="num">{{ "%.3f"|format(o.r2) }}</td><td class="num">{{ "%.3f"|format(o.hf_r2) if o.hf_r2 is not none else "—" }}</td></tr>{% endfor %}</tbody>
+        </table></div>
+        {% endif %}
+        {% if d.levels %}
+        <div class="grid2">
+          <div class="fig"><h4>Which lower levels carry information?</h4><div class="look"><b>Read:</b> correlation r of a model trained on that level alone with the high-fidelity truth (x) against its R² (y). High r with low R² means biased but informative, which a multi-fidelity model can correct.</div><div class="chart" data-chart="quadrant"></div><div class="legend js-only" data-legend="quadrant"></div></div>
+          <div class="fig"><h4>Data per level</h4><div class="look"><b>Read:</b> runs per level and how closely each tracks the highest fidelity.</div>
+            <div class="tablewrap"><table>
+              <thead><tr><th>Level</th><th class="num">Train</th><th class="num">Test</th>{% for o in outputs %}<th class="num">r {{ o.name }}</th>{% endfor %}</tr></thead>
+              <tbody>{% for lv in d.levels %}<tr><td><b>{{ lv.level }}</b></td><td class="num">{{ lv.n_train }}</td><td class="num">{{ lv.n_test }}</td>
+                {% for o in outputs %}{% set v = lv.outputs.get(o.name, {}) %}<td class="num">{% if lv.is_highest %}<span class="sub" style="margin:0">truth</span>{% elif v.error %}<span class="errtxt">{{ v.error }}</span>{% elif v.r is none %}—{% elif v.r|abs < th.weak_level_r %}{{ chip("crit", "%.2f"|format(v.r)) }}{% else %}{{ "%.2f"|format(v.r) }}{% endif %}</td>{% endfor %}</tr>{% endfor %}</tbody>
+            </table></div>
+          </div>
+        </div>
+        {% endif %}
+      {% else %}
+        <h3>Single-fidelity run</h3></div>
+        <div class="skipped"><span class="chip skip">Not applicable</span> This model was trained on one fidelity level, so there is no lower-fidelity data to assess. Use the Multi-Fidelity page to combine cheap and expensive data.</div>
+      {% endif %}
+      {{ skips("sec-4") }}
+    </section>
+
+    <!-- 5 · Drivers -->
+    <section class="sec panel" id="sec-5">
+      <div class="panel-head"><div class="qnum">5 · What drives the outputs?</div><h2>{{ headlines.get("sec-5", "Input attributions") }}</h2>
+        {% if heat %}<p>Share of mean |SHAP| per output (each column sums to 100%{% if d.shap.n_features > d.shap.features|length %} over all {{ d.shap.n_features }} inputs; the top {{ d.shap.features|length }} are shown{% endif %}).</p>{% endif %}</div>
+      {% if heat %}
+      <div class="tablewrap"><div class="heat" style="grid-template-columns: minmax(120px, max-content) repeat({{ heat[0].cells|length }}, minmax(76px, 1fr))">
+        <div></div>{% for c in heat[0].cells %}{% set o = outputs|selectattr("name", "equalto", c.output)|first %}<div class="collab">{{ sw(o.idx) }}{{ c.output }}</div>{% endfor %}
+        {% for r in heat %}<div class="rowlab">{{ r.feature }}</div>{% for c in r.cells %}<div class="cell {{ 'ink-d' if c.step >= 3 else 'ink-l' }}" style="background:var(--seq-{{ c.step }})" data-tip="{{ c.output }}: {{ r.feature }} accounts for {{ c.value|pct }} of mean |SHAP|">{{ c.value|pct }}</div>{% endfor %}{% endfor %}
+      </div></div>
+      {% endif %}
+      {% if d.pdp %}
+      <h3 style="margin-top:6px">How the top {{ d.pdp.features|length }} input{{ "s" if d.pdp.features|length > 1 }} move{{ "" if d.pdp.features|length > 1 else "s" }} each output</h3>
+      <p class="lead">Partial dependence (line) with the 10th–90th percentile of individual curves (band). Columns share an x axis, rows share a y axis.</p>
+      <div class="chart" data-chart="pdp"></div>
+      <noscript><p class="lead">Inputs shown: {{ d.pdp.features|join(", ") }}.</p></noscript>
+      {% endif %}
+      {{ skips("sec-5") }}
+      {{ pngs("sec-5") }}
+    </section>
+
+    <!-- 6 · Data -->
+    <section class="sec panel" id="sec-6">
+      <div class="panel-head"><div class="qnum">6 · Is the data adequate?</div><h2>Sampling, imputation and test size</h2></div>
+      {% if run.n_test_points < th.small_test %}
+      <div class="skipped"><span class="chip warn">Small test set</span> {{ run.n_test_points }} test points: coverage estimates are uncertain by about ±{{ "%.0f"|format(100 * band) }} percentage points, and R² by more than usual.</div>
+      {% else %}
+      <div class="skipped"><span class="chip good">Test set</span> {{ run.n_test_points }} test points: coverage is resolved to about ±{{ "%.0f"|format(100 * band) }} percentage points.</div>
+      {% endif %}
+      {% if d.sampling %}
+      <div class="fig"><h4>Input design</h4>
+        {% for p in d.sampling.plots %}<div class="pngfig"><img src="data:image/png;base64,{{ p }}" alt="Input design and sampling inference"></div>{% endfor %}
+        {% if d.sampling.explanation %}<div class="look">{{ d.sampling.explanation }}</div>{% endif %}
+      </div>
+      {% endif %}
+      {% if d.imputation %}
+      <div class="fig"><h4>Missing values</h4>
+        <div class="look">Rows before cleaning: {{ d.imputation.rows_before }}; after: {{ d.imputation.rows_after }}{% if d.imputation.rows_before != d.imputation.rows_after %} ({{ d.imputation.rows_before - d.imputation.rows_after }} removed){% endif %}. Targets are never imputed.</div>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Column</th><th>Action</th><th class="num">Missing</th><th class="num">Missing %</th></tr></thead>
+          <tbody>{% for c in d.imputation.columns %}<tr><td>{{ c.name }}</td><td>{{ c.action }}</td><td class="num">{{ c.missing_count }}</td><td class="num">{{ c.missing_pct }}%</td></tr>{% endfor %}</tbody>
+        </table></div>
+      </div>
+      {% endif %}
+      {% if d.pca %}
+      <div class="fig"><h4>PCA on the inputs</h4>
+        <div class="look">{{ d.pca.n_components }} component(s) retained{% if d.pca.method %} ({{ d.pca.method }}{% if d.pca.threshold %}, threshold {{ "%.2f"|format(d.pca.threshold) }}{% endif %}){% endif %}.{% if d.pca.kaiser %} {{ d.pca.kaiser }}{% endif %}</div>
+        {% if d.pca.plot_b64 %}<div class="pngfig"><img src="data:image/png;base64,{{ d.pca.plot_b64 }}" alt="PCA explained variance"></div>{% endif %}
+        <div class="tablewrap"><table><thead><tr><th>Component</th><th class="num">Explained variance</th></tr></thead>
+          <tbody>{% for v in d.pca.explained_variance %}<tr><td>PC{{ loop.index }}</td><td class="num">{{ v|pct(1) }}</td></tr>{% endfor %}</tbody></table></div>
+      </div>
+      {% endif %}
+      {{ skips("sec-6") }}
+      {{ pngs("sec-6") }}
+    </section>
+
+    <!-- 7 · Model selection -->
+    <section class="sec panel" id="sec-7">
+      <div class="panel-head"><div class="qnum">7 · How was the model chosen?</div><h2>{{ headlines.get("sec-7", "Model selection") }}</h2>
+        <p>{{ run.cross_validation }}{% if d.cv %} Whiskers span {{ d.cv.spread }}; the test set was not used for selection.{% endif %}</p></div>
+      {% if d.cv %}
+      <div class="chart" data-chart="cv"></div>
+      <details{% if d.cv.rows|length <= 8 %} open{% endif %}><summary>All candidates ({{ d.cv.rows|length }})</summary>
+      <div class="tablewrap"><table>
+        <thead><tr><th>#</th><th>Model</th><th class="num">{{ d.cv.metric }}</th><th class="num">Spread</th>{% if d.cv.rows|selectattr("r2")|list %}<th class="num">CV R²</th>{% endif %}<th>Status</th></tr></thead>
+        <tbody>{% for r in d.cv.rows %}<tr{% if r.name == d.cv.best %} class="best"{% endif %}>
+          <td class="num">{{ loop.index }}</td><td>{{ r.name }}{% if r.selected_for %}<span class="sub">selected for {{ r.selected_for|join(", ") }}</span>{% endif %}</td>
+          <td class="num">{{ r.mean|num }}</td><td class="num">{{ ("± " ~ (r.sd|num)) if r.sd is not none else "—" }}</td>
+          {% if d.cv.rows|selectattr("r2")|list %}<td class="num">{{ "%.3f"|format(r.r2) if r.r2 is not none else "—" }}</td>{% endif %}
+          <td>{% if r.mean is none %}<span class="errtxt">{{ r.status }}</span>{% elif r.name == d.cv.best %}{{ chip("good", "Selected" if not d.cv.per_output else "Best score") }}{% elif r.name in d.cv.get("tied", []) %}{{ chip("neutral", "Tied") }}{% else %}{{ r.status }}{% endif %}</td>
+        </tr>{% endfor %}</tbody>
+      </table></div>
+      </details>
+      {% endif %}
+      {{ skips("sec-7") }}
+    </section>
+
+    <!-- Appendix -->
+    <details class="appendix panel" id="appendix">
+      <summary>Appendix: thresholds, raw tables, run settings</summary>
+      <h3>Verdict thresholds</h3>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Rule</th><th>Pass</th><th>Caution</th><th>Fail</th></tr></thead>
+        <tbody>
+          <tr><td>Accuracy (test R²)</td><td>≥ {{ th.r2_good }}</td><td>{{ th.r2_warn }}–{{ th.r2_good }}</td><td>&lt; {{ th.r2_warn }}</td></tr>
+          <tr><td>Error bars (coverage)</td><td>≥ nominal − {{ th.z }}·SE (95% at n = {{ run.n_test_points }}: ≥ {{ (th.coverage_target - band)|pct(1) }})</td><td>Gaussian fails but conformal passes, or within 2× the band</td><td>below 2× the band, or no std</td></tr>
+          {% if has_mf %}<tr><td>Low-fidelity data (RMSE vs HF-only)</td><td>≤ {{ th.mf_gain|spct }}</td><td>≥ {{ th.mf_hurt|spct }} (hurts)</td><td>—</td></tr>{% endif %}
+          <tr><td>Weak fidelity level</td><td colspan="3">|r| &lt; {{ th.weak_level_r }} with the high-fidelity truth</td></tr>
+          <tr><td>Overall</td><td colspan="3">the worst of the criteria; "no gain" does not lower the overall status</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Regression metrics</h3>
+      {% set keys = [] %}{% for o in outputs %}{% for k in o.metrics %}{% if k not in keys %}{% set _ = keys.append(k) %}{% endif %}{% endfor %}{% endfor %}
+      <div class="tablewrap"><table>
+        <thead><tr><th>Output</th>{% for k in keys %}<th class="num">{{ k }}</th>{% endfor %}</tr></thead>
+        <tbody>{% for o in outputs %}<tr><td>{{ o.name }}</td>{% for k in keys %}<td class="num">{{ o.metrics.get(k)|num }}</td>{% endfor %}</tr>{% endfor %}</tbody>
+      </table></div>
+      {% if d.regret and d.regret.settings %}
+      <h3>Regret settings</h3>
+      <dl class="kv">{% for k, v in d.regret.settings.items() %}<dt>{{ k }}</dt><dd><code>{{ v if v is not none else "—" }}</code></dd>{% endfor %}</dl>
+      {% endif %}
+      {% if d.summary_points %}
+      <h3>Generated summary</h3>
+      <ul class="plain">{% for p in d.summary_points %}<li>{{ p }}</li>{% endfor %}</ul>
+      {% endif %}
+      <h3>Run settings</h3>
+      <dl class="kv">
+        <dt>Model</dt><dd>{{ run.model }}</dd>
+        <dt>Outputs</dt><dd>{{ run.output_names|join(", ") }}</dd>
+        {% if run.input_names %}<dt>Inputs</dt><dd>{{ run.input_names|join(", ") }}</dd>{% endif %}
+        {% if run.fidelity_levels %}<dt>Fidelity levels</dt><dd>{{ run.fidelity_levels|join(", ") }} (lowest to highest)</dd>{% endif %}
+        <dt>Training data</dt><dd>{{ run.n_train }}</dd>
+        <dt>Test data</dt><dd>{{ run.n_test }}</dd>
+        <dt>Cross-validation</dt><dd>{{ run.cross_validation or "—" }}</dd>
+        <dt>Random seed</dt><dd>{{ run.seed if run.seed is not none else "not fixed" }}</dd>
+        <dt>Data hash</dt><dd><code>{{ run.data_hash }}</code> (SHA-1 of the training inputs and test outputs)</dd>
+        <dt>Package</dt><dd>multioutreg {{ run.version }}</dd>
+        <dt>Generated</dt><dd>{{ run.date }}</dd>
+        {% if run.notes %}<dt>Notes</dt><dd>{{ run.notes }}</dd>{% endif %}
+      </dl>
+      {{ skips("appendix") }}
+      {{ pngs("appendix") }}
+    </details>
+  </div>
+</div>
+</main>
+<div id="tip" hidden></div>
+<script type="application/json" id="report-data">{{ blob }}</script>
+<script>{{ js }}</script>
+</body>
+</html>

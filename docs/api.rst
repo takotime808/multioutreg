@@ -1,6 +1,10 @@
 API Reference
 =============
 
-.. toctree::
+Generated from the source of every public module. Start with :doc:`core_api` for the
+classes most workflows need.
 
-    autoapi/multioutreg/index
+.. toctree::
+   :maxdepth: 2
+
+   autoapi/multioutreg/index

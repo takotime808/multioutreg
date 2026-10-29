@@ -64,6 +64,25 @@ KNN-imputed, with the imputer fitted on each level's training split only.
 
 ## Reading the report
 
+The report (*Report format: Redesigned*, the default) opens with a verdict and a scorecard,
+then answers one question per section. {doc}`reading_the_report` explains every section
+and the verdict rules; this table lists what is specific to a multi-fidelity run.
+
+| Section | Multi-fidelity content | How to read it |
+|---------|------------------------|----------------|
+| 1 · Can I use it? | Scorecard column **Low-fidelity data**: test RMSE against the HF-only baseline. Findings and next steps name weak levels and outputs where an HF-only model is as good. | **Helps** ≤ −5%, **No gain** within ±5%, **Hurts** ≥ +5%. |
+| 2 · Accuracy per output | All metrics are on the **highest-fidelity** test set. | |
+| 3 · Error bars | Gaussian and split-conformal coverage curves on the same axes. Conformal intervals are calibrated on held-out highest-fidelity training points (calibration residuals, not test residuals). | A curve below the shaded band = overconfident; coverage ≥ 1−α holds on average when calibration and test data are exchangeable. |
+| 4 · Low-fidelity data | A dumbbell of MF vs HF-only RMSE per output, an **r vs R²** chart of each lower level, and a table of runs per level. | High r with lower R² = informative but biased (multi-fidelity can correct this). \|r\| < 0.5 = the level carries little usable information. |
+| 5 · What drives outputs | SHAP shares and partial dependence of the **highest-fidelity** predictions, with input column names. | |
+| 6 · Data adequacy | The input design of **every** fidelity level (normalized to [0, 1], one marker per level) and the sampling method inferred for each. | A statistical statement, not proof; see Appendix B of `AUDIT_CHECKLIST.md` for limits. |
+| 7 · Model selection | Every candidate's CV RMSE with its fold spread; candidates whose spread overlaps the winner's are marked **Tied**. | Among tied candidates, the simpler one is a reasonable choice. |
+| Appendix | Thresholds, all metrics, the generated summary, per-level training sizes, selection and calibration scheme, seed and data hash. | |
+
+### Classic format
+
+*Report format: Classic* keeps the previous layout:
+
 | Section | What it shows | How to read it |
 |---------|---------------|----------------|
 | Summary | Auto-generated findings from the metrics below. | Start here. |
@@ -83,7 +102,7 @@ KNN-imputed, with the imputer fitted on each level's training split only.
 
 - **An independent winner means multi-fidelity did not help.** `MultiFidelity+<base>` uses only
   highest-fidelity data for its highest-level prediction, so if it wins, no coupled model beat
-  high-fidelity data alone on validation. The Summary says so explicitly.
+  high-fidelity data alone on validation. The generated summary (in the appendix of the redesigned report) says so explicitly.
 - **Small test sets are noisy.** The Summary warns below 30 highest-fidelity test points. The
   MF-vs-baseline difference on such sets can be within run-to-run noise.
 - **Uncertainty can be badly miscalibrated** (e.g. SparseGP std collapsing to its floor on
@@ -99,6 +118,7 @@ With **Fix random seed** checked (the default), one seed drives:
   deterministic). Mapping: `_SEED_KWARG` / `_seeded` in the page module;
 - the bootstrap band of the residual plot.
 
-Two runs with the same data, settings and seed produce a byte-identical report. Uncheck the box
+Two runs with the same data, settings and seed on the same day produce a byte-identical
+report (the redesigned report records the date). Uncheck the box
 to see run-to-run variation (the report then records the seed as "not fixed"). Without a seed,
 `SparseGPSurrogate` in particular gives a different model on every fit.

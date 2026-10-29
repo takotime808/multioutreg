@@ -12,6 +12,7 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, r
 from multioutreg.model_selection import AutoDetectMultiOutputRegressor
 from multioutreg.model_selection.auto_detect import EXPENSIVE_MODEL_NAMES, drop_candidates
 from multioutreg.model_selection.evaluation import plan_evaluation, run_evaluation
+from multioutreg.utils.metric_utils import gaussian_uncertainty_metrics
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
 from multioutreg.utils.pca_utils import fit_input_pca
 from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
@@ -41,6 +42,9 @@ def grid_search_auto_detect(
         help="Skip slow candidates (Gaussian processes, NGBoost, ...), as the hosted app does"),
     description: str = typer.Option("", help="Project description"),
     out_html: str = typer.Option("model_report_auto.html", help="Output HTML file"),
+    report_style: Optional[str] = typer.Option(
+        None, help="Report layout: v2 (redesigned, default) or classic. "
+                   "Defaults to the MOR_REPORT_STYLE environment variable"),
 ) -> None:
     """Run autodetection and output an HTML report."""
     df = pd.read_csv(data_path)
@@ -169,7 +173,7 @@ def grid_search_auto_detect(
         output_names=out_cols,
         description=description,
         metrics=metrics,
-        uncertainty_metrics={"dummy_metric": 0.0},
+        uncertainty_metrics=gaussian_uncertainty_metrics(y_test, best_pred, best_std),
         y_test=y_test,
         best_pred=best_pred,
         best_std=best_std,
@@ -190,6 +194,9 @@ def grid_search_auto_detect(
         conformal_intervals=conformal_intervals if conformal else None,
         conformal_alpha=conformal_alpha if conformal else None,
         imputation_summary=_imputation_summary,
+        calibration_residuals=getattr(getattr(result, "fit", None), "residuals", None) if conformal else None,
+        selection_scores=getattr(best_model, "selection_scores_", None),
+        report_style=report_style,
     )
 
     with open(out_html, "w", encoding="utf-8") as fh:

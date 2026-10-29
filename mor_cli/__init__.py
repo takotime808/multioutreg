@@ -3,11 +3,8 @@
 """Main CLI script."""
 
 
-def main():
-    """Docstring explaining why typer messes up if imports arent in the fucntion."""
-    import sys
-    import typer
-    from wasabi import msg
+def commands():
+    """The CLI commands, ``{name: function}``. Imported lazily (typer needs it)."""
     from mor_cli.example import example
     from mor_cli.print_fonts import print_fonts
     from mor_cli.detect_sampling import detect_sampling
@@ -19,7 +16,7 @@ def main():
     from mor_cli.ts_forecast import ts_forecast
     from mor_cli.ts_pipeline import ts_pipeline
 
-    commands = {
+    return {
         "run_example": example,
         "print_fonts": print_fonts,
         "detect_sampling": detect_sampling,
@@ -31,14 +28,35 @@ def main():
         "ts-forecast": ts_forecast,
         "ts-pipeline": ts_pipeline,
     }
+
+
+def click_group():
+    """All commands as one click group, for the generated CLI reference
+    (``sphinx-click``). The installed ``multioutreg`` entry point is :func:`main`."""
+    import typer
+
+    app = typer.Typer(help="Multi-output surrogate modeling from the command line.",
+                      add_completion=False)
+    for name, fn in commands().items():
+        app.command(name)(fn)
+    return typer.main.get_command(app)
+
+
+def main():
+    """Docstring explaining why typer messes up if imports arent in the fucntion."""
+    import sys
+    import typer
+    from wasabi import msg
+
+    commands_ = commands()
     if len(sys.argv) == 1:
-        msg.info("Available commands", ", ".join(commands), exits=1)
+        msg.info("Available commands", ", ".join(commands_), exits=1)
     if sys.argv[1] in ("-h", "--help"):
-        msg.info("Available commands", ", ".join(commands), exits=0)
+        msg.info("Available commands", ", ".join(commands_), exits=0)
     command = sys.argv.pop(1)
     sys.argv[0] = f"multioutreg {command}"
-    if command in commands:
-        typer.run(commands[command])
+    if command in commands_:
+        typer.run(commands_[command])
     else:
-        available = "Available: {}".format(", ".join(commands))
+        available = "Available: {}".format(", ".join(commands_))
         msg.fail("Unknown Command: {}".format(command), available, exits=1)
