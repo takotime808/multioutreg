@@ -40,6 +40,8 @@ MAX_ORIGINS = 10
 #: Largest ARIMA parameter count in the default grid (p, q <= 7, plus a
 #: constant and the variance) -- a training window must exceed it.
 MIN_PARAM_POINTS = 16
+#: ``baseline`` option -> the name of the model it adds.
+BASELINES = {"naive": "Naive", "zero": "Zero"}
 
 
 @dataclass(frozen=True)
@@ -169,6 +171,7 @@ class RankingResult:
     failures: Dict[str, str]
     best_model: str
     diebold_mariano: Optional[dict] = None
+    diebold_mariano_baseline: Optional[dict] = None   # winner vs the baseline
     final_model: object = None       # winner refitted on the full series
     forecast: Optional[np.ndarray] = None   # its next-H forecast
     extra: dict = field(default_factory=dict)
@@ -188,6 +191,7 @@ class RankingResult:
             "models": [s.as_dict() for s in self.scores],
             "failures": self.failures,
             "diebold_mariano": self.diebold_mariano,
+            "diebold_mariano_baseline": self.diebold_mariano_baseline,
             "forecast": None if self.forecast is None else [float(v) for v in self.forecast],
         }
 
@@ -198,8 +202,14 @@ def evaluate_forecasters(
     plan: OriginPlan,
     on_step: Optional[Callable[[str], None]] = None,
     refit_best: bool = True,
+    baseline: Optional[str] = None,
 ) -> RankingResult:
-    """Score every forecaster on *plan*'s origins and rank them by mean MASE."""
+    """Score every forecaster on *plan*'s origins and rank them by mean MASE.
+
+    With ``baseline`` (a key of *factories*), the winner is also tested
+    against that model -- the question that matters when the baseline is the
+    random walk -- unless the baseline itself wins.
+    """
     y = np.asarray(y, dtype=float).ravel()
     step = on_step or (lambda label: None)
     h, m = plan.horizon, plan.mase_seasonality
@@ -229,18 +239,24 @@ def evaluate_forecasters(
         raise RuntimeError("All models failed: " + "; ".join(f"{k}: {v}" for k, v in failures.items()))
     scores.sort(key=lambda s: (s.mase, s.rmse))
 
-    dm = None
-    if len(scores) >= 2:
-        a, b = scores[0], scores[1]
-        gaps = np.diff(plan.origins)
-        min_gap = int(gaps.min()) if gaps.size else h
-        dm = diebold_mariano(
+    gaps = np.diff(plan.origins)
+    min_gap = int(gaps.min()) if gaps.size else h
+
+    def dm_test(a: ModelScore, b: ModelScore) -> dict:
+        out = diebold_mariano(
             (a.errors ** 2).mean(axis=1), (b.errors ** 2).mean(axis=1),
             lag=max(0, h - min_gap))
-        dm.update({"model_a": a.name, "model_b": b.name, "loss": "mean squared error per origin",
-                   "note": "reported only; does not decide the winner"})
+        out.update({"model_a": a.name, "model_b": b.name, "loss": "mean squared error per origin",
+                    "note": "reported only; does not decide the winner"})
+        return out
 
-    result = RankingResult(plan, scores, failures, scores[0].name, dm)
+    dm = dm_test(scores[0], scores[1]) if len(scores) >= 2 else None
+    by_name = {s.name: s for s in scores}
+    dm_baseline = None
+    if baseline in by_name and scores[0].name != baseline:
+        dm_baseline = dm_test(scores[0], by_name[baseline])
+
+    result = RankingResult(plan, scores, failures, scores[0].name, dm, dm_baseline)
     if refit_best:
         step(f"Refitting {result.best_model} on the full series")
         result.final_model = factories[result.best_model]().fit(y)
@@ -249,10 +265,19 @@ def evaluate_forecasters(
 
 
 def default_factories(plan: OriginPlan, train_window: int = 10, lstm_epochs: int = 100,
-                      n_jobs: int = -1, include_naive: bool = True) -> Dict[str, Callable]:
-    """ARIMA, SARIMA, LSTM (and the naive baseline) configured for *plan*."""
+                      n_jobs: int = -1, include_naive: bool = True,
+                      baseline: str = "naive") -> Dict[str, Callable]:
+    """ARIMA, SARIMA, LSTM (and a baseline) configured for *plan*.
+
+    ``baseline='naive'`` adds the (seasonal) last-value forecast; ``'zero'``
+    adds the no-change forecast, the right benchmark for a series of returns
+    or differences (it is the random walk in levels).
+    """
     from multioutreg.time_series.ts_dynamic_fit.src.forecasters import (
-        ArimaForecaster, LstmForecaster, NaiveForecaster, SarimaForecaster)
+        ArimaForecaster, LstmForecaster, NaiveForecaster, SarimaForecaster, ZeroForecaster)
+
+    if baseline not in BASELINES:
+        raise ValueError(f"baseline must be one of {tuple(BASELINES)}, got {baseline!r}")
 
     s = plan.seasonality if plan.seasonality >= 2 else None
     factories = {
@@ -261,7 +286,9 @@ def default_factories(plan: OriginPlan, train_window: int = 10, lstm_epochs: int
         "LSTM": lambda: LstmForecaster(horizon=plan.horizon, train_window=train_window,
                                        epochs=lstm_epochs),
     }
-    if include_naive:
+    if include_naive and baseline == "zero":
+        factories["Zero"] = ZeroForecaster
+    elif include_naive:
         factories["Naive"] = lambda: NaiveForecaster(seasonality=plan.seasonality)
     return factories
 
@@ -275,11 +302,13 @@ def rank_forecasters(
     lstm_epochs: int = 100,
     n_jobs: int = -1,
     on_step: Optional[Callable[[str], None]] = None,
+    baseline: str = "naive",
 ) -> RankingResult:
-    """Plan the origins, evaluate ARIMA / SARIMA / LSTM / naive, rank, refit the winner.
+    """Plan the origins, evaluate ARIMA / SARIMA / LSTM / a baseline, rank, refit the winner.
 
     The seasonal period is detected on the first 80% of the series only (the
     part that is never a test target), unless ``seasonality`` is given.
+    ``baseline`` is ``'naive'`` or ``'zero'`` (see :func:`default_factories`).
     """
     y = np.asarray(y, dtype=float).ravel()
     if not np.all(np.isfinite(y)):
@@ -290,8 +319,9 @@ def rank_forecasters(
         seasonality = detect_seasonality(head) if head.size >= 8 else 0
     plan = plan_origins(n, seasonality, horizon, folds, train_window)
     factories = default_factories(plan, train_window=train_window,
-                                  lstm_epochs=lstm_epochs, n_jobs=n_jobs)
-    return evaluate_forecasters(y, factories, plan, on_step=on_step)
+                                  lstm_epochs=lstm_epochs, n_jobs=n_jobs, baseline=baseline)
+    return evaluate_forecasters(y, factories, plan, on_step=on_step,
+                                baseline=BASELINES[baseline])
 
 
 def detect_seasonality(y) -> int:

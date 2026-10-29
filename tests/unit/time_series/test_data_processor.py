@@ -194,3 +194,70 @@ def test_data_processor_verbose_engineer_features():
     dp.preprocess_data(datetime_col="date", target_col="sales", freq="1D")
     result = dp.engineer_features(target_col="sales")
     assert result is not None
+
+
+# ---------------------------------------------------------------------------
+# fill / clip_outliers / freq="observed" (non-sales data: prices, returns)
+# ---------------------------------------------------------------------------
+
+def _prices():
+    """Business days with a holiday gap (Mon 2024-01-15 missing), a crash and a NaN."""
+    dates = pd.bdate_range("2024-01-02", periods=25).delete(9)
+    price = np.linspace(100.0, 124.0, dates.size)
+    price[12] = 40.0           # a crash the IQR cap would remove
+    price[3] = np.nan
+    return pd.DataFrame({"date": dates, "price": price})
+
+
+def _run(df, **kwargs):
+    dp = DataProcessor(verbose=False)
+    dp.load_data(df)
+    return dp.preprocess_data(datetime_col="date", target_col="price", **kwargs)["price"]
+
+
+def test_preprocess_defaults_are_the_sales_behaviour():
+    df = _prices()
+    default = _run(df, freq="1D")
+    assert default.equals(_run(df, freq="1D", fill="zero", clip_outliers=True))
+    # Weekends and the holiday become 0, the NaN becomes 0, the crash is capped.
+    assert (default[default.index.dayofweek >= 5] == 0).all()
+    assert default[pd.Timestamp("2024-01-15")] == 0
+    assert default.min() == 0 and 40.0 not in default.to_numpy()
+
+
+def test_preprocess_ffill_on_business_days_keeps_prices():
+    df = _prices()
+    out = _run(df, freq="B", fill="ffill", clip_outliers=False)
+    assert (out.index.dayofweek < 5).all()
+    assert out[pd.Timestamp("2024-01-15")] == out[pd.Timestamp("2024-01-12")]
+    assert out.iloc[3] == out.iloc[2]              # the NaN takes the last price
+    assert 40.0 in out.to_numpy() and out.notna().all()
+
+
+def test_preprocess_observed_keeps_the_calendar():
+    df = _prices()
+    out = _run(df, freq="observed", fill="ffill", clip_outliers=False)
+    assert list(out.index) == list(df["date"])
+    assert out.equals(_run(df, freq=None, fill="ffill", clip_outliers=False))
+
+
+def test_preprocess_keeps_negatives_without_clipping():
+    df = pd.DataFrame({"date": pd.bdate_range("2024-01-02", periods=8),
+                       "price": [0.01, -0.02, 0.005, -0.3, 0.0, 0.02, -0.01, 0.4]})
+    assert _run(df, freq="observed", fill="ffill", clip_outliers=False).tolist() == \
+        df["price"].tolist()
+    assert _run(df, freq="observed").min() >= 0     # the sales default clips at 0
+
+
+def test_preprocess_interpolate_is_linear_in_time_and_drops_leading_gaps():
+    df = pd.DataFrame({"date": pd.to_datetime(["2024-01-01", "2024-01-02", "2024-01-03",
+                                               "2024-01-06"]),
+                       "price": [np.nan, 10.0, np.nan, 50.0]})
+    out = _run(df, freq="1D", fill="interpolate", clip_outliers=False)
+    assert out.index[0] == pd.Timestamp("2024-01-02")
+    np.testing.assert_allclose(out.to_numpy(), [10, 20, 30, 40, 50])
+
+
+def test_preprocess_rejects_unknown_fill():
+    with pytest.raises(ValueError, match="fill must be one of"):
+        _run(_prices(), freq="B", fill="mean")

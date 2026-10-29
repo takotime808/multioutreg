@@ -190,6 +190,52 @@ def test_failed_model_is_reported_not_fatal():
     assert {s.name for s in res.scores} == {"ARIMA", "Naive"}
 
 
+def test_zero_baseline_for_returns():
+    from multioutreg.time_series.ts_dynamic_fit.src.evaluate import default_factories
+    from multioutreg.time_series.ts_dynamic_fit.src.forecasters import ZeroForecaster
+
+    assert np.array_equal(ZeroForecaster().fit([1.0, 2.0]).forecast(3), np.zeros(3))
+    plan = plan_origins(200)
+    assert "Zero" in default_factories(plan, baseline="zero")
+    assert "Naive" not in default_factories(plan, baseline="zero")
+    assert "Naive" in default_factories(plan)
+    with pytest.raises(ValueError, match="baseline must be one of"):
+        default_factories(plan, baseline="mean")
+
+    # i.i.d. returns: 0 is the best forecast, and "the last return repeats"
+    # (Naive) has about twice its squared error.
+    r = np.random.default_rng(0).normal(0, 0.01, 400)
+    plan = plan_origins(r.size, folds=40)
+    factories = {"Naive": lambda: NaiveForecaster(), "Zero": ZeroForecaster}
+    res = evaluate_forecasters(r, factories, plan, refit_best=False)
+    by = {s.name: s for s in res.scores}
+    assert 1.5 < (by["Naive"].rmse / by["Zero"].rmse) ** 2 < 2.5
+
+
+def test_winner_is_tested_against_the_baseline():
+    y = _ar1(n=200)
+    plan = plan_origins(len(y), folds=20)
+    class Mean:
+        def fit(self, y, order=None):
+            self.mu = float(np.mean(y))
+            return self
+
+        def forecast(self, horizon):
+            return np.full(horizon, self.mu)
+
+    factories = {**_fast_factories(plan), "Mean": Mean}
+    res = evaluate_forecasters(y, factories, plan, refit_best=False, baseline="Naive")
+    assert res.best_model == "ARIMA"
+    dmb = res.diebold_mariano_baseline
+    assert (dmb["model_a"], dmb["model_b"]) == ("ARIMA", "Naive")
+    assert res.as_dict()["diebold_mariano_baseline"] == dmb
+    # No baseline, or the baseline wins: nothing to test.
+    assert evaluate_forecasters(y, factories, plan, refit_best=False).diebold_mariano_baseline is None
+    only = {"Naive": factories["Naive"]}
+    assert evaluate_forecasters(y, only, plan, refit_best=False,
+                                baseline="Naive").diebold_mariano_baseline is None
+
+
 def test_winner_is_refitted_on_full_series():
     y = _trend()
     plan = plan_origins(len(y))

@@ -44,7 +44,40 @@ def ts_pipeline(
     freq: str = typer.Option(
         "1D",
         "--freq",
-        help="Resampling frequency passed to DataProcessor (e.g. 1D, 1H, 15min, 1W).",
+        help=(
+            "Resampling frequency passed to DataProcessor (e.g. 1D, 1H, 15min, 1W, B), or "
+            "'observed' to keep the timestamps as they are (e.g. a trading calendar)."
+        ),
+    ),
+    fill: str = typer.Option(
+        "zero",
+        "--fill",
+        help=(
+            "How missing values and periods are filled: zero (sales: nothing sold), "
+            "ffill (last value carried forward, e.g. prices) or interpolate."
+        ),
+    ),
+    clip_outliers: bool = typer.Option(
+        True,
+        "--clip-outliers/--no-clip-outliers",
+        help=(
+            "Cap the target to [max(0, Q1 - 1.5 IQR), Q3 + 1.5 IQR]. Turn off for prices, "
+            "returns and any series where negatives or extremes are real."
+        ),
+    ),
+    transform: str = typer.Option(
+        "none",
+        "--transform",
+        help=(
+            "Fit and score the models on changes instead of levels: diff or log-return "
+            "(prices). The forecast is cumulated back to levels in results.json."
+        ),
+    ),
+    seasonality: Optional[int] = typer.Option(
+        None,
+        "--seasonality",
+        min=0,
+        help="Seasonal period; 0 for none (e.g. returns). Default: detected from the data.",
     ),
     verbose: bool = typer.Option(
         False,
@@ -89,7 +122,9 @@ def ts_pipeline(
 
     # Deferred imports — same pattern as ts_forecast.py
     try:
+        from multioutreg.time_series.returns import TRANSFORMS, to_changes, to_levels
         from multioutreg.time_series.ts_dynamic_fit import DataProcessor
+        from multioutreg.time_series.ts_dynamic_fit.data_handling.DataProcessor import FILL_METHODS
         from multioutreg.time_series.ts_dynamic_fit.src.evaluate import rank_forecasters
     except Exception as exc:
         typer.echo(
@@ -98,6 +133,14 @@ def ts_pipeline(
             err=True,
         )
         raise typer.Exit(code=1)
+
+    for name, value, choices in (("--fill", fill, FILL_METHODS),
+                                 ("--transform", transform, TRANSFORMS)):
+        if value not in choices:
+            typer.echo(f"Error: {name} must be one of {', '.join(choices)}; got '{value}'.",
+                       err=True)
+            raise typer.Exit(code=1)
+    observed = freq.lower() == "observed"
 
     if verbose:
         logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -131,7 +174,7 @@ def ts_pipeline(
                 f"Aggregating '{target_col}' by {freq} using '{agg}'..."
             )
             agg_df = (
-                df.groupby(pd.Grouper(key=dt_arg, freq=freq))[target_col]
+                df.groupby(dt_arg if observed else pd.Grouper(key=dt_arg, freq=freq))[target_col]
                 .agg(agg)
                 .reset_index()
             )
@@ -146,17 +189,25 @@ def ts_pipeline(
         datetime_col=dt_arg,
         target_col=target_col,
         freq=freq,
+        fill=fill,
+        clip_outliers=clip_outliers,
     )
 
     # ── Rank models out-of-sample ─────────────────────────────
-    series = processed_data[target_col]
+    levels = processed_data[target_col]
     try:
+        series = to_changes(levels, transform)
+        if transform != "none":
+            typer.echo(f"Fitting and scoring on {transform} changes of '{target_col}'.")
         ranking = rank_forecasters(
             series.to_numpy(dtype=float),
             horizon=horizon,
             folds=folds,
+            seasonality=seasonality,
             lstm_epochs=lstm_epochs,
             on_step=typer.echo,
+            # On changes, "no change" (the random walk in levels) is the benchmark.
+            baseline="naive" if transform == "none" else "zero",
         )
     except (ValueError, RuntimeError) as exc:
         typer.echo(f"Error: {exc}", err=True)
@@ -168,13 +219,16 @@ def ts_pipeline(
     for score in ranking.scores:
         typer.echo(f"  {score.name:7s} MASE={score.mase:.4f}  RMSE={score.rmse:.4g}  "
                    f"MAE={score.mae:.4g}  sMAPE={score.smape:.2f}")
-    dm = ranking.diebold_mariano
-    if dm and dm.get("reason"):
-        typer.echo(f"Diebold-Mariano ({dm['model_a']} vs {dm['model_b']}): not computed, "
-                   f"{dm['reason']}")
-    elif dm and dm.get("n", 0) >= 2:
-        typer.echo(f"Diebold-Mariano ({dm['model_a']} vs {dm['model_b']}): "
-                   f"stat={dm['statistic']:.3f}, p={dm['p_value']:.3f} (reported only)")
+    dms = [ranking.diebold_mariano, ranking.diebold_mariano_baseline]
+    if dms[0] and dms[1] and dms[0]["model_b"] == dms[1]["model_b"]:
+        dms.pop()   # the baseline came second: the same test
+    for dm in dms:
+        if dm and dm.get("reason"):
+            typer.echo(f"Diebold-Mariano ({dm['model_a']} vs {dm['model_b']}): not computed, "
+                       f"{dm['reason']}")
+        elif dm and dm.get("n", 0) >= 2:
+            typer.echo(f"Diebold-Mariano ({dm['model_a']} vs {dm['model_b']}): "
+                       f"stat={dm['statistic']:.3f}, p={dm['p_value']:.3f} (reported only)")
 
     # ── Write results ─────────────────────────────────────────
     report = ranking.as_dict()
@@ -182,6 +236,12 @@ def ts_pipeline(
     report["evaluation"]["origin_dates"] = [str(index[t]) for t in ranking.plan.origins]
     report["evaluation"]["train_start"] = str(index[0])
     report["evaluation"]["last_observation"] = str(index[-1])
+    report["preprocessing"] = {"freq": freq, "fill": fill, "clip_outliers": clip_outliers,
+                               "transform": transform}
+    if transform != "none" and report.get("forecast") is not None:
+        # "forecast" is in changes; this is the same path as levels.
+        report["forecast_levels"] = to_levels(levels.iloc[-1], report["forecast"],
+                                              transform).tolist()
 
     results_path = out_dir / "results.json"
     results_path.write_text(json.dumps(report, indent=2))
