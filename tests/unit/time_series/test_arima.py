@@ -17,57 +17,53 @@ def _ar1_series(n=80, phi=0.7, seed=0):
     return pd.DataFrame({"value": y})
 
 
-def test_arima_run_returns_metadata_keys():
+@pytest.fixture(scope="module")
+def ar1_run(tmp_path_factory):
+    """One ARIMA.run() on an AR(1) series (the order search is slow), from an empty cwd."""
+    cwd = tmp_path_factory.mktemp("arima_cwd")
+    with pytest.MonkeyPatch.context() as mp:
+        mp.chdir(cwd)
+        result = ARIMA(_ar1_series(), feature_column="value", verbose=False).run()
+    return result, cwd
+
+
+def test_arima_run_returns_metadata_keys(ar1_run):
     """ARIMA.run() returns (metadata_dict, data_series, fitted_model)."""
-    df = _ar1_series()
-    arima = ARIMA(df, feature_column="value", verbose=False)
-    metadata, data, model = arima.run()
+    (metadata, data, model), _ = ar1_run
 
-    assert "performance" in metadata
-    assert metadata["performance"]["Model"] == "ARIMA"
-    assert "RMSE" in metadata["performance"]
-    assert "MAE" in metadata["performance"]
-    assert "MAPE" in metadata["performance"]
-    assert "AIC" in metadata["performance"]
-    assert "BIC" in metadata["performance"]
+    perf = metadata["performance"]
+    assert perf["Model"] == "ARIMA"
+    for key in ("RMSE", "MAE", "MAPE", "AIC", "BIC"):
+        assert np.isfinite(perf[key]), key
+    assert perf["RMSE"] >= perf["MAE"] >= 0
 
 
-def test_arima_run_returns_correct_types():
+def test_arima_run_returns_correct_types(ar1_run):
     """Return types: dict, pd.Series, statsmodels results object."""
-    df = _ar1_series()
-    arima = ARIMA(df, feature_column="value", verbose=False)
-    metadata, data, model = arima.run()
+    (metadata, data, model), _ = ar1_run
 
     assert isinstance(metadata, dict)
     assert isinstance(data, pd.Series)
-    assert hasattr(model, "predict")  # statsmodels results have predict
+    assert len(data) == 80
+    assert np.asarray(model.predict()).shape == (len(data),)
 
 
-def test_arima_no_file_side_effects(tmp_path, monkeypatch):
+def test_arima_no_file_side_effects(ar1_run):
     """ARIMA.run() must not create any files in the working directory."""
-    monkeypatch.chdir(tmp_path)
-    df = _ar1_series()
-    arima = ARIMA(df, feature_column="value", verbose=False)
-    arima.run()
-
-    created = list(tmp_path.iterdir())
+    _, cwd = ar1_run
+    created = list(cwd.iterdir())
     assert created == [], f"Unexpected files created: {created}"
 
 
-def test_arima_metadata_diff_count():
-    """diff_count in metadata is a non-negative integer."""
-    df = _ar1_series()
-    arima = ARIMA(df, feature_column="value", verbose=False)
-    metadata, _, _ = arima.run()
-    assert isinstance(metadata["metadata"]["diff_count"], int)
-    assert metadata["metadata"]["diff_count"] >= 0
+def test_arima_metadata_diff_count(ar1_run):
+    """A stationary AR(1) needs no differencing."""
+    (metadata, _, _), _ = ar1_run
+    assert metadata["metadata"]["diff_count"] == 0
 
 
-def test_arima_k_order_data_has_diff_0():
+def test_arima_k_order_data_has_diff_0(ar1_run):
     """'K-order data' dict contains diff_0_data."""
-    df = _ar1_series()
-    arima = ARIMA(df, feature_column="value", verbose=False)
-    metadata, _, _ = arima.run()
+    (metadata, _, _), _ = ar1_run
     assert "K-order data" in metadata
     assert "diff_0_data" in metadata["K-order data"]
 
@@ -108,9 +104,9 @@ def test_arima_differencing_produces_diff_1_data():
     df = pd.DataFrame({"value": y})
     arima = ARIMA(df, feature_column="value", verbose=False)
     metadata, _, _ = arima.run()
-    # After 1 difference the series should be stationary; diff_1_data should be set
-    if metadata["metadata"]["diff_count"] >= 1:
-        assert metadata["K-order data"]["diff_1_data"] is not None
+    # A unit-root series must be differenced at least once.
+    assert metadata["metadata"]["diff_count"] >= 1
+    assert metadata["K-order data"]["diff_1_data"] is not None
 
 
 def test_arima_convert_keys_to_str_dict():

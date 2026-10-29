@@ -43,13 +43,15 @@ def run_grid_search_app(
     output_cols: list[str],
     *,
     checkboxes: dict[str, bool] | None = None,
+    radios: dict[str, str] | None = None,
     surrogate_defs: list | None = None,
     timeout: float = 120,
 ) -> AppTest:
     """Load *csv_path*, pick the columns, tick *checkboxes*, and submit the form.
 
     *checkboxes* maps a checkbox key (e.g. ``"use_conformal"``) or label to its
-    value. Returns the ``AppTest`` after the grid search has run, for asserting
+    value; *radios* maps a radio label (e.g. ``"Report format"``) to the option
+    to pick. Returns the ``AppTest`` after the grid search has run, for asserting
     on ``at.exception``, ``at.json``, ``at.dataframe`` and so on.
     """
     at = AppTest.from_function(
@@ -61,6 +63,8 @@ def run_grid_search_app(
             raise KeyError(f"No checkbox with key or label {name!r}")
         box.set_value(value)
     at.run()
+    for label, value in (radios or {}).items():
+        next(r for r in at.radio if r.label == label).set_value(value)
     by_label = {m.label: m for m in at.multiselect}
     by_label["Select input features"].set_value(input_cols)
     by_label["Select output targets"].set_value(output_cols)

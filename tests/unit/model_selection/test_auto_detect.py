@@ -30,19 +30,28 @@ def test_auto_detect_multi_output_regressor_selects_best():
     assert isinstance(model.models_[1], DecisionTreeRegressor)
 
 
-def test_with_vendored_surrogates_runs():
+@pytest.fixture(scope="module")
+def vendored_fit():
+    """One full search over every vendored surrogate (slow), shared by the tests below."""
     rng = np.random.RandomState(1)
     X = rng.rand(100, 3)
     Y = np.column_stack([
         X[:, 0] * 0.5 + rng.randn(100) * 0.01,
         np.sin(X[:, 1]) + rng.randn(100) * 0.01,
     ])
-
     model = AutoDetectMultiOutputRegressor.with_vendored_surrogates(cv=2)
-    model.fit(X, Y)
+    return model.fit(X, Y), X, Y
+
+
+def test_with_vendored_surrogates_runs(vendored_fit):
+    model, X, Y = vendored_fit
     preds = model.predict(X)
 
     assert preds.shape == Y.shape
+    assert np.all(np.isfinite(preds))
+    assert len(model.models_) == Y.shape[1]
+    # The near-noiseless outputs are easy; any sane winner fits them closely.
+    assert np.max(np.abs(preds - Y)) < 0.2
 
 
 def test_with_vendored_surrogates_includes_conformal_network():
@@ -91,39 +100,31 @@ def test_predict_without_fit_raises():
         model.predict(X)
 
 
-# def test_with_vendored_surrogates_runs(sample_data):
-#     X, y = sample_data
-#     model = AutoDetectMultiOutputRegressor.with_vendored_surrogates(cv=2)
-#     model.fit(X, y)
-#     preds = model.predict(X)
-#     assert preds.shape == y.shape
-
-
-def test_predict_return_std(monkeypatch, sample_data):
-    X, y = sample_data
-    # Patch the global `return_std` flag in the predict method
-    from multioutreg.model_selection import auto_detect
-
-    # Monkeypatch the global flag (simulate toggle behavior)
-    monkeypatch.setitem(auto_detect.__dict__, "return_std", True)
-
-    model = AutoDetectMultiOutputRegressor.with_vendored_surrogates(cv=2)
-    model.fit(X, y)
+def test_predict_return_std(vendored_fit):
+    model, X, Y = vendored_fit
     pred, std = model.predict(X, return_std=True)
-    assert pred.shape == y.shape
-    assert std.shape == y.shape
+    assert pred.shape == std.shape == Y.shape
+    np.testing.assert_allclose(pred, model.predict(X))
+    assert np.all(np.isfinite(std)) and np.all(std >= 0)
 
 
 def test_vendored_surrogates_with_multi_fidelity(sample_data):
+    from multioutreg.model_selection.auto_detect import drop_candidates
+
     X, y = sample_data
     model = AutoDetectMultiOutputRegressor.with_vendored_surrogates(
         cv=2, fidelity_levels=["single"]
     )
+    # The wrapping is what is under test; cheap candidates keep the search fast.
+    drop_candidates(model, set(model._model_names) - {"linear", "knn"})
     model.fit(X, y)
     preds = model.predict(X)
 
     assert preds.shape == y.shape
-    assert isinstance(model.models_[0], MultiFidelitySurrogate)
+    assert all(isinstance(m, MultiFidelitySurrogate) for m in model.models_)
+    # make_regression targets are linear in X, so the wrapped linear model wins.
+    np.testing.assert_allclose(preds, y, atol=1.0)
+
 
 def test_multi_output_candidate_scored_out_of_sample():
     # Regression: joint multi-output candidates were scored on training data,

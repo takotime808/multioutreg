@@ -93,6 +93,7 @@ _BRANCH = "main"
 # What each tutorial needs and roughly how long it runs (measured on a laptop).
 TUTORIALS = {
     "tutorials/multi_output_surrogates": ("shap (core install)", "about 2 minutes"),
+    "tutorials/joint_scores": ("core install (gpytorch for the multi-task GP)", "under a minute"),
     "tutorials/multi_fidelity_surrogates": ("core install", "under a minute"),
     "tutorials/active_learning_benchmarks": ("core install", "a few minutes"),
     "tutorials/cost_savings": ("core install", "about 10 minutes"),

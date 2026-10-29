@@ -13,6 +13,7 @@ from multioutreg.report.data import ReportData
 from multioutreg.report.render import (
     json_for_script,
     render_report,
+    render_styles,
     report_json_from_html,
     resolve_style,
 )
@@ -213,6 +214,21 @@ def test_resolve_style(monkeypatch):
     with pytest.raises(ValueError):
         monkeypatch.delenv("MOR_TEMPLATE_PATH")
         resolve_style("fancy")
+
+
+def test_render_styles(monkeypatch):
+    monkeypatch.delenv("MOR_TEMPLATE_PATH", raising=False)
+    calls = []
+
+    def fake(report_style, **kw):
+        calls.append((report_style, kw))
+        return f"<{report_style}>"
+
+    assert render_styles(fake, ("v2", "classic"), x=1) == {"v2": "<v2>", "classic": "<classic>"}
+    assert calls == [("v2", {"x": 1}), ("classic", {"x": 1})]
+    # A custom template forces classic, so "Both" renders it once.
+    monkeypatch.setenv("MOR_TEMPLATE_PATH", "t.html")
+    assert render_styles(fake, ("v2", "classic")) == {"classic": "<classic>"}
 
 
 def test_explain_with_real_model():

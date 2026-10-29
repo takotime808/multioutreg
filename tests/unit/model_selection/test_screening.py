@@ -41,10 +41,16 @@ def test_normality_is_tested_on_residuals_not_y():
     assert test_normality(X, y).passed
 
 
-def test_holm_correction_reduces_false_flags_on_noise():
+def test_holm_correction_reduces_false_flags_on_noise(monkeypatch):
     # Regression: 3 tests x n_outputs at alpha=0.05 were OR'ed with no
     # correction, so pure noise was flagged in about half the runs.
-    from multioutreg.model_selection.screening import ModelScreener
+    from multioutreg.model_selection import screening
+    from multioutreg.model_selection.screening import ModelScreener, TestResult
+
+    # The cross-validated RF check is not in the corrected family and is most of
+    # the fit time (200 fits here), so skip it; it has its own tests.
+    monkeypatch.setattr(screening, "test_nonlinear_dependency",
+                        lambda *a, **k: TestResult("stub", True, 0.0, None, "stub"))
 
     keys = ("any_nonlinear", "any_nonnormal", "any_heteroscedastic")
     raw = holm = 0

@@ -33,6 +33,11 @@ from multioutreg.surrogates.elastic_net_sklearn import ElasticNetSurrogate, Lass
 from multioutreg.surrogates.deep_ensemble_pytorch import DeepEnsembleSurrogate
 from multioutreg.surrogates.sparse_gp_gpytorch import SparseGPSurrogate
 from multioutreg.surrogates.quantile_sklearn import QuantileRegressionSurrogate
+from multioutreg.surrogates.pca_output import PCAOutputSurrogate
+from multioutreg.surrogates.multitask_gp_gpytorch import MultiTaskGPSurrogate
+from multioutreg.surrogates.gaussian_copula import GaussianCopulaSurrogate
+from multioutreg.surrogates.std_recalibration import StdRecalibratedSurrogate
+from multioutreg.surrogates.mfk_smt import MFKSurrogate
 
 __all__ = [
     "ConformalMixin",
@@ -68,5 +73,10 @@ __all__ = [
     "DeepEnsembleSurrogate",
     "SparseGPSurrogate",
     "QuantileRegressionSurrogate",
+    "PCAOutputSurrogate",
+    "MultiTaskGPSurrogate",
+    "GaussianCopulaSurrogate",
+    "StdRecalibratedSurrogate",
+    "MFKSurrogate",
 ]
 

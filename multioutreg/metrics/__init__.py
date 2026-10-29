@@ -11,6 +11,8 @@ from .multiobjective_regret import (
     front_epsilon_regret,
     RegretTracker,
 )
+from .joint_scores import energy_score, variogram_score, gaussian_samples
+
 __all__ = [
     "pareto_mask",
     "hypervolume",
@@ -21,4 +23,7 @@ __all__ = [
     "front_scalarized_regret",
     "front_epsilon_regret",
     "RegretTracker",
+    "energy_score",
+    "variogram_score",
+    "gaussian_samples",
 ]
