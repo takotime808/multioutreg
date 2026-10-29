@@ -64,8 +64,8 @@ from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, imp
 from multioutreg.utils.metric_utils import gaussian_uncertainty_metrics
 from multioutreg.report.verdict import summary_points as _summary_points
 from multioutreg.report.build import build_report_data
-from multioutreg.report.render import render_report, resolve_style
-from multioutreg.gui.report_controls import report_downloads, report_format_control
+from multioutreg.report.render import render_report, render_styles, resolve_style
+from multioutreg.gui.report_controls import report_downloads_all, report_format_control
 
 
 # ---------------------------------------------------------------------------
@@ -972,7 +972,7 @@ if uploaded_file:
         )
 
         description = st.text_area("Optional: project description")
-        report_style = report_format_control()
+        report_styles = report_format_control()
         submitted = st.form_submit_button("Run Grid Search")
 
     # ------------------------------------------------------------------
@@ -1232,7 +1232,9 @@ if uploaded_file:
         # Report
         try:
             with st.spinner("Generating HTML report…"):
-                html = generate_html_report(
+                html = render_styles(
+                    generate_html_report,
+                    report_styles,
                     model_type=f"{best_name} ({best_model.__class__.__name__})",
                     fidelity_levels=level_names,
                     output_names=output_names,
@@ -1263,10 +1265,9 @@ if uploaded_file:
                     baseline_label=_base_label,
                     grid_search_results=gs_sorted,
                     best_candidate_name=best_name,
-                    report_style=report_style,
                 )
         except Exception as exc:
             st.error(f"Report generation failed: {exc}")
             st.stop()
 
-        report_downloads(html, "mf_model_report.html", "mf_report")
+        report_downloads_all(html, "mf_model_report.html", "mf_report")
