@@ -105,3 +105,69 @@ def generate_pdp_plot(
 
         plots[name] = plot_to_b64(plot_fn)
     return plots
+
+
+def _predict_matrix(model: Any, X: np.ndarray, n_outputs: int) -> np.ndarray:
+    """``model.predict(X)`` as an ``(n, n_outputs)`` array (mean only)."""
+    if hasattr(model, "estimators_") and len(model.estimators_) == n_outputs:
+        try:
+            cols = [_OutputColumn(est, 0).predict(X) for est in model.estimators_]
+            return np.column_stack(cols)
+        except Exception:
+            pass
+    pred = model.predict(np.asarray(X, dtype=np.float64))
+    if isinstance(pred, tuple):
+        pred = pred[0]
+    pred = np.asarray(pred, dtype=np.float64).reshape(len(X), -1)
+    if pred.shape[1] != n_outputs:
+        raise ValueError(
+            f"model.predict returned {pred.shape[1]} columns, expected {n_outputs}")
+    return pred
+
+
+def pdp_grid_data(
+    model: Any,
+    X: np.ndarray,
+    output_names: List[str],
+    feature_names: List[str],
+    features: List[int] | None = None,
+    grid_resolution: int = 20,
+    max_rows: int = 150,
+    random_state: int = 0,
+) -> Dict[str, Any]:
+    """Partial dependence and ICE spread as numbers, for charts drawn elsewhere.
+
+    For each feature in ``features`` (default: all), the feature is set to each
+    of ``grid_resolution`` values between its 5th and 95th percentile on up to
+    ``max_rows`` rows of ``X`` and the model is evaluated. The mean over rows is
+    the partial dependence; the 10th and 90th percentiles of the individual
+    (ICE) curves show how much the effect varies between rows.
+
+    Returns ``{"features": [names], "grid": {feature: [x...]},
+    "curves": {output: {feature: {"mean": [...], "p10": [...], "p90": [...]}}}}``.
+    """
+    X = np.asarray(X, dtype=np.float64)
+    if features is None:
+        features = list(range(X.shape[1]))
+    rng = np.random.default_rng(random_state)
+    rows = X if len(X) <= max_rows else X[rng.choice(len(X), max_rows, replace=False)]
+    n_out = len(output_names)
+    grid: Dict[str, list] = {}
+    curves: Dict[str, Dict[str, dict]] = {name: {} for name in output_names}
+    for f in features:
+        fname = feature_names[f]
+        lo, hi = np.percentile(X[:, f], [5, 95])
+        values = np.unique(X[:, f])
+        xs = values if len(values) <= grid_resolution else np.linspace(lo, hi, grid_resolution)
+        stacked = np.repeat(rows[np.newaxis, :, :], len(xs), axis=0)
+        stacked[:, :, f] = xs[:, np.newaxis]
+        pred = _predict_matrix(model, stacked.reshape(-1, X.shape[1]), n_out)
+        ice = pred.reshape(len(xs), len(rows), n_out)  # (grid, rows, outputs)
+        grid[fname] = xs.tolist()
+        for j, name in enumerate(output_names):
+            curves[name][fname] = {
+                "mean": ice[:, :, j].mean(axis=1).tolist(),
+                "p10": np.percentile(ice[:, :, j], 10, axis=1).tolist(),
+                "p90": np.percentile(ice[:, :, j], 90, axis=1).tolist(),
+            }
+    return {"features": [feature_names[f] for f in features], "grid": grid, "curves": curves}
