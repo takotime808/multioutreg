@@ -8,6 +8,7 @@ Provides:
 - hypervolume_regret(Y_true, Y_pred, reference_point=None, minimize=True)
 - scalarized_regret(Y_true, Y_pred, weights, minimize=True, reduce="mean")
 - epsilon_regret(Y_true, Y_pred, minimize=True)
+- front_hypervolume_regret / front_scalarized_regret / front_epsilon_regret
 - RegretTracker(...) for iterative workflows (e.g., BO).
 
 Notes
@@ -17,9 +18,15 @@ Notes
 * By default, everything is oriented to **minimization**. If you have
   maximization objectives, flip their sign before calling, or pass
   minimize=[True/False,...] per objective (broadcasted inside).
-* Hypervolume regret := HV(true_front) - HV(pred_front).
-  (Ref point must be "worse" than all points; for minimization,
-   larger coordinate values are worse.)
+* The default regret functions are **decision regret**: the model picks the
+  candidates on the Pareto front of Y_pred, and the regret is how much worse
+  the *true* objectives at those picks are than the true optimum. Y_true and
+  Y_pred must hold the same candidates, row for row. An optimistic model
+  cannot score 0 by over-promising.
+* The front_* functions compare the predicted front with the true front
+  (front fidelity), e.g. HV(true_front) - HV(pred_front), clipped at 0.
+* Ref point must be "worse" than all points; for minimization,
+  larger coordinate values are worse.
 """
 
 from __future__ import annotations
@@ -220,63 +227,49 @@ def hypervolume(
     return _hypervolume_min(Y_[pareto_mask(Y_, True)], reference_point)
 
 
-# --------------------------- regret metrics ---------------------------
+# --------------------------- shared regret helpers ---------------------------
 
-def hypervolume_regret(
+def _paired_minimization(
     Y_true: np.ndarray,
     Y_pred: np.ndarray,
-    reference_point: Optional[np.ndarray] = None,
-    minimize: Union[bool, Iterable[bool]] = True,
-) -> float:
+    minimize: Union[bool, Iterable[bool]],
+) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Hypervolume regret: HV(true_front) - HV(pred_front)  (>= 0 ideally).
+    Orient both arrays to minimization and check that they hold the same candidates.
 
-    Y_true, Y_pred: arrays of shape (n, m) or (n,) with objective values.
+    Decision regret evaluates the true objectives at the rows the predictions pick,
+    so row ``i`` of ``Y_pred`` must be the prediction for row ``i`` of ``Y_true``.
     """
     Yt = _as_minimization(Y_true, minimize)
     Yp = _as_minimization(Y_pred, minimize)
+    if Yt.shape != Yp.shape:
+        raise ValueError(
+            "Decision regret needs Y_pred to be the predictions for the same candidates as "
+            f"Y_true (same shape); got {Yt.shape} and {Yp.shape}. To compare two fronts of "
+            "different sizes, use the front_* regret functions."
+        )
+    if Yt.shape[0] == 0:
+        raise ValueError("Decision regret needs at least one candidate.")
+    return Yt, Yp
 
-    mt = pareto_mask(Yt, True)
-    mp = pareto_mask(Yp, True)
-    Ft = Yt[mt]
-    Fp = Yp[mp]
 
-    if reference_point is None:
-        reference_point = _default_reference_point([Yt, Yp])
+def _check_reference_point(reference_point: np.ndarray, m: int) -> np.ndarray:
     reference_point = _ensure_2d(reference_point).reshape(-1)
-    if reference_point.size != Yt.shape[1]:
+    if reference_point.size != m:
         raise ValueError("reference_point dimensionality must match number of objectives.")
-
-    hv_t = _hypervolume_min(Ft, reference_point)
-    hv_p = _hypervolume_min(Fp, reference_point)
-    return float(max(0.0, hv_t - hv_p))
+    return reference_point
 
 
-def scalarized_regret(
-    Y_true: np.ndarray,
-    Y_pred: np.ndarray,
-    weights: np.ndarray,
-    minimize: Union[bool, Iterable[bool]] = True,
-    reduce: str = "mean",
-) -> Union[float, np.ndarray, Dict[str, float]]:
+def _normalize_weights(weights: np.ndarray, m: int) -> np.ndarray:
     """
-    Scalarized regret across weight vectors.
-
-    For each weight vector w (nonnegative, sum=1), compute:
-      r(w) = min_x w·Y_true(x) - min_x w·Y_pred(x)    (minimization)
+    Return weight vectors of shape (k, m), each clipped to >= 0 and normalized to sum to 1.
 
     Accepts weights in shapes:
       - (k, m)  -> usual case
       - (m,)    -> one weight vector
       - (k,)    -> only valid when m == 1 (auto-expands to (k, 1))
       - scalar  -> only valid when m == 1 (treated as weight=1.0)
-
-    Returns aggregated regret by `reduce` or per-weight array.
     """
-    Yt = _as_minimization(Y_true, minimize)  # (n, m)
-    Yp = _as_minimization(Y_pred, minimize)  # (n, m)
-    m = Yt.shape[1]
-
     W = np.asarray(weights, float)
 
     # Normalize shapes:
@@ -314,14 +307,10 @@ def scalarized_regret(
     if np.any(zero_rows):
         W[zero_rows, :] = 1.0
         row_sums = W.sum(axis=1, keepdims=True)
-    W = W / row_sums
+    return W / row_sums
 
-    # Compute best scalarized values
-    # (k, m) @ (m, n) -> (k, n), then min over points -> (k,)
-    s_true = np.min(W @ Yt.T, axis=1)   # (k,)
-    s_pred = np.min(W @ Yp.T, axis=1)   # (k,)
-    r = s_true - s_pred                 # (k,)
 
+def _reduce_regret(r: np.ndarray, reduce: str) -> Union[float, np.ndarray, Dict[str, float]]:
     if reduce == "none":
         return r
     if reduce == "mean":
@@ -341,7 +330,196 @@ def scalarized_regret(
     raise ValueError("reduce must be one of {'none','mean','median','max','dict'}.")
 
 
+def _additive_epsilon(A: np.ndarray, B: np.ndarray) -> float:
+    """
+    Additive epsilon indicator max_{b∈B} min_{a∈A} max_i (a_i - b_i), clipped at 0.
+    Returns inf when either set is empty.
+    """
+    if A.size == 0 or B.size == 0:
+        return float(np.inf)
+    eps_list = []
+    for b in B:
+        val = np.max(A - b[None, :], axis=1)  # (na,)
+        eps_list.append(np.min(val))
+    return float(max(0.0, np.max(eps_list)))
+
+
+# --------------------------- decision regret (default) ---------------------------
+
+def hypervolume_regret(
+    Y_true: np.ndarray,
+    Y_pred: np.ndarray,
+    reference_point: Optional[np.ndarray] = None,
+    minimize: Union[bool, Iterable[bool]] = True,
+) -> float:
+    """
+    Decision hypervolume regret: HV lost by acting on the model's picks.
+
+    The model picks the candidates on the Pareto front of ``Y_pred``; the regret is
+    ``HV(front(Y_true)) - HV(Y_true[picks])``, i.e. the true objectives are evaluated at
+    the designs the model selects. It is always >= 0, and 0 when the picks contain the
+    true front. An optimistic model is not rewarded: shifting every prediction by a
+    constant leaves the picks, and therefore the regret, unchanged.
+
+    Parameters
+    ----------
+    Y_true : array, shape (n, m) or (n,)
+        True objective values of n candidates.
+    Y_pred : array, same shape as ``Y_true``
+        Predicted objective values of the same candidates, row for row.
+    reference_point : array, shape (m,), optional
+        In the minimization convention. Defaults to 10% of the range of ``Y_true``
+        beyond its worst value (1.0 beyond it for a constant objective).
+    minimize : bool or array-like of bool
+        True for objectives to minimize, False for objectives to maximize.
+
+    See Also
+    --------
+    front_hypervolume_regret : compares the predicted front with the true front.
+    """
+    Yt, Yp = _paired_minimization(Y_true, Y_pred, minimize)
+    if reference_point is None:
+        reference_point = _default_reference_point([Yt])
+    reference_point = _check_reference_point(reference_point, Yt.shape[1])
+
+    picks = Yt[pareto_mask(Yp, True)]
+    hv_t = _hypervolume_min(Yt[pareto_mask(Yt, True)], reference_point)
+    hv_p = _hypervolume_min(picks[pareto_mask(picks, True)], reference_point)
+    return float(max(0.0, hv_t - hv_p))
+
+
+def scalarized_regret(
+    Y_true: np.ndarray,
+    Y_pred: np.ndarray,
+    weights: np.ndarray,
+    minimize: Union[bool, Iterable[bool]] = True,
+    reduce: str = "mean",
+) -> Union[float, np.ndarray, Dict[str, float]]:
+    """
+    Decision scalarized regret across weight vectors.
+
+    For each weight vector w (nonnegative, sum=1) the model picks the candidate that
+    minimizes the predicted ``w·Y_pred``; the regret is how much worse that pick is in
+    truth than the true best (minimization):
+
+      r(w) = w·Y_true(argmin_x w·Y_pred(x)) - min_x w·Y_true(x)    (>= 0)
+
+    Ties in the predicted argmin go to the first candidate. ``Y_true`` and ``Y_pred``
+    must hold the same candidates, row for row. Weight shapes are those accepted by
+    :func:`front_scalarized_regret`.
+
+    Returns aggregated regret by `reduce` or per-weight array.
+
+    See Also
+    --------
+    front_scalarized_regret : compares the best predicted and true scalarized values.
+    """
+    Yt, Yp = _paired_minimization(Y_true, Y_pred, minimize)  # (n, m) each
+    W = _normalize_weights(weights, Yt.shape[1])           # (k, m)
+
+    # (k, m) @ (m, n) -> (k, n)
+    S_true = W @ Yt.T
+    picks = np.argmin(W @ Yp.T, axis=1)                    # (k,)
+    r = S_true[np.arange(W.shape[0]), picks] - np.min(S_true, axis=1)
+    return _reduce_regret(r, reduce)
+
+
 def epsilon_regret(
+    Y_true: np.ndarray,
+    Y_pred: np.ndarray,
+    minimize: Union[bool, Iterable[bool]] = True,
+) -> float:
+    """
+    Decision additive epsilon regret under minimization.
+
+    With ``A = Y_true[picks]`` (the true values at the predicted Pareto front) and
+    ``B`` the true front, returns ``max_{b∈B} min_{a∈A} max_i (a_i - b_i)``: the
+    smallest amount every objective of the picks would have to improve for them to
+    weakly dominate the true front. 0.0 means the picks contain the true front.
+    ``Y_true`` and ``Y_pred`` must hold the same candidates, row for row.
+
+    See Also
+    --------
+    front_epsilon_regret : epsilon indicator of the predicted front itself.
+    """
+    Yt, Yp = _paired_minimization(Y_true, Y_pred, minimize)
+    picks = Yt[pareto_mask(Yp, True)]
+    return _additive_epsilon(picks, Yt[pareto_mask(Yt, True)])
+
+
+# --------------------------- front comparison ---------------------------
+
+def front_hypervolume_regret(
+    Y_true: np.ndarray,
+    Y_pred: np.ndarray,
+    reference_point: Optional[np.ndarray] = None,
+    minimize: Union[bool, Iterable[bool]] = True,
+) -> float:
+    """
+    Front hypervolume regret: HV(true_front) - HV(pred_front), clipped at 0.
+
+    Compares the *predicted* front with the true front, so it measures how well the
+    predictions reproduce the front, not what acting on them costs. Clipping means an
+    optimistic model (predicted front dominating the true one) scores 0; swap the
+    arguments to measure optimism. ``Y_true`` and ``Y_pred`` may have different
+    numbers of rows.
+
+    Y_true, Y_pred: arrays of shape (n, m) or (n,) with objective values.
+    The default reference point is computed from both arrays.
+    """
+    Yt = _as_minimization(Y_true, minimize)
+    Yp = _as_minimization(Y_pred, minimize)
+
+    mt = pareto_mask(Yt, True)
+    mp = pareto_mask(Yp, True)
+    Ft = Yt[mt]
+    Fp = Yp[mp]
+
+    if reference_point is None:
+        reference_point = _default_reference_point([Yt, Yp])
+    reference_point = _check_reference_point(reference_point, Yt.shape[1])
+
+    hv_t = _hypervolume_min(Ft, reference_point)
+    hv_p = _hypervolume_min(Fp, reference_point)
+    return float(max(0.0, hv_t - hv_p))
+
+
+def front_scalarized_regret(
+    Y_true: np.ndarray,
+    Y_pred: np.ndarray,
+    weights: np.ndarray,
+    minimize: Union[bool, Iterable[bool]] = True,
+    reduce: str = "mean",
+) -> Union[float, np.ndarray, Dict[str, float]]:
+    """
+    Front scalarized regret across weight vectors.
+
+    For each weight vector w (nonnegative, sum=1), compute:
+      r(w) = min_x w·Y_true(x) - min_x w·Y_pred(x)    (minimization)
+
+    Negative when the predictions are pessimistic, positive when optimistic.
+
+    Accepts weights in shapes:
+      - (k, m)  -> usual case
+      - (m,)    -> one weight vector
+      - (k,)    -> only valid when m == 1 (auto-expands to (k, 1))
+      - scalar  -> only valid when m == 1 (treated as weight=1.0)
+
+    Returns aggregated regret by `reduce` or per-weight array.
+    """
+    Yt = _as_minimization(Y_true, minimize)  # (n, m)
+    Yp = _as_minimization(Y_pred, minimize)  # (n, m)
+    W = _normalize_weights(weights, Yt.shape[1])
+
+    # Compute best scalarized values
+    # (k, m) @ (m, n) -> (k, n), then min over points -> (k,)
+    s_true = np.min(W @ Yt.T, axis=1)   # (k,)
+    s_pred = np.min(W @ Yp.T, axis=1)   # (k,)
+    r = s_true - s_pred                 # (k,)
+    return _reduce_regret(r, reduce)
+
+
+def front_epsilon_regret(
     Y_true: np.ndarray,
     Y_pred: np.ndarray,
     minimize: Union[bool, Iterable[bool]] = True,
@@ -356,23 +534,7 @@ def epsilon_regret(
     Yp = _as_minimization(Y_pred, minimize)
     Ft = Yt[pareto_mask(Yt, True)]
     Fp = Yp[pareto_mask(Yp, True)]
-
-    m = Yt.shape[1]
-    if m == 1:
-        # In 1D: max_b min_a (a - b) = min_a a - min_b b
-        eps = float(np.min(Fp[:, 0]) - np.min(Ft[:, 0])) if (Fp.size and Ft.size) else np.inf
-        return float(max(0.0, eps))
-
-    # For each b in true front, find best a in predicted front minimizing max_i(a_i - b_i)
-    if Fp.size == 0 or Ft.size == 0:
-        return float(np.inf)
-
-    eps_list = []
-    for b in Ft:
-        val = np.max(Fp - b[None, :], axis=1)  # (na,)
-        eps_list.append(np.min(val))
-    eps = float(np.max(eps_list))
-    return max(0.0, eps)
+    return _additive_epsilon(Fp, Ft)
 
 
 # --------------------------- iterative tracker ---------------------------
@@ -380,7 +542,11 @@ def epsilon_regret(
 @dataclass
 class RegretTracker:
     """
-    Track regret over iterations of an optimization loop.
+    Track decision regret over iterations of an optimization loop.
+
+    Each step records :func:`hypervolume_regret`, :func:`scalarized_regret` (mean over
+    the weight vectors) and :func:`epsilon_regret`, so ``Y_true`` and ``Y_pred`` must
+    hold the same candidates, row for row.
 
     Example
     -------
@@ -412,10 +578,7 @@ class RegretTracker:
 
         ref = self.reference_point
         if ref is None:
-            ref = _default_reference_point([
-                _as_minimization(Y_true, self.minimize),
-                _as_minimization(Y_pred, self.minimize)
-            ])
+            ref = _default_reference_point([_as_minimization(Y_true, self.minimize)])
 
         hv = hypervolume_regret(Y_true, Y_pred, reference_point=ref, minimize=self.minimize)
         sc = scalarized_regret(Y_true, Y_pred, weights=self.weights, minimize=self.minimize, reduce="mean")

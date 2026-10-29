@@ -731,7 +731,7 @@ def _predict_highest(
 ) -> tuple:
     """Return highest-fidelity ``(mean, std)`` predictions as 2-D float arrays."""
     if cand["mf_type"] == "independent":
-        # MultiFidelitySurrogate.predict defaults to the *lowest* level.
+        # Explicit, so this does not depend on MultiFidelitySurrogate.predict's default.
         y_pred, y_std = model.predict(X, level=level_names[-1], return_std=True)
     else:
         y_pred, y_std = model.predict(X, return_std=True)
@@ -764,9 +764,8 @@ class _OutputColumn(RegressorMixin, BaseEstimator):
 class _HighestFidelityView:
     """Expose a fitted multi-fidelity model's highest-fidelity predictions.
 
-    ``MultiFidelitySurrogate.predict`` defaults to the lowest level and none of
-    the multi-fidelity models have ``estimators_``, so SHAP / PDP would
-    otherwise explain the wrong level or be skipped.
+    None of the multi-fidelity models have ``estimators_``, so SHAP / PDP would
+    otherwise be skipped; the view also pins the level explicitly.
     """
 
     def __init__(self, model: Any, cand: dict, level_names: List[str], n_outputs: int):

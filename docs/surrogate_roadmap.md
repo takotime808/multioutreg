@@ -12,7 +12,7 @@ multi-output capabilities of `multioutreg`. See
 |---|---|---|
 | Active learning | Acquisitions, query-by-committee, batch selection, the loop, cost-aware multi-fidelity acquisition (`multioutreg.active`, prototype) | Max-value entropy search, CLI and GUI, NaN std in Auto-Detect |
 | Benchmarks | 17 problems in `multioutreg.active.benchmarks.BENCHMARKS`; AL, cost-savings, multi-output and hypervolume notebooks | DTLZ2 and the rest of the port list; the multi-fidelity and Himmelblau notebooks |
-| Multi-objective metrics | Exact N-D `hypervolume()` (#36) | Decision regret as the default |
+| Multi-objective metrics | Exact N-D `hypervolume()` (#36); decision regret as the default, front comparison as `front_*` | — |
 | Multi-fidelity surrogates | — | All six candidates; the `rho` and Stacked VFM interval follow-ups |
 | Multi-output surrogates | — | All five candidates; joint metrics and conformal regions |
 | Cross-cutting | Benchmark suite | Items 2–12 |
@@ -218,11 +218,9 @@ systematic bi-fidelity versions of classic optimization functions.
 
 ### Issues to Resolve First
 
-- **Default fidelity level:** `MultiFidelitySurrogate.predict` uses the
-  *lowest* level when `level` is not given (see the open follow-up to item 1c
-  in the [audit checklist](AUDIT_CHECKLIST.md)). It should default to the
-  highest level, or require `level`, before the multi-fidelity surrogates are
-  added to Auto-Detect.
+- ~~**Default fidelity level**~~: done. `MultiFidelitySurrogate.predict` now
+  uses the *highest* level (the last in `fidelity_levels`) when `level` is not
+  given (follow-up to item 1c in the [audit checklist](AUDIT_CHECKLIST.md)).
 - **NaN std downstream:** returning NaN instead of zero std (the first issue
   under [Active Learning](#active-learning)) first needs NaN handling in the
   GUI and report plots, which pass `best_std` directly to uncertainty-toolbox.
@@ -230,7 +228,7 @@ systematic bi-fidelity versions of classic optimization functions.
 ### Open Follow-ups from Branch Integration
 
 Left over after the old feature branches were rebuilt on `main` (#29–#31).
-All are still open as of the last review:
+Open unless marked done:
 
 - **Fitted `rho` in `AdditiveCorrectionVFM`:** found by
   `examples/mf_surrogates.ipynb` (4-level Forrester, reference XC4). `rho` is
@@ -248,28 +246,23 @@ All are still open as of the last review:
 - **More benchmark notebooks:** the Forrester notebook is the first piece of
   the benchmark suite (candidate 1); the notebooks planned under
   [Benchmark Suite](#benchmark-suite) are the next pieces.
-- **UMAP import in the sampling figure:** `figures/umap_plot_classify.py`
-  falls back to PCA when UMAP fails, but still runs `import umap` at module
-  level, so the module cannot be imported without `umap-learn` and the
-  fallback never runs in that case. Move the import into the function and add
-  a test that patches the import to fail and expects `"projection": "PCA"`.
-- **Regret semantics in `multioutreg.metrics`:** `hypervolume_regret(Y_true, Y_pred)`,
-  `scalarized_regret` and `epsilon_regret` still compare the *predicted* front with the
-  true front, the definition the branch-integration review flagged for change. With the
-  difference clipped at zero, an optimistic model scores zero: in the multi-output tutorial a
-  ZDT1 surrogate whose `f2` is shifted down by 0.5 scores 0 while the accurate surrogate scores
-  0.042, although both pick the same designs. Decision regret evaluates the true objectives at
-  the designs the model selects (`hypervolume_regret(Y_true, Y_true[pareto_mask(Y_pred)])`;
-  for scalarized regret, `w·Y_true(argmin w·Y_pred) − min w·Y_true`). Make it the default,
-  keep the front comparison under a different name, and update the GUI page 01 and report
-  wording. #36 made the hypervolume exact in any dimension, exposed `hypervolume()`, and
-  showed decision regret in `examples/hypervolume_regret.ipynb` (section 5), but the library
-  functions still compare fronts.
-- **Conformal predictors and package surrogates:** `SplitConformalPredictor` and
-  `CVPlusConformalPredictor` copy their estimator with `sklearn.clone`, which fails on the
-  package's own surrogates (`GaussianProcessSurrogate` has no `get_params`). The tutorials pass
-  scikit-learn regressors instead. Either implement `get_params` / `set_params` on
-  `BaseSurrogate` or reuse `_clone_surrogate` from `auto_detect.py`.
+- ~~**UMAP import in the sampling figure**~~: done. `figures/umap_plot_classify.py`
+  imports `umap` inside `generate_umap_plot`, so the module imports without
+  `umap-learn` and the PCA fallback runs; a test reloads it with `umap` unavailable.
+- ~~**Regret semantics in `multioutreg.metrics`**~~: done. `hypervolume_regret`,
+  `scalarized_regret` and `epsilon_regret` are now decision regret: the true objectives
+  evaluated at the candidates on the predicted Pareto front, so `Y_true` and `Y_pred` must be
+  the same candidates. An optimistic model no longer scores 0. The front comparison is kept as
+  `front_hypervolume_regret`, `front_scalarized_regret` and `front_epsilon_regret`;
+  `RegretTracker`, GUI page 01, the report text and both regret notebooks use the new
+  semantics. Caveat: identical predicted rows are mutually non-dominated, so a constant
+  predictor picks every candidate and scores 0 hypervolume and ε regret (documented in
+  `multioutreg/metrics/README.md`).
+- ~~**Conformal predictors and package surrogates**~~: done. `CloneMixin` (inherited by every
+  `BaseSurrogate` and `ConformalMixin` surrogate) supports `sklearn.clone` and provides generic
+  `get_params` / `set_params` built from the constructor arguments, so `SplitConformalPredictor`
+  and `CVPlusConformalPredictor` accept the package's own surrogates (tested for every plain
+  surrogate). Using them in `GridSearchCV` still needs `__sklearn_tags__` (scikit-learn ≥ 1.6).
 - **SHAP figure run time:** `figures.shap_multioutput.generate_shap_plot` uses SHAP's exact
   explainer, which took 86 s for 100 rows of the 10-input Friedman 1 problem with a GP. A
   `KernelExplainer` on k-means background data gave the same ranking in about 2 s. Cap the
@@ -288,11 +281,11 @@ uses dependencies already declared in `pyproject.toml`.
 **Correctness fixes first.** These are small and change results users already
 see:
 
-1. Decision regret as the default in `multioutreg.metrics`.
-2. `MultiFidelitySurrogate.predict` defaulting to the highest level.
-3. `get_params` / `set_params` on `BaseSurrogate`, so the conformal predictors
-   accept the package's own surrogates.
-4. A lazy `umap` import in `figures/umap_plot_classify.py`.
+1. ~~Decision regret as the default in `multioutreg.metrics`.~~ Done.
+2. ~~`MultiFidelitySurrogate.predict` defaulting to the highest level.~~ Done.
+3. ~~`get_params` / `set_params` on `BaseSurrogate`, so the conformal predictors
+   accept the package's own surrogates.~~ Done (in `CloneMixin`).
+4. ~~A lazy `umap` import in `figures/umap_plot_classify.py`.~~ Done.
 
 **Then the original first batch, minus the benchmark suite:**
 

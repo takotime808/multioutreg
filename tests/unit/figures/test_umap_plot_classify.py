@@ -1,5 +1,8 @@
 # Copyright (c) 2025 takotime808
 
+import importlib
+import sys
+
 import pytest
 import numpy as np
 from unittest.mock import patch
@@ -11,9 +14,7 @@ from multioutreg.sampling.detect import SamplingDetection
 @patch("multioutreg.figures.umap_plot_classify.plot_to_b64")
 def test_generate_umap_plot_with_input(mock_plot_to_b64, real_umap):
     """The one test that runs the real umap package (catches API breaks)."""
-    from multioutreg.figures import umap_plot_classify
-
-    assert umap_plot_classify.umap is real_umap
+    assert sys.modules["umap"] is real_umap  # what the function imports
     mock_plot_to_b64.side_effect = lambda fn: (fn() or "base64umap")
     X = np.random.default_rng(0).random((100, 5))
     b64img, explanation = generate_umap_plot(X)
@@ -51,7 +52,7 @@ def test_generate_umap_plot_too_few_points(mock_plot_to_b64):
 @patch("multioutreg.figures.umap_plot_classify.plot_to_b64")
 def test_generate_umap_plot_passes_umap_options(mock_plot_to_b64):
     mock_plot_to_b64.side_effect = lambda fn: (fn() or "base64img")
-    with patch("multioutreg.figures.umap_plot_classify.umap.UMAP") as mock_umap:
+    with patch("umap.UMAP") as mock_umap:
         mock_umap.return_value.fit_transform.side_effect = lambda X: X[:, :2]
         generate_umap_plot(np.random.rand(10, 3), n_neighbors=30, min_dist=0.5, labels=np.arange(10))
     kwargs = mock_umap.call_args.kwargs
@@ -70,9 +71,30 @@ def test_generate_umap_plot_falls_back_to_pca(mock_plot_to_b64):
         return "base64img"
 
     mock_plot_to_b64.side_effect = run
-    with patch("multioutreg.figures.umap_plot_classify.umap.UMAP", side_effect=RuntimeError("boom")):
+    with patch("umap.UMAP", side_effect=RuntimeError("boom")):
         with pytest.warns(UserWarning, match="PCA"):
             b64img, explanation = generate_umap_plot(np.random.rand(30, 3))
+    assert b64img == "base64img"
+    assert "->" in explanation
+    assert titles[0].startswith("PCA")
+
+
+def test_generate_umap_plot_without_umap_installed(monkeypatch):
+    titles = []
+
+    def run(fn):
+        fn()
+        import matplotlib.pyplot as plt
+        titles.append(plt.gca().get_title())
+        return "base64img"
+
+    monkeypatch.setitem(sys.modules, "umap", None)  # ``import umap`` now raises ImportError
+    from multioutreg.figures import umap_plot_classify
+
+    module = importlib.reload(umap_plot_classify)  # the module itself imports without umap
+    with patch.object(module, "plot_to_b64", side_effect=run):
+        with pytest.warns(UserWarning, match="PCA"):
+            b64img, explanation = module.generate_umap_plot(np.random.rand(30, 3))
     assert b64img == "base64img"
     assert "->" in explanation
     assert titles[0].startswith("PCA")

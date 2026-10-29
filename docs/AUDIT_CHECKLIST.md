@@ -55,8 +55,9 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   - Also fixed: "MultiFidelity+…" candidates were scored with their *lowest*-fidelity model,
     because `MultiFidelitySurrogate.predict` defaults to `fidelity_levels[0]` and the page passed
     no `level` (same for conformal calibration). The page now calls `_predict_highest`.
-  - [ ] Follow-up: the library default (`level=None` → lowest) is a trap for other callers;
+  - [x] Follow-up: the library default (`level=None` → lowest) is a trap for other callers;
     consider defaulting to the highest level or making `level` required.
+    *Done:* `level=None` now uses the highest level (`fidelity_levels[-1]`).
 
 - [x] **7. "Std" is actually an interval half-width.** `screening.py` `_GBQ` [verified: 1.53 vs true 1.0],
   `gui/Grid_Search_Surrogate_Models.py` (`GradientBoostingWithUncertainty`),

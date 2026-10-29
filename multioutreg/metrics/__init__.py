@@ -6,6 +6,9 @@ from .multiobjective_regret import (
     hypervolume_regret,
     scalarized_regret,
     epsilon_regret,
+    front_hypervolume_regret,
+    front_scalarized_regret,
+    front_epsilon_regret,
     RegretTracker,
 )
 __all__ = [
@@ -14,5 +17,8 @@ __all__ = [
     "hypervolume_regret",
     "scalarized_regret",
     "epsilon_regret",
+    "front_hypervolume_regret",
+    "front_scalarized_regret",
+    "front_epsilon_regret",
     "RegretTracker",
 ]

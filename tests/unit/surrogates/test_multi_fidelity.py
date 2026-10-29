@@ -43,3 +43,12 @@ def test_invalid_level(sample_data):
     mfs.fit({"low": sample_data["low"]})
     with pytest.raises(ValueError):
         mfs.predict(sample_data["high"][0], level="high")
+
+def test_predict_defaults_to_highest_level():
+    X = np.linspace(0.0, 1.0, 6).reshape(-1, 1)
+    data = {"low": (X, -X), "high": (X, 3.0 * X)}
+    mfs = MultiFidelitySurrogate(LinearRegressionSurrogate, ["low", "high"]).fit(data)
+    np.testing.assert_allclose(mfs.predict(X), 3.0 * X, atol=1e-8)
+    mean, _ = mfs.predict(X, return_std=True)
+    np.testing.assert_array_equal(mean, mfs.predict(X, level="high"))
+    np.testing.assert_allclose(mfs.predict(X, level="low"), -X, atol=1e-8)
