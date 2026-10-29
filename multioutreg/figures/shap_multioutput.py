@@ -222,3 +222,59 @@ def plot_multioutput_shap_bar_subplots_no_tree(
     else:
         plt.show()
     return fig
+
+def shap_importance_table(
+    model: Any,
+    X: np.ndarray,
+    output_names: List[str],
+    feature_names: Sequence[str],
+    max_rows: int = 100,
+    background_rows: int = 50,
+    random_state: int = 0,
+) -> Dict[str, Dict[str, float]]:
+    """Mean absolute SHAP value per feature for each output, as numbers.
+
+    Explains up to ``max_rows`` rows of ``X`` against a background sample of
+    ``background_rows``. Per-output estimators in ``model.estimators_`` get a
+    fast ``TreeExplainer`` when they support it; anything else uses SHAP's
+    model-agnostic explainer on column ``i`` of ``model.predict``.
+
+    Returns ``{output: {feature: mean_abs_shap}}``. Raises if SHAP fails for
+    every output.
+    """
+    X = np.asarray(X, dtype=np.float64)
+    rng = np.random.default_rng(random_state)
+    rows = X if len(X) <= max_rows else X[rng.choice(len(X), max_rows, replace=False)]
+    bg = X if len(X) <= background_rows else X[rng.choice(len(X), background_rows, replace=False)]
+    table: Dict[str, Dict[str, float]] = {}
+    errors = []
+    for i, name in enumerate(output_names):
+        est = None
+        if hasattr(model, "estimators_") and i < len(model.estimators_):
+            est = model.estimators_[i]
+
+        def predict_fn(X_, _i=i, _est=est):
+            src = _est if _est is not None else model
+            pred = src.predict(np.asarray(X_, dtype=np.float64))
+            if isinstance(pred, tuple):
+                pred = pred[0]
+            pred = np.asarray(pred, dtype=np.float64).reshape(len(X_), -1)
+            return pred[:, 0] if pred.shape[1] == 1 else pred[:, _i]
+
+        values = None
+        if est is not None:
+            try:
+                values = np.asarray(shap.TreeExplainer(est).shap_values(rows))
+            except Exception:
+                values = None
+        try:
+            if values is None or values.shape != rows.shape:
+                explanation = shap.Explainer(predict_fn, bg, seed=random_state)(rows)
+                values = np.asarray(getattr(explanation, "values", explanation))
+            means = np.abs(values).mean(axis=0)
+            table[name] = {str(f): float(v) for f, v in zip(feature_names, means)}
+        except Exception as exc:
+            errors.append(f"{name}: {type(exc).__name__}: {exc}")
+    if not table:
+        raise RuntimeError("SHAP failed for every output (" + "; ".join(errors) + ")")
+    return table
