@@ -97,6 +97,10 @@ SPECS = {
     },
     "GaussianCopulaSurrogate": _plain(cv=3, random_state=0),
     "StdRecalibratedSurrogate": _plain(criterion="nll", cv=3, random_state=0),
+    "MFKSurrogate": {
+        "kind": "mfk",
+        "requires": ("multioutreg.surrogates.mfk_smt", "_MFK_AVAILABLE"),
+    },
 }
 
 SURROGATE_NAMES = sorted(SPECS)
@@ -142,6 +146,8 @@ def _build_and_fit(name, X, Y):
         return cls(lo_surrogate_cls=linear, hi_surrogate_cls=linear, oof_cv=3).fit(
             {"lo": (X, Y_lo), "hi": (X, Y)}
         )
+    if kind == "mfk":
+        return cls(["lo", "hi"], n_start=2).fit({"lo": (X, Y_lo), "hi": (X[::2], Y[::2])})
     raise AssertionError(f"unknown spec kind {kind!r}")
 
 
