@@ -1,0 +1,285 @@
+multioutreg.metrics
+===================
+
+.. py:module:: multioutreg.metrics
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/metrics/joint_scores/index
+   /autoapi/multioutreg/metrics/multiobjective_regret/index
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.metrics.RegretTracker
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.metrics.pareto_mask
+   multioutreg.metrics.hypervolume
+   multioutreg.metrics.hypervolume_regret
+   multioutreg.metrics.scalarized_regret
+   multioutreg.metrics.epsilon_regret
+   multioutreg.metrics.front_hypervolume_regret
+   multioutreg.metrics.front_scalarized_regret
+   multioutreg.metrics.front_epsilon_regret
+   multioutreg.metrics.energy_score
+   multioutreg.metrics.variogram_score
+   multioutreg.metrics.gaussian_samples
+
+
+Package Contents
+----------------
+
+.. py:function:: pareto_mask(Y: numpy.ndarray, minimize: Union[bool, Iterable[bool]] = True) -> numpy.ndarray
+
+   Return a boolean mask for non-dominated points (Pareto set) under minimization convention.
+
+   :param Y: Objective values.
+   :type Y: array, shape (n, m) or (n,)
+   :param minimize: True for objectives to minimize, False for maximize.
+   :type minimize: bool or array-like of bool
+
+   :returns: **mask** -- True if Y[i] is Pareto-efficient (non-dominated).
+   :rtype: array, shape (n,)
+
+
+.. py:function:: hypervolume(Y: numpy.ndarray, reference_point: Optional[numpy.ndarray] = None, minimize: Union[bool, Iterable[bool]] = True) -> float
+
+   Exact hypervolume dominated by the Pareto front of ``Y``, in any number of objectives.
+
+   :param Y: Objective values; dominated rows are ignored.
+   :type Y: array, shape (n, m) or (n,)
+   :param reference_point: Point worse than every point of interest, given in the minimization
+                           convention: for objectives with ``minimize=False`` pass the *negated*
+                           coordinate. Points not strictly better than it in every objective add
+                           nothing. Defaults to 10% of the range beyond the worst value of each
+                           objective (1.0 beyond it for a constant objective).
+   :type reference_point: array, shape (m,), optional
+   :param minimize: True for objectives to minimize, False for objectives to maximize.
+   :type minimize: bool or array-like of bool
+
+   :returns: The hypervolume (length for 1 objective, area for 2, volume for 3+).
+   :rtype: float
+
+
+.. py:function:: hypervolume_regret(Y_true: numpy.ndarray, Y_pred: numpy.ndarray, reference_point: Optional[numpy.ndarray] = None, minimize: Union[bool, Iterable[bool]] = True) -> float
+
+   Decision hypervolume regret: HV lost by acting on the model's picks.
+
+   The model picks the candidates on the Pareto front of ``Y_pred``; the regret is
+   ``HV(front(Y_true)) - HV(Y_true[picks])``, i.e. the true objectives are evaluated at
+   the designs the model selects. It is always >= 0, and 0 when the picks contain the
+   true front. An optimistic model is not rewarded: shifting every prediction by a
+   constant leaves the picks, and therefore the regret, unchanged.
+
+   :param Y_true: True objective values of n candidates.
+   :type Y_true: array, shape (n, m) or (n,)
+   :param Y_pred: Predicted objective values of the same candidates, row for row.
+   :type Y_pred: array, same shape as ``Y_true``
+   :param reference_point: In the minimization convention. Defaults to 10% of the range of ``Y_true``
+                           beyond its worst value (1.0 beyond it for a constant objective).
+   :type reference_point: array, shape (m,), optional
+   :param minimize: True for objectives to minimize, False for objectives to maximize.
+   :type minimize: bool or array-like of bool
+
+   .. seealso::
+
+      :obj:`front_hypervolume_regret`
+          compares the predicted front with the true front.
+
+
+.. py:function:: scalarized_regret(Y_true: numpy.ndarray, Y_pred: numpy.ndarray, weights: numpy.ndarray, minimize: Union[bool, Iterable[bool]] = True, reduce: str = 'mean') -> Union[float, numpy.ndarray, Dict[str, float]]
+
+   Decision scalarized regret across weight vectors.
+
+   For each weight vector w (nonnegative, sum=1) the model picks the candidate that
+   minimizes the predicted ``w·Y_pred``; the regret is how much worse that pick is in
+   truth than the true best (minimization):
+
+     r(w) = w·Y_true(argmin_x w·Y_pred(x)) - min_x w·Y_true(x)    (>= 0)
+
+   Ties in the predicted argmin go to the first candidate. ``Y_true`` and ``Y_pred``
+   must hold the same candidates, row for row. Weight shapes are those accepted by
+   :func:`front_scalarized_regret`.
+
+   Returns aggregated regret by `reduce` or per-weight array.
+
+   .. seealso::
+
+      :obj:`front_scalarized_regret`
+          compares the best predicted and true scalarized values.
+
+
+.. py:function:: epsilon_regret(Y_true: numpy.ndarray, Y_pred: numpy.ndarray, minimize: Union[bool, Iterable[bool]] = True) -> float
+
+   Decision additive epsilon regret under minimization.
+
+   With ``A = Y_true[picks]`` (the true values at the predicted Pareto front) and
+   ``B`` the true front, returns ``max_{b∈B} min_{a∈A} max_i (a_i - b_i)``: the
+   smallest amount every objective of the picks would have to improve for them to
+   weakly dominate the true front. 0.0 means the picks contain the true front.
+   ``Y_true`` and ``Y_pred`` must hold the same candidates, row for row.
+
+   .. seealso::
+
+      :obj:`front_epsilon_regret`
+          epsilon indicator of the predicted front itself.
+
+
+.. py:function:: front_hypervolume_regret(Y_true: numpy.ndarray, Y_pred: numpy.ndarray, reference_point: Optional[numpy.ndarray] = None, minimize: Union[bool, Iterable[bool]] = True) -> float
+
+   Front hypervolume regret: HV(true_front) - HV(pred_front), clipped at 0.
+
+   Compares the *predicted* front with the true front, so it measures how well the
+   predictions reproduce the front, not what acting on them costs. Clipping means an
+   optimistic model (predicted front dominating the true one) scores 0; swap the
+   arguments to measure optimism. ``Y_true`` and ``Y_pred`` may have different
+   numbers of rows.
+
+   Y_true, Y_pred: arrays of shape (n, m) or (n,) with objective values.
+   The default reference point is computed from both arrays.
+
+
+.. py:function:: front_scalarized_regret(Y_true: numpy.ndarray, Y_pred: numpy.ndarray, weights: numpy.ndarray, minimize: Union[bool, Iterable[bool]] = True, reduce: str = 'mean') -> Union[float, numpy.ndarray, Dict[str, float]]
+
+   Front scalarized regret across weight vectors.
+
+   For each weight vector w (nonnegative, sum=1), compute:
+     r(w) = min_x w·Y_true(x) - min_x w·Y_pred(x)    (minimization)
+
+   Negative when the predictions are pessimistic, positive when optimistic.
+
+   Accepts weights in shapes:
+     - (k, m)  -> usual case
+     - (m,)    -> one weight vector
+     - (k,)    -> only valid when m == 1 (auto-expands to (k, 1))
+     - scalar  -> only valid when m == 1 (treated as weight=1.0)
+
+   Returns aggregated regret by `reduce` or per-weight array.
+
+
+.. py:function:: front_epsilon_regret(Y_true: numpy.ndarray, Y_pred: numpy.ndarray, minimize: Union[bool, Iterable[bool]] = True) -> float
+
+   Additive epsilon indicator I_ε(A, B) under minimization, with A=pred_front, B=true_front.
+   Smaller is better; regret is max_{b∈B} min_{a∈A} max_i (a_i - b_i).
+
+   Returns a nonnegative float (0.0 means predicted front weakly dominates B).
+
+
+.. py:class:: RegretTracker
+
+   Track decision regret over iterations of an optimization loop.
+
+   Each step records :func:`hypervolume_regret`, :func:`scalarized_regret` (mean over
+   the weight vectors) and :func:`epsilon_regret`, so ``Y_true`` and ``Y_pred`` must
+   hold the same candidates, row for row.
+
+   .. admonition:: Example
+
+      tracker = RegretTracker(minimize=[True, True, True])
+      for t in range(T):
+          # Y_true_batch, Y_pred_batch are (n_t, m)
+          tracker.step(Y_true_batch, Y_pred_batch)
+
+      hist = tracker.history  # dict of lists
+
+
+   .. py:attribute:: minimize
+      :type:  Union[bool, Iterable[bool]]
+      :value: True
+
+
+
+   .. py:attribute:: reference_point
+      :type:  Optional[numpy.ndarray]
+      :value: None
+
+
+
+   .. py:attribute:: weights
+      :type:  Optional[numpy.ndarray]
+      :value: None
+
+
+
+   .. py:attribute:: n_weight_samples
+      :type:  int
+      :value: 16
+
+
+
+   .. py:attribute:: history
+      :type:  Dict[str, List[float]]
+
+
+   .. py:method:: step(Y_true: numpy.ndarray, Y_pred: numpy.ndarray) -> Dict[str, float]
+
+
+.. py:function:: energy_score(Y_true, samples, average=True)
+
+   Energy score (Gneiting & Raftery 2007), the multivariate CRPS.
+
+   ``ES = E||X - y|| - 0.5 E||X - X'||`` with ``X, X'`` independent draws from
+   the predictive distribution, estimated from the samples. It is proper, and
+   reduces to the CRPS for a single output.
+
+   :param Y_true:
+   :type Y_true: array-like of shape (n_rows, n_outputs)
+   :param samples:
+   :type samples: array-like of shape (n_rows, n_samples, n_outputs)
+   :param average: Return the mean over rows (default) or the per-row scores.
+   :type average: bool
+
+
+.. py:function:: variogram_score(Y_true, samples, p=0.5, weights=None, average=True)
+
+   Variogram score of order ``p`` (Scheuerer & Hamill 2015).
+
+   ``VS_p = sum_{i,j} w_ij (|y_i - y_j|^p - E|X_i - X_j|^p)^2`` over all output
+   pairs. It compares the observed differences between outputs with those the
+   predictive distribution expects, so unlike the energy score it is
+   sensitive to a wrong correlation structure even when the marginals are
+   right. It ignores errors that shift every output by the same amount, so
+   report it alongside a marginal score.
+
+   :param Y_true:
+   :type Y_true: array-like of shape (n_rows, n_outputs)
+   :param samples:
+   :type samples: array-like of shape (n_rows, n_samples, n_outputs)
+   :param p: Order; 0.5 is the usual choice and is the most robust to outliers.
+   :type p: float
+   :param weights: Pair weights ``w_ij``; all ones by default.
+   :type weights: array-like of shape (n_outputs, n_outputs) | None
+   :param average: Return the mean over rows (default) or the per-row scores.
+   :type average: bool
+
+
+.. py:function:: gaussian_samples(mean, cov, n_samples=500, seed=None)
+
+   Draw samples from per-row Gaussian predictive distributions.
+
+   :param mean:
+   :type mean: array-like of shape (n_rows, n_outputs)
+   :param cov: Per-row covariance, or per-output std (independent outputs).
+   :type cov: array-like of shape (n_rows, n_outputs, n_outputs) or (n_rows, n_outputs)
+   :param n_samples:
+   :type n_samples: int
+   :param seed:
+   :type seed: int | np.random.Generator | None
+
+   :rtype: np.ndarray of shape (n_rows, n_samples, n_outputs)
+
+

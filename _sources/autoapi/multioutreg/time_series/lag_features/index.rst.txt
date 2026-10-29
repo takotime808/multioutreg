@@ -1,0 +1,55 @@
+multioutreg.time_series.lag_features
+====================================
+
+.. py:module:: multioutreg.time_series.lag_features
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.lag_features.make_lag_features
+   multioutreg.time_series.lag_features.rolling_window_features
+
+
+Module Contents
+---------------
+
+.. py:function:: make_lag_features(series: numpy.ndarray | pandas.Series, n_lags: int, horizon: int = 1, include_time_features: bool = False) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+   Convert a 1D series into tabular (X_lag, y) for supervised learning.
+
+   Each row of X_lag is [y[t-n_lags], ..., y[t-1]].
+   y[i] contains the targets: y[t], ..., y[t+horizon-1].
+
+   :param series:
+   :type series: 1D array-like of floats
+   :param n_lags: Number of lagged features.
+   :type n_lags: int
+   :param horizon: Prediction horizon.  horizon=1 => single-step; horizon>1 => multi-step.
+   :type horizon: int, default 1
+   :param include_time_features: If True and series is a pd.Series with DatetimeIndex, appends
+                                 sin/cos-encoded day-of-week and month as additional columns.
+   :type include_time_features: bool, default False
+
+   :returns: * **X** (*np.ndarray, shape (n_samples, n_lags [+ n_time_feats])*)
+             * **y** (*np.ndarray, shape (n_samples, horizon)*)
+
+
+.. py:function:: rolling_window_features(series: numpy.ndarray | pandas.Series, windows: Sequence[int] = (4, 8, 24)) -> numpy.ndarray
+
+   Compute rolling mean and std columns for a series.
+
+   For each window w, produces two columns: rolling mean and rolling std
+   (with min_periods=1 so no leading NaNs).
+
+   :param series:
+   :type series: 1D array-like
+   :param windows:
+   :type windows: sequence of window sizes
+
+   :returns: Columns: [mean_w0, std_w0, mean_w1, std_w1, ...]
+   :rtype: np.ndarray, shape (len(series), 2 * len(windows))
+
+

@@ -1,0 +1,302 @@
+multioutreg.model_selection.evaluation
+======================================
+
+.. py:module:: multioutreg.model_selection.evaluation
+
+.. autoapi-nested-parse::
+
+   Sample-size-dependent evaluation plans for tabular (non-time-series) data.
+
+   :func:`plan_evaluation` decides, from the number of rows and the conformal
+   miscoverage level, how a model is evaluated and how its intervals are
+   calibrated (``docs/AUDIT_CHECKLIST.md``, items S1 and S2):
+
+   - **Performance estimate.** A 25% holdout is unbiased at any n but has few
+     points at small n (Vabalas et al. 2019), so when it would hold fewer than
+     :data:`MIN_TEST_POINTS` rows the estimate comes from nested CV instead:
+     every row is predicted once by a model whose selection never saw it
+     (Varma & Simon 2006).
+   - **Conformal calibration.** Split conformal needs at least
+     ``ceil(1/alpha) - 1`` calibration points for a finite interval. With fewer,
+     CV+ (Barber et al. 2021) is used: it calibrates on out-of-fold residuals of
+     every training row.
+
+   :func:`fit_with_conformal` and :func:`nested_cv_predict` carry out a plan for
+   any estimator with ``fit`` / ``predict(X, return_std=True)``.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.model_selection.evaluation.MIN_TEST_POINTS
+   multioutreg.model_selection.evaluation.N_OUTER_FOLDS
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.model_selection.evaluation.EvaluationPlan
+   multioutreg.model_selection.evaluation.ConformalFit
+   multioutreg.model_selection.evaluation.OutOfFoldPredictions
+   multioutreg.model_selection.evaluation.EvaluationResult
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.model_selection.evaluation.min_calibration_points
+   multioutreg.model_selection.evaluation.plan_evaluation
+   multioutreg.model_selection.evaluation.fit_with_conformal
+   multioutreg.model_selection.evaluation.nested_cv_predict
+   multioutreg.model_selection.evaluation.run_evaluation
+
+
+Module Contents
+---------------
+
+.. py:data:: MIN_TEST_POINTS
+   :value: 30
+
+
+.. py:data:: N_OUTER_FOLDS
+   :value: 5
+
+
+.. py:function:: min_calibration_points(alpha: float) -> int
+
+   Smallest calibration set giving a finite split-conformal interval.
+
+   The interval uses the k-th smallest of n scores with
+   ``k = ceil((n + 1)(1 - alpha))``, which is at most n only when
+   ``n >= ceil(1/alpha) - 1``.
+
+
+.. py:class:: EvaluationPlan
+
+   How to estimate performance and calibrate intervals for one dataset.
+
+
+   .. py:attribute:: n_samples
+      :type:  int
+
+
+   .. py:attribute:: scheme
+      :type:  str
+
+
+   .. py:attribute:: test_size
+      :type:  float
+
+
+   .. py:attribute:: outer_cv
+      :type:  Optional[sklearn.model_selection.KFold]
+
+
+   .. py:attribute:: conformal
+      :type:  Optional[str]
+
+
+   .. py:attribute:: calibration_size
+      :type:  float
+
+
+   .. py:attribute:: alpha
+      :type:  Optional[float]
+
+
+   .. py:attribute:: random_state
+      :type:  int
+      :value: 0
+
+
+
+   .. py:attribute:: notes
+      :type:  tuple
+      :value: ()
+
+
+
+   .. py:property:: n_conformal_folds
+      :type: int
+
+
+
+   .. py:method:: describe() -> str
+
+      One-line summary for reports.
+
+
+
+.. py:function:: plan_evaluation(n_samples: int, alpha: Optional[float] = None, test_size: float = 0.25, calibration_size: float = 0.2, min_test: int = MIN_TEST_POINTS, random_state: int = 0) -> EvaluationPlan
+
+   Choose holdout vs nested CV and split vs CV+ conformal for *n_samples* rows.
+
+   ``alpha=None`` means no conformal intervals are wanted.
+
+
+.. py:class:: ConformalFit
+
+   A model fitted under a plan, plus what is needed for its intervals.
+
+
+   .. py:attribute:: model
+      :type:  Any
+
+
+   .. py:attribute:: method
+      :type:  Optional[str]
+
+
+   .. py:attribute:: residuals
+      :type:  Optional[numpy.ndarray]
+      :value: None
+
+
+
+   .. py:method:: predict_interval(X, alpha: float)
+
+      Return ``(lower, upper)`` arrays of shape (n, n_outputs).
+
+
+
+.. py:function:: fit_with_conformal(model, X, y, plan: EvaluationPlan) -> ConformalFit
+
+   Fit *model* on (X, y) and calibrate conformal intervals as *plan* says.
+
+   - no conformal: fit on all rows.
+   - ``"split"``: fit on ``1 - calibration_size`` of the rows, keep absolute
+     residuals on the rest.
+   - ``"cv_plus"``: :class:`~multioutreg.conformal.cv_plus.CVPlusConformalPredictor`
+     refits a clone of *model* (including any model selection it does) on
+     each fold, and the final model is fitted on all rows.
+
+
+.. py:class:: OutOfFoldPredictions
+
+   Nested-CV predictions: row i comes from the outer fold that left it out.
+
+
+   .. py:attribute:: pred
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: std
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: lower
+      :type:  Optional[numpy.ndarray]
+
+
+   .. py:attribute:: upper
+      :type:  Optional[numpy.ndarray]
+
+
+   .. py:attribute:: fold
+      :type:  numpy.ndarray
+
+
+.. py:function:: nested_cv_predict(fit_predict: Callable[[numpy.ndarray, numpy.ndarray, numpy.ndarray], dict], X: numpy.ndarray, y: numpy.ndarray, plan: EvaluationPlan, on_fold: Optional[Callable[[int, int], None]] = None) -> OutOfFoldPredictions
+
+   Predict every row from a model that never saw it (outer loop of nested CV).
+
+   ``fit_predict(X_train, y_train, X_test)`` must do *all* data-dependent
+   steps (imputation, PCA, model selection, conformal calibration) on
+   ``X_train`` only and return a dict with ``"pred"`` and ``"std"`` and,
+   when conformal intervals are wanted, ``"lower"`` and ``"upper"``, each of
+   shape (len(X_test), n_outputs). ``on_fold(k, n_folds)`` is called before
+   each outer fold.
+
+
+.. py:class:: EvaluationResult
+
+   Everything a report needs from :func:`run_evaluation`.
+
+   ``y_true`` / ``pred`` / ``std`` / ``lower`` / ``upper`` are the rows the
+   metrics are computed on: the holdout rows, or every row (out-of-fold) under
+   nested CV. ``X_eval`` holds those rows' inputs after preprocessing (under
+   nested CV, with the preprocessing of the final fit). ``fit`` is the
+   deployable model, fitted on the training split (holdout) or on all rows
+   (nested CV); ``X_fit`` is its preprocessed training input and ``info`` is
+   whatever ``preprocess`` returned for that fit.
+
+
+   .. py:attribute:: plan
+      :type:  EvaluationPlan
+
+
+   .. py:attribute:: y_true
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: pred
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: std
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: lower
+      :type:  Optional[numpy.ndarray]
+
+
+   .. py:attribute:: upper
+      :type:  Optional[numpy.ndarray]
+
+
+   .. py:attribute:: fit
+      :type:  ConformalFit
+
+
+   .. py:attribute:: X_fit
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: X_eval
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: info
+      :type:  Any
+      :value: None
+
+
+
+   .. py:property:: model
+
+
+   .. py:property:: n_train
+      :type: int
+
+
+
+   .. py:property:: n_test
+      :type: int
+
+
+
+.. py:function:: run_evaluation(make_model: Callable[[], Any], X: numpy.ndarray, y: numpy.ndarray, plan: EvaluationPlan, preprocess: Optional[Callable[[numpy.ndarray, numpy.ndarray], tuple]] = None, on_step: Optional[Callable[[str], None]] = None, fold_cv: Any = 'auto_single') -> EvaluationResult
+
+   Carry out *plan*: holdout or nested CV, with split or CV+ conformal.
+
+   ``make_model()`` returns a fresh unfitted model (it is called once per
+   outer fold and once for the final fit). ``preprocess(X_train, X_test)``
+   returns ``(X_train', X_test', info)`` and must fit only on ``X_train``
+   (imputation, PCA, ...). ``on_step(label)`` reports progress.
+
+   Under nested CV, models built for the outer folds get ``cv = fold_cv``
+   when they have a ``cv`` attribute (AutoDetect, ``PerTargetGridSearch``):
+   by default single-run k-fold instead of repeated k-fold, which cuts the
+   nested cost about 3x. Selection still happens inside each fold, so the
+   estimate stays honest; the final model keeps its own ``cv``. Pass
+   ``fold_cv=None`` to leave the models unchanged.
+
+

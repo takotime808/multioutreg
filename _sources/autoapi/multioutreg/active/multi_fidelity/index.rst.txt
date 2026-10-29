@@ -1,0 +1,277 @@
+multioutreg.active.multi_fidelity
+=================================
+
+.. py:module:: multioutreg.active.multi_fidelity
+
+.. autoapi-nested-parse::
+
+   Cost-aware multi-fidelity active learning.
+
+   Each query is a pair ``(x, level)``. The acquisitions estimate how much a run
+   at each level would reduce uncertainty about the *highest* fidelity, divided
+   by its cost. See the "Multi-Fidelity Active Learning" section of
+   ``docs/active_learning.md``.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.active.multi_fidelity.FidelityInfo
+   multioutreg.active.multi_fidelity.MultiFidelityActiveLearner
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.active.multi_fidelity.level_trust
+   multioutreg.active.multi_fidelity.fidelity_info
+   multioutreg.active.multi_fidelity.effective_costs
+   multioutreg.active.multi_fidelity.variance_reduction_per_cost
+   multioutreg.active.multi_fidelity.mf_expected_improvement
+
+
+Module Contents
+---------------
+
+.. py:class:: FidelityInfo
+
+   High-fidelity prediction at candidates, split by what each level can reduce.
+
+   .. attribute:: mean, std
+
+      High-fidelity predictive mean and std.
+
+      :type: arrays, shape (n, n_outputs)
+
+   .. attribute:: reduction
+
+      Variance of the high-fidelity prediction that one run at that level
+      (at the same point) would remove.
+
+      :type: dict[level, array (n, n_outputs)]
+
+   .. attribute:: corr
+
+      Correlation between that level and the high fidelity at each point.
+
+      :type: dict[level, array (n, n_outputs)]
+
+
+   .. py:attribute:: mean
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: std
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: reduction
+      :type:  Dict[str, numpy.ndarray]
+
+
+   .. py:attribute:: corr
+      :type:  Dict[str, numpy.ndarray]
+
+
+.. py:function:: level_trust(model, levels: Sequence[str], X_hi, Y_hi, z: float = 1.0, min_points: int = 6) -> Dict[str, numpy.ndarray]
+
+   How far the high-fidelity data supports each lower level, per output, in [0, 1].
+
+   The squared lower confidence bound (Fisher z, ``z`` standard errors) of
+   ``|corr(level prediction, Y_hi)|`` at the high-fidelity points. It is 0
+   until there are ``min_points`` high-fidelity points (with 4 points, pure
+   noise reaches ``|r| > 0.95`` a few percent of the time), so a lower level earns
+   credit only once the data shows it predicts the high fidelity. Without it,
+   a scale such as AR1's ``rho`` fitted to a handful of points can make an
+   uninformative level look valuable indefinitely.
+
+
+.. py:function:: fidelity_info(model, X, levels: Sequence[str], nested: bool = True, trust: Optional[Dict[str, numpy.ndarray]] = None) -> FidelityInfo
+
+   Per-level variance reduction for the high-fidelity prediction at ``X``.
+
+   For AR1 models (``AdditiveCorrectionVFM``),
+   ``var_hi = rho^2 var_lo + var_delta``: a low-fidelity run removes the first
+   term; a high-fidelity run removes ``var_delta``, plus the first term when
+   ``nested`` (the low fidelity is run at the same point too).
+
+   For other models with ``predict(X, level=..., return_std=True)`` the
+   reduction is ``corr_l^2 var_hi``, with ``corr_l`` the correlation of level
+   ``l`` and high-fidelity predictions over ``X`` (Huang et al. 2006).
+
+   ``trust`` (see :func:`level_trust`) multiplies each lower level's
+   reduction, and its square root that level's correlation.
+
+
+.. py:function:: effective_costs(levels: Sequence[str], costs: Dict[str, float], nested: bool = True) -> Dict[str, float]
+
+   Cost of one query per level; nested queries also pay for every lower level.
+
+
+.. py:function:: variance_reduction_per_cost(info: FidelityInfo, eff_costs: Dict[str, float], y_scale=None, how: str = 'sum', weights=None) -> numpy.ndarray
+
+   Standardized high-fidelity variance removed per unit cost, shape (n, n_levels).
+
+
+.. py:function:: mf_expected_improvement(info: FidelityInfo, eff_costs: Dict[str, float], best: float, xi: float = 0.0, weights=None, minimize: bool = True) -> numpy.ndarray
+
+   Multi-fidelity EI (Huang et al. 2006): ``EI_hi * corr_l * C_top / C_l``, shape (n, n_levels).
+
+
+.. py:class:: MultiFidelityActiveLearner(model_factory: Callable, bounds, levels: Sequence[str], costs: Dict[str, float], acquisition: str = 'variance', nested: bool = True, min_hi_fraction: float = 0.25, trust_z: Optional[float] = 1.0, how: str = 'sum', weights=None, minimize: bool = True, xi: float = 0.0, n_candidates: int = 1024, random_state: Optional[int] = 0)
+
+   Choose the next ``(x, level)`` to run under a total cost budget.
+
+   :param model_factory: Zero-argument callable returning an unfitted multi-fidelity surrogate
+                         with ``fit({level: (X, Y)})``, e.g. ``AdditiveCorrectionVFM`` (two
+                         levels named ``"lo"`` / ``"hi"``) or ``StackedVFMSurrogate``.
+   :type model_factory: callable
+   :param bounds:
+   :type bounds: array-like, shape (n_features, 2)
+   :param levels: Fidelity levels, cheapest first; the last one is the target.
+   :type levels: sequence of str
+   :param costs: Cost of one evaluation at each level.
+   :type costs: dict[level, float]
+   :param acquisition: ``"variance"``: variance reduction per cost (global accuracy).
+                       ``"ei"``: multi-fidelity expected improvement (optimization).
+   :type acquisition: {"variance", "ei"}, default "variance"
+   :param nested: A query at a level also runs every lower level at the same point.
+   :type nested: bool, default True
+   :param min_hi_fraction: Force a high-fidelity query whenever high-fidelity spending is below
+                           this share of the total spent. Evidence about whether a lower level
+                           is informative only comes from high-fidelity runs, so this keeps it
+                           coming even when a lower level (spuriously) looks valuable.
+   :type min_hi_fraction: float, default 0.25
+   :param trust_z: Standard errors for :func:`level_trust`; lower levels are credited
+                   only as far as the high-fidelity data shows they predict it. ``None``
+                   trusts the model's own variance split.
+   :type trust_z: float or None, default 1.0
+
+
+   .. py:attribute:: model_factory
+
+
+   .. py:attribute:: levels
+
+
+   .. py:attribute:: costs
+
+
+   .. py:attribute:: acquisition
+      :value: 'variance'
+
+
+
+   .. py:attribute:: nested
+      :value: True
+
+
+
+   .. py:attribute:: min_hi_fraction
+      :value: 0.25
+
+
+
+   .. py:attribute:: trust_z
+      :value: 1.0
+
+
+
+   .. py:attribute:: how
+      :value: 'sum'
+
+
+
+   .. py:attribute:: weights
+      :value: None
+
+
+
+   .. py:attribute:: minimize
+      :value: True
+
+
+
+   .. py:attribute:: xi
+      :value: 0.0
+
+
+
+   .. py:attribute:: n_candidates
+      :value: 1024
+
+
+
+   .. py:attribute:: data_
+      :type:  Dict[str, List[numpy.ndarray]]
+
+
+   .. py:attribute:: spent_
+
+
+   .. py:attribute:: model_
+      :value: None
+
+
+
+   .. py:attribute:: history_
+      :type:  List[dict]
+      :value: []
+
+
+
+   .. py:property:: top
+      :type: str
+
+
+
+   .. py:property:: total_spent
+      :type: float
+
+
+
+   .. py:property:: eff_costs
+      :type: Dict[str, float]
+
+
+
+   .. py:method:: tell(level: str, X, Y) -> MultiFidelityActiveLearner
+
+      Add evaluations at ``level``; charges ``costs[level]`` per row.
+
+
+
+   .. py:method:: fit()
+
+
+   .. py:method:: initial_design(n_per_level: Dict[str, int]) -> Dict[str, numpy.ndarray]
+
+      Nested Sobol designs: each level's points are a prefix of the level below's.
+
+
+
+   .. py:method:: score(X) -> numpy.ndarray
+
+      Acquisition for every ``(x, level)``, shape (n, n_levels).
+
+
+
+   .. py:method:: ask(remaining: Optional[float] = None)
+
+      Next query as ``(level, x)`` with ``x`` of shape (1, n_features); None if unaffordable.
+
+
+
+   .. py:method:: run(simulators: Dict[str, Callable[[numpy.ndarray], numpy.ndarray]], budget: float, n_init: Optional[Dict[str, int]] = None, X_test=None, Y_test=None, callback: Optional[Callable] = None) -> List[dict]
+
+      Spend ``budget`` (including the initial design) and return :attr:`history_`.
+
+      ``X_test`` / ``Y_test`` are high-fidelity hold-out data.
+
+
+

@@ -1,0 +1,128 @@
+multioutreg.surrogates.multitask_gp_gpytorch
+============================================
+
+.. py:module:: multioutreg.surrogates.multitask_gp_gpytorch
+
+.. autoapi-nested-parse::
+
+   Multi-task GP surrogate (ICM) — optional dependency ``pip install gpytorch``.
+
+   Every other GP in the package fits one independent model per output. This one
+   fits all outputs jointly with the intrinsic coregionalization model (ICM)::
+
+       Cov(f_i(x), f_j(x')) = k(x, x') * B[i, j],    B = W W^T + diag(v)
+
+   where ``W`` is ``n_outputs x rank``. ``B`` is learned by maximum likelihood
+   together with the input kernel and a separate noise level per output, so data
+   for one output inform the others in proportion to their learned correlation.
+
+   The model is written in the "Hadamard" form: training data are the observed
+   ``(row, output)`` pairs, so ``Y`` may contain NaN where an output was not
+   observed (e.g. a simulation that failed partway) and the row still contributes
+   its other outputs. Exact inference costs O((n * m)^3) for ``n`` rows and ``m``
+   outputs, so it suits small designs (n * m up to a few thousand).
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.multitask_gp_gpytorch.MultiTaskGPSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: MultiTaskGPSurrogate(rank: int = 1, kernel: str = 'rbf', max_iter: int = 200, learning_rate: float = 0.1, predict_chunk: int = 256, random_state: int | None = None)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Joint multi-output GP with a learned output correlation (ICM).
+
+   Requires the optional ``gpytorch`` package::
+
+       pip install gpytorch
+
+   :param rank: Rank of the low-rank part of the output covariance ``B``. ``rank=1``
+                lets every output share one latent function up to scale; higher ranks
+                allow more independent structure. Clamped to the number of outputs.
+   :type rank: int, default 1
+   :param kernel: Input kernel, with one length scale per input (ARD).
+   :type kernel: {"rbf", "matern52", "matern32"}, default "rbf"
+   :param max_iter: Adam steps for hyperparameter training.
+   :type max_iter: int, default 200
+   :param learning_rate:
+   :type learning_rate: float, default 0.1
+   :param predict_chunk: Test rows predicted per batch. ``return_cov`` builds the joint
+                         covariance of ``predict_chunk * n_outputs`` points at a time.
+   :type predict_chunk: int, default 256
+   :param random_state:
+   :type random_state: int | None, default None
+
+   .. attribute:: output_corr_
+
+      Learned correlation between the latent outputs (from ``B``).
+
+      :type: np.ndarray, shape (n_outputs, n_outputs)
+
+   .. attribute:: noise_std_
+
+      Learned observation-noise std per output, in output units.
+
+      :type: np.ndarray, shape (n_outputs,)
+
+
+   .. py:attribute:: rank
+      :value: 1
+
+
+
+   .. py:attribute:: kernel
+      :value: 'rbf'
+
+
+
+   .. py:attribute:: max_iter
+      :value: 200
+
+
+
+   .. py:attribute:: learning_rate
+      :value: 0.1
+
+
+
+   .. py:attribute:: predict_chunk
+      :value: 256
+
+
+
+   .. py:attribute:: random_state
+      :value: None
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, Y: numpy.ndarray) -> MultiTaskGPSurrogate
+
+      Fit the joint GP. ``Y`` may contain NaN for unobserved outputs.
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False, return_cov: bool = False)
+
+      Predict all outputs.
+
+      :param X:
+      :type X: np.ndarray, shape (n_samples, n_features)
+      :param return_std: Also return the per-output predictive std (including noise).
+      :type return_std: bool
+      :param return_cov: Also return the predictive covariance between outputs for each
+                         row, shape ``(n_samples, n_outputs, n_outputs)``. Takes precedence
+                         over ``return_std``.
+      :type return_cov: bool
+
+
+

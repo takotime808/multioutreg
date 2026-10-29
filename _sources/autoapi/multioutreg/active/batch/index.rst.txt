@@ -1,0 +1,53 @@
+multioutreg.active.batch
+========================
+
+.. py:module:: multioutreg.active.batch
+
+.. autoapi-nested-parse::
+
+   Diverse batch selection from scored candidate pools.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.active.batch.default_length_scale
+   multioutreg.active.batch.select_batch
+
+
+Module Contents
+---------------
+
+.. py:function:: default_length_scale(n_points: int, n_features: int) -> float
+
+   Typical spacing of a space-filling design of ``n_points`` in the unit cube.
+
+
+.. py:function:: select_batch(U_cand: numpy.ndarray, scores: numpy.ndarray, batch_size: int, U_train: Optional[numpy.ndarray] = None, length_scale: Optional[float] = None, penalize_train: bool = False) -> numpy.ndarray
+
+   Greedy top-k with a Gaussian distance penalty around picked points.
+
+   After each pick, every candidate's score is multiplied by
+   ``1 - exp(-d^2 / (2 l^2))`` with ``d`` its distance to the pick, so a batch
+   spreads across the acquisition surface instead of clustering on one peak
+   (local penalization, González et al. 2016).
+
+   :param U_cand: Candidates in the unit cube (distances are measured there).
+   :type U_cand: array, shape (n_candidates, n_features)
+   :param scores: Acquisition values; larger is better. Shifted to be non-negative.
+   :type scores: array, shape (n_candidates,)
+   :param batch_size:
+   :type batch_size: int
+   :param U_train: Existing design in the unit cube; sets the default length scale and,
+                   with ``penalize_train``, is penalized like a pick.
+   :type U_train: array, optional
+   :param length_scale: Defaults to :func:`default_length_scale` of ``n_train + batch_size``.
+   :type length_scale: float, optional
+
+   :returns: Indices into ``U_cand``.
+   :rtype: np.ndarray of int, shape (batch_size,)
+
+

@@ -1,0 +1,1624 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Multi-Fidelity Surrogate Modeling" href="multi_fidelity_surrogates.html"><link rel="prev" title="Multi-Output Surrogates, Start to Finish" href="multi_output_surrogates.html">
+        <link rel="prefetch" href="../_static/logos/wordmark-light.svg" as="image">
+        <link rel="prefetch" href="../_static/logos/wordmark-dark.svg" as="image">
+
+    <link rel="shortcut icon" href="../_static/favicon.png"><!-- Generated with Sphinx 8.1.3 and Furo 2025.12.19 -->
+        <title>Scoring Joint Predictions: Energy and Variogram Scores - multioutreg</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/active-learning-savings.css?v=14e41e7a" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/site.css?v=0e7236ba" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Try it without installing: the <a href="https://multioutreg.streamlit.app/">hosted multioutreg app</a>. 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">multioutreg</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo only-light" src="../_static/logos/wordmark-light.svg" alt="Light Logo"/>
+    <img class="sidebar-logo only-dark" src="../_static/logos/wordmark-dark.svg" alt="Dark Logo"/>
+  </div>
+  
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_it_works.html">How It Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reading_the_report.html">Reading the Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example_reports.html">Example Reports</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="multi_output_surrogates.html">Multi-Output Surrogates, Start to Finish</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Scoring Joint Predictions: Energy and Variogram Scores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multi_fidelity_surrogates.html">Multi-Fidelity Surrogate Modeling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_learning_benchmarks.html">Active Learning on Benchmark Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cost_savings.html">Cost Savings: What <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> Saves in an Existing Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="imputation_methods.html">Imputing Missing Inputs: KNN vs. Other Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_learning_missing_inputs.html">Active Learning with Missing Inputs</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../multi_fidelity_gui.html">Multi-Fidelity Surrogate Models page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_the_exported_model.html">Using the Best Model from the Grid Search App</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forecasting_with_chronos.html">Time-Series Forecasting with Chronos</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Why multioutreg</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../cost_savings.html">Cost Savings and ROI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../active_learning_savings.html">Active Learning: The True Curve for Less</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../core_api.html">Core API</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../autoapi/multioutreg/index.html">multioutreg</a><input aria-label="Toggle navigation of multioutreg" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/active/index.html">multioutreg.active</a><input aria-label="Toggle navigation of multioutreg.active" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/acquisition/index.html">multioutreg.active.acquisition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/batch/index.html">multioutreg.active.batch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/benchmarks/index.html">multioutreg.active.benchmarks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/loop/index.html">multioutreg.active.loop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/multi_fidelity/index.html">multioutreg.active.multi_fidelity</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/conformal/index.html">multioutreg.conformal</a><input aria-label="Toggle navigation of multioutreg.conformal" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/base/index.html">multioutreg.conformal.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/cv_plus/index.html">multioutreg.conformal.cv_plus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/metrics/index.html">multioutreg.conformal.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/split_conformal/index.html">multioutreg.conformal.split_conformal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/utils/index.html">multioutreg.conformal.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/figures/index.html">multioutreg.figures</a><input aria-label="Toggle navigation of multioutreg.figures" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/confidence_intervals/index.html">multioutreg.figures.confidence_intervals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/conformal_plots/index.html">multioutreg.figures.conformal_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/coverage_plots/index.html">multioutreg.figures.coverage_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/doe_plots/index.html">multioutreg.figures.doe_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/error_histograms/index.html">multioutreg.figures.error_histograms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/model_comparison/index.html">multioutreg.figures.model_comparison</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/pca_plots/index.html">multioutreg.figures.pca_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/pdp_plots/index.html">multioutreg.figures.pdp_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/performance_metric_figures/index.html">multioutreg.figures.performance_metric_figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/prediction_plots/index.html">multioutreg.figures.prediction_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/residuals/index.html">multioutreg.figures.residuals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/shap_multioutput/index.html">multioutreg.figures.shap_multioutput</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/uct_calibration_extension/index.html">multioutreg.figures.uct_calibration_extension</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/umap_plot_classify/index.html">multioutreg.figures.umap_plot_classify</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/uncertainty_toolbox_extension/index.html">multioutreg.figures.uncertainty_toolbox_extension</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/gui/index.html">multioutreg.gui</a><input aria-label="Toggle navigation of multioutreg.gui" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/background/index.html">multioutreg.gui.background</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/grid_search_core/index.html">multioutreg.gui.grid_search_core</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/input_checks/index.html">multioutreg.gui.input_checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/report_controls/index.html">multioutreg.gui.report_controls</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/report_plotting_utils/index.html">multioutreg.gui.report_plotting_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/results_tabs/index.html">multioutreg.gui.results_tabs</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/metrics/index.html">multioutreg.metrics</a><input aria-label="Toggle navigation of multioutreg.metrics" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/metrics/joint_scores/index.html">multioutreg.metrics.joint_scores</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/metrics/multiobjective_regret/index.html">multioutreg.metrics.multiobjective_regret</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/model_selection/index.html">multioutreg.model_selection</a><input aria-label="Toggle navigation of multioutreg.model_selection" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/auto_detect/index.html">multioutreg.model_selection.auto_detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/evaluation/index.html">multioutreg.model_selection.evaluation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/model_wrappers/index.html">multioutreg.model_selection.model_wrappers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/screening/index.html">multioutreg.model_selection.screening</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/performance/index.html">multioutreg.performance</a><input aria-label="Toggle navigation of multioutreg.performance" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/performance/metrics/index.html">multioutreg.performance.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/performance/metrics_generalized_api/index.html">multioutreg.performance.metrics_generalized_api</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../autoapi/multioutreg/persistence/index.html">multioutreg.persistence</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/report/index.html">multioutreg.report</a><input aria-label="Toggle navigation of multioutreg.report" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/auto_detect_report/index.html">multioutreg.report.auto_detect_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/build/index.html">multioutreg.report.build</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/data/index.html">multioutreg.report.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report/index.html">multioutreg.report.generate_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report1/index.html">multioutreg.report.generate_report1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report1_safe/index.html">multioutreg.report.generate_report1_safe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/render/index.html">multioutreg.report.render</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/template/index.html">multioutreg.report.template</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/verdict/index.html">multioutreg.report.verdict</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/sampling/index.html">multioutreg.sampling</a><input aria-label="Toggle navigation of multioutreg.sampling" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/detect/index.html">multioutreg.sampling.detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/extrapolation/index.html">multioutreg.sampling.extrapolation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/infer_sampling/index.html">multioutreg.sampling.infer_sampling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/pca_sampling_detector/index.html">multioutreg.sampling.pca_sampling_detector</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/surrogates/index.html">multioutreg.surrogates</a><input aria-label="Toggle navigation of multioutreg.surrogates" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/ard_gp_sklearn/index.html">multioutreg.surrogates.ard_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/base_sklearn/index.html">multioutreg.surrogates.base_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bayesian_ridge_sklearn/index.html">multioutreg.surrogates.bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bnn_network/index.html">multioutreg.surrogates.bnn_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bnn_pytorch/index.html">multioutreg.surrogates.bnn_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/catboost_sklearn/index.html">multioutreg.surrogates.catboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/conformal_mixin/index.html">multioutreg.surrogates.conformal_mixin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/conformal_network_sklearn/index.html">multioutreg.surrogates.conformal_network_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/decision_tree_sklearn/index.html">multioutreg.surrogates.decision_tree_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/deep_ensemble_pytorch/index.html">multioutreg.surrogates.deep_ensemble_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/elastic_net_sklearn/index.html">multioutreg.surrogates.elastic_net_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/extra_trees_sklearn/index.html">multioutreg.surrogates.extra_trees_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/forest_uncertainty/index.html">multioutreg.surrogates.forest_uncertainty</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gating_network/index.html">multioutreg.surrogates.gating_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gaussian_copula/index.html">multioutreg.surrogates.gaussian_copula</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gp_sklearn/index.html">multioutreg.surrogates.gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gpx_smt/index.html">multioutreg.surrogates.gpx_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gradient_boosting_sklearn/index.html">multioutreg.surrogates.gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/hist_gradient_boosting_sklearn/index.html">multioutreg.surrogates.hist_gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/knn_sklearn/index.html">multioutreg.surrogates.knn_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/kpls_smt/index.html">multioutreg.surrogates.kpls_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/lightgbm_sklearn/index.html">multioutreg.surrogates.lightgbm_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/linear_sklearn/index.html">multioutreg.surrogates.linear_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/mfk_smt/index.html">multioutreg.surrogates.mfk_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/moe_surrogate/index.html">multioutreg.surrogates.moe_surrogate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/multi_fidelity/index.html">multioutreg.surrogates.multi_fidelity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/multitask_gp_gpytorch/index.html">multioutreg.surrogates.multitask_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/ngboost_sklearn/index.html">multioutreg.surrogates.ngboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/nystroem_gp_sklearn/index.html">multioutreg.surrogates.nystroem_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/pca_output/index.html">multioutreg.surrogates.pca_output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/polynomial_bayesian_ridge_sklearn/index.html">multioutreg.surrogates.polynomial_bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/quantile_sklearn/index.html">multioutreg.surrogates.quantile_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/rf_sklearn/index.html">multioutreg.surrogates.rf_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/rfgp_sklearn/index.html">multioutreg.surrogates.rfgp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/sparse_gp_gpytorch/index.html">multioutreg.surrogates.sparse_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/stacked_vfm/index.html">multioutreg.surrogates.stacked_vfm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/std_recalibration/index.html">multioutreg.surrogates.std_recalibration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/svr_sklearn/index.html">multioutreg.surrogates.svr_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/xgboost_sklearn/index.html">multioutreg.surrogates.xgboost_sklearn</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/index.html">multioutreg.time_series</a><input aria-label="Toggle navigation of multioutreg.time_series" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/chronos_adapter/index.html">multioutreg.time_series.chronos_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/cv/index.html">multioutreg.time_series.cv</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/figures/index.html">multioutreg.time_series.figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/financial/index.html">multioutreg.time_series.financial</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/lag_features/index.html">multioutreg.time_series.lag_features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/lag_forecaster/index.html">multioutreg.time_series.lag_forecaster</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/metrics/index.html">multioutreg.time_series.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/neuralforecast_adapter/index.html">multioutreg.time_series.neuralforecast_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/prophet_adapter/index.html">multioutreg.time_series.prophet_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/returns/index.html">multioutreg.time_series.returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/seasonality/index.html">multioutreg.time_series.seasonality</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/surrogate_forecaster/index.html">multioutreg.time_series.surrogate_forecaster</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/index.html">multioutreg.time_series.ts_dynamic_fit</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/index.html">multioutreg.time_series.ts_dynamic_fit.algs</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.algs" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/arima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.arima</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/lstm/index.html">multioutreg.time_series.ts_dynamic_fit.algs.lstm</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/sarima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.sarima</a></li>
+</ul>
+</li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.data_handling" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/Analyzer/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.Analyzer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/DataProcessor/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.DataProcessor</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/PullData/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.PullData</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/ingest/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.ingest</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/main/index.html">multioutreg.time_series.ts_dynamic_fit.main</a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/index.html">multioutreg.time_series.ts_dynamic_fit.src</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.src" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/ForecastAutoIntervals/index.html">multioutreg.time_series.ts_dynamic_fit.src.ForecastAutoIntervals</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/TSDataLoader/index.html">multioutreg.time_series.ts_dynamic_fit.src.TSDataLoader</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/evaluate/index.html">multioutreg.time_series.ts_dynamic_fit.src.evaluate</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/forecasters/index.html">multioutreg.time_series.ts_dynamic_fit.src.forecasters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/infer/index.html">multioutreg.time_series.ts_dynamic_fit.src.infer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/ranker/index.html">multioutreg.time_series.ts_dynamic_fit.src.ranker</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/visualize/index.html">multioutreg.time_series.ts_dynamic_fit.src.visualize</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_suitability/index.html">multioutreg.time_series.ts_suitability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/uncertainty/index.html">multioutreg.time_series.uncertainty</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/utils/index.html">multioutreg.utils</a><input aria-label="Toggle navigation of multioutreg.utils" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/aux_funcs/index.html">multioutreg.utils.aux_funcs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/figure_utils/index.html">multioutreg.utils.figure_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/imputation/index.html">multioutreg.utils.imputation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/metric_utils/index.html">multioutreg.utils.metric_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/pca_utils/index.html">multioutreg.utils.pca_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/surrogate_utils/index.html">multioutreg.utils.surrogate_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/thread_limits/index.html">multioutreg.utils.thread_limits</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../integrated_surrogates.html">Integrated Surrogate Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../surrogate_hyperparameters.html">Surrogate Hyperparameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../multiobjective_metrics.html">Multi-Objective Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../surrogate_roadmap.html">Expanding the Surrogate Offerings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui_ux_roadmap.html">Improving the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../docs_roadmap.html">Improving the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../report_redesign/implementation_plan.html">Plan: ship the redesigned report as a downloadable file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../active_learning.html">Active Learning Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../parallel_computing.html">Parallelization and Distributed Computing Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pair_plot_report.html">Pair Plots in Reports</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AUDIT_CHECKLIST.html">Statistical / Logic Audit Checklist</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/takotime808/multioutreg/blob/main/docs/tutorials/joint_scores.ipynb?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/takotime808/multioutreg/edit/main/docs/tutorials/joint_scores.ipynb" rel="edit" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <div class="admonition note tutorial-meta">
+  <p class="admonition-title">About this tutorial</p>
+  <p>
+  <b>Needs:</b> core install (gpytorch for the multi-task GP) &nbsp;·&nbsp; <b>Runs in:</b> under a minute &nbsp;·&nbsp;
+  <a href="https://colab.research.google.com/github/takotime808/multioutreg/blob/main/docs/tutorials/joint_scores.ipynb">Open in Colab</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/takotime808/multioutreg/blob/main/docs/tutorials/joint_scores.ipynb">View on GitHub</a>
+  </p>
+</div><!-- # Copyright (c) 2026 takotime808 --><section id="Scoring-Joint-Predictions:-Energy-and-Variogram-Scores">
+<h1>Scoring Joint Predictions: Energy and Variogram Scores<a class="headerlink" href="#Scoring-Joint-Predictions:-Energy-and-Variogram-Scores" title="Link to this heading">¶</a></h1>
+<p><strong>What this tutorial covers:</strong></p>
+<p>A surrogate with several outputs predicts more than a mean and a std per output. It implies a <em>joint</em> distribution: how likely each <strong>combination</strong> of outputs is. When outputs move together (lift and drag, the objectives of a Pareto front, the values of a field at neighbouring points), a model that gets every output’s own uncertainty right but treats the outputs as independent still misjudges which combinations can happen. Per-output metrics (RMSE, coverage, CRPS) cannot see that.</p>
+<p><code class="docutils literal notranslate"><span class="pre">multioutreg.metrics</span></code> has three tools for it:</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Function</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">gaussian_samples(mean,</span> <span class="pre">cov)</span></code></p></td>
+<td><p>Draws samples from per-row Gaussian predictions, from a full covariance or a per-output std</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">energy_score(Y,</span> <span class="pre">samples)</span></code></p></td>
+<td><p>The multivariate CRPS: one number for the whole joint distribution</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">variogram_score(Y,</span> <span class="pre">samples,</span> <span class="pre">p)</span></code></p></td>
+<td><p>Compares the predicted and observed <em>differences between outputs</em>, so it reacts to a wrong correlation</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Both scores are <em>proper</em> (an honest forecast of the true distribution scores best in expectation) and lower is better. This tutorial:</p>
+<ol class="arabic simple">
+<li><p>draws joint samples with <code class="docutils literal notranslate"><span class="pre">gaussian_samples</span></code>;</p></li>
+<li><p>scores forecasts with one known flaw each against a known truth, to show what each score can and cannot see, next to per-output CRPS and the joint Gaussian log score;</p></li>
+<li><p>covers the practical choices: number of samples, output scaling, the variogram’s order <code class="docutils literal notranslate"><span class="pre">p</span></code> and pair weights;</p></li>
+<li><p>compares real surrogates: an independent GP against <code class="docutils literal notranslate"><span class="pre">GaussianCopulaSurrogate</span></code>, <code class="docutils literal notranslate"><span class="pre">PCAOutputSurrogate</span></code> and <code class="docutils literal notranslate"><span class="pre">MultiTaskGPSurrogate</span></code>, on correlated noise and on DTLZ2;</p></li>
+<li><p>ends with a guide to which score to report.</p></li>
+</ol>
+<p><strong>Needs:</strong> the core install; section 4 also uses <code class="docutils literal notranslate"><span class="pre">gpytorch</span></code> for the multi-task GP (it is skipped without it). <strong>Runs in:</strong> under a minute.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import warnings
+
+warnings.filterwarnings("ignore")
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from scipy.stats import multivariate_normal, norm
+
+from multioutreg.metrics import energy_score, gaussian_samples, variogram_score
+
+pd.set_option("display.precision", 4)
+rng = np.random.default_rng(0)
+</pre></div>
+</div>
+</div>
+<p>Two reference scores sit next to the joint ones throughout:</p>
+<ul class="simple">
+<li><p><strong>Per-output CRPS</strong> (continuous ranked probability score), the usual proper score for one output’s Gaussian prediction, averaged over outputs. Closed form for a Gaussian.</p></li>
+<li><p><strong>Joint Gaussian log score</strong>: the negative log density of the observed vector under the predicted multivariate Gaussian. It sees everything, including dependence, but only applies when the prediction <em>is</em> Gaussian, and one badly placed point can dominate it. The energy and variogram scores work from samples of any distribution.</p></li>
+</ul>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def crps_gaussian(mean, std, y):
+    # Mean per-output CRPS of Gaussian predictions (Gneiting &amp; Raftery 2007, closed form).
+    z = (y - mean) / std
+    return float(np.mean(std * (z * (2 * norm.cdf(z) - 1) + 2 * norm.pdf(z) - 1 / np.sqrt(np.pi))))
+
+
+def joint_log_score(mean, cov, y):
+    # Mean negative log density of each observed vector under its predicted Gaussian.
+    return float(-np.mean([multivariate_normal(mean[i], cov[i], allow_singular=True).logpdf(y[i])
+                           for i in range(len(y))]))
+
+
+def stds(cov):
+    return np.sqrt(np.diagonal(cov, axis1=1, axis2=2))
+</pre></div>
+</div>
+</div>
+<section id="1.-Drawing-joint-samples-with-gaussian_samples">
+<h2>1. Drawing joint samples with <code class="docutils literal notranslate"><span class="pre">gaussian_samples</span></code><a class="headerlink" href="#1.-Drawing-joint-samples-with-gaussian_samples" title="Link to this heading">¶</a></h2>
+<p>Both joint scores take samples of shape <code class="docutils literal notranslate"><span class="pre">(n_rows,</span> <span class="pre">n_samples,</span> <span class="pre">n_outputs)</span></code>. <code class="docutils literal notranslate"><span class="pre">gaussian_samples</span></code> makes them from what a surrogate returns:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">predict(X,</span> <span class="pre">return_cov=True)</span></code> gives a mean <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">m)</span></code> and a covariance <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">m,</span> <span class="pre">m)</span></code> per row: correlated samples;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">predict(X,</span> <span class="pre">return_std=True)</span></code> gives a mean and a std <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">m)</span></code>: independent samples.</p></li>
+</ul>
+<p>Below, one prediction with mean (0, 0), unit stds and correlation 0.8, sampled both ways.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>mean = np.zeros((1, 2))
+cov = np.array([[[1.0, 0.8], [0.8, 1.0]]])          # one row, two outputs
+std = np.ones((1, 2))
+
+S_corr = gaussian_samples(mean, cov, n_samples=2000, seed=0)
+S_ind = gaussian_samples(mean, std, n_samples=2000, seed=0)
+print("shape:", S_corr.shape)
+print("sample covariance (correlated):\n", np.cov(S_corr[0].T).round(2))
+print("sample covariance (independent):\n", np.cov(S_ind[0].T).round(2))
+
+y_obs = np.array([1.2, -1.0])  # an outcome where the outputs disagree
+fig, axes = plt.subplots(1, 2, figsize=(9, 4), sharex=True, sharey=True)
+for ax, S, title in [(axes[0], S_corr, "cov: correlation 0.8"), (axes[1], S_ind, "std only: independent")]:
+    ax.scatter(*S[0].T, s=4, alpha=0.3)
+    ax.scatter(*y_obs, color="crimson", s=60, marker="x", label="observed")
+    ax.set_title(title); ax.set_xlabel("output 1"); ax.set_aspect("equal")
+axes[0].set_ylabel("output 2"); axes[0].legend(loc="upper left")
+plt.tight_layout(); plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+shape: (1, 2000, 2)
+sample covariance (correlated):
+ [[1.01 0.79]
+ [0.79 0.97]]
+sample covariance (independent):
+ [[ 1.   -0.03]
+ [-0.03  0.99]]
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_joint_scores_5_1.png" src="../_images/tutorials_joint_scores_5_1.png" />
+</div>
+</div>
+<p>The two clouds have identical marginals: each output alone is N(0, 1) in both. Only the joint shape differs. The observed point, with one output high and the other low, sits in the empty corner of the correlated cloud. A per-output score rates the two forecasts of this point equally; a joint score does not.</p>
+<p><code class="docutils literal notranslate"><span class="pre">gaussian_samples</span></code> takes the covariance’s square root by eigen-decomposition rather than Cholesky, so a singular covariance (perfectly correlated outputs, or a <code class="docutils literal notranslate"><span class="pre">PCAOutputSurrogate</span></code> that keeps fewer components than outputs) still works:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>singular = np.array([[[1.0, 1.0], [1.0, 1.0]]])     # outputs identical
+S = gaussian_samples(np.zeros((1, 2)), singular, n_samples=5, seed=0)
+print(S[0].round(3))  # both columns equal
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[[-0.132 -0.132]
+ [ 0.105  0.105]
+ [ 0.362  0.362]
+ [ 0.947  0.947]
+ [-1.265 -1.265]]
+</pre></div></div>
+</div>
+</section>
+<section id="2.-What-each-score-can-and-cannot-see">
+<h2>2. What each score can and cannot see<a class="headerlink" href="#2.-What-each-score-can-and-cannot-see" title="Link to this heading">¶</a></h2>
+<p>To know which answer is right, generate the truth ourselves: 200 rows, two outputs whose noise has correlation 0.8, and the true mean known for every row. Then score seven forecasts. The first is the truth itself; each other one has exactly one flaw.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>n, rho = 200, 0.8
+mu = rng.normal(size=(n, 2))                                        # true means
+Y = mu + rng.multivariate_normal([0, 0], [[1, rho], [rho, 1]], size=n)
+
+
+def covs(r, scale=1.0):
+    return np.broadcast_to(scale**2 * np.array([[1.0, r], [r, 1.0]]), (n, 2, 2)).copy()
+
+
+forecasts = {
+    "perfect": (mu, covs(rho)),
+    "independent (corr 0)": (mu, covs(0.0)),
+    "wrong sign (corr -0.8)": (mu, covs(-rho)),
+    "bias on output 1 (+0.5)": (mu + [0.5, 0.0], covs(rho)),
+    "same shift on both (+0.5)": (mu + 0.5, covs(rho)),
+    "too wide (std x2)": (mu, covs(rho, 2.0)),
+    "too narrow (std x0.5)": (mu, covs(rho, 0.5)),
+}
+
+rows = {}
+for name, (m, c) in forecasts.items():
+    S = gaussian_samples(m, c, n_samples=200, seed=1)
+    rows[name] = {
+        "per-output CRPS": crps_gaussian(m, stds(c), Y),
+        "energy score": energy_score(Y, S),
+        "variogram score": variogram_score(Y, S, p=0.5),
+        "joint log score": joint_log_score(m, c, Y),
+    }
+scores = pd.DataFrame(rows).T
+scores
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>per-output CRPS</th>
+      <th>energy score</th>
+      <th>variogram score</th>
+      <th>joint log score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>perfect</th>
+      <td>0.5766</td>
+      <td>0.8612</td>
+      <td>0.1571</td>
+      <td>2.3381</td>
+    </tr>
+    <tr>
+      <th>independent (corr 0)</th>
+      <td>0.5766</td>
+      <td>0.8911</td>
+      <td>0.2263</td>
+      <td>2.8816</td>
+    </tr>
+    <tr>
+      <th>wrong sign (corr -0.8)</th>
+      <td>0.5766</td>
+      <td>0.9571</td>
+      <td>0.3256</td>
+      <td>6.1146</td>
+    </tr>
+    <tr>
+      <th>bias on output 1 (+0.5)</th>
+      <td>0.6079</td>
+      <td>0.9217</td>
+      <td>0.2210</td>
+      <td>2.6839</td>
+    </tr>
+    <tr>
+      <th>same shift on both (+0.5)</th>
+      <td>0.6370</td>
+      <td>0.9406</td>
+      <td>0.1571</td>
+      <td>2.4534</td>
+    </tr>
+    <tr>
+      <th>too wide (std x2)</th>
+      <td>0.6632</td>
+      <td>0.9936</td>
+      <td>0.1942</td>
+      <td>2.9661</td>
+    </tr>
+    <tr>
+      <th>too narrow (std x0.5)</th>
+      <td>0.6291</td>
+      <td>0.9387</td>
+      <td>0.1685</td>
+      <td>3.9848</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>Raw values are on different scales, so compare each column to the perfect forecast:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>rel = 100 * (scores / scores.loc["perfect"] - 1)
+fig, ax = plt.subplots(figsize=(10, 4.5))
+im = ax.imshow(rel.values, cmap="Reds", vmin=0, vmax=100, aspect="auto", origin="upper")
+ax.set_xticks(range(rel.shape[1]), rel.columns, rotation=20)
+ax.set_yticks(range(rel.shape[0]), rel.index)
+for i in range(rel.shape[0]):
+    for j in range(rel.shape[1]):
+        v = rel.values[i, j]
+        v = 0.0 if abs(v) &lt; 0.5 else v
+        ax.text(j, i, f"{v:+.0f}%", ha="center", va="center", fontsize=9,
+                color="white" if v &gt; 60 else "black")
+ax.set_title("Score increase over the perfect forecast (higher = flaw detected)", fontsize=12)
+plt.tight_layout(); plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_joint_scores_11_0.png" src="../_images/tutorials_joint_scores_11_0.png" />
+</div>
+</div>
+<p>How to read the table, row by row:</p>
+<ul class="simple">
+<li><p><strong>Independent and wrong-sign forecasts</strong> have the right marginals, so per-output CRPS is <em>exactly</em> unchanged: it cannot see dependence. The energy score notices, but only weakly (a few percent for “independent”). The variogram and joint log scores react strongly.</p></li>
+<li><p><strong>Bias on one output</strong> is seen by every score.</p></li>
+<li><p><strong>The same shift on every output</strong> is the variogram score’s blind spot: it looks only at differences <em>between</em> outputs, which a common shift leaves unchanged, so its value is identical to the perfect forecast’s. Always report it next to a score that sees the means.</p></li>
+<li><p><strong>Too wide / too narrow</strong>: all scores punish miscalibrated spread, the log score most harshly when intervals are too narrow.</p></li>
+</ul>
+<p>A forecast’s assumed correlation can also be swept directly. The truth’s correlation is 0.8; a proper score should be lowest there:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>grid = np.linspace(-0.9, 0.95, 15)
+sweep = {"energy score": [], "variogram score": [], "joint log score": []}
+for r in grid:
+    S = gaussian_samples(mu, covs(r), n_samples=150, seed=2)
+    sweep["energy score"].append(energy_score(Y, S))
+    sweep["variogram score"].append(variogram_score(Y, S))
+    sweep["joint log score"].append(joint_log_score(mu, covs(r), Y))
+
+fig, axes = plt.subplots(1, 3, figsize=(12, 3.4))
+for ax, (name, vals) in zip(axes, sweep.items()):
+    ax.plot(grid, vals, marker="o")
+    ax.axvline(rho, color="crimson", ls="--", label="true correlation")
+    ax.set_title(name); ax.set_xlabel("forecast correlation")
+axes[0].legend()
+plt.tight_layout(); plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_joint_scores_13_0.png" src="../_images/tutorials_joint_scores_13_0.png" />
+</div>
+</div>
+<p>All three bottom out near the true correlation, which is what <em>proper</em> means in practice. The energy score’s curve is shallow (a wrong correlation costs it little), the variogram score’s is steep. With noisy data the energy score may not separate two models that differ only in their dependence; the variogram score usually will.</p>
+<p><strong>One more identity.</strong> With a single output, the energy score <em>is</em> the CRPS. Checked numerically against the closed form (the small gap is Monte Carlo error; see section 3):</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>S1 = gaussian_samples(mu[:, :1], np.ones((n, 1)), n_samples=400, seed=0)
+print(f"energy score, 1 output: {energy_score(Y[:, :1], S1):.4f}")
+print(f"closed-form CRPS:       {crps_gaussian(mu[:, :1], np.ones((n, 1)), Y[:, :1]):.4f}")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+energy score, 1 output: 0.5769
+closed-form CRPS:       0.5715
+</pre></div></div>
+</div>
+</section>
+<section id="3.-Practical-choices">
+<h2>3. Practical choices<a class="headerlink" href="#3.-Practical-choices" title="Link to this heading">¶</a></h2>
+<section id="How-many-samples?">
+<h3>How many samples?<a class="headerlink" href="#How-many-samples?" title="Link to this heading">¶</a></h3>
+<p>Both scores are estimated from samples, so they carry Monte Carlo noise. The energy score also has a small-sample <strong>bias</strong>: its second term averages distances between pairs of samples, including each sample with itself (distance 0), which makes it too high when <code class="docutils literal notranslate"><span class="pre">n_samples</span></code> is small. Cost grows with the square of <code class="docutils literal notranslate"><span class="pre">n_samples</span></code>, because the energy score compares every pair of samples: it builds an <code class="docutils literal notranslate"><span class="pre">(n_rows,</span> <span class="pre">n_samples,</span> <span class="pre">n_samples,</span> <span class="pre">n_outputs)</span></code> array, so 1,000 rows with 1,000 samples and 3 outputs
+would need about 24 GB. Score in batches of rows if needed.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import time
+
+rows = []
+for S_n in (10, 25, 50, 100, 200):
+    t0 = time.perf_counter()
+    vals = [energy_score(Y, gaussian_samples(mu, covs(rho), S_n, seed=k)) for k in range(5)]
+    rows.append({"n_samples": S_n, "mean over 5 seeds": np.mean(vals), "std over seeds": np.std(vals),
+                 "seconds per score": (time.perf_counter() - t0) / 5})
+pd.DataFrame(rows).set_index("n_samples")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>mean over 5 seeds</th>
+      <th>std over seeds</th>
+      <th>seconds per score</th>
+    </tr>
+    <tr>
+      <th>n_samples</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>10</th>
+      <td>0.9420</td>
+      <td>0.0278</td>
+      <td>0.0022</td>
+    </tr>
+    <tr>
+      <th>25</th>
+      <td>0.8984</td>
+      <td>0.0094</td>
+      <td>0.0093</td>
+    </tr>
+    <tr>
+      <th>50</th>
+      <td>0.8810</td>
+      <td>0.0088</td>
+      <td>0.0227</td>
+    </tr>
+    <tr>
+      <th>100</th>
+      <td>0.8620</td>
+      <td>0.0078</td>
+      <td>0.1038</td>
+    </tr>
+    <tr>
+      <th>200</th>
+      <td>0.8624</td>
+      <td>0.0029</td>
+      <td>0.4494</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>With few samples the energy score is biased upward and varies between seeds; from a hundred or two samples on, both effects are small next to the differences in section 2. <strong>Fix the seed</strong> (<code class="docutils literal notranslate"><span class="pre">seed=...</span></code>) when comparing models, so they are scored on the same random draws and the comparison is not just noise.</p>
+</section>
+<section id="Put-the-outputs-on-one-scale">
+<h3>Put the outputs on one scale<a class="headerlink" href="#Put-the-outputs-on-one-scale" title="Link to this heading">¶</a></h3>
+<p>Both scores add up distances <em>across</em> outputs, so an output measured in large units drowns out the others. Below, the same forecasts are scored with output 2 multiplied by 1000, as if it were in millimetres while output 1 is in metres:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>scale = np.array([1.0, 1000.0])
+rows = {}
+for name in ["perfect", "independent (corr 0)", "bias on output 1 (+0.5)"]:
+    m, c = forecasts[name]
+    S_raw = gaussian_samples(m * scale, c * np.outer(scale, scale), 200, seed=1)
+    S_std = S_raw / scale                               # standardized back
+    rows[name] = {"energy, raw units": energy_score(Y * scale, S_raw),
+                  "energy, standardized": energy_score(Y, S_std)}
+pd.DataFrame(rows).T
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>energy, raw units</th>
+      <th>energy, standardized</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>perfect</th>
+      <td>582.9098</td>
+      <td>0.8611</td>
+    </tr>
+    <tr>
+      <th>independent (corr 0)</th>
+      <td>582.9106</td>
+      <td>0.8911</td>
+    </tr>
+    <tr>
+      <th>bias on output 1 (+0.5)</th>
+      <td>582.9104</td>
+      <td>0.9226</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>In raw units the forecast with a bias on output 1 scores almost the same as the perfect one, because output 1 is invisible next to output 2’s thousands. Divide each output by a fixed scale (e.g. its training-set std) before scoring, and use the <em>same</em> scale for every model you compare.</p>
+</section>
+<section id="The-variogram-order-p-and-pair-weights">
+<h3>The variogram order <code class="docutils literal notranslate"><span class="pre">p</span></code> and pair weights<a class="headerlink" href="#The-variogram-order-p-and-pair-weights" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">p</span></code> sets how pairwise differences are compared. <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">0.5</span></code> (the default) is the usual choice: larger <code class="docutils literal notranslate"><span class="pre">p</span></code> weighs large differences more and becomes sensitive to outliers and heavy tails. Below, the perfect and independent forecasts are scored on clean data and on the same data with a few large outliers:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>Y_out = Y.copy()
+Y_out[:5, 0] += 8.0                                    # five gross errors in output 1
+rows = []
+for p in (0.5, 1.0, 2.0):
+    for label, data in [("clean", Y), ("5 outliers", Y_out)]:
+        good = variogram_score(data, gaussian_samples(mu, covs(rho), 200, seed=1), p=p)
+        indep = variogram_score(data, gaussian_samples(mu, covs(0.0), 200, seed=1), p=p)
+        rows.append({"p": p, "data": label, "perfect": good, "independent": indep,
+                     "independent / perfect": indep / good})
+pd.DataFrame(rows).set_index(["p", "data"])
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>perfect</th>
+      <th>independent</th>
+      <th>independent / perfect</th>
+    </tr>
+    <tr>
+      <th>p</th>
+      <th>data</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="2" valign="top">0.5</th>
+      <th>clean</th>
+      <td>0.1571</td>
+      <td>0.2263</td>
+      <td>1.4409</td>
+    </tr>
+    <tr>
+      <th>5 outliers</th>
+      <td>0.3504</td>
+      <td>0.3680</td>
+      <td>1.0505</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">1.0</th>
+      <th>clean</th>
+      <td>0.5859</td>
+      <td>0.9204</td>
+      <td>1.5710</td>
+    </tr>
+    <tr>
+      <th>5 outliers</th>
+      <td>2.9495</td>
+      <td>2.9137</td>
+      <td>0.9879</td>
+    </tr>
+    <tr>
+      <th rowspan="2" valign="top">2.0</th>
+      <th>clean</th>
+      <td>6.7766</td>
+      <td>11.6452</td>
+      <td>1.7184</td>
+    </tr>
+    <tr>
+      <th>5 outliers</th>
+      <td>171.5248</td>
+      <td>167.2928</td>
+      <td>0.9753</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>On clean data every <code class="docutils literal notranslate"><span class="pre">p</span></code> ranks the perfect forecast first, and larger <code class="docutils literal notranslate"><span class="pre">p</span></code> separates the two forecasts a little more. Five gross errors change that. They dominate the score: at <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">0.5</span></code> the independent forecast is now only about 5% worse than the perfect one, and at <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">1</span></code> and <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">2</span></code> the order <strong>flips</strong> and the wrong forecast scores better. <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">0.5</span></code> is the only order here that still ranks them correctly. So keep <code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">0.5</span></code>, and look for outliers (or gross errors in the data)
+before trusting any variogram comparison.</p>
+<p><code class="docutils literal notranslate"><span class="pre">weights</span></code> (an <code class="docutils literal notranslate"><span class="pre">(m,</span> <span class="pre">m)</span></code> matrix) sets how much each pair of outputs counts. Use it to score only the pairs you care about, or to down-weight pairs that are far apart (e.g. distant points of a field, where little correlation is expected):</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>m3 = 3
+W_only_01 = np.zeros((m3, m3)); W_only_01[0, 1] = W_only_01[1, 0] = 1.0   # just outputs 0 and 1
+mean3 = np.zeros((4, m3)); y3 = rng.normal(size=(4, m3))
+S3 = gaussian_samples(mean3, np.ones((4, m3)), 100, seed=0)
+print("all pairs:         ", round(variogram_score(y3, S3), 4))
+print("only pair (0, 1):  ", round(variogram_score(y3, S3, weights=W_only_01), 4))
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+all pairs:          0.5329
+only pair (0, 1):   0.2891
+</pre></div></div>
+</div>
+</section>
+</section>
+<section id="4.-Comparing-surrogates">
+<h2>4. Comparing surrogates<a class="headerlink" href="#4.-Comparing-surrogates" title="Link to this heading">¶</a></h2>
+<p>Now the question these scores exist for: <strong>does a model that represents dependence between outputs predict better than one that does not?</strong> Four candidates, all built on Gaussian processes so that only the dependence model differs:</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Model</p></th>
+<th class="head"><p>How outputs are linked</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">GaussianProcessSurrogate</span></code></p></td>
+<td><p>Not at all: one GP per output, independent errors</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">GaussianCopulaSurrogate</span></code></p></td>
+<td><p>Same GPs, plus a correlation of their errors estimated from out-of-fold residuals</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">PCAOutputSurrogate</span></code></p></td>
+<td><p>GPs on the principal components of the outputs, mapped back with the full covariance</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">MultiTaskGPSurrogate</span></code></p></td>
+<td><p>One GP over all outputs with a learned output covariance (ICM kernel); needs <code class="docutils literal notranslate"><span class="pre">gpytorch</span></code></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Every model is scored on outputs standardized by the training std, with the same seed for the samples.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from multioutreg.surrogates import (
+    GaussianCopulaSurrogate,
+    GaussianProcessSurrogate,
+    PCAOutputSurrogate,
+)
+from multioutreg.surrogates.multitask_gp_gpytorch import _GPYTORCH_AVAILABLE, MultiTaskGPSurrogate
+
+
+def candidates(n_outputs):
+    models = {
+        "GP (independent)": GaussianProcessSurrogate(),
+        "Gaussian copula + GP": GaussianCopulaSurrogate(cv=5, random_state=0),
+        "PCA output + GP": PCAOutputSurrogate(n_components=n_outputs),
+    }
+    if _GPYTORCH_AVAILABLE:
+        models["Multi-task GP (ICM)"] = MultiTaskGPSurrogate(random_state=0)
+    return models
+
+
+def predict_joint(model, X, n_outputs):
+    # Mean and per-row covariance; models without return_cov get a diagonal one.
+    try:
+        mean, cov = model.predict(X, return_cov=True)
+    except TypeError:
+        mean, std = model.predict(X, return_std=True)
+        cov = np.asarray(std)[:, :, None] ** 2 * np.eye(n_outputs)
+    return np.asarray(mean), np.asarray(cov)
+
+
+def compare(X_tr, Y_tr, X_te, Y_te):
+    m_out = Y_tr.shape[1]
+    sc = Y_tr.std(axis=0)                                  # one scale for every model
+    rows = {}
+    for name, model in candidates(m_out).items():
+        model.fit(X_tr, Y_tr)
+        mean, cov = predict_joint(model, X_te, m_out)
+        ms, ys, cs = mean / sc, Y_te / sc, cov / np.outer(sc, sc)
+        S = gaussian_samples(ms, cs, n_samples=200, seed=0)
+        corr = cs[:, 0, 1] / np.sqrt(cs[:, 0, 0] * cs[:, 1, 1])
+        rows[name] = {
+            "RMSE": float(np.sqrt(np.mean((ms - ys) ** 2))),
+            "per-output CRPS": crps_gaussian(ms, stds(cs), ys),
+            "energy score": energy_score(ys, S),
+            "variogram score": variogram_score(ys, S),
+            "joint log score": joint_log_score(ms, cs, ys),
+            "predicted corr(0, 1)": float(np.mean(corr)),
+        }
+    return pd.DataFrame(rows).T
+</pre></div>
+</div>
+</div>
+<section id="4a.-Outputs-that-share-their-noise">
+<h3>4a. Outputs that share their noise<a class="headerlink" href="#4a.-Outputs-that-share-their-noise" title="Link to this heading">¶</a></h3>
+<p>Two outputs that depend on different inputs but share most of their measurement noise (noise correlation 0.85), as when two quantities come from the same noisy experiment run:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def shared_noise_data(n, seed):
+    r = np.random.default_rng(seed)
+    X = r.uniform(0, 1, size=(n, 2))
+    e, u = r.normal(size=n), r.normal(size=(n, 2))
+    noise = 0.3 * (0.92 * e[:, None] + 0.39 * u)           # correlation 0.92^2 / (0.92^2 + 0.39^2) = 0.85
+    Y = np.c_[np.sin(6 * X[:, 0]), np.cos(5 * X[:, 1]) + X[:, 0]] + noise
+    return X, Y
+
+
+X_tr, Y_tr = shared_noise_data(120, seed=0)
+X_te, Y_te = shared_noise_data(300, seed=1)
+shared = compare(X_tr, Y_tr, X_te, Y_te)
+shared
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>RMSE</th>
+      <th>per-output CRPS</th>
+      <th>energy score</th>
+      <th>variogram score</th>
+      <th>joint log score</th>
+      <th>predicted corr(0, 1)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>GP (independent)</th>
+      <td>0.4192</td>
+      <td>0.2347</td>
+      <td>0.3627</td>
+      <td>0.0508</td>
+      <td>1.0863</td>
+      <td>0.0000</td>
+    </tr>
+    <tr>
+      <th>Gaussian copula + GP</th>
+      <td>0.4192</td>
+      <td>0.2347</td>
+      <td>0.3500</td>
+      <td>0.0367</td>
+      <td>0.5123</td>
+      <td>0.8122</td>
+    </tr>
+    <tr>
+      <th>PCA output + GP</th>
+      <td>0.6600</td>
+      <td>0.3732</td>
+      <td>0.5422</td>
+      <td>0.0344</td>
+      <td>1.0115</td>
+      <td>0.9408</td>
+    </tr>
+    <tr>
+      <th>Multi-task GP (ICM)</th>
+      <td>0.4187</td>
+      <td>0.2347</td>
+      <td>0.3604</td>
+      <td>0.0517</td>
+      <td>1.0816</td>
+      <td>0.0064</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>What the scores say:</p>
+<ul class="simple">
+<li><p><strong>Copula vs independent GP.</strong> Identical RMSE and per-output CRPS: the copula keeps the GP’s means and stds and only adds the correlation, which it estimates close to the true 0.85. Per-output metrics therefore rate the two models as equal. The joint scores do not: the variogram score drops by about a quarter and the joint log score roughly halves. The energy score improves too, but only by a few percent, the shallow curve from section 2.</p></li>
+<li><p><strong>Multi-task GP.</strong> It predicts a correlation near zero. The ICM kernel correlates the outputs’ <em>underlying functions</em>, while the noise model is independent per output. Here the two functions are unrelated and only the noise is shared, so it has nothing to learn.</p></li>
+<li><p><strong>PCA output.</strong> The best variogram score, but clearly worse means (higher RMSE and CRPS), because each principal component mixes two unrelated functions. This is the variogram score’s blind spot from section 2 in a real model: always read it next to a marginal score.</p></li>
+</ul>
+</section>
+<section id="4b.-DTLZ2:-dependence-in-the-function,-not-the-noise">
+<h3>4b. DTLZ2: dependence in the function, not the noise<a class="headerlink" href="#4b.-DTLZ2:-dependence-in-the-function,-not-the-noise" title="Link to this heading">¶</a></h3>
+<p>DTLZ2 is a 3-objective benchmark whose outputs are strongly dependent through the function itself (all three are scaled by a common factor). There is no noise, so the models’ errors are their only randomness. 60 training rows:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from multioutreg.active.benchmarks import get_benchmark
+
+bench = get_benchmark("dtlz2")
+f = bench.functions["hi"]
+X_tr = bench.sample(60, "lhs", seed=0)
+X_te = bench.sample(150, "random", seed=1)
+dtlz = compare(X_tr, f(X_tr), X_te, f(X_te))
+dtlz
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>RMSE</th>
+      <th>per-output CRPS</th>
+      <th>energy score</th>
+      <th>variogram score</th>
+      <th>joint log score</th>
+      <th>predicted corr(0, 1)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>GP (independent)</th>
+      <td>0.2577</td>
+      <td>0.1405</td>
+      <td>0.2793</td>
+      <td>0.2384</td>
+      <td>0.6812</td>
+      <td>0.0000</td>
+    </tr>
+    <tr>
+      <th>Gaussian copula + GP</th>
+      <td>0.2577</td>
+      <td>0.1405</td>
+      <td>0.2793</td>
+      <td>0.2388</td>
+      <td>1.2216</td>
+      <td>-0.1418</td>
+    </tr>
+    <tr>
+      <th>PCA output + GP</th>
+      <td>0.2434</td>
+      <td>0.1294</td>
+      <td>0.2598</td>
+      <td>0.2282</td>
+      <td>-0.3045</td>
+      <td>-0.0352</td>
+    </tr>
+    <tr>
+      <th>Multi-task GP (ICM)</th>
+      <td>0.2286</td>
+      <td>0.1214</td>
+      <td>0.2502</td>
+      <td>0.1181</td>
+      <td>0.7182</td>
+      <td>0.2837</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>Here the picture is different:</p>
+<ul class="simple">
+<li><p><strong>The multi-task GP</strong> wins on RMSE, CRPS, energy and variogram score. Sharing information between outputs helps the <em>means</em>, and the learned output covariance halves the variogram score.</p></li>
+<li><p><strong>The joint log score disagrees.</strong> It ranks the PCA model first and puts the multi-task GP slightly behind the independent GP. The log score punishes any point that falls far outside a narrow predicted density, so a model with tight, slightly overconfident intervals can lose on it while winning everywhere else. When the scores disagree like this, look at calibration per output (coverage, or the std recalibration wrapper) before picking a model on any single number.</p></li>
+<li><p><strong>The copula does not help, and its log score is worse.</strong> Its correlation comes from the GP’s out-of-fold residuals, and with 60 rows those are noisy: compare the residual correlations it learned with the ones on the test set below. One pair comes out with the wrong sign, the flaw that cost the most in section 2. <code class="docutils literal notranslate"><span class="pre">shrinkage</span></code> (towards independence) limits the damage when there are few rows per output.</p></li>
+</ul>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>gp = GaussianProcessSurrogate().fit(X_tr, f(X_tr))
+m, s = gp.predict(X_te, return_std=True)
+pairs = ["(0, 1)", "(0, 2)", "(1, 2)"]
+iu = np.triu_indices(3, 1)
+test_corr = np.corrcoef(((f(X_te) - m) / s).T)[iu]
+learned = {f"copula, shrinkage={sh}": GaussianCopulaSurrogate(cv=5, shrinkage=sh, random_state=0)
+           .fit(X_tr, f(X_tr)).correlation_[iu] for sh in (0.0, 0.5)}
+pd.DataFrame({"test-set residual corr": test_corr, **learned}, index=pairs)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>test-set residual corr</th>
+      <th>copula, shrinkage=0.0</th>
+      <th>copula, shrinkage=0.5</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>(0, 1)</th>
+      <td>-0.3364</td>
+      <td>-0.1418</td>
+      <td>-0.0709</td>
+    </tr>
+    <tr>
+      <th>(0, 2)</th>
+      <td>-0.2079</td>
+      <td>-0.2068</td>
+      <td>-0.1034</td>
+    </tr>
+    <tr>
+      <th>(1, 2)</th>
+      <td>-0.3464</td>
+      <td>0.3284</td>
+      <td>0.1642</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>So the joint scores did their job in both cases: they showed when adding dependence helped (4a) and when it did not (4b), which per-output metrics alone could not.</p>
+</section>
+</section>
+<section id="5.-Which-score-to-report">
+<h2>5. Which score to report<a class="headerlink" href="#5.-Which-score-to-report" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Question</p></th>
+<th class="head"><p>Score</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Are the means right?</p></td>
+<td><p>RMSE / MAE</p></td>
+</tr>
+<tr class="row-odd"><td><p>Is each output’s uncertainty right?</p></td>
+<td><p>per-output CRPS (or coverage)</p></td>
+</tr>
+<tr class="row-even"><td><p>Is the joint distribution right, as one number?</p></td>
+<td><p><strong>energy score</strong>: proper and works for any samples, but weak on dependence</p></td>
+</tr>
+<tr class="row-odd"><td><p>Is the dependence between outputs right?</p></td>
+<td><p><strong>variogram score</strong> (<code class="docutils literal notranslate"><span class="pre">p</span> <span class="pre">=</span> <span class="pre">0.5</span></code>): strong on dependence, blind to shifts shared by all outputs</p></td>
+</tr>
+<tr class="row-even"><td><p>Gaussian predictions, and you want the sharpest test?</p></td>
+<td><p>joint Gaussian log score: sees everything, but sensitive to a few bad points</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>Practical rules from this tutorial:</p>
+<ol class="arabic simple">
+<li><p>Report a joint score <strong>next to</strong> a marginal one, never alone.</p></li>
+<li><p>Standardize outputs with one fixed scale (e.g. training std) shared by all models.</p></li>
+<li><p>Fix the sampling <code class="docutils literal notranslate"><span class="pre">seed</span></code> and use a hundred or more samples; watch memory, which grows with <code class="docutils literal notranslate"><span class="pre">n_rows</span> <span class="pre">×</span> <span class="pre">n_samples²</span> <span class="pre">×</span> <span class="pre">n_outputs</span></code>.</p></li>
+<li><p>A model that adds dependence (copula, PCA output, multi-task GP) is worth it only if the joint scores improve <em>without</em> the marginal ones getting worse.</p></li>
+</ol>
+<p><strong>Related pages:</strong> <a class="reference internal" href="../multiobjective_metrics.html"><span class="doc">Multi-Objective Metrics</span></a> (the regrets and the score definitions), <a class="reference internal" href="../integrated_surrogates.html"><span class="doc">Integrated Surrogate Models</span></a> (all surrogates), and <a class="reference internal" href="multi_output_surrogates.html"><span class="doc">Multi-Output Surrogates, Start to Finish</span></a> (per-output uncertainty and conformal intervals).</p>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+<div class="related-pages">
+  <a class="next-page" href="multi_fidelity_surrogates.html">
+      <div class="page-info">
+        <div class="context">
+          <span>Next</span>
+        </div>
+        <div class="title">Multi-Fidelity Surrogate Modeling</div>
+      </div>
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+    </a>
+  <a class="prev-page" href="multi_output_surrogates.html">
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+      <div class="page-info">
+        <div class="context">
+          <span>Previous</span>
+        </div>
+        
+        <div class="title">Multi-Output Surrogates, Start to Finish</div>
+        
+      </div>
+    </a>
+</div>
+<div class="bottom-of-page">
+  <div class="left-details">
+    <div class="copyright">
+        Copyright &#169; 2025, takotime808
+    </div>
+  </div>
+  <div class="right-details">
+    <div class="icons">
+      <a class="muted-link " href="https://github.com/takotime808/multioutreg" aria-label="GitHub"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a>
+      
+    </div>
+  </div>
+</div>
+
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Scoring Joint Predictions: Energy and Variogram Scores</a><ul>
+<li><a class="reference internal" href="#1.-Drawing-joint-samples-with-gaussian_samples">1. Drawing joint samples with <code class="docutils literal notranslate"><span class="pre">gaussian_samples</span></code></a></li>
+<li><a class="reference internal" href="#2.-What-each-score-can-and-cannot-see">2. What each score can and cannot see</a></li>
+<li><a class="reference internal" href="#3.-Practical-choices">3. Practical choices</a><ul>
+<li><a class="reference internal" href="#How-many-samples?">How many samples?</a></li>
+<li><a class="reference internal" href="#Put-the-outputs-on-one-scale">Put the outputs on one scale</a></li>
+<li><a class="reference internal" href="#The-variogram-order-p-and-pair-weights">The variogram order <code class="docutils literal notranslate"><span class="pre">p</span></code> and pair weights</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#4.-Comparing-surrogates">4. Comparing surrogates</a><ul>
+<li><a class="reference internal" href="#4a.-Outputs-that-share-their-noise">4a. Outputs that share their noise</a></li>
+<li><a class="reference internal" href="#4b.-DTLZ2:-dependence-in-the-function,-not-the-noise">4b. DTLZ2: dependence in the function, not the noise</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#5.-Which-score-to-report">5. Which score to report</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>

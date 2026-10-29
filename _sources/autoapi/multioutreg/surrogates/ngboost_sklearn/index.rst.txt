@@ -1,0 +1,80 @@
+multioutreg.surrogates.ngboost_sklearn
+======================================
+
+.. py:module:: multioutreg.surrogates.ngboost_sklearn
+
+.. autoapi-nested-parse::
+
+   NGBoost surrogate with native probabilistic uncertainty.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.ngboost_sklearn.NGBoostSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: NGBoostSurrogate(n_estimators=500, learning_rate=0.01, verbose=False, **kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   NGBoost surrogate providing native probabilistic uncertainty.
+
+   Wraps ngboost.NGBRegressor in a MultiOutputRegressor and exposes
+   per-output predictive standard deviations via NGBoost's natural-gradient
+   distributional output.
+
+   :param n_estimators: Number of boosting iterations.
+   :type n_estimators: int, default 500
+   :param learning_rate:
+   :type learning_rate: float, default 0.01
+   :param verbose:
+   :type verbose: bool, default False
+   :param \*\*kwargs: Additional keyword arguments passed to NGBRegressor.
+
+
+   .. py:attribute:: n_estimators
+      :value: 500
+
+
+
+   .. py:attribute:: learning_rate
+      :value: 0.01
+
+
+
+   .. py:attribute:: verbose
+      :value: False
+
+
+
+   .. py:method:: get_params(deep=True)
+
+      Constructor arguments this surrogate was built with, by name.
+
+      Arguments taken through ``**kwargs`` (passed on to the wrapped
+      estimator) are listed individually; defaults filled in inside the
+      constructor are not. ``deep`` is accepted for scikit-learn
+      compatibility; nested estimator parameters are not expanded.
+
+
+
+   .. py:method:: set_params(**params)
+
+      Set constructor arguments and rebuild the surrogate.
+
+      The surrogate is reconstructed from the merged arguments, so a fitted
+      surrogate must be refitted afterwards.
+
+
+
+   .. py:method:: predict(X, return_std=False)
+
+

@@ -1,0 +1,204 @@
+multioutreg.active.loop
+=======================
+
+.. py:module:: multioutreg.active.loop
+
+.. autoapi-nested-parse::
+
+   Single-fidelity active-learning loop with an ask / tell interface.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.active.loop.ActiveLearner
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.active.loop.space_filling
+   multioutreg.active.loop.heldout_metrics
+
+
+Module Contents
+---------------
+
+.. py:function:: space_filling(n: int, n_features: int, method: str = 'sobol', seed=None) -> numpy.ndarray
+
+   ``n`` points in the unit cube from a scrambled Sobol, LHS or random design.
+
+
+.. py:function:: heldout_metrics(model, X_test, Y_test) -> Dict[str, float]
+
+   RMSE and range-free normalized RMSE (RMSE / std of Y_test), averaged over outputs.
+
+
+.. py:class:: ActiveLearner(model_factory: Callable, bounds, acquisition: Union[str, Callable] = 'max_variance', acquisition_kwargs: Optional[dict] = None, weights=None, minimize: bool = True, batch_size: int = 1, n_candidates: int = 1024, length_scale: Optional[float] = None, penalize_train: bool = False, allow_zero_std: bool = False, random_state: Optional[int] = 0)
+
+   Sequential design for a multi-output surrogate on a box-shaped domain.
+
+   :param model_factory: Zero-argument callable returning an unfitted surrogate with
+                         ``fit(X, Y)`` and ``predict(X, return_std=True)``. The model is refit
+                         from scratch after every :meth:`tell`.
+   :type model_factory: callable
+   :param bounds:
+   :type bounds: array-like, shape (n_features, 2)
+   :param acquisition: One of ``"max_variance"``, ``"ucb"``, ``"ei"``, ``"pi"``, ``"random"``,
+                       or ``f(mean, std, **kwargs) -> scores``.
+   :type acquisition: str or callable, default "max_variance"
+   :param acquisition_kwargs: Extra arguments for the acquisition (``beta``, ``xi``, ``how``).
+   :type acquisition_kwargs: dict, optional
+   :param weights: Per-output weights: aggregation weights for ``max_variance``,
+                   scalarization weights for ``ucb`` / ``ei`` / ``pi``.
+   :type weights: sequence of float, optional
+   :param minimize: Direction for the optimization acquisitions.
+   :type minimize: bool, default True
+   :param batch_size:
+   :type batch_size: int, default 1
+   :param n_candidates: Size of the fresh Sobol candidate pool drawn on every :meth:`ask`.
+   :type n_candidates: int, default 1024
+   :param length_scale: Passed to :func:`multioutreg.active.batch.select_batch`.
+   :param penalize_train: Passed to :func:`multioutreg.active.batch.select_batch`.
+   :param allow_zero_std: See :func:`multioutreg.active.acquisition.predict_mean_std`.
+   :type allow_zero_std: bool, default False
+   :param random_state:
+   :type random_state: int or None, default 0
+
+
+   .. py:attribute:: model_factory
+
+
+   .. py:attribute:: bounds
+
+
+   .. py:attribute:: acquisition
+      :value: 'max_variance'
+
+
+
+   .. py:attribute:: acquisition_kwargs
+
+
+   .. py:attribute:: weights
+      :value: None
+
+
+
+   .. py:attribute:: minimize
+      :value: True
+
+
+
+   .. py:attribute:: batch_size
+      :value: 1
+
+
+
+   .. py:attribute:: n_candidates
+      :value: 1024
+
+
+
+   .. py:attribute:: length_scale
+      :value: None
+
+
+
+   .. py:attribute:: penalize_train
+      :value: False
+
+
+
+   .. py:attribute:: allow_zero_std
+      :value: False
+
+
+
+   .. py:attribute:: random_state
+      :value: 0
+
+
+
+   .. py:attribute:: X_
+
+
+   .. py:attribute:: Y_
+      :type:  Optional[numpy.ndarray]
+      :value: None
+
+
+
+   .. py:attribute:: model_
+      :value: None
+
+
+
+   .. py:attribute:: history_
+      :type:  List[dict]
+      :value: []
+
+
+
+   .. py:property:: n_features
+      :type: int
+
+
+
+   .. py:method:: to_unit(X) -> numpy.ndarray
+
+
+   .. py:method:: from_unit(U) -> numpy.ndarray
+
+
+   .. py:method:: initial_design(n: int, method: str = 'sobol') -> numpy.ndarray
+
+      Space-filling starting points in the domain (not yet evaluated).
+
+
+
+   .. py:method:: tell(X, Y) -> ActiveLearner
+
+      Add evaluated points; the model is refit on the next :meth:`fit`/:meth:`ask`.
+
+
+
+   .. py:method:: fit()
+
+      Fit a fresh model on all data told so far and return it.
+
+
+
+   .. py:method:: best_observed() -> float
+
+
+   .. py:method:: score(X) -> numpy.ndarray
+
+      Acquisition value at ``X`` (larger is better).
+
+
+
+   .. py:method:: ask(n: Optional[int] = None) -> numpy.ndarray
+
+      Return the next ``n`` (default ``batch_size``) points to evaluate.
+
+
+
+   .. py:method:: run(simulator: Callable[[numpy.ndarray], numpy.ndarray], n_init: int = 10, n_iter: int = 10, init_method: str = 'sobol', X_test=None, Y_test=None, max_evals: Optional[int] = None, rtol: Optional[float] = None, patience: int = 2, callback: Optional[Callable[[ActiveLearner, dict], None]] = None) -> List[dict]
+
+      Run the loop with a Python ``simulator(X) -> Y``.
+
+      Stops after ``n_iter`` batches, when ``max_evals`` evaluations are
+      reached, or (with ``rtol`` and test data) when held-out NRMSE has not
+      improved by a relative ``rtol`` for ``patience`` iterations.
+
+      :returns: :attr:`history_`, one record per fitted model.
+      :rtype: list of dict
+
+
+

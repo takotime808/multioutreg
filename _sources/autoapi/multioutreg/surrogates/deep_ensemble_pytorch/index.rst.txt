@@ -1,0 +1,156 @@
+multioutreg.surrogates.deep_ensemble_pytorch
+============================================
+
+.. py:module:: multioutreg.surrogates.deep_ensemble_pytorch
+
+.. autoapi-nested-parse::
+
+   Deep Ensemble surrogate — gold-standard UQ via N independent networks.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.deep_ensemble_pytorch.DeepEnsembleSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: DeepEnsembleSurrogate(n_estimators: int = 5, hidden_layer_sizes: tuple = (128, 64), max_epochs: int = 500, learning_rate: float = 0.001, batch_size: int = 64, patience: int = 30, random_state: int | None = None, loss: str = 'nll')
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Deep Ensemble surrogate (Lakshminarayanan et al. 2017).
+
+   Trains ``n_estimators`` independent feed-forward networks from different
+   random seeds.
+
+   With ``loss="nll"`` (default) each network has a mean and a variance head
+   and is trained on the Gaussian negative log-likelihood, as in the paper.
+   The prediction is the equal-weight mixture of the members: predictive
+   variance = mean of the member noise variances (aleatoric) + variance of
+   the member means (epistemic).
+
+   With ``loss="mse"`` the networks predict the mean only and the predictive
+   std is the cross-network spread. That is epistemic only: it ignores the
+   noise in y, so its intervals under-cover on noisy data (often far below
+   nominal). Use it only for noise-free data or wrap it with conformal
+   prediction.
+
+   Requires PyTorch (core dependency)::
+
+       pip install torch
+
+   :param n_estimators: Number of independent networks in the ensemble.  5 gives a good
+                        variance estimate; 10+ improves calibration at extra compute cost.
+   :type n_estimators: int, default 5
+   :param hidden_layer_sizes: Width of each hidden layer.
+   :type hidden_layer_sizes: tuple[int, ...], default (128, 64)
+   :param max_epochs:
+   :type max_epochs: int, default 500
+   :param learning_rate:
+   :type learning_rate: float, default 1e-3
+   :param batch_size:
+   :type batch_size: int, default 64
+   :param patience: Early-stopping patience (epochs without improvement).
+   :type patience: int, default 30
+   :param random_state: Base seed; individual networks use ``random_state + i`` so each
+                        gets a distinct initialisation.
+   :type random_state: int | None, default None
+   :param loss: ``"nll"`` learns the noise variance (aleatoric + epistemic std);
+                ``"mse"`` gives the epistemic-only ensemble spread.
+   :type loss: {"nll", "mse"}, default "nll"
+
+
+   .. py:attribute:: loss
+      :value: 'nll'
+
+
+
+   .. py:attribute:: n_estimators
+      :value: 5
+
+
+
+   .. py:attribute:: hidden_layer_sizes
+      :value: (128, 64)
+
+
+
+   .. py:attribute:: max_epochs
+      :value: 500
+
+
+
+   .. py:attribute:: learning_rate
+      :value: 0.001
+
+
+
+   .. py:attribute:: batch_size
+      :value: 64
+
+
+
+   .. py:attribute:: patience
+      :value: 30
+
+
+
+   .. py:attribute:: random_state
+      :value: None
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, Y: numpy.ndarray) -> DeepEnsembleSurrogate
+
+      Train all ensemble members on (X, Y).
+
+      :param X:
+      :type X: np.ndarray, shape (n_samples, n_features)
+      :param Y:
+      :type Y: np.ndarray, shape (n_samples,) or (n_samples, n_outputs)
+
+      :rtype: self
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> numpy.ndarray | tuple[np.ndarray, np.ndarray]
+
+      Predict outputs for X.
+
+      :param X:
+      :type X: np.ndarray
+      :param return_std: If True, also return the predictive std (see the class docstring).
+      :type return_std: bool, default False
+
+      :returns: * **y_pred** (*np.ndarray, shape (n_samples, n_outputs)*)
+                * **y_std** (*np.ndarray, shape (n_samples, n_outputs)  [only if return_std]*)
+
+
+
+   .. py:method:: get_params(deep: bool = True) -> dict
+
+      Constructor arguments this surrogate was built with, by name.
+
+      Arguments taken through ``**kwargs`` (passed on to the wrapped
+      estimator) are listed individually; defaults filled in inside the
+      constructor are not. ``deep`` is accepted for scikit-learn
+      compatibility; nested estimator parameters are not expanded.
+
+
+
+   .. py:method:: set_params(**params) -> DeepEnsembleSurrogate
+
+      Set constructor arguments and rebuild the surrogate.
+
+      The surrogate is reconstructed from the merged arguments, so a fitted
+      surrogate must be refitted afterwards.
+
+
+

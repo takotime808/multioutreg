@@ -1,0 +1,159 @@
+multioutreg.surrogates.bnn_pytorch
+==================================
+
+.. py:module:: multioutreg.surrogates.bnn_pytorch
+
+.. autoapi-nested-parse::
+
+   Bayesian Neural Network surrogate using MC Dropout uncertainty.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.bnn_pytorch.BNNSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: BNNSurrogate(hidden_layer_sizes: tuple = (128, 64), dropout_p: float = 0.1, n_mc_samples: int = 30, max_epochs: int = 500, learning_rate: float = 0.001, batch_size: int = 64, patience: int = 30, random_state: int | None = None, loss: str = 'nll')
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Bayesian Neural Network surrogate with MC Dropout uncertainty.
+
+   Trains a fully-connected network with dropout and approximates the
+   posterior predictive distribution at inference by running ``n_mc_samples``
+   stochastic forward passes with dropout active.
+
+   With ``loss="nll"`` (default) the network also has a variance head and is
+   trained on the Gaussian negative log-likelihood (heteroscedastic MC
+   Dropout, Kendall & Gal 2017). Predictive variance = mean of the predicted
+   noise variances (aleatoric) + variance of the MC means (epistemic).
+
+   With ``loss="mse"`` the std is the spread of the MC passes only. That is
+   epistemic only: it ignores the noise in y, so its intervals under-cover
+   on noisy data. Use it only for noise-free data or wrap it with conformal
+   prediction.
+
+   :param hidden_layer_sizes:
+   :type hidden_layer_sizes: tuple[int, ...], default (128, 64)
+   :param dropout_p: Dropout probability applied after every hidden layer.
+   :type dropout_p: float, default 0.1
+   :param n_mc_samples: Number of stochastic forward passes used to estimate predictive std.
+                        Set to 1 for deterministic point-estimate mode.
+   :type n_mc_samples: int, default 30
+   :param max_epochs:
+   :type max_epochs: int, default 500
+   :param learning_rate:
+   :type learning_rate: float, default 1e-3
+   :param batch_size:
+   :type batch_size: int, default 64
+   :param patience: Early-stopping patience (epochs without improvement).
+   :type patience: int, default 30
+   :param random_state:
+   :type random_state: int | None, default None
+   :param loss: ``"nll"`` learns the noise variance (aleatoric + epistemic std);
+                ``"mse"`` gives the epistemic-only MC spread.
+   :type loss: {"nll", "mse"}, default "nll"
+
+
+   .. py:attribute:: loss
+      :value: 'nll'
+
+
+
+   .. py:attribute:: hidden_layer_sizes
+      :value: (128, 64)
+
+
+
+   .. py:attribute:: dropout_p
+      :value: 0.1
+
+
+
+   .. py:attribute:: n_mc_samples
+      :value: 30
+
+
+
+   .. py:attribute:: max_epochs
+      :value: 500
+
+
+
+   .. py:attribute:: learning_rate
+      :value: 0.001
+
+
+
+   .. py:attribute:: batch_size
+      :value: 64
+
+
+
+   .. py:attribute:: patience
+      :value: 30
+
+
+
+   .. py:attribute:: random_state
+      :value: None
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, Y: numpy.ndarray) -> BNNSurrogate
+
+      Fit the BNN on training data.
+
+      :param X:
+      :type X: np.ndarray, shape (n_samples, n_features)
+      :param Y:
+      :type Y: np.ndarray, shape (n_samples,) or (n_samples, n_outputs)
+
+      :rtype: self
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> numpy.ndarray | tuple[numpy.ndarray, numpy.ndarray]
+
+      Predict outputs for X.
+
+      :param X:
+      :type X: np.ndarray
+      :param return_std: If True, also return the predictive std (see the class docstring).
+                         With ``n_mc_samples=1`` this is the noise std alone (``"nll"``)
+                         or zero (``"mse"``).
+      :type return_std: bool, default False
+
+      :returns: * **y_pred** (*np.ndarray, shape (n_samples, n_outputs)*)
+                * **y_std** (*np.ndarray, shape (n_samples, n_outputs)  [only if return_std=True]*)
+
+
+
+   .. py:method:: get_params(deep: bool = True) -> dict
+
+      Constructor arguments this surrogate was built with, by name.
+
+      Arguments taken through ``**kwargs`` (passed on to the wrapped
+      estimator) are listed individually; defaults filled in inside the
+      constructor are not. ``deep`` is accepted for scikit-learn
+      compatibility; nested estimator parameters are not expanded.
+
+
+
+   .. py:method:: set_params(**params) -> BNNSurrogate
+
+      Set constructor arguments and rebuild the surrogate.
+
+      The surrogate is reconstructed from the merged arguments, so a fitted
+      surrogate must be refitted afterwards.
+
+
+

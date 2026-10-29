@@ -1,0 +1,814 @@
+multioutreg.gui.grid_search_core
+================================
+
+.. py:module:: multioutreg.gui.grid_search_core
+
+.. autoapi-nested-parse::
+
+   Uncertainty-aware model wrappers and HTML report used by the grid-search app and CLI.
+
+   Kept free of Streamlit calls so it can be imported without running the app.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.grid_search_core.EXPENSIVE_SURROGATES
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.gui.grid_search_core.RandomForestWithUncertainty
+   multioutreg.gui.grid_search_core.ExtraTreesWithUncertainty
+   multioutreg.gui.grid_search_core.GradientBoostingWithUncertainty
+   multioutreg.gui.grid_search_core.KNeighborsRegressorWithUncertainty
+   multioutreg.gui.grid_search_core.BootstrapLinearRegression
+   multioutreg.gui.grid_search_core.PerTargetRegressorWithStd
+   multioutreg.gui.grid_search_core.GridSearchResult
+   multioutreg.gui.grid_search_core.PerTargetGridSearch
+   multioutreg.gui.grid_search_core.InputColumnSelector
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.grid_search_core.default_surrogate_defs
+   multioutreg.gui.grid_search_core.select_per_target
+   multioutreg.gui.grid_search_core.build_model_pipeline
+   multioutreg.gui.grid_search_core.build_model_bundle
+   multioutreg.gui.grid_search_core.serialize_model_bundle
+   multioutreg.gui.grid_search_core.generate_html_report
+
+
+Module Contents
+---------------
+
+.. py:class:: RandomForestWithUncertainty(n_estimators=100, *, criterion='squared_error', max_depth=None, min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features=1.0, max_leaf_nodes=None, min_impurity_decrease=0.0, bootstrap=True, oob_score=False, n_jobs=None, random_state=None, verbose=0, warm_start=False, ccp_alpha=0.0, max_samples=None, monotonic_cst=None)
+
+   Bases: :py:obj:`sklearn.ensemble.RandomForestRegressor`
+
+
+   Random forest whose std is tree spread + held-out noise (audit item 27).
+
+
+   .. py:method:: fit(X, y, sample_weight=None)
+
+      Build a forest of trees from the training set (X, y).
+
+      :param X: The training input samples. Internally, its dtype will be converted
+                to ``dtype=np.float32``. If a sparse matrix is provided, it will be
+                converted into a sparse ``csc_matrix``.
+      :type X: {array-like, sparse matrix} of shape (n_samples, n_features)
+      :param y: The target values (class labels in classification, real numbers in
+                regression).
+      :type y: array-like of shape (n_samples,) or (n_samples, n_outputs)
+      :param sample_weight: Sample weights. If None, then samples are equally weighted. Splits
+                            that would create child nodes with net zero or negative weight are
+                            ignored while searching for a split in each node. In the case of
+                            classification, splits are also ignored if they would result in any
+                            single class carrying a negative weight in either child node.
+      :type sample_weight: array-like of shape (n_samples,), default=None
+
+      :returns: **self** -- Fitted estimator.
+      :rtype: object
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> Union[numpy.ndarray, Tuple[numpy.ndarray, numpy.ndarray]]
+
+      Predict using the random forest, optionally returning standard deviation.
+
+      :param X: Input feature array.
+      :type X: np.ndarray
+      :param return_std: Whether to return the standard deviation of predictions.
+      :type return_std: bool, optional
+
+      :returns: Mean predictions or (mean, std) tuple.
+      :rtype: np.ndarray or Tuple[np.ndarray, np.ndarray]
+
+
+
+.. py:class:: ExtraTreesWithUncertainty(n_estimators=100, *, criterion='squared_error', max_depth=None, min_samples_split=2, min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features=1.0, max_leaf_nodes=None, min_impurity_decrease=0.0, bootstrap=False, oob_score=False, n_jobs=None, random_state=None, verbose=0, warm_start=False, ccp_alpha=0.0, max_samples=None, monotonic_cst=None)
+
+   Bases: :py:obj:`sklearn.ensemble.ExtraTreesRegressor`
+
+
+   Extra-Trees whose std is tree spread + held-out noise (audit item 27).
+
+
+   .. py:method:: fit(X, y, sample_weight=None)
+
+      Build a forest of trees from the training set (X, y).
+
+      :param X: The training input samples. Internally, its dtype will be converted
+                to ``dtype=np.float32``. If a sparse matrix is provided, it will be
+                converted into a sparse ``csc_matrix``.
+      :type X: {array-like, sparse matrix} of shape (n_samples, n_features)
+      :param y: The target values (class labels in classification, real numbers in
+                regression).
+      :type y: array-like of shape (n_samples,) or (n_samples, n_outputs)
+      :param sample_weight: Sample weights. If None, then samples are equally weighted. Splits
+                            that would create child nodes with net zero or negative weight are
+                            ignored while searching for a split in each node. In the case of
+                            classification, splits are also ignored if they would result in any
+                            single class carrying a negative weight in either child node.
+      :type sample_weight: array-like of shape (n_samples,), default=None
+
+      :returns: **self** -- Fitted estimator.
+      :rtype: object
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> Union[numpy.ndarray, Tuple[numpy.ndarray, numpy.ndarray]]
+
+      Predict regression target for X.
+
+      The predicted regression target of an input sample is computed as the
+      mean predicted regression targets of the trees in the forest.
+
+      :param X: The input samples. Internally, its dtype will be converted to
+                ``dtype=np.float32``. If a sparse matrix is provided, it will be
+                converted into a sparse ``csr_matrix``.
+      :type X: {array-like, sparse matrix} of shape (n_samples, n_features)
+
+      :returns: **y** -- The predicted values.
+      :rtype: ndarray of shape (n_samples,) or (n_samples, n_outputs)
+
+
+
+.. py:class:: GradientBoostingWithUncertainty(alpha=0.95, n_estimators=100)
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`, :py:obj:`sklearn.base.RegressorMixin`
+
+
+   Base class for all estimators in scikit-learn.
+
+   Inheriting from this class provides default implementations of:
+
+   - setting and getting parameters used by `GridSearchCV` and friends;
+   - textual and HTML representation displayed in terminals and IDEs;
+   - estimator serialization;
+   - parameters validation;
+   - data validation;
+   - feature names validation.
+
+   Read more in the :ref:`User Guide <rolling_your_own_estimator>`.
+
+
+   .. admonition:: Notes
+
+      All estimators should specify all the parameters that can be set
+      at the class level in their ``__init__`` as explicit keyword
+      arguments (no ``*args`` or ``**kwargs``).
+
+   .. admonition:: Examples
+
+      >>> import numpy as np
+      >>> from sklearn.base import BaseEstimator
+      >>> class MyEstimator(BaseEstimator):
+      ...     def __init__(self, *, param=1):
+      ...         self.param = param
+      ...     def fit(self, X, y=None):
+      ...         self.is_fitted_ = True
+      ...         return self
+      ...     def predict(self, X):
+      ...         return np.full(shape=X.shape[0], fill_value=self.param)
+      >>> estimator = MyEstimator(param=2)
+      >>> estimator.get_params()
+      {'param': 2}
+      >>> X = np.array([[1, 2], [2, 3], [3, 4]])
+      >>> y = np.array([1, 0, 1])
+      >>> estimator.fit(X, y).predict(X)
+      array([2, 2, 2])
+      >>> estimator.set_params(param=3).fit(X, y).predict(X)
+      array([3, 3, 3])
+
+
+   .. py:attribute:: alpha
+      :value: 0.95
+
+
+
+   .. py:attribute:: n_estimators
+      :value: 100
+
+
+
+   .. py:attribute:: lower
+
+
+   .. py:attribute:: upper
+
+
+   .. py:attribute:: mid
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> GradientBoostingWithUncertainty
+
+      Fit the quantile and mid regressors.
+
+      :param X: Feature matrix.
+      :type X: np.ndarray
+      :param y: Target array.
+      :type y: np.ndarray
+
+      :returns: The fitted model.
+      :rtype: GradientBoostingWithUncertainty
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> Union[numpy.ndarray, Tuple[numpy.ndarray, numpy.ndarray]]
+
+      Predict using the model.
+
+      :param X: Input feature array.
+      :type X: np.ndarray
+      :param return_std: Whether to return standard deviation.
+      :type return_std: bool, optional
+
+      :returns: Mean predictions or (mean, std) tuple.
+      :rtype: np.ndarray or Tuple[np.ndarray, np.ndarray]
+
+
+
+.. py:class:: KNeighborsRegressorWithUncertainty(n_neighbors=5, *, weights='uniform', algorithm='auto', leaf_size=30, p=2, metric='minkowski', metric_params=None, n_jobs=None)
+
+   Bases: :py:obj:`sklearn.neighbors.KNeighborsRegressor`
+
+
+   Regression based on k-nearest neighbors.
+
+   The target is predicted by local interpolation of the targets
+   associated of the nearest neighbors in the training set.
+
+   Read more in the :ref:`User Guide <regression>`.
+
+   .. versionadded:: 0.9
+
+   :param n_neighbors: Number of neighbors to use by default for :meth:`kneighbors` queries.
+   :type n_neighbors: int, default=5
+   :param weights: Weight function used in prediction.  Possible values:
+
+                   - 'uniform' : uniform weights.  All points in each neighborhood
+                     are weighted equally.
+                   - 'distance' : weight points by the inverse of their distance.
+                     in this case, closer neighbors of a query point will have a
+                     greater influence than neighbors which are further away.
+                   - [callable] : a user-defined function which accepts an
+                     array of distances, and returns an array of the same shape
+                     containing the weights.
+
+                   Uniform weights are used by default.
+
+                   See the following example for a demonstration of the impact of
+                   different weighting schemes on predictions:
+                   :ref:`sphx_glr_auto_examples_neighbors_plot_regression.py`.
+   :type weights: {'uniform', 'distance'}, callable or None, default='uniform'
+   :param algorithm: Algorithm used to compute the nearest neighbors:
+
+                     - 'ball_tree' will use :class:`BallTree`
+                     - 'kd_tree' will use :class:`KDTree`
+                     - 'brute' will use a brute-force search.
+                     - 'auto' will attempt to decide the most appropriate algorithm
+                       based on the values passed to :meth:`fit` method.
+
+                     Note: fitting on sparse input will override the setting of
+                     this parameter, using brute force.
+   :type algorithm: {'auto', 'ball_tree', 'kd_tree', 'brute'}, default='auto'
+   :param leaf_size: Leaf size passed to BallTree or KDTree.  This can affect the
+                     speed of the construction and query, as well as the memory
+                     required to store the tree.  The optimal value depends on the
+                     nature of the problem.
+   :type leaf_size: int, default=30
+   :param p: Power parameter for the Minkowski metric. When p = 1, this is
+             equivalent to using manhattan_distance (l1), and euclidean_distance
+             (l2) for p = 2. For arbitrary p, minkowski_distance (l_p) is used.
+   :type p: float, default=2
+   :param metric: Metric to use for distance computation. Default is "minkowski", which
+                  results in the standard Euclidean distance when p = 2. See the
+                  documentation of `scipy.spatial.distance
+                  <https://docs.scipy.org/doc/scipy/reference/spatial.distance.html>`_ and
+                  the metrics listed in
+                  :class:`~sklearn.metrics.pairwise.distance_metrics` for valid metric
+                  values.
+
+                  If metric is "precomputed", X is assumed to be a distance matrix and
+                  must be square during fit. X may be a :term:`sparse graph`, in which
+                  case only "nonzero" elements may be considered neighbors.
+
+                  If metric is a callable function, it takes two arrays representing 1D
+                  vectors as inputs and must return one value indicating the distance
+                  between those vectors. This works for Scipy's metrics, but is less
+                  efficient than passing the metric name as a string.
+
+                  If metric is a DistanceMetric object, it will be passed directly to
+                  the underlying computation routines.
+   :type metric: str, DistanceMetric object or callable, default='minkowski'
+   :param metric_params: Additional keyword arguments for the metric function.
+   :type metric_params: dict, default=None
+   :param n_jobs: The number of parallel jobs to run for neighbors search.
+                  ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+                  ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+                  for more details.
+                  Doesn't affect :meth:`fit` method.
+   :type n_jobs: int, default=None
+
+   .. attribute:: effective_metric_
+
+      The distance metric to use. It will be same as the `metric` parameter
+      or a synonym of it, e.g. 'euclidean' if the `metric` parameter set to
+      'minkowski' and `p` parameter set to 2.
+
+      :type: str or callable
+
+   .. attribute:: effective_metric_params_
+
+      Additional keyword arguments for the metric function. For most metrics
+      will be same with `metric_params` parameter, but may also contain the
+      `p` parameter value if the `effective_metric_` attribute is set to
+      'minkowski'.
+
+      :type: dict
+
+   .. attribute:: n_features_in_
+
+      Number of features seen during :term:`fit`.
+
+      .. versionadded:: 0.24
+
+      :type: int
+
+   .. attribute:: feature_names_in_
+
+      Names of features seen during :term:`fit`. Defined only when `X`
+      has feature names that are all strings.
+
+      .. versionadded:: 1.0
+
+      :type: ndarray of shape (`n_features_in_`,)
+
+   .. attribute:: n_samples_fit_
+
+      Number of samples in the fitted data.
+
+      :type: int
+
+   .. seealso::
+
+      :obj:`NearestNeighbors`
+          Unsupervised learner for implementing neighbor searches.
+
+      :obj:`RadiusNeighborsRegressor`
+          Regression based on neighbors within a fixed radius.
+
+      :obj:`KNeighborsClassifier`
+          Classifier implementing the k-nearest neighbors vote.
+
+      :obj:`RadiusNeighborsClassifier`
+          Classifier implementing a vote among neighbors within a given radius.
+
+   .. admonition:: Notes
+
+      See :ref:`Nearest Neighbors <neighbors>` in the online documentation
+      for a discussion of the choice of ``algorithm`` and ``leaf_size``.
+
+      .. warning::
+
+         Regarding the Nearest Neighbors algorithms, if it is found that two
+         neighbors, neighbor `k+1` and `k`, have identical distances but
+         different labels, the results will depend on the ordering of the
+         training data.
+
+      https://en.wikipedia.org/wiki/K-nearest_neighbors_algorithm
+
+   .. admonition:: Examples
+
+      >>> X = [[0], [1], [2], [3]]
+      >>> y = [0, 0, 1, 1]
+      >>> from sklearn.neighbors import KNeighborsRegressor
+      >>> neigh = KNeighborsRegressor(n_neighbors=2)
+      >>> neigh.fit(X, y)
+      KNeighborsRegressor(...)
+      >>> print(neigh.predict([[1.5]]))
+      [0.5]
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> Union[numpy.ndarray, Tuple[numpy.ndarray, numpy.ndarray]]
+
+      Predict using KNN, optionally returning standard deviation.
+
+      :param X: Input feature array.
+      :type X: np.ndarray
+      :param return_std: Whether to return standard deviation.
+      :type return_std: bool, optional
+
+      :returns: Mean predictions or (mean, std) tuple.
+      :rtype: np.ndarray or Tuple[np.ndarray, np.ndarray]
+
+
+
+.. py:class:: BootstrapLinearRegression(n_bootstraps=20)
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`, :py:obj:`sklearn.base.RegressorMixin`
+
+
+   Base class for all estimators in scikit-learn.
+
+   Inheriting from this class provides default implementations of:
+
+   - setting and getting parameters used by `GridSearchCV` and friends;
+   - textual and HTML representation displayed in terminals and IDEs;
+   - estimator serialization;
+   - parameters validation;
+   - data validation;
+   - feature names validation.
+
+   Read more in the :ref:`User Guide <rolling_your_own_estimator>`.
+
+
+   .. admonition:: Notes
+
+      All estimators should specify all the parameters that can be set
+      at the class level in their ``__init__`` as explicit keyword
+      arguments (no ``*args`` or ``**kwargs``).
+
+   .. admonition:: Examples
+
+      >>> import numpy as np
+      >>> from sklearn.base import BaseEstimator
+      >>> class MyEstimator(BaseEstimator):
+      ...     def __init__(self, *, param=1):
+      ...         self.param = param
+      ...     def fit(self, X, y=None):
+      ...         self.is_fitted_ = True
+      ...         return self
+      ...     def predict(self, X):
+      ...         return np.full(shape=X.shape[0], fill_value=self.param)
+      >>> estimator = MyEstimator(param=2)
+      >>> estimator.get_params()
+      {'param': 2}
+      >>> X = np.array([[1, 2], [2, 3], [3, 4]])
+      >>> y = np.array([1, 0, 1])
+      >>> estimator.fit(X, y).predict(X)
+      array([2, 2, 2])
+      >>> estimator.set_params(param=3).fit(X, y).predict(X)
+      array([3, 3, 3])
+
+
+   .. py:attribute:: n_bootstraps
+      :value: 20
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> BootstrapLinearRegression
+
+      Fit bootstrapped linear regression models.
+
+      :param X: Feature matrix.
+      :type X: np.ndarray
+      :param y: Target array.
+      :type y: np.ndarray
+
+      :returns: The fitted model.
+      :rtype: BootstrapLinearRegression
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> Union[numpy.ndarray, Tuple[numpy.ndarray, numpy.ndarray]]
+
+      Predict using ensemble of linear models.
+
+      :param X: Input feature array.
+      :type X: np.ndarray
+      :param return_std: Whether to return standard deviation.
+      :type return_std: bool, optional
+
+      :returns: Mean predictions or (mean, std) tuple.
+      :rtype: np.ndarray or Tuple[np.ndarray, np.ndarray]
+
+
+
+.. py:class:: PerTargetRegressorWithStd(estimators)
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`, :py:obj:`sklearn.base.RegressorMixin`
+
+
+   Base class for all estimators in scikit-learn.
+
+   Inheriting from this class provides default implementations of:
+
+   - setting and getting parameters used by `GridSearchCV` and friends;
+   - textual and HTML representation displayed in terminals and IDEs;
+   - estimator serialization;
+   - parameters validation;
+   - data validation;
+   - feature names validation.
+
+   Read more in the :ref:`User Guide <rolling_your_own_estimator>`.
+
+
+   .. admonition:: Notes
+
+      All estimators should specify all the parameters that can be set
+      at the class level in their ``__init__`` as explicit keyword
+      arguments (no ``*args`` or ``**kwargs``).
+
+   .. admonition:: Examples
+
+      >>> import numpy as np
+      >>> from sklearn.base import BaseEstimator
+      >>> class MyEstimator(BaseEstimator):
+      ...     def __init__(self, *, param=1):
+      ...         self.param = param
+      ...     def fit(self, X, y=None):
+      ...         self.is_fitted_ = True
+      ...         return self
+      ...     def predict(self, X):
+      ...         return np.full(shape=X.shape[0], fill_value=self.param)
+      >>> estimator = MyEstimator(param=2)
+      >>> estimator.get_params()
+      {'param': 2}
+      >>> X = np.array([[1, 2], [2, 3], [3, 4]])
+      >>> y = np.array([1, 0, 1])
+      >>> estimator.fit(X, y).predict(X)
+      array([2, 2, 2])
+      >>> estimator.set_params(param=3).fit(X, y).predict(X)
+      array([3, 3, 3])
+
+
+   .. py:attribute:: estimators
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> PerTargetRegressorWithStd
+
+      Fit separate estimators for each output column.
+
+      :param X: Feature matrix.
+      :type X: np.ndarray
+      :param y: Multi-output target matrix.
+      :type y: np.ndarray
+
+      :returns: The fitted model.
+      :rtype: PerTargetRegressorWithStd
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> Union[numpy.ndarray, Tuple[numpy.ndarray, numpy.ndarray]]
+
+      Predict using individual estimators for each target dimension.
+
+      :param X: Input feature array.
+      :type X: np.ndarray
+      :param return_std: Whether to return standard deviation.
+      :type return_std: bool, optional
+
+      :returns: Mean predictions or (mean, std) tuple.
+      :rtype: np.ndarray or Tuple[np.ndarray, np.ndarray]
+
+
+
+.. py:data:: EXPENSIVE_SURROGATES
+
+.. py:function:: default_surrogate_defs() -> List[Tuple[str, Any, dict]]
+
+   ``(name, factory, param_grid)`` for every candidate the grid search tries.
+
+   Distance/kernel/penalty-based models (GP, KNN, SVR, ElasticNet, Lasso) are
+   standardised pipelines; the GP has a learned amplitude and noise term.
+
+
+.. py:class:: GridSearchResult
+
+   Outcome of :func:`select_per_target`.
+
+
+   .. py:attribute:: model
+      :type:  Any
+
+
+   .. py:attribute:: combo
+      :type:  List[dict]
+
+
+   .. py:attribute:: val_mse
+      :type:  List[float]
+
+
+   .. py:attribute:: moe_selected
+      :type:  bool
+      :value: False
+
+
+
+   .. py:attribute:: n_failed
+      :type:  int
+      :value: 0
+
+
+
+   .. py:attribute:: cv_description
+      :type:  str
+      :value: ''
+
+
+
+   .. py:attribute:: cv_table
+      :type:  List[dict]
+      :value: []
+
+
+
+.. py:function:: select_per_target(surrogate_defs: List[Tuple[str, Any, dict]], X: numpy.ndarray, y: numpy.ndarray, val_fraction: Optional[float] = None, random_state: int = 0, moe: Any = None, on_progress: Optional[Callable[[int, int, str], None]] = None, cv: Any = 'auto') -> GridSearchResult
+
+   Pick the best config per output by cross-validated MSE on the training data.
+
+   Every ``(name, factory, params)`` config is scored by its mean MSE over the
+   folds of ``cv`` (resolved by sample size, as in
+   :func:`~multioutreg.model_selection.auto_detect.resolve_cv`), independently
+   per output (outputs do not interact in a ``PerTargetRegressorWithStd``, so
+   this finds the same winner as trying every combination). The winners are
+   then refit on all of (X, y). The test set is never seen, so metrics on it
+   are unbiased. Passing ``val_fraction`` instead scores on a single validation
+   split of that size (the old behaviour; high-variance at small n).
+
+   ``moe``, an unfitted joint multi-output model, replaces the per-output
+   winners if its mean CV MSE (averaged over outputs) is lower.
+
+   ``on_progress(done, total, label)`` is called before each step (every
+   config, the MoE candidate, and the final refit) so a UI can show progress.
+
+
+.. py:class:: PerTargetGridSearch(surrogate_defs=None, moe_factory=None, cv='auto', random_state=0, on_progress=None, pre_screen=False)
+
+   Estimator form of :func:`select_per_target`: ``fit`` runs the selection.
+
+   Lets the whole selection be refitted per fold by nested CV and CV+
+   (:mod:`multioutreg.model_selection.evaluation`). ``moe_factory`` builds a
+   fresh joint candidate for each fit. ``pre_screen=True`` runs
+   :class:`~multioutreg.model_selection.screening.ModelScreener` on the rows
+   being fitted and drops candidates that fail it for every output. After
+   ``fit``, ``result_`` holds the :class:`GridSearchResult` and ``skipped_``
+   the screened-out candidate names.
+
+
+   .. py:attribute:: surrogate_defs
+      :value: None
+
+
+
+   .. py:attribute:: moe_factory
+      :value: None
+
+
+
+   .. py:attribute:: cv
+      :value: 'auto'
+
+
+
+   .. py:attribute:: random_state
+      :value: 0
+
+
+
+   .. py:attribute:: on_progress
+      :value: None
+
+
+
+   .. py:attribute:: pre_screen
+      :value: False
+
+
+
+   .. py:method:: fit(X, y) -> PerTargetGridSearch
+
+
+   .. py:method:: predict(X, return_std: bool = False)
+
+
+.. py:class:: InputColumnSelector(columns)
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`, :py:obj:`sklearn.base.TransformerMixin`
+
+
+   First pipeline step: pick the training input columns, in training order.
+
+   Accepts a DataFrame (extra columns are ignored, missing ones raise) or an
+   array whose columns are already in ``columns`` order.
+
+
+   .. py:attribute:: columns
+
+
+   .. py:method:: fit(X=None, y=None) -> InputColumnSelector
+
+
+   .. py:method:: transform(X) -> numpy.ndarray
+
+
+.. py:function:: build_model_pipeline(model: Any, input_cols: List[str], imputer: Any = None, input_transformer: Any = None) -> sklearn.pipeline.Pipeline
+
+   Chain the already-fitted preprocessing steps and ``model`` into one Pipeline.
+
+   Steps, in the order the app applies them: ``columns``
+   (:class:`InputColumnSelector`), ``imputer`` (KNN, if given), ``pca``
+   (standardise + PCA, if given) and ``model``. Nothing is refitted.
+   ``pipeline.predict(X, return_std=True)`` is passed through to the model.
+
+
+.. py:function:: build_model_bundle(pipeline: sklearn.pipeline.Pipeline, input_cols: List[str], output_cols: List[str], combo: List[dict], pca_settings: Optional[dict] = None, conformal_alpha: Optional[float] = None, conformal_quantiles: Optional[numpy.ndarray] = None, data_split: Optional[dict] = None) -> Dict[str, Any]
+
+   Everything needed to reuse (``pipeline``) or rebuild (``config``) the model.
+
+   ``config`` is JSON-safe (non-JSON values such as GP kernels become their
+   ``repr``) and is what the app offers as the config download. Conformal
+   intervals are ``pipeline.predict(X) -/+ conformal["quantiles"][output]``.
+
+
+.. py:function:: serialize_model_bundle(bundle: Dict[str, Any]) -> bytes
+
+   ``joblib.dump`` the bundle into bytes, e.g. for a download button.
+
+
+.. py:function:: generate_html_report(model_type: str, fidelity_levels: List[str], output_names: List[str], description: str, metrics: Dict[str, Dict[str, float]], uncertainty_metrics: Dict[str, float], y_test: numpy.ndarray, best_pred: numpy.ndarray, best_std: numpy.ndarray, best_model: Any, X_train: numpy.ndarray, n_train: int, n_test: int, cross_validation: str, seed: int, notes: str, feature_names: List[str] | None = None, feature_names_pca: List[str] | None = None, pca_explained_variance: List[float] | None = None, pca_variance_plot: str | None = None, pca_method: str | None = None, pca_threshold: float | None = None, pca_n_components: int | None = None, kaiser_rule_suggestion: str | None = None, conformal_intervals: tuple | None = None, conformal_alpha: float | None = None, calibration_residuals: numpy.ndarray | None = None, imputation_summary: dict | None = None, grid_search_results: List[dict] | None = None, report_style: str | None = None) -> str
+
+   Generate an HTML report from model training and evaluation results.
+
+   :param model_type: Type of model used.
+   :type model_type: str
+   :param fidelity_levels: Fidelity levels used (if any).
+   :type fidelity_levels: List[str]
+   :param output_names: Names of the output dimensions.
+   :type output_names: List[str]
+   :param description: Description of the modeling project.
+   :type description: str
+   :param metrics: Dictionary of evaluation metrics for each output.
+   :type metrics: Dict[str, Dict[str, float]]
+   :param uncertainty_metrics: Dictionary of uncertainty metrics.
+   :type uncertainty_metrics: Dict[str, float]
+   :param y_test: Ground truth values for test set.
+   :type y_test: np.ndarray
+   :param best_pred: Predictions from the best model.
+   :type best_pred: np.ndarray
+   :param best_std: Uncertainty estimates from the best model.
+   :type best_std: np.ndarray
+   :param best_model: The best performing model.
+   :type best_model: Any
+   :param X_train: Training input features.
+   :type X_train: np.ndarray
+   :param n_train: Number of training samples.
+   :type n_train: int
+   :param n_test: Number of test samples.
+   :type n_test: int
+   :param cross_validation: Description of the CV strategy.
+   :type cross_validation: str
+   :param seed: Random seed used.
+   :type seed: int
+   :param notes: Additional notes.
+   :type notes: str
+   :param feature_names: Names of the columns of ``X_train`` (used to label the PDPs). Defaults
+                         to ``feature_names_pca`` when given, else ``feature_0``, ``feature_1``, ...
+   :type feature_names: List[str] | None, optional
+   :param feature_names_pca: Names to use for PCA.
+   :type feature_names_pca: List[str] | None, optional
+   :param pca_explained_variance: Explained variance ratios from PCA if applied.
+   :type pca_explained_variance: List[float] | None, optional
+   :param pca_variance_plot: Base64-encoded plot showing PCA variance ratios.
+   :type pca_variance_plot: str | None, optional
+   :param pca_method: Method used to choose the number of PCA components.
+   :type pca_method: str | None, optional
+   :param pca_threshold: Explained variance threshold if that method was used.
+   :type pca_threshold: float | None, optional
+   :param pca_n_components: Final number of PCA components retained.
+   :type pca_n_components: int | None, optional
+   :param kaiser_rule_suggestion: PCA explanation statement.
+   :type kaiser_rule_suggestion: str | None, optional
+   :param conformal_intervals: ``(y_lower, y_upper)`` conformal intervals on the test set.
+   :type conformal_intervals: tuple | None, optional
+   :param conformal_alpha: Miscoverage level of ``conformal_intervals``.
+   :type conformal_alpha: float | None, optional
+   :param calibration_residuals: ``|y_cal - y_cal_pred|`` from the held-out conformal calibration set.
+                                 The Gaussian-vs-conformal coverage plot is drawn only when given.
+   :type calibration_residuals: np.ndarray | None, optional
+   :param imputation_summary: Rows before/after cleaning and the action taken per column.
+   :type imputation_summary: dict | None, optional
+   :param grid_search_results: ``GridSearchResult.cv_table``: one row per candidate config, shown in
+                               the v2 report's model-selection section.
+   :type grid_search_results: List[dict] | None, optional
+   :param report_style: ``"v2"`` (the redesigned report, default) or ``"classic"``. Defaults to
+                        the ``MOR_REPORT_STYLE`` environment variable, then ``"v2"``.
+   :type report_style: str | None, optional
+
+   :returns: Rendered HTML report.
+   :rtype: str
+
+

@@ -1,0 +1,88 @@
+multioutreg.figures.doe_plots
+=============================
+
+.. py:module:: multioutreg.figures.doe_plots
+
+.. autoapi-nested-parse::
+
+   DoE Pair Plots: Visualization utility for generating PairGrid plots of numerical variables from a DataFrame.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.doe_plots.make_doe_plot
+   multioutreg.figures.doe_plots.make_pair_plot
+   multioutreg.figures.doe_plots.pair_plot_b64
+
+
+Module Contents
+---------------
+
+.. py:function:: make_doe_plot(df: pandas.DataFrame, numeric_cols: List[str]) -> seaborn.PairGrid
+
+   Generate a Seaborn PairGrid plot for the selected numeric columns of a DataFrame.
+
+   The plot includes:
+       - Scatter plots in the upper triangle
+       - Kernel density estimates in the lower triangle
+       - Histograms with KDE on the diagonal
+
+   :param df: Input DataFrame containing the data.
+   :type df: pd.DataFrame
+   :param numeric_cols: List of column names to include in the pair plot.
+   :type numeric_cols: List[str]
+
+   :returns: A Seaborn PairGrid object for further customization or rendering.
+   :rtype: PairGrid
+
+
+.. py:function:: make_pair_plot(df: pandas.DataFrame, input_cols: Sequence[str], output_cols: Sequence[str], fidelity_col: Optional[str] = None, layout: str = 'full', max_rows: int = 1000, height: float = 1.6, seed: int = 0) -> seaborn.PairGrid
+
+   Pair plot of inputs and outputs, fast enough to draw on any dataset size.
+
+   The "fast" grid from ``docs/pair_plot_report.md``: scatter above the
+   diagonal, 2-D histogram below and histogram on the diagonal, with no KDE, so
+   the time depends on the number of panels and not on the number of rows.
+   Input axis labels are blue, output labels orange.
+
+   :param df: Data holding every column named below.
+   :type df: pd.DataFrame
+   :param input_cols: Independent variables, drawn first.
+   :type input_cols: Sequence[str]
+   :param output_cols: Dependent variables.
+   :type output_cols: Sequence[str]
+   :param fidelity_col: Colour points by this column (level 0 is
+                        the lowest fidelity) instead of plotting it as a variable.
+   :type fidelity_col: str, optional
+   :param layout: "full" (n x n), "corner" (lower triangle) or "io"
+                  (outputs vs inputs only, ``n_out x n_in`` panels).
+   :type layout: str
+   :param max_rows: Rows above this are sampled (stratified by fidelity).
+   :type max_rows: int
+   :param height: Height of each panel in inches.
+   :type height: float
+   :param seed: Seed for the row sample.
+   :type seed: int
+
+   :returns: The drawn grid.
+   :rtype: PairGrid
+
+
+.. py:function:: pair_plot_b64(df: pandas.DataFrame, input_cols: Sequence[str], output_cols: Sequence[str], fidelity_col: Optional[str] = None, max_rows: int = 1000, max_vars: int = 10, dpi: int = 80) -> Dict[str, Optional[str]]
+
+   Draw :func:`make_pair_plot` as a base64 PNG, choosing a layout that stays fast.
+
+   Up to ``max_vars`` numeric variables get the full matrix. Above that only
+   the outputs-vs-inputs panels are drawn, and if even those number more than
+   ``max_vars ** 2`` the plot is skipped. Never raises: failures come back as
+   a note, so a caller running this in the background can always show
+   something.
+
+   :returns: ``img_b64`` (None when skipped or failed), ``layout`` and ``note``.
+   :rtype: dict
+
+

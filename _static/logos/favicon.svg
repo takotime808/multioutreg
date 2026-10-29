@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 2 64 64" role="img" aria-label="multioutreg">
+  <title>multioutreg</title>
+  <!-- the wordmark's mark: three outputs sharing one input axis, with an uncertainty band on the first -->
+  <rect x="0" y="2" width="64" height="64" rx="12" fill="#ffffff"/>
+  <path d="M6 44 C 18 18, 30 18, 42 30 S 58 46, 58 22 L 58 32 C 56 52, 40 40, 32 36 S 16 34, 6 54 Z" fill="#2a78d6" fill-opacity="0.18"/>
+  <path d="M6 49 C 18 24, 30 24, 42 34 S 58 40, 58 27" fill="none" stroke="#2a78d6" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M6 30 C 20 40, 34 12, 58 14" fill="none" stroke="#eb6834" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M6 18 C 22 22, 36 46, 58 44" fill="none" stroke="#1baf7a" stroke-width="4.5" stroke-linecap="round"/>
+</svg>

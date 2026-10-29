@@ -1,0 +1,56 @@
+multioutreg.time_series.ts_dynamic_fit.src.ranker
+=================================================
+
+.. py:module:: multioutreg.time_series.ts_dynamic_fit.src.ranker
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.src.ranker.Ranker
+
+
+Module Contents
+---------------
+
+.. py:class:: Ranker(df: pandas.DataFrame, verbose: bool = False)
+
+   Ranks models in a DataFrame using error metrics and provides the best model.
+
+   .. attribute:: metrics
+
+      Error metrics used for ranking.
+
+      :type: list[str]
+
+   .. attribute:: all_models
+
+      DataFrame containing model results.
+
+      :type: pd.DataFrame
+
+
+   .. py:attribute:: metrics
+      :value: ['RMSE', 'MAE', 'MAPE']
+
+
+
+   .. py:attribute:: all_models
+
+
+   .. py:attribute:: verbose
+      :value: False
+
+
+
+   .. py:method:: get_best() -> str
+
+      Ranks all models using RMSE, MAE, MAPE and returns the best model name.
+
+      :returns: The best model's identifier/name from the DataFrame.
+      :rtype: Any
+
+
+

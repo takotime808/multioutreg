@@ -1,0 +1,93 @@
+multioutreg.metrics.joint_scores
+================================
+
+.. py:module:: multioutreg.metrics.joint_scores
+
+.. autoapi-nested-parse::
+
+   Proper scores for the joint predictive distribution of several outputs.
+
+   Per-output metrics (RMSE, NLL, coverage, per-output CRPS) cannot tell whether
+   a model captures how outputs vary *together*: a model that predicts every
+   output's marginal perfectly but treats them as independent scores the same as
+   one that gets their correlation right. The scores here are computed on the
+   whole output vector, so they can.
+
+   Both take samples from the predictive distribution, shape
+   ``(n_rows, n_samples, n_outputs)``; :func:`gaussian_samples` draws them from a
+   mean and a per-row covariance (or std) as returned by
+   ``predict(X, return_cov=True)`` / ``predict(X, return_std=True)``. Lower is
+   better for both. Outputs on very different scales dominate the Euclidean
+   distances, so standardize them (e.g. by the training std) before scoring when
+   comparing across outputs matters.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.metrics.joint_scores.gaussian_samples
+   multioutreg.metrics.joint_scores.energy_score
+   multioutreg.metrics.joint_scores.variogram_score
+
+
+Module Contents
+---------------
+
+.. py:function:: gaussian_samples(mean, cov, n_samples=500, seed=None)
+
+   Draw samples from per-row Gaussian predictive distributions.
+
+   :param mean:
+   :type mean: array-like of shape (n_rows, n_outputs)
+   :param cov: Per-row covariance, or per-output std (independent outputs).
+   :type cov: array-like of shape (n_rows, n_outputs, n_outputs) or (n_rows, n_outputs)
+   :param n_samples:
+   :type n_samples: int
+   :param seed:
+   :type seed: int | np.random.Generator | None
+
+   :rtype: np.ndarray of shape (n_rows, n_samples, n_outputs)
+
+
+.. py:function:: energy_score(Y_true, samples, average=True)
+
+   Energy score (Gneiting & Raftery 2007), the multivariate CRPS.
+
+   ``ES = E||X - y|| - 0.5 E||X - X'||`` with ``X, X'`` independent draws from
+   the predictive distribution, estimated from the samples. It is proper, and
+   reduces to the CRPS for a single output.
+
+   :param Y_true:
+   :type Y_true: array-like of shape (n_rows, n_outputs)
+   :param samples:
+   :type samples: array-like of shape (n_rows, n_samples, n_outputs)
+   :param average: Return the mean over rows (default) or the per-row scores.
+   :type average: bool
+
+
+.. py:function:: variogram_score(Y_true, samples, p=0.5, weights=None, average=True)
+
+   Variogram score of order ``p`` (Scheuerer & Hamill 2015).
+
+   ``VS_p = sum_{i,j} w_ij (|y_i - y_j|^p - E|X_i - X_j|^p)^2`` over all output
+   pairs. It compares the observed differences between outputs with those the
+   predictive distribution expects, so unlike the energy score it is
+   sensitive to a wrong correlation structure even when the marginals are
+   right. It ignores errors that shift every output by the same amount, so
+   report it alongside a marginal score.
+
+   :param Y_true:
+   :type Y_true: array-like of shape (n_rows, n_outputs)
+   :param samples:
+   :type samples: array-like of shape (n_rows, n_samples, n_outputs)
+   :param p: Order; 0.5 is the usual choice and is the most robust to outliers.
+   :type p: float
+   :param weights: Pair weights ``w_ij``; all ones by default.
+   :type weights: array-like of shape (n_outputs, n_outputs) | None
+   :param average: Return the mean over rows (default) or the per-row scores.
+   :type average: bool
+
+

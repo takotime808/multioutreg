@@ -1,0 +1,98 @@
+multioutreg.surrogates.std_recalibration
+========================================
+
+.. py:module:: multioutreg.surrogates.std_recalibration
+
+.. autoapi-nested-parse::
+
+   Std recalibration wrapper: rescale a surrogate's own predicted std per output.
+
+   Conformal prediction (``ConformalMixin``) corrects *intervals*, but the
+   acquisition functions, the joint scores and the report's calibration plots
+   read a model's ``std`` directly. When a surrogate is over- or under-dispersed
+   those all inherit the error. This wrapper learns one factor ``s_j`` per output
+   so that ``s_j * std_j`` is calibrated (Kuleshov et al. 2018, variance
+   scaling), leaving the mean unchanged.
+
+   The factors are learned from out-of-fold predictions (``cv`` folds) so the
+   in-sample overconfidence of interpolating models does not leak in, or from a
+   held-out set via :meth:`StdRecalibratedSurrogate.recalibrate`.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.std_recalibration.StdRecalibratedSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: StdRecalibratedSurrogate(surrogate_cls=None, criterion='ma_cal', cv=5, random_state=None, **surrogate_kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Scale a surrogate's predicted std per output to make it calibrated.
+
+   :param surrogate_cls: Surrogate to recalibrate; must accept ``fit(X, Y)`` and
+                         ``predict(X, return_std=True)``. Defaults to
+                         ``GaussianProcessSurrogate``.
+   :type surrogate_cls: type | None
+   :param criterion: What the factor optimizes. The first three are uncertainty-toolbox's
+                     calibration errors (mean absolute, root mean square, max), searched
+                     numerically; ``"nll"`` minimizes the Gaussian negative log-likelihood
+                     in closed form. Default ``"ma_cal"``.
+   :type criterion: {"ma_cal", "rms_cal", "miscal", "nll"}
+   :param cv: Folds for the out-of-fold predictions the factors are learned from.
+   :type cv: int
+   :param random_state: Seed for the fold split.
+   :type random_state: int | None
+   :param \*\*surrogate_kwargs: Passed to ``surrogate_cls``.
+
+   .. attribute:: std_scale_
+
+      Factor applied to each output's std. Above 1 means the wrapped
+      surrogate was overconfident.
+
+      :type: np.ndarray, shape (n_outputs,)
+
+
+   .. py:attribute:: surrogate_cls
+      :value: None
+
+
+
+   .. py:attribute:: criterion
+      :value: 'ma_cal'
+
+
+
+   .. py:attribute:: cv
+      :value: 5
+
+
+
+   .. py:attribute:: random_state
+      :value: None
+
+
+
+   .. py:attribute:: surrogate_kwargs
+
+
+   .. py:method:: fit(X, Y)
+
+
+   .. py:method:: recalibrate(X_cal, Y_cal)
+
+      Relearn the factors from held-out data, keeping the fitted surrogate.
+
+
+
+   .. py:method:: predict(X, return_std=False)
+
+

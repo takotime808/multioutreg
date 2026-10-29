@@ -1,0 +1,263 @@
+multioutreg.model_selection.auto_detect
+=======================================
+
+.. py:module:: multioutreg.model_selection.auto_detect
+
+.. autoapi-nested-parse::
+
+   Utilities for automatically selecting the best regressor per output.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.model_selection.auto_detect.EXPENSIVE_MODEL_NAMES
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.model_selection.auto_detect.AutoDetectMultiOutputRegressor
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.model_selection.auto_detect.select_cv_strategy
+   multioutreg.model_selection.auto_detect.resolve_cv
+   multioutreg.model_selection.auto_detect.describe_cv
+   multioutreg.model_selection.auto_detect.drop_candidates
+
+
+Module Contents
+---------------
+
+.. py:function:: select_cv_strategy(n_samples: int, random_state: int | None = 0, n_repeats: int = 3)
+
+   Return a CV splitter appropriate for a dataset of *n_samples* rows.
+
+   Small datasets need low-variance error estimates and cannot spare data for
+   large validation folds; large datasets make many folds expensive and do
+   not need them.
+
+   - ``RepeatedKFold(n_splits=max(2, min(5, n // 4)), n_repeats=3)``
+     when ``n_samples <= 100`` (at least ~4 rows per fold)
+   - shuffled ``KFold(n_splits=10)`` when ``100 < n_samples <= 1000``
+   - shuffled ``KFold(n_splits=5)``  when ``n_samples > 1000``
+
+   Leave-one-out is not used by default: it is inconsistent for model
+   selection (Shao 1993), 10-fold is preferred to more folds even when compute
+   allows (Kohavi 1995), and selection should rest on repeated rather than
+   single CV runs (Krstajic et al. 2014). Pass ``cv="loocv"`` to force it.
+   The fold counts and the 3 repeats are conventions; see
+   ``docs/AUDIT_CHECKLIST.md`` (S3). ``n_repeats=1`` gives the same folds
+   without repeats (used inside nested-CV outer folds to save time).
+
+
+.. py:function:: resolve_cv(cv, n_samples: int, random_state: int | None = 0, scoring=None)
+
+   Resolve a ``cv`` setting to a concrete sklearn splitter.
+
+   :param cv: ``"auto"`` picks by dataset size via :func:`select_cv_strategy`
+              (never leave-one-out, so it suits every scorer); ``"auto_single"``
+              is the same without repeats (cheaper, noisier);
+              ``"loocv"`` always uses ``LeaveOneOut``; an int means a *shuffled*
+              ``KFold`` with that many splits (sklearn's int default is unshuffled,
+              which gives unrepresentative folds on ordered data); anything else is
+              passed through ``check_cv``.
+   :type cv: {"auto", "auto_single", "loocv"} | int | CV splitter
+   :param n_samples: Number of rows the splitter will be applied to.
+   :type n_samples: int
+   :param random_state: Seed for shuffled / repeated splitters.
+   :type random_state: int | None
+   :param scoring: Scorer name. R²-type scorers are undefined on single-sample folds, so
+                   ``"loocv"`` raises for them.
+   :type scoring: str | None
+
+
+.. py:function:: describe_cv(cv) -> str
+
+   Human-readable description of a resolved CV splitter (for reports).
+
+
+.. py:data:: EXPENSIVE_MODEL_NAMES
+
+.. py:function:: drop_candidates(model: AutoDetectMultiOutputRegressor, names) -> list[str]
+
+   Remove the named candidates from a ``with_vendored_surrogates`` model in place.
+
+   Returns the names that were removed.
+
+
+.. py:class:: AutoDetectMultiOutputRegressor(estimators: Sequence[sklearn.base.BaseEstimator], param_spaces: Sequence[dict], cv: int | str = 'auto', scoring: str = 'neg_mean_squared_error', pre_screen: bool = False, selection: str = 'best', random_state: int | None = 0)
+
+   Bases: :py:obj:`sklearn.base.BaseEstimator`, :py:obj:`sklearn.base.RegressorMixin`
+
+
+   Fit a separate estimator per output choosing the best via grid search.
+
+   :param estimators: Candidate sklearn estimators to evaluate.
+   :type estimators: sequence of BaseEstimator
+   :param param_spaces: Parameter grids corresponding to each estimator.
+   :type param_spaces: sequence of dict
+   :param cv: Cross-validation used to score every candidate. ``"auto"`` picks the
+              scheme from the number of training rows at fit time (see
+              :func:`select_cv_strategy`): repeated k-fold for small datasets,
+              10-fold and then 5-fold as data grows.
+              ``"loocv"`` forces leave-one-out, an int means a shuffled ``KFold``
+              with that many splits, and any sklearn splitter is used as given.
+   :type cv: {"auto", "loocv"} | int | CV splitter, default "auto"
+   :param scoring: Sklearn scoring metric for GridSearchCV.
+   :type scoring: str
+   :param pre_screen: When True, run statistical pre-screening tests before fitting each
+                      output and skip models that are either computationally expensive
+                      without justification or unlikely to improve on a linear baseline.
+                      See :class:`~multioutreg.model_selection.screening.ModelScreener`.
+   :type pre_screen: bool, default False
+   :param selection: ``"best"`` picks the highest mean CV score. ``"one_se"`` picks the
+                     least complex candidate whose mean score is within one standard error
+                     of the best (Nadeau–Bengio corrected, since CV folds overlap), so a
+                     costly model must beat a simple one by more than CV noise.
+   :type selection: {"best", "one_se"}, default "best"
+   :param random_state: Seed for the shuffled / repeated splitters built from ``cv``.
+   :type random_state: int | None, default 0
+
+   .. attribute:: cv_strategy_
+
+      The splitter ``cv`` resolved to for the training data.
+
+      :type: CV splitter
+
+   .. attribute:: cv_description_
+
+      Human-readable form of ``cv_strategy_``, for reports.
+
+      :type: str
+
+   .. attribute:: selection_scores_
+
+      Per output, ``{candidate: {"mean": ..., "se": ...}}`` of the CV scores
+      that drove the choice. The winner's mean is optimistically biased (it
+      is the max over many candidates); evaluate on a held-out test set for
+      an unbiased estimate.
+
+      :type: list of dict
+
+
+   .. py:attribute:: estimators
+
+
+   .. py:attribute:: param_spaces
+
+
+   .. py:attribute:: cv
+      :value: 'auto'
+
+
+
+   .. py:attribute:: scoring
+      :value: 'neg_mean_squared_error'
+
+
+
+   .. py:attribute:: pre_screen
+      :value: False
+
+
+
+   .. py:attribute:: selection
+      :value: 'best'
+
+
+
+   .. py:attribute:: random_state
+      :value: 0
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> AutoDetectMultiOutputRegressor
+
+
+   .. py:method:: register_multi_output_candidates(surrogates: list) -> AutoDetectMultiOutputRegressor
+
+      Register joint multi-output surrogate candidates.
+
+      These surrogates predict all outputs simultaneously (i.e. they set
+      ``_multi_output = True``). They are evaluated once on the full Y matrix
+      during ``fit()`` and each output's score is compared against the
+      per-output GridSearchCV winners.
+
+      :param surrogates: Fitted or unfitted surrogate instances with ``fit(X, Y)`` and
+                         ``predict(X)`` that return an ``(n_samples, n_outputs)`` array.
+      :type surrogates: list
+
+      :rtype: self
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> numpy.ndarray
+
+
+   .. py:method:: with_vendored_surrogates(cv: int | str = 'auto', scoring: str = 'neg_mean_squared_error', fidelity_levels: Sequence[str] | None = None, pre_screen: bool = False, selection: str = 'best') -> AutoDetectMultiOutputRegressor
+      :classmethod:
+
+
+      Return instance configured to search all vendored surrogates.
+
+      :param pre_screen: When True, statistical tests are run at the start of ``fit()``
+                         to skip expensive models that are unlikely to help on this data.
+                         Computationally heavy models (GP, SVR, MLP, heteroscedastic
+                         ensembles) are only run when the data characteristics justify them.
+      :type pre_screen: bool, default False
+      :param selection: See the class docstring.
+      :type selection: {"best", "one_se"}, default "best"
+      :param Scale-sensitive candidates (GP:
+      :param SVR:
+      :param KNN:
+      :param MLP:
+      :param ElasticNet:
+      :param Lasso) are:
+      :param grid-searched as ``StandardScaler`` pipelines:
+      :param matching the scaling:
+      :param their surrogates apply when deployed.:
+
+
+
+   .. py:method:: calibrate_conformal(X_cal: numpy.ndarray, y_cal: numpy.ndarray, **kwargs) -> AutoDetectMultiOutputRegressor
+
+      Calibrate conformal prediction intervals using held-out data.
+
+      Computes absolute residuals on the calibration set using the
+      already-fitted model. These residuals are used at prediction time
+      to construct distribution-free intervals with coverage guarantees.
+
+      :param X_cal: Calibration features (must NOT overlap with training data).
+      :type X_cal: np.ndarray
+      :param y_cal: Calibration targets.
+      :type y_cal: np.ndarray
+
+      :rtype: self
+
+
+
+   .. py:method:: predict_interval(X: numpy.ndarray, alpha: float = 0.1) -> tuple
+
+      Return conformal prediction intervals.
+
+      :param X:
+      :type X: np.ndarray
+      :param alpha: Miscoverage level. Intervals target 1-alpha coverage.
+      :type alpha: float
+
+      :returns: **y_lower, y_upper**
+      :rtype: np.ndarray
+
+
+

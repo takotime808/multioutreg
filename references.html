@@ -1,0 +1,1635 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Expanding the Surrogate Offerings" href="surrogate_roadmap.html"><link rel="prev" title="Multi-Objective Metrics" href="multiobjective_metrics.html">
+        <link rel="prefetch" href="_static/logos/wordmark-light.svg" as="image">
+        <link rel="prefetch" href="_static/logos/wordmark-dark.svg" as="image">
+
+    <link rel="shortcut icon" href="_static/favicon.png"><!-- Generated with Sphinx 8.1.3 and Furo 2025.12.19 -->
+        <title>References - multioutreg</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    <link rel="stylesheet" type="text/css" href="_static/css/active-learning-savings.css?v=14e41e7a" />
+    <link rel="stylesheet" type="text/css" href="_static/css/site.css?v=0e7236ba" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Try it without installing: the <a href="https://multioutreg.streamlit.app/">hosted multioutreg app</a>. 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">multioutreg</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo only-light" src="_static/logos/wordmark-light.svg" alt="Light Logo"/>
+    <img class="sidebar-logo only-dark" src="_static/logos/wordmark-dark.svg" alt="Dark Logo"/>
+  </div>
+  
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_it_works.html">How It Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reading_the_report.html">Reading the Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_reports.html">Example Reports</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/multi_output_surrogates.html">Multi-Output Surrogates, Start to Finish</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/joint_scores.html">Scoring Joint Predictions: Energy and Variogram Scores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/multi_fidelity_surrogates.html">Multi-Fidelity Surrogate Modeling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/active_learning_benchmarks.html">Active Learning on Benchmark Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/cost_savings.html">Cost Savings: What <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> Saves in an Existing Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/imputation_methods.html">Imputing Missing Inputs: KNN vs. Other Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/active_learning_missing_inputs.html">Active Learning with Missing Inputs</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="multi_fidelity_gui.html">Multi-Fidelity Surrogate Models page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/using_the_exported_model.html">Using the Best Model from the Grid Search App</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/forecasting_with_chronos.html">Time-Series Forecasting with Chronos</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Why multioutreg</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cost_savings.html">Cost Savings and ROI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_learning_savings.html">Active Learning: The True Curve for Less</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="core_api.html">Core API</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="autoapi/multioutreg/index.html">multioutreg</a><input aria-label="Toggle navigation of multioutreg" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/active/index.html">multioutreg.active</a><input aria-label="Toggle navigation of multioutreg.active" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/acquisition/index.html">multioutreg.active.acquisition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/batch/index.html">multioutreg.active.batch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/benchmarks/index.html">multioutreg.active.benchmarks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/loop/index.html">multioutreg.active.loop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/multi_fidelity/index.html">multioutreg.active.multi_fidelity</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/conformal/index.html">multioutreg.conformal</a><input aria-label="Toggle navigation of multioutreg.conformal" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/base/index.html">multioutreg.conformal.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/cv_plus/index.html">multioutreg.conformal.cv_plus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/metrics/index.html">multioutreg.conformal.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/split_conformal/index.html">multioutreg.conformal.split_conformal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/utils/index.html">multioutreg.conformal.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/figures/index.html">multioutreg.figures</a><input aria-label="Toggle navigation of multioutreg.figures" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/confidence_intervals/index.html">multioutreg.figures.confidence_intervals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/conformal_plots/index.html">multioutreg.figures.conformal_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/coverage_plots/index.html">multioutreg.figures.coverage_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/doe_plots/index.html">multioutreg.figures.doe_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/error_histograms/index.html">multioutreg.figures.error_histograms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/model_comparison/index.html">multioutreg.figures.model_comparison</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/pca_plots/index.html">multioutreg.figures.pca_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/pdp_plots/index.html">multioutreg.figures.pdp_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/performance_metric_figures/index.html">multioutreg.figures.performance_metric_figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/prediction_plots/index.html">multioutreg.figures.prediction_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/residuals/index.html">multioutreg.figures.residuals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/shap_multioutput/index.html">multioutreg.figures.shap_multioutput</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/uct_calibration_extension/index.html">multioutreg.figures.uct_calibration_extension</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/umap_plot_classify/index.html">multioutreg.figures.umap_plot_classify</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/uncertainty_toolbox_extension/index.html">multioutreg.figures.uncertainty_toolbox_extension</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/gui/index.html">multioutreg.gui</a><input aria-label="Toggle navigation of multioutreg.gui" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/background/index.html">multioutreg.gui.background</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/grid_search_core/index.html">multioutreg.gui.grid_search_core</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/input_checks/index.html">multioutreg.gui.input_checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/report_controls/index.html">multioutreg.gui.report_controls</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/report_plotting_utils/index.html">multioutreg.gui.report_plotting_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/results_tabs/index.html">multioutreg.gui.results_tabs</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/metrics/index.html">multioutreg.metrics</a><input aria-label="Toggle navigation of multioutreg.metrics" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/metrics/joint_scores/index.html">multioutreg.metrics.joint_scores</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/metrics/multiobjective_regret/index.html">multioutreg.metrics.multiobjective_regret</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/model_selection/index.html">multioutreg.model_selection</a><input aria-label="Toggle navigation of multioutreg.model_selection" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/model_selection/auto_detect/index.html">multioutreg.model_selection.auto_detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/model_selection/evaluation/index.html">multioutreg.model_selection.evaluation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/model_selection/model_wrappers/index.html">multioutreg.model_selection.model_wrappers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/model_selection/screening/index.html">multioutreg.model_selection.screening</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/performance/index.html">multioutreg.performance</a><input aria-label="Toggle navigation of multioutreg.performance" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/performance/metrics/index.html">multioutreg.performance.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/performance/metrics_generalized_api/index.html">multioutreg.performance.metrics_generalized_api</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="autoapi/multioutreg/persistence/index.html">multioutreg.persistence</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/report/index.html">multioutreg.report</a><input aria-label="Toggle navigation of multioutreg.report" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/auto_detect_report/index.html">multioutreg.report.auto_detect_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/build/index.html">multioutreg.report.build</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/data/index.html">multioutreg.report.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/generate_report/index.html">multioutreg.report.generate_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/generate_report1/index.html">multioutreg.report.generate_report1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/generate_report1_safe/index.html">multioutreg.report.generate_report1_safe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/render/index.html">multioutreg.report.render</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/template/index.html">multioutreg.report.template</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/verdict/index.html">multioutreg.report.verdict</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/sampling/index.html">multioutreg.sampling</a><input aria-label="Toggle navigation of multioutreg.sampling" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/sampling/detect/index.html">multioutreg.sampling.detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/sampling/extrapolation/index.html">multioutreg.sampling.extrapolation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/sampling/infer_sampling/index.html">multioutreg.sampling.infer_sampling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/sampling/pca_sampling_detector/index.html">multioutreg.sampling.pca_sampling_detector</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/surrogates/index.html">multioutreg.surrogates</a><input aria-label="Toggle navigation of multioutreg.surrogates" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/ard_gp_sklearn/index.html">multioutreg.surrogates.ard_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/base_sklearn/index.html">multioutreg.surrogates.base_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/bayesian_ridge_sklearn/index.html">multioutreg.surrogates.bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/bnn_network/index.html">multioutreg.surrogates.bnn_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/bnn_pytorch/index.html">multioutreg.surrogates.bnn_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/catboost_sklearn/index.html">multioutreg.surrogates.catboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/conformal_mixin/index.html">multioutreg.surrogates.conformal_mixin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/conformal_network_sklearn/index.html">multioutreg.surrogates.conformal_network_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/decision_tree_sklearn/index.html">multioutreg.surrogates.decision_tree_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/deep_ensemble_pytorch/index.html">multioutreg.surrogates.deep_ensemble_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/elastic_net_sklearn/index.html">multioutreg.surrogates.elastic_net_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/extra_trees_sklearn/index.html">multioutreg.surrogates.extra_trees_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/forest_uncertainty/index.html">multioutreg.surrogates.forest_uncertainty</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gating_network/index.html">multioutreg.surrogates.gating_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gaussian_copula/index.html">multioutreg.surrogates.gaussian_copula</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gp_sklearn/index.html">multioutreg.surrogates.gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gpx_smt/index.html">multioutreg.surrogates.gpx_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gradient_boosting_sklearn/index.html">multioutreg.surrogates.gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/hist_gradient_boosting_sklearn/index.html">multioutreg.surrogates.hist_gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/knn_sklearn/index.html">multioutreg.surrogates.knn_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/kpls_smt/index.html">multioutreg.surrogates.kpls_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/lightgbm_sklearn/index.html">multioutreg.surrogates.lightgbm_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/linear_sklearn/index.html">multioutreg.surrogates.linear_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/mfk_smt/index.html">multioutreg.surrogates.mfk_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/moe_surrogate/index.html">multioutreg.surrogates.moe_surrogate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/multi_fidelity/index.html">multioutreg.surrogates.multi_fidelity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/multitask_gp_gpytorch/index.html">multioutreg.surrogates.multitask_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/ngboost_sklearn/index.html">multioutreg.surrogates.ngboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/nystroem_gp_sklearn/index.html">multioutreg.surrogates.nystroem_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/pca_output/index.html">multioutreg.surrogates.pca_output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/polynomial_bayesian_ridge_sklearn/index.html">multioutreg.surrogates.polynomial_bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/quantile_sklearn/index.html">multioutreg.surrogates.quantile_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/rf_sklearn/index.html">multioutreg.surrogates.rf_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/rfgp_sklearn/index.html">multioutreg.surrogates.rfgp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/sparse_gp_gpytorch/index.html">multioutreg.surrogates.sparse_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/stacked_vfm/index.html">multioutreg.surrogates.stacked_vfm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/std_recalibration/index.html">multioutreg.surrogates.std_recalibration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/svr_sklearn/index.html">multioutreg.surrogates.svr_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/xgboost_sklearn/index.html">multioutreg.surrogates.xgboost_sklearn</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/index.html">multioutreg.time_series</a><input aria-label="Toggle navigation of multioutreg.time_series" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/chronos_adapter/index.html">multioutreg.time_series.chronos_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/cv/index.html">multioutreg.time_series.cv</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/figures/index.html">multioutreg.time_series.figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/financial/index.html">multioutreg.time_series.financial</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/lag_features/index.html">multioutreg.time_series.lag_features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/lag_forecaster/index.html">multioutreg.time_series.lag_forecaster</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/metrics/index.html">multioutreg.time_series.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/neuralforecast_adapter/index.html">multioutreg.time_series.neuralforecast_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/prophet_adapter/index.html">multioutreg.time_series.prophet_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/returns/index.html">multioutreg.time_series.returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/seasonality/index.html">multioutreg.time_series.seasonality</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/surrogate_forecaster/index.html">multioutreg.time_series.surrogate_forecaster</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/index.html">multioutreg.time_series.ts_dynamic_fit</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/algs/index.html">multioutreg.time_series.ts_dynamic_fit.algs</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.algs" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/algs/arima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.arima</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/algs/lstm/index.html">multioutreg.time_series.ts_dynamic_fit.algs.lstm</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/algs/sarima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.sarima</a></li>
+</ul>
+</li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.data_handling" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/Analyzer/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.Analyzer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/DataProcessor/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.DataProcessor</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/PullData/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.PullData</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/ingest/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.ingest</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/main/index.html">multioutreg.time_series.ts_dynamic_fit.main</a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/index.html">multioutreg.time_series.ts_dynamic_fit.src</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.src" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/ForecastAutoIntervals/index.html">multioutreg.time_series.ts_dynamic_fit.src.ForecastAutoIntervals</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/TSDataLoader/index.html">multioutreg.time_series.ts_dynamic_fit.src.TSDataLoader</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/evaluate/index.html">multioutreg.time_series.ts_dynamic_fit.src.evaluate</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/forecasters/index.html">multioutreg.time_series.ts_dynamic_fit.src.forecasters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/infer/index.html">multioutreg.time_series.ts_dynamic_fit.src.infer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/ranker/index.html">multioutreg.time_series.ts_dynamic_fit.src.ranker</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/visualize/index.html">multioutreg.time_series.ts_dynamic_fit.src.visualize</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_suitability/index.html">multioutreg.time_series.ts_suitability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/uncertainty/index.html">multioutreg.time_series.uncertainty</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/utils/index.html">multioutreg.utils</a><input aria-label="Toggle navigation of multioutreg.utils" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/aux_funcs/index.html">multioutreg.utils.aux_funcs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/figure_utils/index.html">multioutreg.utils.figure_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/imputation/index.html">multioutreg.utils.imputation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/metric_utils/index.html">multioutreg.utils.metric_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/pca_utils/index.html">multioutreg.utils.pca_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/surrogate_utils/index.html">multioutreg.utils.surrogate_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/thread_limits/index.html">multioutreg.utils.thread_limits</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrated_surrogates.html">Integrated Surrogate Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="surrogate_hyperparameters.html">Surrogate Hyperparameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multiobjective_metrics.html">Multi-Objective Metrics</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="surrogate_roadmap.html">Expanding the Surrogate Offerings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_ux_roadmap.html">Improving the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="docs_roadmap.html">Improving the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="report_redesign/implementation_plan.html">Plan: ship the redesigned report as a downloadable file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_learning.html">Active Learning Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parallel_computing.html">Parallelization and Distributed Computing Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pair_plot_report.html">Pair Plots in Reports</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AUDIT_CHECKLIST.html">Statistical / Logic Audit Checklist</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/takotime808/multioutreg/blob/main/docs/references.rst?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/takotime808/multioutreg/edit/main/docs/references.rst" rel="edit" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="references">
+<span id="id1"></span><h1>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h1>
+<p>Published work behind <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code>: the methods the code implements today,
+and the methods needed for the items in the <a class="reference internal" href="surrogate_roadmap.html"><span class="doc">Expanding the Surrogate Offerings</span></a>. Each
+table row gives the citation, a link, and a note naming the module the
+reference applies to and what to check there.</p>
+<p>IDs are a section prefix plus a number (e.g. <code class="docutils literal notranslate"><span class="pre">GP3</span></code>, <code class="docutils literal notranslate"><span class="pre">AL7</span></code>). Multi-fidelity
+references use <code class="docutils literal notranslate"><span class="pre">FID</span></code> so they are not confused with the <code class="docutils literal notranslate"><span class="pre">MF</span></code> items in the
+audit checklist.</p>
+<p>Every DOI and arXiv link was checked to resolve to the cited paper (October
+2026).</p>
+<section id="where-to-start">
+<h2>Where to Start<a class="headerlink" href="#where-to-start" title="Link to this heading">¶</a></h2>
+<p><strong>Checks on existing code</strong></p>
+<ul class="simple">
+<li><p>Auto-Detect reports the CV score of the best model per output, which is
+optimistically biased (MS2).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">forest_uncertainty</span></code> adds a noise term that does not vary with <em>x</em>
+(TR3, TR4).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">bnn_pytorch</span></code> MC Dropout variance has no model-precision (τ⁻¹) term
+(NN2).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">quantile_sklearn</span></code> converts quantiles to a symmetric pseudo-std
+(TR10, CP5).</p></li>
+<li><p>Reports and GUI labels should quote the same <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">−</span> <span class="pre">2α</span></code> CV+ guarantee as the
+<code class="docutils literal notranslate"><span class="pre">cv_plus</span></code> docstrings (CP4).</p></li>
+</ul>
+<p><strong>Roadmap “Recommended First Batch”</strong></p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">MFKSurrogate</span></code>: FID1, FID2, FID4, GP7.</p></li>
+<li><p>PCA output reduction: MO3, VZ3.</p></li>
+<li><p>Multi-task GP: MO1, MO2, GP5.</p></li>
+<li><p>Gaussian copula and joint metrics: MO10, JM1, JM2, UQ1.</p></li>
+</ol>
+</section>
+<section id="current-codebase">
+<h2>Current Codebase<a class="headerlink" href="#current-codebase" title="Link to this heading">¶</a></h2>
+<p>Methods that <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> implements today, grouped by package.</p>
+<section id="gaussian-processes-and-bayesian-linear-models">
+<h3>Gaussian Processes and Bayesian Linear Models<a class="headerlink" href="#gaussian-processes-and-bayesian-linear-models" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8.0%" />
+<col style="width: 42.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Citation</p></th>
+<th class="head"><p>Link</p></th>
+<th class="head"><p>Relevance / What to Review</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>GP1</p></td>
+<td><p>Rasmussen, C. E., &amp; Williams, C. K. I. <em>Gaussian Processes for Machine Learning</em>. MIT Press (2006).</p></td>
+<td><p><a class="reference external" href="https://gaussianprocess.org/gpml/">book</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gp_sklearn</span></code>, <code class="docutils literal notranslate"><span class="pre">ard_gp_sklearn</span></code>: kernel choice, marginal-likelihood fitting and ARD length scales (Ch. 5); predictive variance with and without the noise term.</p></td>
+</tr>
+<tr class="row-odd"><td><p>GP2</p></td>
+<td><p>Rahimi, A., &amp; Recht, B. <em>Random Features for Large-Scale Kernel Machines</em>. NeurIPS 20 (2007).</p></td>
+<td><p><a class="reference external" href="https://papers.nips.cc/paper/2007/hash/013a006f03dbc5392effeb8f18fda755-Abstract.html">paper</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rfgp_sklearn</span></code>: number of features <em>D</em> needed for a given kernel approximation error; RFF variance underestimates away from the data.</p></td>
+</tr>
+<tr class="row-even"><td><p>GP3</p></td>
+<td><p>Williams, C. K. I., &amp; Seeger, M. <em>Using the Nyström Method to Speed Up Kernel Machines</em>. NeurIPS 13 (2001).</p></td>
+<td><p><a class="reference external" href="https://papers.nips.cc/paper/2000/hash/19de10adbaa1b2ee13f77f679fa1483a-Abstract.html">paper</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">nystroem_gp_sklearn</span></code>: choice and number of landmark points.</p></td>
+</tr>
+<tr class="row-odd"><td><p>GP4</p></td>
+<td><p>Titsias, M. <em>Variational Learning of Inducing Variables in Sparse Gaussian Processes</em>. AISTATS, PMLR 5 (2009).</p></td>
+<td><p><a class="reference external" href="https://proceedings.mlr.press/v5/titsias09a.html">paper</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sparse_gp_gpytorch</span></code> (SGPR): the variational lower bound and inducing-point initialisation.</p></td>
+</tr>
+<tr class="row-even"><td><p>GP5</p></td>
+<td><p>Gardner, J. R., Pleiss, G., Bindel, D., Weinberger, K. Q., &amp; Wilson, A. G. <em>GPyTorch: Blackbox Matrix-Matrix Gaussian Process Inference with GPU Acceleration</em>. NeurIPS 31 (2018).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1809.11165">arXiv</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sparse_gp_gpytorch</span></code>; also the backend for roadmap multi-output #1 (multi-task GP) and multi-fidelity #3 (fidelity as an input).</p></td>
+</tr>
+<tr class="row-odd"><td><p>GP6</p></td>
+<td><p>Bouhlel, M. A., Bartoli, N., Otsmane, A., &amp; Morlier, J. <em>Improving Kriging Surrogates of High-Dimensional Design Models by Partial Least Squares Dimension Reduction</em>. Structural and Multidisciplinary Optimization, 53(5) (2016).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1007/s00158-015-1395-9">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">kpls_smt</span></code>: choosing the number of PLS components; when KPLS beats a full ARD GP.</p></td>
+</tr>
+<tr class="row-even"><td><p>GP7</p></td>
+<td><p>Saves, P., et al. <em>SMT 2.0: A Surrogate Modeling Toolbox with a Focus on Hierarchical and Mixed Variables Gaussian Processes</em>. Advances in Engineering Software, 188 (2024).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/j.advengsoft.2023.103571">doi</a> · <a class="reference external" href="https://arxiv.org/abs/2305.13998">arXiv</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gpx_smt</span></code>, <code class="docutils literal notranslate"><span class="pre">kpls_smt</span></code>, and roadmap multi-fidelity #1 (SMT’s <code class="docutils literal notranslate"><span class="pre">MFK</span></code> / <code class="docutils literal notranslate"><span class="pre">MFKPLS</span></code>). Also cite Bouhlel et al. (2019), <a class="reference external" href="https://doi.org/10.1016/j.advengsoft.2019.03.005">doi</a>, for SMT 1.x.</p></td>
+</tr>
+<tr class="row-odd"><td><p>GP8</p></td>
+<td><p>Tipping, M. E. <em>Sparse Bayesian Learning and the Relevance Vector Machine</em>. JMLR, 1 (2001).</p></td>
+<td><p><a class="reference external" href="https://www.jmlr.org/papers/v1/tipping01a.html">paper</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bayesian_ridge_sklearn</span></code>, <code class="docutils literal notranslate"><span class="pre">polynomial_bayesian_ridge_sklearn</span></code>: evidence maximisation and ARD priors.</p></td>
+</tr>
+<tr class="row-even"><td><p>GP9</p></td>
+<td><p>MacKay, D. J. C. <em>Bayesian Interpolation</em>. Neural Computation, 4(3) (1992).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1162/neco.1992.4.3.415">doi</a></p></td>
+<td><p>Evidence framework behind sklearn’s <code class="docutils literal notranslate"><span class="pre">BayesianRidge</span></code> hyperparameter updates.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="tree-ensembles-boosting-and-quantile-models">
+<h3>Tree Ensembles, Boosting and Quantile Models<a class="headerlink" href="#tree-ensembles-boosting-and-quantile-models" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8.0%" />
+<col style="width: 42.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Citation</p></th>
+<th class="head"><p>Link</p></th>
+<th class="head"><p>Relevance / What to Review</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>TR1</p></td>
+<td><p>Breiman, L. <em>Random Forests</em>. Machine Learning, 45 (2001).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1023/A:1010933404324">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">rf_sklearn</span></code>, <code class="docutils literal notranslate"><span class="pre">forest_uncertainty</span></code>: out-of-bag estimates used for <code class="docutils literal notranslate"><span class="pre">noise_var</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>TR2</p></td>
+<td><p>Geurts, P., Ernst, D., &amp; Wehenkel, L. <em>Extremely Randomized Trees</em>. Machine Learning, 63 (2006).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1007/s10994-006-6226-1">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">extra_trees_sklearn</span></code>: no bootstrap by default, so <code class="docutils literal notranslate"><span class="pre">forest_uncertainty</span></code> falls back to K-fold refits.</p></td>
+</tr>
+<tr class="row-even"><td><p>TR3</p></td>
+<td><p>Wager, S., Hastie, T., &amp; Efron, B. <em>Confidence Intervals for Random Forests: The Jackknife and the Infinitesimal Jackknife</em>. JMLR, 15 (2014).</p></td>
+<td><p><a class="reference external" href="https://www.jmlr.org/papers/v15/wager14a.html">paper</a> · <a class="reference external" href="https://arxiv.org/abs/1311.4555">arXiv</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">forest_uncertainty</span></code>: a bias-corrected alternative to the raw tree-spread variance; compare it with the current <code class="docutils literal notranslate"><span class="pre">tree_var</span> <span class="pre">+</span> <span class="pre">noise_var</span></code> construction.</p></td>
+</tr>
+<tr class="row-odd"><td><p>TR4</p></td>
+<td><p>Meinshausen, N. <em>Quantile Regression Forests</em>. JMLR, 7 (2006).</p></td>
+<td><p><a class="reference external" href="https://www.jmlr.org/papers/v7/meinshausen06a.html">paper</a></p></td>
+<td><p>Alternative to the constant-in-<em>x</em> <code class="docutils literal notranslate"><span class="pre">noise_var</span></code> in <code class="docutils literal notranslate"><span class="pre">forest_uncertainty</span></code>: gives heteroscedastic, asymmetric intervals from the same forest.</p></td>
+</tr>
+<tr class="row-even"><td><p>TR5</p></td>
+<td><p>Friedman, J. H. <em>Greedy Function Approximation: A Gradient Boosting Machine</em>. Annals of Statistics, 29(5) (2001).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1214/aos/1013203451">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">gradient_boosting_sklearn</span></code>, <code class="docutils literal notranslate"><span class="pre">hist_gradient_boosting_sklearn</span></code>, <code class="docutils literal notranslate"><span class="pre">quantile_sklearn</span></code>; also introduces partial-dependence plots (<code class="docutils literal notranslate"><span class="pre">figures/pdp_plots</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>TR6</p></td>
+<td><p>Chen, T., &amp; Guestrin, C. <em>XGBoost: A Scalable Tree Boosting System</em>. KDD (2016).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1145/2939672.2939785">doi</a> · <a class="reference external" href="https://arxiv.org/abs/1603.02754">arXiv</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">xgboost_sklearn</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>TR7</p></td>
+<td><p>Ke, G., et al. <em>LightGBM: A Highly Efficient Gradient Boosting Decision Tree</em>. NeurIPS 30 (2017).</p></td>
+<td><p><a class="reference external" href="https://papers.nips.cc/paper/2017/hash/6449f44a102fde848669bdd9eb6b76fa-Abstract.html">paper</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">lightgbm_sklearn</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>TR8</p></td>
+<td><p>Prokhorenkova, L., et al. <em>CatBoost: Unbiased Boosting with Categorical Features</em>. NeurIPS 31 (2018).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1706.09516">arXiv</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">catboost_sklearn</span></code>; also roadmap multi-output #4 (<code class="docutils literal notranslate"><span class="pre">MultiRMSE</span></code> joint loss).</p></td>
+</tr>
+<tr class="row-even"><td><p>TR9</p></td>
+<td><p>Duan, T., et al. <em>NGBoost: Natural Gradient Boosting for Probabilistic Prediction</em>. ICML (2020).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1910.03225">arXiv</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ngboost_sklearn</span></code>: distributional output and how its std is used by <code class="docutils literal notranslate"><span class="pre">predict(return_std=True)</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>TR10</p></td>
+<td><p>Koenker, R., &amp; Bassett, G. <em>Regression Quantiles</em>. Econometrica, 46(1) (1978).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.2307/1913643">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">quantile_sklearn</span></code>: pinball loss; the code converts quantiles to a std via the inverse normal CDF, which assumes symmetry. Check that against asymmetric intervals.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="neural-networks-and-mixtures-of-experts">
+<h3>Neural Networks and Mixtures of Experts<a class="headerlink" href="#neural-networks-and-mixtures-of-experts" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8.0%" />
+<col style="width: 42.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Citation</p></th>
+<th class="head"><p>Link</p></th>
+<th class="head"><p>Relevance / What to Review</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>NN1</p></td>
+<td><p>Lakshminarayanan, B., Pritzel, A., &amp; Blundell, C. <em>Simple and Scalable Predictive Uncertainty Estimation Using Deep Ensembles</em>. NeurIPS 30 (2017).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1612.01474">arXiv</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">deep_ensemble_pytorch</span></code>: Gaussian NLL heads, mixture-of-Gaussians combination of members, optional adversarial training.</p></td>
+</tr>
+<tr class="row-odd"><td><p>NN2</p></td>
+<td><p>Gal, Y., &amp; Ghahramani, Z. <em>Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep Learning</em>. ICML (2016).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1506.02142">arXiv</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">bnn_network</span></code> / <code class="docutils literal notranslate"><span class="pre">bnn_pytorch</span></code> (MC Dropout): the predictive variance needs a model-precision (τ⁻¹) term besides the sample variance.</p></td>
+</tr>
+<tr class="row-even"><td><p>NN3</p></td>
+<td><p>Jacobs, R. A., Jordan, M. I., Nowlan, S. J., &amp; Hinton, G. E. <em>Adaptive Mixtures of Local Experts</em>. Neural Computation, 3(1) (1991).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1162/neco.1991.3.1.79">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">moe_surrogate</span></code>, <code class="docutils literal notranslate"><span class="pre">gating_network</span></code>: soft gating vs. the hard-assignment fit in <code class="docutils literal notranslate"><span class="pre">gating_network</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>NN4</p></td>
+<td><p>Jordan, M. I., &amp; Jacobs, R. A. <em>Hierarchical Mixtures of Experts and the EM Algorithm</em>. Neural Computation, 6(2) (1994).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1162/neco.1994.6.2.181">doi</a></p></td>
+<td><p>EM training of gate and experts jointly; how the mixture variance (within + between experts) should be computed.</p></td>
+</tr>
+<tr class="row-even"><td><p>NN5</p></td>
+<td><p>Yuksel, S. E., Wilson, J. N., &amp; Gader, P. D. <em>Twenty Years of Mixture of Experts</em>. IEEE TNNLS, 23(8) (2012).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1109/TNNLS.2012.2200299">doi</a></p></td>
+<td><p>Survey of gating designs and training schemes for <code class="docutils literal notranslate"><span class="pre">MixtureOfExpertsSurrogate</span></code>.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="multi-fidelity-surrogates">
+<h3>Multi-Fidelity Surrogates<a class="headerlink" href="#multi-fidelity-surrogates" title="Link to this heading">¶</a></h3>
+<p>The multi-fidelity models that exist now (<code class="docutils literal notranslate"><span class="pre">StackedVFMSurrogate</span></code>, <code class="docutils literal notranslate"><span class="pre">AdditiveCorrectionVFM</span></code>). References for the roadmap multi-fidelity candidates continue the numbering under <a class="reference internal" href="#references-roadmap"><span class="std std-ref">Roadmap Items</span></a>.</p>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8.0%" />
+<col style="width: 42.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Citation</p></th>
+<th class="head"><p>Link</p></th>
+<th class="head"><p>Relevance / What to Review</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>FID1</p></td>
+<td><p>Kennedy, M. C., &amp; O’Hagan, A. <em>Predicting the Output from a Complex Computer Code When Fast Approximations Are Available</em>. Biometrika, 87(1) (2000).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1093/biomet/87.1.1">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AdditiveCorrectionVFM</span></code>: the AR1 model it implements with a constant <code class="docutils literal notranslate"><span class="pre">rho</span></code>; also roadmap multi-fidelity #2 (input-dependent <code class="docutils literal notranslate"><span class="pre">rho(x)</span></code>).</p></td>
+</tr>
+<tr class="row-odd"><td><p>FID2</p></td>
+<td><p>Forrester, A. I. J., Sóbester, A., &amp; Keane, A. J. <em>Multi-Fidelity Optimization via Surrogate Modelling</em>. Proc. R. Soc. A, 463 (2007).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1098/rspa.2007.1900">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AdditiveCorrectionVFM</span></code>: co-kriging with <code class="docutils literal notranslate"><span class="pre">rho</span></code> estimated jointly by maximum likelihood, an alternative to the current least-squares fit; also co-kriging EI.</p></td>
+</tr>
+<tr class="row-even"><td><p>FID3</p></td>
+<td><p>Perdikaris, P., Raissi, M., Damianou, A., Lawrence, N. D., &amp; Karniadakis, G. E. <em>Nonlinear Information Fusion Algorithms for Data-Efficient Multi-Fidelity Modelling</em>. Proc. R. Soc. A, 473 (2017).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1098/rspa.2016.0751">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">StackedVFMSurrogate</span></code> (NARGP-like); also roadmap multi-fidelity #4 (full NARGP kernel with Monte Carlo propagation).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="conformal-prediction">
+<h3>Conformal Prediction<a class="headerlink" href="#conformal-prediction" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8.0%" />
+<col style="width: 42.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Citation</p></th>
+<th class="head"><p>Link</p></th>
+<th class="head"><p>Relevance / What to Review</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>CP1</p></td>
+<td><p>Vovk, V., Gammerman, A., &amp; Shafer, G. <em>Algorithmic Learning in a Random World</em>. Springer (2005).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1007/b106715">doi</a></p></td>
+<td><p>Foundations of <code class="docutils literal notranslate"><span class="pre">multioutreg.conformal</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>CP2</p></td>
+<td><p>Papadopoulos, H., Proedrou, K., Vovk, V., &amp; Gammerman, A. <em>Inductive Confidence Machines for Regression</em>. ECML (2002).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1007/3-540-36755-1_29">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">split_conformal</span></code>: original split/inductive construction and the finite-sample <code class="docutils literal notranslate"><span class="pre">⌈(n+1)(1−α)⌉</span></code> quantile.</p></td>
+</tr>
+<tr class="row-even"><td><p>CP3</p></td>
+<td><p>Lei, J., G’Sell, M., Rinaldo, A., Tibshirani, R. J., &amp; Wasserman, L. <em>Distribution-Free Predictive Inference for Regression</em>. JASA, 113(523) (2018).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1080/01621459.2017.1307116">doi</a> · <a class="reference external" href="https://arxiv.org/abs/1604.04173">arXiv</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">SplitConformalPredictor</span></code> with normalized scores (locally weighted conformal, §5.2); <code class="docutils literal notranslate"><span class="pre">conformal_network_sklearn</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>CP4</p></td>
+<td><p>Barber, R. F., Candès, E. J., Ramdas, A., &amp; Tibshirani, R. J. <em>Predictive Inference with the Jackknife+</em>. Annals of Statistics, 49(1) (2021).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1214/20-AOS1965">doi</a> · <a class="reference external" href="https://arxiv.org/abs/1905.02928">arXiv</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">cv_plus</span></code>: source of the <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">−</span> <span class="pre">2α</span></code> worst-case guarantee stated in the docstrings (CV+ with <em>K</em> folds adds a small finite-sample term). Check that reports and GUI labels quote the same guarantee, since empirical coverage is usually close to <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">−</span> <span class="pre">α</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>CP5</p></td>
+<td><p>Romano, Y., Patterson, E., &amp; Candès, E. J. <em>Conformalized Quantile Regression</em>. NeurIPS 32 (2019).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1905.03222">arXiv</a></p></td>
+<td><p>Combine <code class="docutils literal notranslate"><span class="pre">QuantileRegressionSurrogate</span></code> with <code class="docutils literal notranslate"><span class="pre">ConformalMixin</span></code> to get calibrated asymmetric intervals instead of std-based ones.</p></td>
+</tr>
+<tr class="row-odd"><td><p>CP6</p></td>
+<td><p>Angelopoulos, A. N., &amp; Bates, S. <em>Conformal Prediction: A Gentle Introduction</em>. Foundations and Trends in ML, 16(4) (2023).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/2107.07511">arXiv</a></p></td>
+<td><p>Practical checklist for <code class="docutils literal notranslate"><span class="pre">conformal/metrics</span></code> (coverage, interval width, conditional coverage diagnostics).</p></td>
+</tr>
+<tr class="row-even"><td><p>CP7</p></td>
+<td><p>Gibbs, I., &amp; Candès, E. <em>Adaptive Conformal Inference Under Distribution Shift</em>. NeurIPS 34 (2021).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/2106.00170">arXiv</a></p></td>
+<td><p>Conformal intervals for the time-series forecasters, where exchangeability fails.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="uncertainty-metrics-and-calibration">
+<h3>Uncertainty Metrics and Calibration<a class="headerlink" href="#uncertainty-metrics-and-calibration" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8.0%" />
+<col style="width: 42.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Citation</p></th>
+<th class="head"><p>Link</p></th>
+<th class="head"><p>Relevance / What to Review</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>UQ1</p></td>
+<td><p>Gneiting, T., &amp; Raftery, A. E. <em>Strictly Proper Scoring Rules, Prediction, and Estimation</em>. JASA, 102(477) (2007).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1198/016214506000001437">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">performance/metrics</span></code>: NLL, CRPS and interval score; also the energy score for the roadmap joint metrics.</p></td>
+</tr>
+<tr class="row-odd"><td><p>UQ2</p></td>
+<td><p>Gneiting, T., Balabdaoui, F., &amp; Raftery, A. E. <em>Probabilistic Forecasts, Calibration and Sharpness</em>. JRSS B, 69(2) (2007).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1111/j.1467-9868.2007.00587.x">doi</a></p></td>
+<td><p>The “maximise sharpness subject to calibration” principle behind the calibration and sharpness figures.</p></td>
+</tr>
+<tr class="row-even"><td><p>UQ3</p></td>
+<td><p>Kuleshov, V., Fenner, N., &amp; Ermon, S. <em>Accurate Uncertainties for Deep Learning Using Calibrated Regression</em>. ICML (2018).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1807.00263">arXiv</a></p></td>
+<td><p>Quantile-calibration curves (<code class="docutils literal notranslate"><span class="pre">figures/coverage_plots</span></code>, <code class="docutils literal notranslate"><span class="pre">uct_calibration_extension</span></code>) and isotonic recalibration as a post-hoc fix.</p></td>
+</tr>
+<tr class="row-odd"><td><p>UQ4</p></td>
+<td><p>Chung, Y., Char, I., Guo, H., Schneider, J., &amp; Neiswanger, W. <em>Uncertainty Toolbox: An Open-Source Library for Assessing, Visualizing, and Improving Uncertainty Quantification</em>. arXiv:2109.10254 (2021).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/2109.10254">arXiv</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">figures/uncertainty_toolbox_extension</span></code>, <code class="docutils literal notranslate"><span class="pre">uct_calibration_extension</span></code>: definitions of miscalibration area, sharpness and adversarial group calibration.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="model-selection-and-statistical-screening">
+<h3>Model Selection and Statistical Screening<a class="headerlink" href="#model-selection-and-statistical-screening" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8.0%" />
+<col style="width: 42.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Citation</p></th>
+<th class="head"><p>Link</p></th>
+<th class="head"><p>Relevance / What to Review</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>MS1</p></td>
+<td><p>Arlot, S., &amp; Celisse, A. <em>A Survey of Cross-Validation Procedures for Model Selection</em>. Statistics Surveys, 4 (2010).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1214/09-SS054">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">model_selection/auto_detect</span></code> and the grid-search CLI/GUI: per-output CV-based selection.</p></td>
+</tr>
+<tr class="row-odd"><td><p>MS2</p></td>
+<td><p>Cawley, G. C., &amp; Talbot, N. L. C. <em>On Over-fitting in Model Selection and Subsequent Selection Bias in Performance Evaluation</em>. JMLR, 11 (2010).</p></td>
+<td><p><a class="reference external" href="https://jmlr.org/papers/v11/cawley10a.html">paper</a></p></td>
+<td><p>Auto-Detect reports the CV score of the best model <em>per output</em>, which is optimistically biased; nested CV or a held-out test set is needed for an unbiased estimate.</p></td>
+</tr>
+<tr class="row-even"><td><p>MS3</p></td>
+<td><p>Shapiro, S. S., &amp; Wilk, M. B. <em>An Analysis of Variance Test for Normality (Complete Samples)</em>. Biometrika, 52(3–4) (1965).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1093/biomet/52.3-4.591">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">screening</span></code>: normality test on OLS residuals.</p></td>
+</tr>
+<tr class="row-odd"><td><p>MS4</p></td>
+<td><p>D’Agostino, R., &amp; Pearson, E. S. <em>Tests for Departure from Normality</em>. Biometrika, 60(3) (1973).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1093/biomet/60.3.613">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">screening</span></code>: the K² fallback for larger samples.</p></td>
+</tr>
+<tr class="row-even"><td><p>MS5</p></td>
+<td><p>Ramsey, J. B. <em>Tests for Specification Errors in Classical Linear Least-Squares Regression Analysis</em>. JRSS B, 31(2) (1969).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1111/j.2517-6161.1969.tb00796.x">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">screening</span></code>: RESET linearity test.</p></td>
+</tr>
+<tr class="row-odd"><td><p>MS6</p></td>
+<td><p>Breusch, T. S., &amp; Pagan, A. R. <em>A Simple Test for Heteroscedasticity and Random Coefficient Variation</em>. Econometrica, 47(5) (1979).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.2307/1911963">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">screening</span></code>: supports gating Breusch–Pagan on RESET passing (the test assumes the mean model is correct).</p></td>
+</tr>
+<tr class="row-even"><td><p>MS7</p></td>
+<td><p>Holm, S. <em>A Simple Sequentially Rejective Multiple Test Procedure</em>. Scandinavian Journal of Statistics, 6(2) (1979).</p></td>
+<td><p><a class="reference external" href="https://www.jstor.org/stable/4615733">jstor</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ModelScreener(correction=&quot;holm&quot;)</span></code>: the default joint p-value correction across outputs and tests.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="sampling-and-design-of-experiments">
+<h3>Sampling and Design of Experiments<a class="headerlink" href="#sampling-and-design-of-experiments" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8.0%" />
+<col style="width: 42.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Citation</p></th>
+<th class="head"><p>Link</p></th>
+<th class="head"><p>Relevance / What to Review</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>DOE1</p></td>
+<td><p>McKay, M. D., Beckman, R. J., &amp; Conover, W. J. <em>A Comparison of Three Methods for Selecting Values of Input Variables in the Analysis of Output from a Computer Code</em>. Technometrics, 21(2) (1979).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.2307/1268522">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sampling/detect</span></code>: the one-point-per-stratum property behind the <code class="docutils literal notranslate"><span class="pre">strata</span></code> statistic.</p></td>
+</tr>
+<tr class="row-odd"><td><p>DOE2</p></td>
+<td><p>Sobol’, I. M. <em>On the Distribution of Points in a Cube and the Approximate Evaluation of Integrals</em>. USSR Comput. Math. &amp; Math. Phys., 7(4) (1967).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/0041-5553(67)90144-9">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sampling/detect</span></code>: the “Sobol” candidate class.</p></td>
+</tr>
+<tr class="row-even"><td><p>DOE3</p></td>
+<td><p>Halton, J. H. <em>On the Efficiency of Certain Quasi-Random Sequences of Points in Evaluating Multi-Dimensional Integrals</em>. Numerische Mathematik, 2 (1960).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1007/BF01386213">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sampling/detect</span></code>: Halton is mixed into the low-discrepancy null.</p></td>
+</tr>
+<tr class="row-odd"><td><p>DOE4</p></td>
+<td><p>Owen, A. B. <em>Scrambling Sobol’ and Niederreiter–Xing Points</em>. Journal of Complexity, 14(4) (1998).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1006/jcom.1998.0487">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sampling/detect</span></code>: scrambled vs. unscrambled sequences (the latter are matched exactly).</p></td>
+</tr>
+<tr class="row-even"><td><p>DOE5</p></td>
+<td><p>Hickernell, F. J. <em>A Generalized Discrepancy and Quadrature Error Bound</em>. Mathematics of Computation, 67(221) (1998).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1090/S0025-5718-98-00894-1">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sampling/detect</span></code>: the centered L2 discrepancy (<code class="docutils literal notranslate"><span class="pre">log_cd</span></code> statistic).</p></td>
+</tr>
+<tr class="row-odd"><td><p>DOE6</p></td>
+<td><p>Johnson, M. E., Moore, L. M., &amp; Ylvisaker, D. <em>Minimax and Maximin Distance Designs</em>. JSPI, 26(2) (1990).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/0378-3758(90)90122-B">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">sampling/detect</span></code> (<code class="docutils literal notranslate"><span class="pre">nn</span></code> statistic); also roadmap active learning #3 (maximin-style batch diversity).</p></td>
+</tr>
+<tr class="row-even"><td><p>DOE7</p></td>
+<td><p>Massey, F. J. <em>The Kolmogorov–Smirnov Test for Goodness of Fit</em>. JASA, 46(253) (1951).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1080/01621459.1951.10500769">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">mor_cli/use_ks_for_sample_bias</span></code>: marginal KS tests against the YAML distributions.</p></td>
+</tr>
+<tr class="row-odd"><td><p>DOE8</p></td>
+<td><p>Lilliefors, H. W. <em>On the Kolmogorov–Smirnov Test for Normality with Mean and Variance Unknown</em>. JASA, 62(318) (1967).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1080/01621459.1967.10482916">doi</a></p></td>
+<td><p>KS p-values are only valid when the reference distribution is fixed in advance. If the YAML parameters are ever estimated from the same data, a Lilliefors-type correction (or parametric bootstrap) is needed.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="time-series">
+<h3>Time Series<a class="headerlink" href="#time-series" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8.0%" />
+<col style="width: 42.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Citation</p></th>
+<th class="head"><p>Link</p></th>
+<th class="head"><p>Relevance / What to Review</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>TS1</p></td>
+<td><p><em>Chronos: Learning the Language of Time Series</em>. arXiv:2403.07815 (2024).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/2403.07815">abs</a> · <a class="reference external" href="https://arxiv.org/pdf/2403.07815">pdf</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">time_series/chronos_adapter</span></code>, <code class="docutils literal notranslate"><span class="pre">time_series/financial</span></code>, the forecasting CLI and the Streamlit Time Series page: mean scaling and quantisation of the series, and how sampled trajectories become prediction intervals.</p></td>
+</tr>
+<tr class="row-odd"><td><p>TS2</p></td>
+<td><p>Dickey, D. A., &amp; Fuller, W. A. <em>Distribution of the Estimators for Autoregressive Time Series with a Unit Root</em>. JASA, 74(366) (1979).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.2307/2286348">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ts_suitability</span></code>, <code class="docutils literal notranslate"><span class="pre">ts_dynamic_fit</span></code>: ADF unit-root test.</p></td>
+</tr>
+<tr class="row-even"><td><p>TS3</p></td>
+<td><p>Kwiatkowski, D., Phillips, P. C. B., Schmidt, P., &amp; Shin, Y. <em>Testing the Null Hypothesis of Stationarity Against the Alternative of a Unit Root</em>. Journal of Econometrics, 54 (1992).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/0304-4076(92)90104-Y">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ts_suitability</span></code>: KPSS has the opposite null to ADF; the code runs both together, and this paper gives the reasoning for the combined decision (including the trend-stationary case).</p></td>
+</tr>
+<tr class="row-odd"><td><p>TS4</p></td>
+<td><p>Ljung, G. M., &amp; Box, G. E. P. <em>On a Measure of Lack of Fit in Time Series Models</em>. Biometrika, 65(2) (1978).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1093/biomet/65.2.297">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ts_suitability</span></code>: autocorrelation test; lag choice.</p></td>
+</tr>
+<tr class="row-even"><td><p>TS5</p></td>
+<td><p>Hyndman, R. J., &amp; Athanasopoulos, G. <em>Forecasting: Principles and Practice</em> (3rd ed.). OTexts (2021).</p></td>
+<td><p><a class="reference external" href="https://otexts.com/fpp3/">book</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">seasonality</span></code> (ACF-based period detection), <code class="docutils literal notranslate"><span class="pre">ts_dynamic_fit/algs/arima</span></code>, <code class="docutils literal notranslate"><span class="pre">sarima</span></code>: model identification and prediction intervals.</p></td>
+</tr>
+<tr class="row-odd"><td><p>TS6</p></td>
+<td><p>Hochreiter, S., &amp; Schmidhuber, J. <em>Long Short-Term Memory</em>. Neural Computation, 9(8) (1997).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1162/neco.1997.9.8.1735">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">ts_dynamic_fit/algs/lstm</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>TS7</p></td>
+<td><p>Hyndman, R. J., &amp; Koehler, A. B. <em>Another Look at Measures of Forecast Accuracy</em>. International Journal of Forecasting, 22(4) (2006).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/j.ijforecast.2006.03.001">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">time_series/metrics</span></code>: MASE (and why sMAPE is problematic near zero).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="figures-and-preprocessing">
+<h3>Figures and Preprocessing<a class="headerlink" href="#figures-and-preprocessing" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8.0%" />
+<col style="width: 42.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Citation</p></th>
+<th class="head"><p>Link</p></th>
+<th class="head"><p>Relevance / What to Review</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>VZ1</p></td>
+<td><p>Lundberg, S. M., &amp; Lee, S.-I. <em>A Unified Approach to Interpreting Model Predictions</em>. NeurIPS 30 (2017).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1705.07874">arXiv</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">figures/shap_multioutput</span></code>: per-output SHAP values and the background-data choice for KernelSHAP.</p></td>
+</tr>
+<tr class="row-odd"><td><p>VZ2</p></td>
+<td><p>McInnes, L., Healy, J., &amp; Melville, J. <em>UMAP: Uniform Manifold Approximation and Projection for Dimension Reduction</em>. arXiv:1802.03426 (2018).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1802.03426">arXiv</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">figures/umap_plot_classify</span></code>: how far distances and cluster sizes in the embedding can be trusted.</p></td>
+</tr>
+<tr class="row-even"><td><p>VZ3</p></td>
+<td><p>Jolliffe, I. T., &amp; Cadima, J. <em>Principal Component Analysis: A Review and Recent Developments</em>. Phil. Trans. R. Soc. A, 374 (2016).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1098/rsta.2015.0202">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">figures/pca_plots</span></code>, <code class="docutils literal notranslate"><span class="pre">utils/pca_utils</span></code>; also roadmap multi-output #2 (PCA output reduction).</p></td>
+</tr>
+<tr class="row-odd"><td><p>VZ4</p></td>
+<td><p>Troyanskaya, O., et al. <em>Missing Value Estimation Methods for DNA Microarrays</em>. Bioinformatics, 17(6) (2001).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1093/bioinformatics/17.6.520">doi</a></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">utils/imputation</span></code>: KNN imputation; choice of <em>k</em> and scaling before distance computation.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+<section id="roadmap-items">
+<span id="references-roadmap"></span><h2>Roadmap Items<a class="headerlink" href="#roadmap-items" title="Link to this heading">¶</a></h2>
+<p>Methods for the candidates in the <a class="reference internal" href="surrogate_roadmap.html"><span class="doc">Expanding the Surrogate Offerings</span></a>. “#N” is the row number in the matching roadmap table.</p>
+<section id="multi-fidelity-modelling">
+<h3>Multi-Fidelity Modelling<a class="headerlink" href="#multi-fidelity-modelling" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8.0%" />
+<col style="width: 42.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Citation</p></th>
+<th class="head"><p>Link</p></th>
+<th class="head"><p>Relevance / What to Review</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>FID4</p></td>
+<td><p>Le Gratiet, L., &amp; Garnier, J. <em>Recursive Co-Kriging Model for Design of Computer Experiments with Multiple Levels of Fidelity</em>. IJUQ, 4(5) (2014).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1615/Int.J.UncertaintyQuantification.2014006914">doi</a> · <a class="reference external" href="https://arxiv.org/abs/1210.0686">arXiv</a></p></td>
+<td><p>Roadmap multi-fidelity #1 (<code class="docutils literal notranslate"><span class="pre">MFKSurrogate</span></code>): the recursive formulation SMT’s <code class="docutils literal notranslate"><span class="pre">MFK</span></code> implements, and its nested-design requirement.</p></td>
+</tr>
+<tr class="row-odd"><td><p>FID5</p></td>
+<td><p>Meliani, M., et al. <em>Multi-Fidelity Efficient Global Optimization: Methodology and Application to Airfoil Shape Design</em>. AIAA Aviation Forum (2019).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.2514/6.2019-3236">doi</a></p></td>
+<td><p>Roadmap multi-fidelity #1 (<code class="docutils literal notranslate"><span class="pre">MFKPLSSurrogate</span></code>): MFK combined with PLS reduction.</p></td>
+</tr>
+<tr class="row-even"><td><p>FID6</p></td>
+<td><p>Meng, X., &amp; Karniadakis, G. E. <em>A Composite Neural Network That Learns from Multi-Fidelity Data</em>. Journal of Computational Physics, 401 (2020).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/j.jcp.2019.109020">doi</a> · <a class="reference external" href="https://arxiv.org/abs/1903.00104">arXiv</a></p></td>
+<td><p>Roadmap multi-fidelity #5 (multi-fidelity neural networks).</p></td>
+</tr>
+<tr class="row-odd"><td><p>FID7</p></td>
+<td><p>Cutajar, K., Pullin, M., Damianou, A., Lawrence, N., &amp; González, J. <em>Deep Gaussian Processes for Multi-Fidelity Modeling</em>. arXiv:1903.07320 (2019).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1903.07320">arXiv</a></p></td>
+<td><p>Roadmap multi-fidelity #6 (multi-fidelity deep GP).</p></td>
+</tr>
+<tr class="row-even"><td><p>FID8</p></td>
+<td><p>Kandasamy, K., Dasarathy, G., Schneider, J., &amp; Póczos, B. <em>Multi-Fidelity Bayesian Optimisation with Continuous Approximations</em>. ICML (2017).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1703.06240">arXiv</a></p></td>
+<td><p>Roadmap multi-fidelity #3 (fidelity as a continuous input).</p></td>
+</tr>
+<tr class="row-odd"><td><p>FID9</p></td>
+<td><p>Wu, J., Toscano-Palmerin, S., Frazier, P. I., &amp; Wilson, A. G. <em>Practical Multi-Fidelity Bayesian Optimization for Hyperparameter Tuning</em>. UAI (2020).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1903.04703">arXiv</a></p></td>
+<td><p>Roadmap multi-fidelity #3: the downsampling kernel behind BoTorch’s <code class="docutils literal notranslate"><span class="pre">SingleTaskMultiFidelityGP</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>FID10</p></td>
+<td><p>Peherstorfer, B., Willcox, K., &amp; Gunzburger, M. <em>Survey of Multifidelity Methods in Uncertainty Propagation, Inference, and Optimization</em>. SIAM Review, 60(3) (2018).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1137/16M1082469">doi</a></p></td>
+<td><p>Roadmap multi-fidelity supporting methods: accuracy-vs-cost evaluation and model-management strategies.</p></td>
+</tr>
+<tr class="row-odd"><td><p>FID11</p></td>
+<td><p>Fernández-Godino, M. G., Park, C., Kim, N.-H., &amp; Haftka, R. T. <em>Review of Multi-Fidelity Models</em>. arXiv:1609.07196 (2016).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1609.07196">arXiv</a></p></td>
+<td><p>Taxonomy of correction-based vs. fusion-based models; useful for the Integrated Surrogates table.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="multi-output-modelling">
+<h3>Multi-Output Modelling<a class="headerlink" href="#multi-output-modelling" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8.0%" />
+<col style="width: 42.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Citation</p></th>
+<th class="head"><p>Link</p></th>
+<th class="head"><p>Relevance / What to Review</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>MO1</p></td>
+<td><p>Álvarez, M. A., Rosasco, L., &amp; Lawrence, N. D. <em>Kernels for Vector-Valued Functions: A Review</em>. Foundations and Trends in ML, 4(3) (2012).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1106.6251">arXiv</a></p></td>
+<td><p>Roadmap multi-output #1: ICM vs. LMC, and how many latent processes are needed.</p></td>
+</tr>
+<tr class="row-odd"><td><p>MO2</p></td>
+<td><p>Bonilla, E. V., Chai, K. M. A., &amp; Williams, C. K. I. <em>Multi-Task Gaussian Process Prediction</em>. NeurIPS 20 (2007).</p></td>
+<td><p><a class="reference external" href="https://papers.nips.cc/paper/2007/hash/66368270ffd51418ec58bd793f2d9b1b-Abstract.html">paper</a></p></td>
+<td><p>Roadmap multi-output #1: the free-form task covariance used by GPyTorch’s <code class="docutils literal notranslate"><span class="pre">MultitaskKernel</span></code>; outputs observed on different rows.</p></td>
+</tr>
+<tr class="row-even"><td><p>MO3</p></td>
+<td><p>Higdon, D., Gattiker, J., Williams, B., &amp; Rightley, M. <em>Computer Model Calibration Using High-Dimensional Output</em>. JASA, 103(482) (2008).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1198/016214507000000888">doi</a></p></td>
+<td><p>Roadmap multi-output #2 (PCA output reduction): standard reference for emulating field outputs on a principal-component basis, including how variance maps back.</p></td>
+</tr>
+<tr class="row-odd"><td><p>MO4</p></td>
+<td><p>Schölkopf, B., Smola, A., &amp; Müller, K.-R. <em>Nonlinear Component Analysis as a Kernel Eigenvalue Problem</em>. Neural Computation, 10(5) (1998).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1162/089976698300017467">doi</a></p></td>
+<td><p>Roadmap multi-output #2 (kernel PCA variant): note the pre-image problem when mapping predictions back.</p></td>
+</tr>
+<tr class="row-even"><td><p>MO5</p></td>
+<td><p>Borchani, H., Varando, G., Bielza, C., &amp; Larrañaga, P. <em>A Survey on Multi-Output Regression</em>. WIREs Data Mining and Knowledge Discovery, 5(5) (2015).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1002/widm.1157">doi</a></p></td>
+<td><p>Overview of problem-transformation vs. algorithm-adaptation methods; places the current per-output design and roadmap multi-output #3–#4.</p></td>
+</tr>
+<tr class="row-odd"><td><p>MO6</p></td>
+<td><p>Spyromitros-Xioufis, E., Tsoumakas, G., Groves, W., &amp; Vlahavas, I. <em>Multi-Target Regression via Input Space Expansion: Treating Targets as Inputs</em>. Machine Learning, 104 (2016).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1007/s10994-016-5546-z">doi</a></p></td>
+<td><p>Roadmap multi-output #3 (<code class="docutils literal notranslate"><span class="pre">RegressorChain</span></code>): ensembles of chains and the train/test mismatch from using true vs. predicted targets.</p></td>
+</tr>
+<tr class="row-even"><td><p>MO7</p></td>
+<td><p>Segal, M., &amp; Xiao, Y. <em>Multivariate Random Forests</em>. WIREs Data Mining and Knowledge Discovery, 1(1) (2011).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1002/widm.12">doi</a></p></td>
+<td><p>Roadmap multi-output #4 (joint-tree random forest).</p></td>
+</tr>
+<tr class="row-odd"><td><p>MO8</p></td>
+<td><p>Wold, S., Sjöström, M., &amp; Eriksson, L. <em>PLS-Regression: A Basic Tool of Chemometrics</em>. Chemometrics and Intelligent Laboratory Systems, 58(2) (2001).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/S0169-7439(01)00155-1">doi</a></p></td>
+<td><p>Roadmap multi-output #4 (<code class="docutils literal notranslate"><span class="pre">PLSRegression</span></code>).</p></td>
+</tr>
+<tr class="row-even"><td><p>MO9</p></td>
+<td><p>Izenman, A. J. <em>Reduced-Rank Regression for the Multivariate Linear Model</em>. Journal of Multivariate Analysis, 5(2) (1975).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/0047-259X(75)90042-1">doi</a></p></td>
+<td><p>Roadmap multi-output #4 (reduced-rank regression).</p></td>
+</tr>
+<tr class="row-odd"><td><p>MO10</p></td>
+<td><p>Nelsen, R. B. <em>An Introduction to Copulas</em> (2nd ed.). Springer (2006).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1007/0-387-28678-0">doi</a></p></td>
+<td><p>Roadmap multi-output #5 (Gaussian copula on residuals).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="joint-metrics-and-conformal-regions">
+<h3>Joint Metrics and Conformal Regions<a class="headerlink" href="#joint-metrics-and-conformal-regions" title="Link to this heading">¶</a></h3>
+<p>The roadmap’s multi-output supporting methods: scoring rules and conformal regions that test whether output correlations are captured.</p>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8.0%" />
+<col style="width: 42.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Citation</p></th>
+<th class="head"><p>Link</p></th>
+<th class="head"><p>Relevance / What to Review</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>JM1</p></td>
+<td><p>Gneiting, T., Stanberry, L. I., Grimit, E. P., Held, L., &amp; Johnson, N. A. <em>Assessing Probabilistic Forecasts of Multivariate Quantities</em>. TEST, 17 (2008).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1007/s11749-008-0114-x">doi</a></p></td>
+<td><p>Roadmap joint metrics: energy score and multivariate rank histograms.</p></td>
+</tr>
+<tr class="row-odd"><td><p>JM2</p></td>
+<td><p>Scheuerer, M., &amp; Hamill, T. M. <em>Variogram-Based Proper Scoring Rules for Probabilistic Forecasts of Multivariate Quantities</em>. Monthly Weather Review, 143(4) (2015).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1175/MWR-D-14-00269.1">doi</a></p></td>
+<td><p>Roadmap joint metrics: variogram score, which is more sensitive to correlation errors than the energy score.</p></td>
+</tr>
+<tr class="row-even"><td><p>JM3</p></td>
+<td><p>Messoudi, S., Destercke, S., &amp; Rousseau, S. <em>Copula-Based Conformal Prediction for Multi-Target Regression</em>. Pattern Recognition, 120 (2021).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/j.patcog.2021.108101">doi</a> · <a class="reference external" href="https://arxiv.org/abs/2101.12002">arXiv</a></p></td>
+<td><p>Roadmap joint conformal regions: simultaneous coverage across outputs, an alternative to max-norm scores.</p></td>
+</tr>
+<tr class="row-odd"><td><p>JM4</p></td>
+<td><p>Johnstone, C., &amp; Cox, B. <em>Conformal Uncertainty Sets for Robust Optimization</em>. COPA, PMLR 152 (2021).</p></td>
+<td><p><a class="reference external" href="https://proceedings.mlr.press/v152/johnstone21a.html">paper</a></p></td>
+<td><p>Roadmap joint conformal regions: the Mahalanobis nonconformity score (ellipsoidal regions).</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="active-learning-and-sequential-design">
+<h3>Active Learning and Sequential Design<a class="headerlink" href="#active-learning-and-sequential-design" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8.0%" />
+<col style="width: 42.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Citation</p></th>
+<th class="head"><p>Link</p></th>
+<th class="head"><p>Relevance / What to Review</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>AL1</p></td>
+<td><p>Settles, B. <em>Active Learning Literature Survey</em>. Computer Sciences Technical Report 1648, University of Wisconsin–Madison (2009).</p></td>
+<td><p><a class="reference external" href="https://minds.wisconsin.edu/handle/1793/60660">report</a></p></td>
+<td><p>Roadmap active learning: taxonomy of query strategies (uncertainty sampling, query-by-committee, expected error reduction).</p></td>
+</tr>
+<tr class="row-odd"><td><p>AL2</p></td>
+<td><p>Jones, D. R., Schonlau, M., &amp; Welch, W. J. <em>Efficient Global Optimization of Expensive Black-Box Functions</em>. Journal of Global Optimization, 13(4) (1998).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1023/A:1008306431147">doi</a></p></td>
+<td><p>Roadmap active learning #1: expected improvement (EI).</p></td>
+</tr>
+<tr class="row-even"><td><p>AL3</p></td>
+<td><p>Srinivas, N., Krause, A., Kakade, S. M., &amp; Seeger, M. <em>Gaussian Process Optimization in the Bandit Setting: No Regret and Experimental Design</em>. ICML (2010).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/0912.3995">abs</a> · <a class="reference external" href="https://arxiv.org/pdf/0912.3995">pdf</a></p></td>
+<td><p>Roadmap active learning #1: GP-UCB and the schedule for its exploration weight.</p></td>
+</tr>
+<tr class="row-odd"><td><p>AL4</p></td>
+<td><p>Kushner, H. J. <em>A New Method of Locating the Maximum Point of an Arbitrary Multipeak Curve in the Presence of Noise</em>. Journal of Basic Engineering, 86(1) (1964).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1115/1.3653121">doi</a></p></td>
+<td><p>Roadmap active learning #1: probability of improvement (PI).</p></td>
+</tr>
+<tr class="row-even"><td><p>AL5</p></td>
+<td><p>MacKay, D. J. C. <em>Information-Based Objective Functions for Active Data Selection</em>. Neural Computation, 4(4) (1992).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1162/neco.1992.4.4.590">doi</a></p></td>
+<td><p>Roadmap active learning #1: max-variance / information-gain acquisition for global surrogate accuracy.</p></td>
+</tr>
+<tr class="row-odd"><td><p>AL6</p></td>
+<td><p>Cohn, D. A., Ghahramani, Z., &amp; Jordan, M. I. <em>Active Learning with Statistical Models</em>. JAIR, 4 (1996).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/cs/9603104">arXiv</a></p></td>
+<td><p>Roadmap active learning #1: integrated-variance reduction as an alternative to pointwise max variance.</p></td>
+</tr>
+<tr class="row-even"><td><p>AL7</p></td>
+<td><p>Seung, H. S., Opper, M., &amp; Sompolinsky, H. <em>Query by Committee</em>. COLT (1992).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1145/130385.130417">doi</a></p></td>
+<td><p>Roadmap active learning #2 (query-by-committee).</p></td>
+</tr>
+<tr class="row-odd"><td><p>AL8</p></td>
+<td><p>Burbidge, R., Rowland, J. J., &amp; King, R. D. <em>Active Learning for Regression Based on Query by Committee</em>. IDEAL, LNCS 4881 (2007).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1007/978-3-540-77226-2_22">doi</a></p></td>
+<td><p>Roadmap active learning #2: QBC for regression with bootstrap committees, which suits surrogates with no <code class="docutils literal notranslate"><span class="pre">return_std</span></code> (KNN, linear, trees).</p></td>
+</tr>
+<tr class="row-even"><td><p>AL9</p></td>
+<td><p>Wu, D., Lin, C.-T., &amp; Huang, J. <em>Active Learning for Regression Using Greedy Sampling</em>. Information Sciences, 474 (2019).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/j.ins.2018.09.060">doi</a> · <a class="reference external" href="https://arxiv.org/abs/1808.04245">arXiv</a></p></td>
+<td><p>Roadmap active learning #2–#3: model-free input- and output-space diversity sampling.</p></td>
+</tr>
+<tr class="row-odd"><td><p>AL10</p></td>
+<td><p>González, J., Dai, Z., Hennig, P., &amp; Lawrence, N. <em>Batch Bayesian Optimization via Local Penalization</em>. AISTATS (2016).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1505.08052">arXiv</a></p></td>
+<td><p>Roadmap active learning #3: distance-penalised batch selection.</p></td>
+</tr>
+<tr class="row-even"><td><p>AL11</p></td>
+<td><p>Arthur, D., &amp; Vassilvitskii, S. <em>k-means++: The Advantages of Careful Seeding</em>. SODA (2007).</p></td>
+<td><p><a class="reference external" href="https://dl.acm.org/doi/10.5555/1283383.1283494">acm</a></p></td>
+<td><p>Roadmap active learning #3: k-means++-style seeding for diverse batches.</p></td>
+</tr>
+<tr class="row-odd"><td><p>AL12</p></td>
+<td><p>Sener, O., &amp; Savarese, S. <em>Active Learning for Convolutional Neural Networks: A Core-Set Approach</em>. ICLR (2018).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1708.00489">arXiv</a></p></td>
+<td><p>Roadmap active learning #3: k-center greedy coverage as a batch-diversity criterion.</p></td>
+</tr>
+<tr class="row-even"><td><p>AL13</p></td>
+<td><p>Kirsch, A., van Amersfoort, J., &amp; Gal, Y. <em>BatchBALD: Efficient and Diverse Batch Acquisition for Deep Bayesian Active Learning</em>. NeurIPS 32 (2019).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1906.08158">arXiv</a></p></td>
+<td><p>Roadmap active learning #3 for the BNN / deep-ensemble surrogates: joint mutual information instead of top-k scoring.</p></td>
+</tr>
+<tr class="row-odd"><td><p>AL14</p></td>
+<td><p>Wang, Z., &amp; Jegelka, S. <em>Max-Value Entropy Search for Efficient Bayesian Optimization</em>. ICML (2017).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1703.01968">arXiv</a></p></td>
+<td><p>Roadmap active learning #5 / multi-fidelity supporting methods: max-value entropy search.</p></td>
+</tr>
+<tr class="row-even"><td><p>AL15</p></td>
+<td><p>Takeno, S., et al. <em>Multi-Fidelity Bayesian Optimization with Max-Value Entropy Search and Its Parallelization</em>. ICML (2020).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1901.08275">arXiv</a></p></td>
+<td><p>Roadmap active learning #5: cost-aware MES across fidelity levels.</p></td>
+</tr>
+<tr class="row-odd"><td><p>AL16</p></td>
+<td><p>Huang, D., Allen, T. T., Notz, W. I., &amp; Miller, R. A. <em>Sequential Kriging Optimization Using Multiple-Fidelity Evaluations</em>. Structural and Multidisciplinary Optimization, 32(5) (2006).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1007/s00158-005-0587-0">doi</a></p></td>
+<td><p>Roadmap active learning #5: multi-fidelity expected improvement.</p></td>
+</tr>
+<tr class="row-even"><td><p>AL17</p></td>
+<td><p>Balandat, M., et al. <em>BoTorch: A Framework for Efficient Monte-Carlo Bayesian Optimization</em>. NeurIPS 33 (2020).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1910.06403">arXiv</a></p></td>
+<td><p>Roadmap active learning #1, #3, #5: reference implementations (qEI, qUCB, multi-fidelity knowledge gradient) to validate against.</p></td>
+</tr>
+<tr class="row-odd"><td><p>AL18</p></td>
+<td><p>Shahriari, B., Swersky, K., Wang, Z., Adams, R. P., &amp; de Freitas, N. <em>Taking the Human Out of the Loop: A Review of Bayesian Optimization</em>. Proceedings of the IEEE, 104(1) (2016).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1109/JPROC.2015.2494218">doi</a></p></td>
+<td><p>Roadmap active learning: survey of acquisition functions and batch strategies.</p></td>
+</tr>
+<tr class="row-even"><td><p>AL19</p></td>
+<td><p>Frazier, P. I. <em>A Tutorial on Bayesian Optimization</em>. arXiv:1807.02811 (2018).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/1807.02811">arXiv</a></p></td>
+<td><p>Roadmap active learning #1: closed forms for EI and noisy-EI.</p></td>
+</tr>
+<tr class="row-odd"><td><p>AL20</p></td>
+<td><p>Gramacy, R. B. <em>Surrogates: Gaussian Process Modeling, Design, and Optimization for the Applied Sciences</em>. CRC Press (2020).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1201/9780367815493">doi</a> · <a class="reference external" href="https://bookdown.org/rbg/surrogates/">online</a></p></td>
+<td><p>Roadmap active learning #4: sequential design loops (ALM/ALC), stopping rules and space-filling initial designs.</p></td>
+</tr>
+<tr class="row-even"><td><p>AL21</p></td>
+<td><p>Liu, H., Ong, Y.-S., &amp; Cai, J. <em>A Survey of Adaptive Sampling for Global Metamodeling in Support of Simulation-Based Complex Engineering Design</em>. Structural and Multidisciplinary Optimization, 57(1) (2018).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1007/s00158-017-1739-8">doi</a></p></td>
+<td><p>Roadmap active learning #4: adaptive sampling for <em>global accuracy</em> (the main use case here) rather than optimisation.</p></td>
+</tr>
+<tr class="row-odd"><td><p>AL22</p></td>
+<td><p>Fuhg, J. N., Fau, A., &amp; Nackenhorst, U. <em>State-of-the-Art and Comparative Review of Adaptive Sampling Methods for Kriging</em>. Archives of Computational Methods in Engineering, 28 (2021).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1007/s11831-020-09474-6">doi</a></p></td>
+<td><p>Roadmap active learning #1 and #4: benchmark comparison of variance-, cross-validation- and gradient-based criteria.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="cross-cutting-additions">
+<h3>Cross-Cutting Additions<a class="headerlink" href="#cross-cutting-additions" title="Link to this heading">¶</a></h3>
+<p>The roadmap’s cross-cutting candidates, which the multi-fidelity, multi-output
+and active-learning items depend on. Model persistence (#5) has no entry: it
+is an engineering task with no research literature behind it.</p>
+<div class="table-wrapper colwidths-given docutils container">
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 8.0%" />
+<col style="width: 42.0%" />
+<col style="width: 15.0%" />
+<col style="width: 35.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>ID</p></th>
+<th class="head"><p>Citation</p></th>
+<th class="head"><p>Link</p></th>
+<th class="head"><p>Relevance / What to Review</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>XC1</p></td>
+<td><p>Surjanovic, S., &amp; Bingham, D. <em>Virtual Library of Simulation Experiments: Test Functions and Datasets</em>. Simon Fraser University (2013).</p></td>
+<td><p><a class="reference external" href="https://www.sfu.ca/~ssurjano/">site</a></p></td>
+<td><p>Roadmap cross-cutting #1 (benchmark suite): reference definitions of Forrester, Branin, Currin, Park and Borehole, including multi-fidelity variants. FID2 is the source of the Forrester multi-fidelity function.</p></td>
+</tr>
+<tr class="row-odd"><td><p>XC2</p></td>
+<td><p>Currin, C., Mitchell, T., Morris, M., &amp; Ylvisaker, D. <em>Bayesian Prediction of Deterministic Functions, with Applications to the Design and Analysis of Computer Experiments</em>. JASA, 86(416) (1991).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1080/01621459.1991.10475138">doi</a></p></td>
+<td><p>Roadmap cross-cutting #1: origin of the Currin test function.</p></td>
+</tr>
+<tr class="row-even"><td><p>XC3</p></td>
+<td><p>Xiong, S., Qian, P. Z. G., &amp; Wu, C. F. J. <em>Sequential Design and Analysis of High-Accuracy and Low-Accuracy Computer Codes</em>. Technometrics, 55(1) (2013).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1080/00401706.2012.723572">doi</a></p></td>
+<td><p>Roadmap cross-cutting #1: the low-fidelity Borehole and Currin variants commonly used as multi-fidelity benchmarks.</p></td>
+</tr>
+<tr class="row-odd"><td><p>XC4</p></td>
+<td><p>Mainini, L., et al. <em>Analytical Benchmark Problems for Multifidelity Optimization Methods</em>. arXiv:2204.07867 (2022).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/2204.07867">arXiv</a></p></td>
+<td><p>Roadmap cross-cutting #1: a curated multi-fidelity benchmark set with stated cost ratios between levels, for the accuracy-vs-cost curves. Its 4-level Forrester problem is used in <code class="docutils literal notranslate"><span class="pre">examples/mf_surrogates.ipynb</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>XC5</p></td>
+<td><p>Levi, D., Gispan, L., Giladi, N., &amp; Fetaya, E. <em>Evaluating and Calibrating Uncertainty Prediction in Regression Tasks</em>. Sensors, 22(15) (2022).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.3390/s22155540">doi</a> · <a class="reference external" href="https://arxiv.org/abs/1905.11659">arXiv</a></p></td>
+<td><p>Roadmap cross-cutting #2 (std recalibration): single-scalar std scaling fit on held-out data, and why quantile calibration alone can miss mis-scaled std. Read with UQ3 (isotonic recalibration).</p></td>
+</tr>
+<tr class="row-odd"><td><p>XC6</p></td>
+<td><p>Sobol’, I. M. <em>Global Sensitivity Indices for Nonlinear Mathematical Models and Their Monte Carlo Estimates</em>. Mathematics and Computers in Simulation, 55(1–3) (2001).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/S0378-4754(00)00270-6">doi</a></p></td>
+<td><p>Roadmap cross-cutting #3 (global sensitivity analysis): definitions of first-order and total Sobol indices.</p></td>
+</tr>
+<tr class="row-even"><td><p>XC7</p></td>
+<td><p>Saltelli, A., Annoni, P., Azzini, I., Campolongo, F., Ratto, M., &amp; Tarantola, S. <em>Variance Based Sensitivity Analysis of Model Output: Design and Estimator for the Total Sensitivity Index</em>. Computer Physics Communications, 181(2) (2010).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/j.cpc.2009.09.018">doi</a></p></td>
+<td><p>Roadmap cross-cutting #3: the recommended sampling scheme and estimators (Saltelli for first-order, Jansen for total) on <code class="docutils literal notranslate"><span class="pre">scipy.stats.qmc</span></code> samples.</p></td>
+</tr>
+<tr class="row-odd"><td><p>XC8</p></td>
+<td><p>Jansen, M. J. W. <em>Analysis of Variance Designs for Model Output</em>. Computer Physics Communications, 117(1–2) (1999).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/S0010-4655(98)00154-4">doi</a></p></td>
+<td><p>Roadmap cross-cutting #3: the Jansen total-effect estimator.</p></td>
+</tr>
+<tr class="row-even"><td><p>XC9</p></td>
+<td><p>Oakley, J. E., &amp; O’Hagan, A. <em>Probabilistic Sensitivity Analysis of Complex Models: A Bayesian Approach</em>. JRSS B, 66(3) (2004).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1111/j.1467-9868.2004.05304.x">doi</a></p></td>
+<td><p>Roadmap cross-cutting #3: sensitivity indices computed on a GP emulator, with uncertainty from the emulator’s posterior.</p></td>
+</tr>
+<tr class="row-odd"><td><p>XC10</p></td>
+<td><p>Marrel, A., Iooss, B., Laurent, B., &amp; Roustant, O. <em>Calculations of Sobol Indices for the Gaussian Process Metamodel</em>. Reliability Engineering &amp; System Safety, 94(3) (2009).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/j.ress.2008.07.008">doi</a></p></td>
+<td><p>Roadmap cross-cutting #3: repeating the estimators over GP posterior draws to get indices with confidence intervals, as the roadmap proposes.</p></td>
+</tr>
+<tr class="row-even"><td><p>XC11</p></td>
+<td><p>Bouhlel, M. A., &amp; Martins, J. R. R. A. <em>Gradient-Enhanced Kriging for High-Dimensional Problems</em>. Engineering with Computers, 35(1) (2019).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1007/s00366-018-0590-x">doi</a> · <a class="reference external" href="https://arxiv.org/abs/1708.02663">arXiv</a></p></td>
+<td><p>Roadmap cross-cutting #4 (<code class="docutils literal notranslate"><span class="pre">smt</span></code> GEKPLS): how gradients enter the PLS-reduced kernel, and the extra points generated per sample.</p></td>
+</tr>
+<tr class="row-odd"><td><p>XC12</p></td>
+<td><p>Jaworska, J., Nikolova-Jeliazkova, N., &amp; Aldenberg, T. <em>QSAR Applicability Domain Estimation by Projection of the Training Set in Descriptor Space: A Review</em>. ATLA, 33(5) (2005).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1177/026119290503300508">doi</a></p></td>
+<td><p>Roadmap cross-cutting #6 (extrapolation flag): compares range, convex-hull, Mahalanobis and nearest-neighbour domain checks, the options the roadmap lists.</p></td>
+</tr>
+<tr class="row-even"><td><p>XC13</p></td>
+<td><p>Meyer, H., &amp; Pebesma, E. <em>Predicting into Unknown Space? Estimating the Area of Applicability of Spatial Prediction Models</em>. Methods in Ecology and Evolution, 12(9) (2021).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1111/2041-210X.13650">doi</a></p></td>
+<td><p>Roadmap cross-cutting #6: a nearest-neighbour dissimilarity index with a threshold calibrated by cross-validation rather than chosen by hand.</p></td>
+</tr>
+<tr class="row-odd"><td><p>XC14</p></td>
+<td><p>Wolpert, D. H. <em>Stacked Generalization</em>. Neural Networks, 5(2) (1992).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/S0893-6080(05)80023-1">doi</a></p></td>
+<td><p>Roadmap cross-cutting #7 (ensembling Auto-Detect candidates): stacking.</p></td>
+</tr>
+<tr class="row-even"><td><p>XC15</p></td>
+<td><p>Breiman, L. <em>Stacked Regressions</em>. Machine Learning, 24(1) (1996).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1007/BF00117832">doi</a></p></td>
+<td><p>Roadmap cross-cutting #7: non-negative weights on out-of-fold predictions, which the Auto-Detect CV loop already produces.</p></td>
+</tr>
+<tr class="row-odd"><td><p>XC16</p></td>
+<td><p>Yao, Y., Vehtari, A., Simpson, D., &amp; Gelman, A. <em>Using Stacking to Average Bayesian Predictive Distributions</em>. Bayesian Analysis, 13(3) (2018).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1214/17-BA1091">doi</a></p></td>
+<td><p>Roadmap cross-cutting #7: stacking predictive <em>distributions</em> (maximising held-out log score), so the ensemble keeps a usable <code class="docutils literal notranslate"><span class="pre">std</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>XC17</p></td>
+<td><p>Hoeting, J. A., Madigan, D., Raftery, A. E., &amp; Volinsky, C. T. <em>Bayesian Model Averaging: A Tutorial</em>. Statistical Science, 14(4) (1999).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1214/ss/1009212519">doi</a></p></td>
+<td><p>Roadmap cross-cutting #7: the model-averaged mixture, whose between-model variance is also the committee estimate for active learning #2.</p></td>
+</tr>
+<tr class="row-odd"><td><p>XC18</p></td>
+<td><p>Forrester, A. I. J., &amp; Keane, A. J. <em>Recent Advances in Surrogate-Based Optimization</em>. Progress in Aerospace Sciences, 45(1–3) (2009).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/j.paerosci.2008.11.001">doi</a></p></td>
+<td><p>Roadmap cross-cutting #8 (optimisation on the surrogate): constrained and multi-objective optimisation of a fitted surrogate.</p></td>
+</tr>
+<tr class="row-even"><td><p>XC19</p></td>
+<td><p>Deb, K., Pratap, A., Agarwal, S., &amp; Meyarivan, T. <em>A Fast and Elitist Multiobjective Genetic Algorithm: NSGA-II</em>. IEEE Transactions on Evolutionary Computation, 6(2) (2002).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1109/4235.996017">doi</a></p></td>
+<td><p>Roadmap cross-cutting #8: Pareto front across outputs on the cheap surrogate.</p></td>
+</tr>
+<tr class="row-odd"><td><p>XC20</p></td>
+<td><p>Daulton, S., Balandat, M., &amp; Bakshy, E. <em>Differentiable Expected Hypervolume Improvement for Parallel Multi-Objective Bayesian Optimization</em>. NeurIPS 33 (2020).</p></td>
+<td><p><a class="reference external" href="https://arxiv.org/abs/2006.05078">arXiv</a></p></td>
+<td><p>Roadmap cross-cutting #8 combined with active learning: choosing new samples to improve the Pareto front (qEHVI, in BoTorch, AL17).</p></td>
+</tr>
+<tr class="row-even"><td><p>XC21</p></td>
+<td><p>Zhou, Q., Qian, P. Z. G., &amp; Zhou, S. <em>A Simple Approach to Emulation for Computer Models with Qualitative and Quantitative Factors</em>. Technometrics, 53(3) (2011).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1198/TECH.2011.10025">doi</a></p></td>
+<td><p>Roadmap cross-cutting #9 (categorical inputs): hypersphere-parameterised correlation between categorical levels.</p></td>
+</tr>
+<tr class="row-odd"><td><p>XC22</p></td>
+<td><p>Zhang, Y., Tao, S., Chen, W., &amp; Apley, D. W. <em>A Latent Variable Approach to Gaussian Process Modeling with Qualitative and Quantitative Factors</em>. Technometrics, 62(3) (2020).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1080/00401706.2019.1638834">doi</a></p></td>
+<td><p>Roadmap cross-cutting #9: latent-variable kernels, one of the mixed-variable kernels in SMT 2.0 (GP7).</p></td>
+</tr>
+<tr class="row-even"><td><p>XC23</p></td>
+<td><p>Garrido-Merchán, E. C., &amp; Hernández-Lobato, D. <em>Dealing with Categorical and Integer-Valued Variables in Bayesian Optimization with Gaussian Processes</em>. Neurocomputing, 380 (2020).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1016/j.neucom.2019.11.004">doi</a> · <a class="reference external" href="https://arxiv.org/abs/1805.03463">arXiv</a></p></td>
+<td><p>Roadmap cross-cutting #9: one-hot inputs need rounding inside the kernel, otherwise acquisition optimisation proposes invalid points.</p></td>
+</tr>
+<tr class="row-odd"><td><p>XC24</p></td>
+<td><p>Little, R. J. A., &amp; Rubin, D. B. <em>Statistical Analysis with Missing Data</em> (3rd ed.). Wiley (2019).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1002/9781119482260">doi</a></p></td>
+<td><p>Roadmap cross-cutting #10 (missing outputs): per-output masking is unbiased only if outputs are missing at random. Simulation runs that fail in particular input regions are not, so check where the failures are.</p></td>
+</tr>
+<tr class="row-even"><td><p>XC25</p></td>
+<td><p>Bergstra, J., &amp; Bengio, Y. <em>Random Search for Hyper-Parameter Optimization</em>. JMLR, 13 (2012).</p></td>
+<td><p><a class="reference external" href="https://jmlr.org/papers/v13/bergstra12a.html">paper</a></p></td>
+<td><p>Roadmap cross-cutting #11 (beyond grid search): why random search beats <code class="docutils literal notranslate"><span class="pre">GridSearchCV</span></code> when only a few hyperparameters matter.</p></td>
+</tr>
+<tr class="row-odd"><td><p>XC26</p></td>
+<td><p>Bergstra, J., Bardenet, R., Bengio, Y., &amp; Kégl, B. <em>Algorithms for Hyper-Parameter Optimization</em>. NeurIPS 24 (2011).</p></td>
+<td><p><a class="reference external" href="https://papers.nips.cc/paper/2011/hash/86e8f7ab32cfd12577bc2619bc635690-Abstract.html">paper</a></p></td>
+<td><p>Roadmap cross-cutting #11: the Tree-structured Parzen Estimator (TPE) used by Optuna and <code class="docutils literal notranslate"><span class="pre">hyperopt</span></code>.</p></td>
+</tr>
+<tr class="row-even"><td><p>XC27</p></td>
+<td><p>Li, L., Jamieson, K., DeSalvo, G., Rostamizadeh, A., &amp; Talwalkar, A. <em>Hyperband: A Novel Bandit-Based Approach to Hyperparameter Optimization</em>. JMLR, 18 (2018).</p></td>
+<td><p><a class="reference external" href="https://jmlr.org/papers/v18/16-558.html">paper</a> · <a class="reference external" href="https://arxiv.org/abs/1603.06560">arXiv</a></p></td>
+<td><p>Roadmap cross-cutting #11: early stopping of poor configurations (as in <code class="docutils literal notranslate"><span class="pre">ray[tune]</span></code>), useful for the PyTorch surrogates.</p></td>
+</tr>
+<tr class="row-odd"><td><p>XC28</p></td>
+<td><p>Akiba, T., Sano, S., Yanase, T., Ohta, T., &amp; Koyama, M. <em>Optuna: A Next-Generation Hyperparameter Optimization Framework</em>. KDD (2019).</p></td>
+<td><p><a class="reference external" href="https://doi.org/10.1145/3292500.3330701">doi</a> · <a class="reference external" href="https://arxiv.org/abs/1907.10902">arXiv</a></p></td>
+<td><p>Roadmap cross-cutting #11: the define-by-run search spaces and pruning API the roadmap would wrap.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+<div class="related-pages">
+  <a class="next-page" href="surrogate_roadmap.html">
+      <div class="page-info">
+        <div class="context">
+          <span>Next</span>
+        </div>
+        <div class="title">Expanding the Surrogate Offerings</div>
+      </div>
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+    </a>
+  <a class="prev-page" href="multiobjective_metrics.html">
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+      <div class="page-info">
+        <div class="context">
+          <span>Previous</span>
+        </div>
+        
+        <div class="title">Multi-Objective Metrics</div>
+        
+      </div>
+    </a>
+</div>
+<div class="bottom-of-page">
+  <div class="left-details">
+    <div class="copyright">
+        Copyright &#169; 2025, takotime808
+    </div>
+  </div>
+  <div class="right-details">
+    <div class="icons">
+      <a class="muted-link " href="https://github.com/takotime808/multioutreg" aria-label="GitHub"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a>
+      
+    </div>
+  </div>
+</div>
+
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">References</a><ul>
+<li><a class="reference internal" href="#where-to-start">Where to Start</a></li>
+<li><a class="reference internal" href="#current-codebase">Current Codebase</a><ul>
+<li><a class="reference internal" href="#gaussian-processes-and-bayesian-linear-models">Gaussian Processes and Bayesian Linear Models</a></li>
+<li><a class="reference internal" href="#tree-ensembles-boosting-and-quantile-models">Tree Ensembles, Boosting and Quantile Models</a></li>
+<li><a class="reference internal" href="#neural-networks-and-mixtures-of-experts">Neural Networks and Mixtures of Experts</a></li>
+<li><a class="reference internal" href="#multi-fidelity-surrogates">Multi-Fidelity Surrogates</a></li>
+<li><a class="reference internal" href="#conformal-prediction">Conformal Prediction</a></li>
+<li><a class="reference internal" href="#uncertainty-metrics-and-calibration">Uncertainty Metrics and Calibration</a></li>
+<li><a class="reference internal" href="#model-selection-and-statistical-screening">Model Selection and Statistical Screening</a></li>
+<li><a class="reference internal" href="#sampling-and-design-of-experiments">Sampling and Design of Experiments</a></li>
+<li><a class="reference internal" href="#time-series">Time Series</a></li>
+<li><a class="reference internal" href="#figures-and-preprocessing">Figures and Preprocessing</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#roadmap-items">Roadmap Items</a><ul>
+<li><a class="reference internal" href="#multi-fidelity-modelling">Multi-Fidelity Modelling</a></li>
+<li><a class="reference internal" href="#multi-output-modelling">Multi-Output Modelling</a></li>
+<li><a class="reference internal" href="#joint-metrics-and-conformal-regions">Joint Metrics and Conformal Regions</a></li>
+<li><a class="reference internal" href="#active-learning-and-sequential-design">Active Learning and Sequential Design</a></li>
+<li><a class="reference internal" href="#cross-cutting-additions">Cross-Cutting Additions</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>

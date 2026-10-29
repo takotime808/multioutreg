@@ -1,0 +1,28 @@
+multioutreg.surrogates.rf_sklearn
+=================================
+
+.. py:module:: multioutreg.surrogates.rf_sklearn
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.rf_sklearn.RandomForestSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: RandomForestSurrogate(include_noise=True, noise_cv=5, **kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.forest_uncertainty.ForestSurrogate`
+
+
+   Random Forest surrogate; std = tree spread + out-of-bag noise estimate.
+
+   ``include_noise=False`` returns the tree spread alone (epistemic only).
+   See :mod:`multioutreg.surrogates.forest_uncertainty`.
+
+

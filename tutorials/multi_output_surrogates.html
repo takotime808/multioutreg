@@ -1,0 +1,1242 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Scoring Joint Predictions: Energy and Variogram Scores" href="joint_scores.html"><link rel="prev" title="Example Reports" href="../example_reports.html">
+        <link rel="prefetch" href="../_static/logos/wordmark-light.svg" as="image">
+        <link rel="prefetch" href="../_static/logos/wordmark-dark.svg" as="image">
+
+    <link rel="shortcut icon" href="../_static/favicon.png"><!-- Generated with Sphinx 8.1.3 and Furo 2025.12.19 -->
+        <title>Multi-Output Surrogates, Start to Finish - multioutreg</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/active-learning-savings.css?v=14e41e7a" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/site.css?v=0e7236ba" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Try it without installing: the <a href="https://multioutreg.streamlit.app/">hosted multioutreg app</a>. 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">multioutreg</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo only-light" src="../_static/logos/wordmark-light.svg" alt="Light Logo"/>
+    <img class="sidebar-logo only-dark" src="../_static/logos/wordmark-dark.svg" alt="Dark Logo"/>
+  </div>
+  
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_it_works.html">How It Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reading_the_report.html">Reading the Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example_reports.html">Example Reports</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Multi-Output Surrogates, Start to Finish</a></li>
+<li class="toctree-l1"><a class="reference internal" href="joint_scores.html">Scoring Joint Predictions: Energy and Variogram Scores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multi_fidelity_surrogates.html">Multi-Fidelity Surrogate Modeling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_learning_benchmarks.html">Active Learning on Benchmark Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cost_savings.html">Cost Savings: What <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> Saves in an Existing Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="imputation_methods.html">Imputing Missing Inputs: KNN vs. Other Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_learning_missing_inputs.html">Active Learning with Missing Inputs</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../multi_fidelity_gui.html">Multi-Fidelity Surrogate Models page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_the_exported_model.html">Using the Best Model from the Grid Search App</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forecasting_with_chronos.html">Time-Series Forecasting with Chronos</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Why multioutreg</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../cost_savings.html">Cost Savings and ROI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../active_learning_savings.html">Active Learning: The True Curve for Less</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../core_api.html">Core API</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../autoapi/multioutreg/index.html">multioutreg</a><input aria-label="Toggle navigation of multioutreg" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/active/index.html">multioutreg.active</a><input aria-label="Toggle navigation of multioutreg.active" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/acquisition/index.html">multioutreg.active.acquisition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/batch/index.html">multioutreg.active.batch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/benchmarks/index.html">multioutreg.active.benchmarks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/loop/index.html">multioutreg.active.loop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/multi_fidelity/index.html">multioutreg.active.multi_fidelity</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/conformal/index.html">multioutreg.conformal</a><input aria-label="Toggle navigation of multioutreg.conformal" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/base/index.html">multioutreg.conformal.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/cv_plus/index.html">multioutreg.conformal.cv_plus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/metrics/index.html">multioutreg.conformal.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/split_conformal/index.html">multioutreg.conformal.split_conformal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/utils/index.html">multioutreg.conformal.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/figures/index.html">multioutreg.figures</a><input aria-label="Toggle navigation of multioutreg.figures" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/confidence_intervals/index.html">multioutreg.figures.confidence_intervals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/conformal_plots/index.html">multioutreg.figures.conformal_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/coverage_plots/index.html">multioutreg.figures.coverage_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/doe_plots/index.html">multioutreg.figures.doe_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/error_histograms/index.html">multioutreg.figures.error_histograms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/model_comparison/index.html">multioutreg.figures.model_comparison</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/pca_plots/index.html">multioutreg.figures.pca_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/pdp_plots/index.html">multioutreg.figures.pdp_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/performance_metric_figures/index.html">multioutreg.figures.performance_metric_figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/prediction_plots/index.html">multioutreg.figures.prediction_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/residuals/index.html">multioutreg.figures.residuals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/shap_multioutput/index.html">multioutreg.figures.shap_multioutput</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/uct_calibration_extension/index.html">multioutreg.figures.uct_calibration_extension</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/umap_plot_classify/index.html">multioutreg.figures.umap_plot_classify</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/uncertainty_toolbox_extension/index.html">multioutreg.figures.uncertainty_toolbox_extension</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/gui/index.html">multioutreg.gui</a><input aria-label="Toggle navigation of multioutreg.gui" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/background/index.html">multioutreg.gui.background</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/grid_search_core/index.html">multioutreg.gui.grid_search_core</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/input_checks/index.html">multioutreg.gui.input_checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/report_controls/index.html">multioutreg.gui.report_controls</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/report_plotting_utils/index.html">multioutreg.gui.report_plotting_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/results_tabs/index.html">multioutreg.gui.results_tabs</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/metrics/index.html">multioutreg.metrics</a><input aria-label="Toggle navigation of multioutreg.metrics" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/metrics/joint_scores/index.html">multioutreg.metrics.joint_scores</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/metrics/multiobjective_regret/index.html">multioutreg.metrics.multiobjective_regret</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/model_selection/index.html">multioutreg.model_selection</a><input aria-label="Toggle navigation of multioutreg.model_selection" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/auto_detect/index.html">multioutreg.model_selection.auto_detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/evaluation/index.html">multioutreg.model_selection.evaluation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/model_wrappers/index.html">multioutreg.model_selection.model_wrappers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/screening/index.html">multioutreg.model_selection.screening</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/performance/index.html">multioutreg.performance</a><input aria-label="Toggle navigation of multioutreg.performance" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/performance/metrics/index.html">multioutreg.performance.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/performance/metrics_generalized_api/index.html">multioutreg.performance.metrics_generalized_api</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../autoapi/multioutreg/persistence/index.html">multioutreg.persistence</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/report/index.html">multioutreg.report</a><input aria-label="Toggle navigation of multioutreg.report" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/auto_detect_report/index.html">multioutreg.report.auto_detect_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/build/index.html">multioutreg.report.build</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/data/index.html">multioutreg.report.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report/index.html">multioutreg.report.generate_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report1/index.html">multioutreg.report.generate_report1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report1_safe/index.html">multioutreg.report.generate_report1_safe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/render/index.html">multioutreg.report.render</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/template/index.html">multioutreg.report.template</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/verdict/index.html">multioutreg.report.verdict</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/sampling/index.html">multioutreg.sampling</a><input aria-label="Toggle navigation of multioutreg.sampling" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/detect/index.html">multioutreg.sampling.detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/extrapolation/index.html">multioutreg.sampling.extrapolation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/infer_sampling/index.html">multioutreg.sampling.infer_sampling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/pca_sampling_detector/index.html">multioutreg.sampling.pca_sampling_detector</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/surrogates/index.html">multioutreg.surrogates</a><input aria-label="Toggle navigation of multioutreg.surrogates" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/ard_gp_sklearn/index.html">multioutreg.surrogates.ard_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/base_sklearn/index.html">multioutreg.surrogates.base_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bayesian_ridge_sklearn/index.html">multioutreg.surrogates.bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bnn_network/index.html">multioutreg.surrogates.bnn_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bnn_pytorch/index.html">multioutreg.surrogates.bnn_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/catboost_sklearn/index.html">multioutreg.surrogates.catboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/conformal_mixin/index.html">multioutreg.surrogates.conformal_mixin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/conformal_network_sklearn/index.html">multioutreg.surrogates.conformal_network_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/decision_tree_sklearn/index.html">multioutreg.surrogates.decision_tree_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/deep_ensemble_pytorch/index.html">multioutreg.surrogates.deep_ensemble_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/elastic_net_sklearn/index.html">multioutreg.surrogates.elastic_net_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/extra_trees_sklearn/index.html">multioutreg.surrogates.extra_trees_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/forest_uncertainty/index.html">multioutreg.surrogates.forest_uncertainty</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gating_network/index.html">multioutreg.surrogates.gating_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gaussian_copula/index.html">multioutreg.surrogates.gaussian_copula</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gp_sklearn/index.html">multioutreg.surrogates.gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gpx_smt/index.html">multioutreg.surrogates.gpx_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gradient_boosting_sklearn/index.html">multioutreg.surrogates.gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/hist_gradient_boosting_sklearn/index.html">multioutreg.surrogates.hist_gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/knn_sklearn/index.html">multioutreg.surrogates.knn_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/kpls_smt/index.html">multioutreg.surrogates.kpls_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/lightgbm_sklearn/index.html">multioutreg.surrogates.lightgbm_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/linear_sklearn/index.html">multioutreg.surrogates.linear_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/mfk_smt/index.html">multioutreg.surrogates.mfk_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/moe_surrogate/index.html">multioutreg.surrogates.moe_surrogate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/multi_fidelity/index.html">multioutreg.surrogates.multi_fidelity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/multitask_gp_gpytorch/index.html">multioutreg.surrogates.multitask_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/ngboost_sklearn/index.html">multioutreg.surrogates.ngboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/nystroem_gp_sklearn/index.html">multioutreg.surrogates.nystroem_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/pca_output/index.html">multioutreg.surrogates.pca_output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/polynomial_bayesian_ridge_sklearn/index.html">multioutreg.surrogates.polynomial_bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/quantile_sklearn/index.html">multioutreg.surrogates.quantile_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/rf_sklearn/index.html">multioutreg.surrogates.rf_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/rfgp_sklearn/index.html">multioutreg.surrogates.rfgp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/sparse_gp_gpytorch/index.html">multioutreg.surrogates.sparse_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/stacked_vfm/index.html">multioutreg.surrogates.stacked_vfm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/std_recalibration/index.html">multioutreg.surrogates.std_recalibration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/svr_sklearn/index.html">multioutreg.surrogates.svr_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/xgboost_sklearn/index.html">multioutreg.surrogates.xgboost_sklearn</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/index.html">multioutreg.time_series</a><input aria-label="Toggle navigation of multioutreg.time_series" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/chronos_adapter/index.html">multioutreg.time_series.chronos_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/cv/index.html">multioutreg.time_series.cv</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/figures/index.html">multioutreg.time_series.figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/financial/index.html">multioutreg.time_series.financial</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/lag_features/index.html">multioutreg.time_series.lag_features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/lag_forecaster/index.html">multioutreg.time_series.lag_forecaster</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/metrics/index.html">multioutreg.time_series.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/neuralforecast_adapter/index.html">multioutreg.time_series.neuralforecast_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/prophet_adapter/index.html">multioutreg.time_series.prophet_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/returns/index.html">multioutreg.time_series.returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/seasonality/index.html">multioutreg.time_series.seasonality</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/surrogate_forecaster/index.html">multioutreg.time_series.surrogate_forecaster</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/index.html">multioutreg.time_series.ts_dynamic_fit</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/index.html">multioutreg.time_series.ts_dynamic_fit.algs</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.algs" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/arima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.arima</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/lstm/index.html">multioutreg.time_series.ts_dynamic_fit.algs.lstm</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/sarima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.sarima</a></li>
+</ul>
+</li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.data_handling" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/Analyzer/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.Analyzer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/DataProcessor/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.DataProcessor</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/PullData/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.PullData</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/ingest/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.ingest</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/main/index.html">multioutreg.time_series.ts_dynamic_fit.main</a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/index.html">multioutreg.time_series.ts_dynamic_fit.src</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.src" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/ForecastAutoIntervals/index.html">multioutreg.time_series.ts_dynamic_fit.src.ForecastAutoIntervals</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/TSDataLoader/index.html">multioutreg.time_series.ts_dynamic_fit.src.TSDataLoader</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/evaluate/index.html">multioutreg.time_series.ts_dynamic_fit.src.evaluate</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/forecasters/index.html">multioutreg.time_series.ts_dynamic_fit.src.forecasters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/infer/index.html">multioutreg.time_series.ts_dynamic_fit.src.infer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/ranker/index.html">multioutreg.time_series.ts_dynamic_fit.src.ranker</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/visualize/index.html">multioutreg.time_series.ts_dynamic_fit.src.visualize</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_suitability/index.html">multioutreg.time_series.ts_suitability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/uncertainty/index.html">multioutreg.time_series.uncertainty</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/utils/index.html">multioutreg.utils</a><input aria-label="Toggle navigation of multioutreg.utils" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/aux_funcs/index.html">multioutreg.utils.aux_funcs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/figure_utils/index.html">multioutreg.utils.figure_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/imputation/index.html">multioutreg.utils.imputation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/metric_utils/index.html">multioutreg.utils.metric_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/pca_utils/index.html">multioutreg.utils.pca_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/surrogate_utils/index.html">multioutreg.utils.surrogate_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/thread_limits/index.html">multioutreg.utils.thread_limits</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../integrated_surrogates.html">Integrated Surrogate Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../surrogate_hyperparameters.html">Surrogate Hyperparameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../multiobjective_metrics.html">Multi-Objective Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../surrogate_roadmap.html">Expanding the Surrogate Offerings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui_ux_roadmap.html">Improving the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../docs_roadmap.html">Improving the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../report_redesign/implementation_plan.html">Plan: ship the redesigned report as a downloadable file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../active_learning.html">Active Learning Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../parallel_computing.html">Parallelization and Distributed Computing Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pair_plot_report.html">Pair Plots in Reports</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AUDIT_CHECKLIST.html">Statistical / Logic Audit Checklist</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/takotime808/multioutreg/blob/main/docs/tutorials/multi_output_surrogates.ipynb?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/takotime808/multioutreg/edit/main/docs/tutorials/multi_output_surrogates.ipynb" rel="edit" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <div class="admonition note tutorial-meta">
+  <p class="admonition-title">About this tutorial</p>
+  <p>
+  <b>Needs:</b> shap (core install) &nbsp;·&nbsp; <b>Runs in:</b> about 2 minutes &nbsp;·&nbsp;
+  <a href="https://colab.research.google.com/github/takotime808/multioutreg/blob/main/docs/tutorials/multi_output_surrogates.ipynb">Open in Colab</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/takotime808/multioutreg/blob/main/docs/tutorials/multi_output_surrogates.ipynb">View on GitHub</a>
+  </p>
+</div><!-- # Copyright (c) 2026 takotime808 --><section id="Multi-Output-Surrogates,-Start-to-Finish">
+<h1>Multi-Output Surrogates, Start to Finish<a class="headerlink" href="#Multi-Output-Surrogates,-Start-to-Finish" title="Link to this heading">¶</a></h1>
+<p>This tutorial walks through the core single-fidelity workflow on analytic benchmarks whose true answer is known everywhere, so every step can be checked rather than taken on trust:</p>
+<ol class="arabic simple">
+<li><p>Per-output model selection: <code class="docutils literal notranslate"><span class="pre">AutoDetectMultiOutputRegressor</span></code> picks a model for each output (ZDT1 and ZDT3).</p></li>
+<li><p>Explanations against a known answer: SHAP values and partial dependence on Friedman 1, where only five of the ten inputs matter.</p></li>
+<li><p>Uncertainty you can trust: a GP’s intervals and conformal intervals on the non-stationary Gramacy &amp; Lee function.</p></li>
+<li><p>Scoring a surrogate for optimization: Pareto-front regret on ZDT1, with the exact front from <code class="docutils literal notranslate"><span class="pre">zdt_front</span></code>.</p></li>
+<li><p>Summary and next steps</p></li>
+</ol>
+<p>All benchmarks come from <code class="docutils literal notranslate"><span class="pre">multioutreg.active.benchmarks</span></code> (<code class="docutils literal notranslate"><span class="pre">get_benchmark(name)</span></code> returns the function, its bounds and a sampler). The whole notebook runs in about two minutes.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="n">warnings</span><span class="o">.</span><span class="n">filterwarnings</span><span class="p">(</span><span class="s2">"ignore"</span><span class="p">)</span>  <span class="c1"># GP optimizer convergence chatter</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shap</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.ensemble</span><span class="w"> </span><span class="kn">import</span> <span class="n">GradientBoostingRegressor</span><span class="p">,</span> <span class="n">RandomForestRegressor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.gaussian_process</span><span class="w"> </span><span class="kn">import</span> <span class="n">GaussianProcessRegressor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.inspection</span><span class="w"> </span><span class="kn">import</span> <span class="n">PartialDependenceDisplay</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.linear_model</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinearRegression</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.neighbors</span><span class="w"> </span><span class="kn">import</span> <span class="n">KNeighborsRegressor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">make_pipeline</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">sklearn.preprocessing</span><span class="w"> </span><span class="kn">import</span> <span class="n">StandardScaler</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">multioutreg.active.benchmarks</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_benchmark</span><span class="p">,</span> <span class="n">zdt_front</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">multioutreg.conformal</span><span class="w"> </span><span class="kn">import</span> <span class="n">SplitConformalPredictor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">multioutreg.metrics</span><span class="w"> </span><span class="kn">import</span> <span class="n">front_hypervolume_regret</span><span class="p">,</span> <span class="n">hypervolume_regret</span><span class="p">,</span> <span class="n">pareto_mask</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">multioutreg.model_selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">AutoDetectMultiOutputRegressor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">multioutreg.surrogates</span><span class="w"> </span><span class="kn">import</span> <span class="n">GaussianProcessSurrogate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">multioutreg.surrogates.gp_sklearn</span><span class="w"> </span><span class="kn">import</span> <span class="n">default_gp_kernel</span>
+
+<span class="c1"># Plot styles: the true function is a wide pale band drawn underneath,</span>
+<span class="c1"># models are thinner coloured lines on top, data points sit above both.</span>
+<span class="n">TRUTH</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"color"</span><span class="p">:</span> <span class="s2">"0.8"</span><span class="p">,</span> <span class="s2">"lw"</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="s2">"zorder"</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">"solid_capstyle"</span><span class="p">:</span> <span class="s2">"round"</span><span class="p">}</span>
+<span class="n">TRAIN</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"s"</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="s2">"color"</span><span class="p">:</span> <span class="s2">"black"</span><span class="p">,</span> <span class="s2">"edgecolor"</span><span class="p">:</span> <span class="s2">"white"</span><span class="p">,</span> <span class="s2">"linewidth"</span><span class="p">:</span> <span class="mf">0.6</span><span class="p">,</span> <span class="s2">"zorder"</span><span class="p">:</span> <span class="mi">4</span><span class="p">}</span>
+<span class="n">BLUE</span><span class="p">,</span> <span class="n">ORANGE</span><span class="p">,</span> <span class="n">GREEN</span><span class="p">,</span> <span class="n">PINK</span> <span class="o">=</span> <span class="s2">"#0072B2"</span><span class="p">,</span> <span class="s2">"#E69F00"</span><span class="p">,</span> <span class="s2">"#009E73"</span><span class="p">,</span> <span class="s2">"#CC79A7"</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">r2</span><span class="p">(</span><span class="n">Y_true</span><span class="p">,</span> <span class="n">Y_pred</span><span class="p">):</span>
+    <span class="c1"># R^2 per output column.</span>
+    <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">((</span><span class="n">Y_true</span> <span class="o">-</span> <span class="n">Y_pred</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="p">((</span><span class="n">Y_true</span> <span class="o">-</span> <span class="n">Y_true</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">model_name</span><span class="p">(</span><span class="n">est</span><span class="p">):</span>
+    <span class="c1"># Readable name of a fitted estimator (the last step of a pipeline).</span>
+    <span class="k">return</span> <span class="nb">type</span><span class="p">(</span><span class="n">est</span><span class="o">.</span><span class="n">steps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">est</span><span class="p">,</span> <span class="s2">"steps"</span><span class="p">)</span> <span class="k">else</span> <span class="n">est</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+</pre></div>
+</div>
+</div>
+<p>## 1. Per-output model selection</p>
+<p><code class="docutils literal notranslate"><span class="pre">AutoDetectMultiOutputRegressor</span></code> grid-searches every candidate on every output with the same cross-validation folds and keeps the best one <strong>per output</strong>. Different outputs of the same simulator are often very different problems, and one model family rarely suits all of them.</p>
+<p>ZDT1 and ZDT3 (Zitzler, Deb &amp; Thiele 2000) make that concrete. Both have two outputs over <span class="math notranslate nohighlight">\(x \in [0, 1]^6\)</span>:</p>
+<ul class="simple">
+<li><p>output 1 is <span class="math notranslate nohighlight">\(f_1 = x_1\)</span>, a plane;</p></li>
+<li><p>output 2 is <span class="math notranslate nohighlight">\(f_2 = g\,h(f_1 / g)\)</span> with <span class="math notranslate nohighlight">\(g = 1 + \tfrac{9}{5}\sum_{i \ge 2} x_i\)</span>, which is curved in <span class="math notranslate nohighlight">\(x_1\)</span> and, for ZDT3, oscillates with <span class="math notranslate nohighlight">\(\sin(10\pi x_1)\)</span>.</p></li>
+</ul>
+<p>The candidate list below is short so the notebook runs quickly: a linear model, a GP, a random forest, gradient boosting and KNN, with small grids. In practice, <code class="docutils literal notranslate"><span class="pre">AutoDetectMultiOutputRegressor.with_vendored_surrogates()</span></code> searches 18 or more families, which takes minutes rather than seconds on data this size; <code class="docutils literal notranslate"><span class="pre">pre_screen=True</span></code> skips families the data does not justify. With <code class="docutils literal notranslate"><span class="pre">cv=&quot;auto&quot;</span></code> (the default) the cross-validation scheme is chosen from the number of rows: 80 rows gives 5-fold CV
+repeated 3 times.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">candidates</span><span class="p">():</span>
+    <span class="c1"># (estimators, parameter grids) for AutoDetectMultiOutputRegressor.</span>
+    <span class="n">estimators</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">LinearRegression</span><span class="p">(),</span>
+        <span class="n">make_pipeline</span><span class="p">(</span><span class="n">StandardScaler</span><span class="p">(),</span> <span class="n">GaussianProcessRegressor</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="n">default_gp_kernel</span><span class="p">(),</span> <span class="n">normalize_y</span><span class="o">=</span><span class="kc">True</span><span class="p">)),</span>
+        <span class="n">RandomForestRegressor</span><span class="p">(</span><span class="n">n_estimators</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+        <span class="n">GradientBoostingRegressor</span><span class="p">(</span><span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+        <span class="n">make_pipeline</span><span class="p">(</span><span class="n">StandardScaler</span><span class="p">(),</span> <span class="n">KNeighborsRegressor</span><span class="p">()),</span>
+    <span class="p">]</span>
+    <span class="n">grids</span> <span class="o">=</span> <span class="p">[{},</span> <span class="p">{},</span> <span class="p">{</span><span class="s2">"max_depth"</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="mi">6</span><span class="p">]},</span> <span class="p">{</span><span class="s2">"max_depth"</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]},</span>
+             <span class="p">{</span><span class="s2">"kneighborsregressor__n_neighbors"</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">7</span><span class="p">]}]</span>
+    <span class="k">return</span> <span class="n">estimators</span><span class="p">,</span> <span class="n">grids</span>
+
+
+<span class="n">fitted</span><span class="p">,</span> <span class="n">test_sets</span><span class="p">,</span> <span class="n">rows</span> <span class="o">=</span> <span class="p">{},</span> <span class="p">{},</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">"zdt1"</span><span class="p">,</span> <span class="s2">"zdt3"</span><span class="p">]:</span>
+    <span class="n">bench</span> <span class="o">=</span> <span class="n">get_benchmark</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>                     <span class="c1"># 6 inputs by default (n_features=...)</span>
+    <span class="n">X</span> <span class="o">=</span> <span class="n">bench</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">80</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">"lhs"</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>      <span class="c1"># 80 training runs</span>
+    <span class="n">Y</span> <span class="o">=</span> <span class="n">bench</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+    <span class="n">X_test</span> <span class="o">=</span> <span class="n">bench</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">"random"</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">Y_test</span> <span class="o">=</span> <span class="n">bench</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+
+    <span class="n">model</span> <span class="o">=</span> <span class="n">AutoDetectMultiOutputRegressor</span><span class="p">(</span><span class="o">*</span><span class="n">candidates</span><span class="p">())</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">Y</span><span class="p">)</span>
+    <span class="n">fitted</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="n">test_sets</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="p">,</span> <span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">Y_test</span><span class="p">)</span>
+    <span class="n">scores</span> <span class="o">=</span> <span class="n">r2</span><span class="p">(</span><span class="n">Y_test</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">sel</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">selection_scores_</span><span class="p">):</span>
+        <span class="n">ranked</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">sel</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">kv</span><span class="p">:</span> <span class="o">-</span><span class="n">kv</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s2">"mean"</span><span class="p">])</span>
+        <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s2">"problem"</span><span class="p">:</span> <span class="n">name</span><span class="p">,</span> <span class="s2">"output"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"f</span><span class="si">{</span><span class="n">j</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span>
+            <span class="s2">"chosen"</span><span class="p">:</span> <span class="n">model_name</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">models_</span><span class="p">[</span><span class="n">j</span><span class="p">]),</span>
+            <span class="s2">"CV MSE (chosen)"</span><span class="p">:</span> <span class="o">-</span><span class="n">ranked</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s2">"mean"</span><span class="p">],</span>
+            <span class="s2">"runner-up"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">ranked</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="o">-</span><span class="n">ranked</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="s1">'mean'</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span>
+            <span class="s2">"held-out R²"</span><span class="p">:</span> <span class="n">scores</span><span class="p">[</span><span class="n">j</span><span class="p">],</span>
+        <span class="p">})</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"CV scheme:"</span><span class="p">,</span> <span class="n">fitted</span><span class="p">[</span><span class="s2">"zdt1"</span><span class="p">]</span><span class="o">.</span><span class="n">cv_description_</span><span class="p">)</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+CV scheme: Repeated 5-Fold CV (x3 repeats)
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>problem</th>
+      <th>output</th>
+      <th>chosen</th>
+      <th>CV MSE (chosen)</th>
+      <th>runner-up</th>
+      <th>held-out R²</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>zdt1</td>
+      <td>f1</td>
+      <td>LinearRegression</td>
+      <td>0.0000</td>
+      <td>gp (0.0000)</td>
+      <td>1.0000</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>zdt1</td>
+      <td>f2</td>
+      <td>GaussianProcessRegressor</td>
+      <td>0.0057</td>
+      <td>linear (0.0169)</td>
+      <td>0.9978</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>zdt3</td>
+      <td>f1</td>
+      <td>LinearRegression</td>
+      <td>0.0000</td>
+      <td>gp (0.0000)</td>
+      <td>1.0000</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>zdt3</td>
+      <td>f2</td>
+      <td>GaussianProcessRegressor</td>
+      <td>0.1682</td>
+      <td>linear (0.1891)</td>
+      <td>0.8509</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p><strong>Reading the table.</strong> On both problems the plane <span class="math notranslate nohighlight">\(f_1\)</span> goes to the linear model, which fits it exactly, and <span class="math notranslate nohighlight">\(f_2\)</span> goes to the GP. For ZDT1 the GP’s held-out <span class="math notranslate nohighlight">\(R^2\)</span> on <span class="math notranslate nohighlight">\(f_2\)</span> is close to 1. For ZDT3, 80 runs are not enough to resolve the <span class="math notranslate nohighlight">\(\sin(10\pi x_1)\)</span> oscillation in six dimensions, and the GP’s <span class="math notranslate nohighlight">\(R^2\)</span> is clearly lower: the selection is right, but the data budget is the limit. The <code class="docutils literal notranslate"><span class="pre">selection_scores_</span></code> attribute holds every candidate’s cross-validated score,
+so the margin between the winner and the runner-up is visible. The winner’s CV score is optimistically biased (it is the best of several); the held-out <span class="math notranslate nohighlight">\(R^2\)</span> is the unbiased number.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mf">3.6</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="s2">"zdt1"</span><span class="p">,</span> <span class="s2">"zdt3"</span><span class="p">]):</span>
+    <span class="n">X_test</span><span class="p">,</span> <span class="n">Y_test</span> <span class="o">=</span> <span class="n">test_sets</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+    <span class="n">P</span> <span class="o">=</span> <span class="n">fitted</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">):</span>
+        <span class="n">ax</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">2</span> <span class="o">*</span> <span class="n">k</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span>
+        <span class="n">lims</span> <span class="o">=</span> <span class="p">[</span><span class="n">Y_test</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">min</span><span class="p">(),</span> <span class="n">Y_test</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()]</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">lims</span><span class="p">,</span> <span class="n">lims</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="o">**</span><span class="n">TRUTH</span><span class="p">,</span> <span class="s2">"lw"</span><span class="p">:</span> <span class="mi">4</span><span class="p">})</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">Y_test</span><span class="p">[:,</span> <span class="n">j</span><span class="p">],</span> <span class="n">P</span><span class="p">[:,</span> <span class="n">j</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.4</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">BLUE</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2"> f</span><span class="si">{</span><span class="n">j</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">model_name</span><span class="p">(</span><span class="n">fitted</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">models_</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="si">}</span><span class="se">\n</span><span class="s2">R² </span><span class="si">{</span><span class="n">r2</span><span class="p">(</span><span class="n">Y_test</span><span class="p">,</span><span class="w"> </span><span class="n">P</span><span class="p">)[</span><span class="n">j</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"true"</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"predicted"</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"Held-out parity plots (pale line = perfect prediction)"</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_multi_output_surrogates_5_0.png" src="../_images/tutorials_multi_output_surrogates_5_0.png" />
+</div>
+</div>
+<p>## 2. Explanations against a known answer</p>
+<p>SHAP values and partial-dependence plots are only useful if they find the inputs that actually drive the output. Friedman 1 (Friedman 1991) is the standard check:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[y = 10 \sin(\pi x_1 x_2) + 20 (x_3 - 0.5)^2 + 10 x_4 + 5 x_5 + \varepsilon,
+\qquad x \in [0, 1]^{10},\]</div>
+</div>
+<p>so <span class="math notranslate nohighlight">\(x_6, \dots, x_{10}\)</span> have <strong>no effect at all</strong>. The usual benchmark adds <span class="math notranslate nohighlight">\(\varepsilon \sim N(0, 1)\)</span> noise, as here, with 200 training runs.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bench</span> <span class="o">=</span> <span class="n">get_benchmark</span><span class="p">(</span><span class="s2">"friedman1"</span><span class="p">)</span>
+<span class="n">X_f</span> <span class="o">=</span> <span class="n">bench</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">"lhs"</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">Y_f</span> <span class="o">=</span> <span class="n">bench</span><span class="p">(</span><span class="n">X_f</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="mi">200</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">X_ft</span> <span class="o">=</span> <span class="n">bench</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">"random"</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">Y_ft</span> <span class="o">=</span> <span class="n">bench</span><span class="p">(</span><span class="n">X_ft</span><span class="p">)</span>                                  <span class="c1"># noise-free truth for scoring</span>
+
+<span class="n">friedman</span> <span class="o">=</span> <span class="n">AutoDetectMultiOutputRegressor</span><span class="p">(</span><span class="o">*</span><span class="n">candidates</span><span class="p">())</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_f</span><span class="p">,</span> <span class="n">Y_f</span><span class="p">)</span>
+<span class="n">feature_names</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">"x</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">"</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">11</span><span class="p">)]</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"chosen model:"</span><span class="p">,</span> <span class="n">model_name</span><span class="p">(</span><span class="n">friedman</span><span class="o">.</span><span class="n">models_</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="s2">"| CV:"</span><span class="p">,</span> <span class="n">friedman</span><span class="o">.</span><span class="n">cv_description_</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"held-out R² against the noise-free function: </span><span class="si">{</span><span class="n">r2</span><span class="p">(</span><span class="n">Y_ft</span><span class="p">,</span><span class="w"> </span><span class="n">friedman</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_ft</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="c1"># KernelExplainer works with any model; 10 k-means centres summarise the background data.</span>
+<span class="n">explainer</span> <span class="o">=</span> <span class="n">shap</span><span class="o">.</span><span class="n">KernelExplainer</span><span class="p">(</span><span class="k">lambda</span> <span class="n">Z</span><span class="p">:</span> <span class="n">friedman</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">Z</span><span class="p">)[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">shap</span><span class="o">.</span><span class="n">kmeans</span><span class="p">(</span><span class="n">X_f</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+<span class="n">shap_values</span> <span class="o">=</span> <span class="n">explainer</span><span class="o">.</span><span class="n">shap_values</span><span class="p">(</span><span class="n">X_f</span><span class="p">[:</span><span class="mi">80</span><span class="p">],</span> <span class="n">nsamples</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">silent</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">importance</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">shap_values</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="n">feature_names</span><span class="p">)</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">BLUE</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span> <span class="o">+</span> <span class="p">[</span><span class="s2">"0.7"</span><span class="p">]</span> <span class="o">*</span> <span class="mi">5</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">feature_names</span><span class="p">,</span> <span class="n">importance</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"mean |SHAP value|"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"SHAP importance (blue = inputs in the formula, grey = inert inputs)"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s2">"y"</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+<span class="n">importance</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">to_frame</span><span class="p">(</span><span class="s2">"mean |SHAP|"</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+chosen model: GaussianProcessRegressor | CV: 10-Fold CV (shuffled)
+held-out R² against the noise-free function: 0.903
+</pre></div></div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_multi_output_surrogates_7_1.png" src="../_images/tutorials_multi_output_surrogates_7_1.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>x1</th>
+      <th>x2</th>
+      <th>x3</th>
+      <th>x4</th>
+      <th>x5</th>
+      <th>x6</th>
+      <th>x7</th>
+      <th>x8</th>
+      <th>x9</th>
+      <th>x10</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>mean |SHAP|</th>
+      <td>1.732</td>
+      <td>1.72</td>
+      <td>1.104</td>
+      <td>2.581</td>
+      <td>1.241</td>
+      <td>0.192</td>
+      <td>0.119</td>
+      <td>0.2</td>
+      <td>0.118</td>
+      <td>0.135</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p><strong>Reading the result.</strong> The five inputs in the formula have importances several times those of the five inert ones. The inert inputs are not exactly zero: the model was fitted to noisy data and has learned a little spurious structure, so a small importance is not evidence that an input matters. <span class="math notranslate nohighlight">\(x_4\)</span> ranks first because its effect is linear with the largest range (0 to 10).</p>
+<p>Partial dependence shows the <em>shape</em> of each effect: linear in <span class="math notranslate nohighlight">\(x_4\)</span> and <span class="math notranslate nohighlight">\(x_5\)</span>, a parabola in <span class="math notranslate nohighlight">\(x_3\)</span> with its minimum at 0.5, and flat for <span class="math notranslate nohighlight">\(x_6, \dots, x_{10}\)</span>. <code class="docutils literal notranslate"><span class="pre">multioutreg.figures.pdp_plots.generate_pdp_plot</span></code> and <code class="docutils literal notranslate"><span class="pre">multioutreg.figures.shap_multioutput.generate_shap_plot</span></code> produce the versions of these figures used in the HTML report; the latter uses SHAP’s exact explainer, which takes over a minute on ten inputs.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">15</span><span class="p">,</span> <span class="mf">5.2</span><span class="p">),</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">PartialDependenceDisplay</span><span class="o">.</span><span class="n">from_estimator</span><span class="p">(</span>
+    <span class="n">friedman</span><span class="o">.</span><span class="n">estimators_</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">X_f</span><span class="p">,</span> <span class="n">features</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">),</span> <span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span>
+    <span class="n">ax</span><span class="o">=</span><span class="n">axes</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">line_kw</span><span class="o">=</span><span class="p">{</span><span class="s2">"color"</span><span class="p">:</span> <span class="n">BLUE</span><span class="p">,</span> <span class="s2">"lw"</span><span class="p">:</span> <span class="mi">2</span><span class="p">},</span>
+<span class="p">)</span>
+<span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">axes</span><span class="o">.</span><span class="n">ravel</span><span class="p">()):</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"partial dependence"</span> <span class="k">if</span> <span class="n">k</span> <span class="o">%</span> <span class="mi">5</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">""</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"Partial dependence of y on each input (Friedman 1)"</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">(</span><span class="n">rect</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.95</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_multi_output_surrogates_9_0.png" src="../_images/tutorials_multi_output_surrogates_9_0.png" />
+</div>
+</div>
+<p>## 3. Uncertainty you can trust</p>
+<p>A surrogate’s intervals are only useful if they contain the truth about as often as they claim. The Gramacy &amp; Lee (2012) function on <span class="math notranslate nohighlight">\([0.5, 2.5]\)</span>,</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[f(x) = \frac{\sin(10\pi x)}{2x} + (x - 1)^4,\]</div>
+</div>
+<p>oscillates quickly on the left and is smooth on the right. A stationary GP has one length scale for the whole range, so its error and its claimed uncertainty cannot both be right on both sides. 60 noisy runs (<span class="math notranslate nohighlight">\(\sigma = 0.05\)</span>) are used, and coverage is measured separately on the wiggly part (<span class="math notranslate nohighlight">\(x &lt; 1\)</span>) and the smooth part.</p>
+<p>Three kinds of 90% interval are compared:</p>
+<ul class="simple">
+<li><p>the GP’s own band, mean ± 1.645σ, from <code class="docutils literal notranslate"><span class="pre">GaussianProcessSurrogate.predict(return_std=True)</span></code>;</p></li>
+<li><p><strong>split conformal</strong> (<code class="docutils literal notranslate"><span class="pre">SplitConformalPredictor</span></code>), which holds out 30% of the runs, takes the 90% quantile of their absolute residuals, and adds that constant width everywhere;</p></li>
+<li><p><strong>adaptive split conformal</strong> (<code class="docutils literal notranslate"><span class="pre">adaptive=True</span></code>), which scales the width by the model’s σ.</p></li>
+</ul>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bench</span> <span class="o">=</span> <span class="n">get_benchmark</span><span class="p">(</span><span class="s2">"gramacy_lee"</span><span class="p">)</span>
+<span class="n">X_g</span> <span class="o">=</span> <span class="n">bench</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">"random"</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">Y_g</span> <span class="o">=</span> <span class="n">bench</span><span class="p">(</span><span class="n">X_g</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.05</span><span class="p">,</span> <span class="p">(</span><span class="mi">60</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">x_grid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mi">400</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+<span class="n">y_grid</span> <span class="o">=</span> <span class="n">bench</span><span class="p">(</span><span class="n">x_grid</span><span class="p">)</span>
+<span class="n">wiggly</span> <span class="o">=</span> <span class="n">x_grid</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mf">1.0</span>
+
+<span class="n">gp</span> <span class="o">=</span> <span class="n">GaussianProcessSurrogate</span><span class="p">()</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_g</span><span class="p">,</span> <span class="n">Y_g</span><span class="p">)</span>
+<span class="n">mu</span><span class="p">,</span> <span class="n">sd</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x_grid</span><span class="p">,</span> <span class="n">return_std</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">bands</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"GP band (mean ± 1.645σ)"</span><span class="p">:</span> <span class="p">(</span><span class="n">mu</span> <span class="o">-</span> <span class="mf">1.645</span> <span class="o">*</span> <span class="n">sd</span><span class="p">,</span> <span class="n">mu</span> <span class="o">+</span> <span class="mf">1.645</span> <span class="o">*</span> <span class="n">sd</span><span class="p">)}</span>
+
+<span class="c1"># SplitConformalPredictor clones its estimator, so it takes a scikit-learn regressor.</span>
+<span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="n">adaptive</span> <span class="ow">in</span> <span class="p">[(</span><span class="s2">"split conformal"</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span> <span class="p">(</span><span class="s2">"adaptive split conformal"</span><span class="p">,</span> <span class="kc">True</span><span class="p">)]:</span>
+    <span class="n">cp</span> <span class="o">=</span> <span class="n">SplitConformalPredictor</span><span class="p">(</span>
+        <span class="n">GaussianProcessRegressor</span><span class="p">(</span><span class="n">kernel</span><span class="o">=</span><span class="n">default_gp_kernel</span><span class="p">(),</span> <span class="n">normalize_y</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="n">calibration_size</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">adaptive</span><span class="o">=</span><span class="n">adaptive</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X_g</span><span class="p">,</span> <span class="n">Y_g</span><span class="p">)</span>
+    <span class="n">lo</span><span class="p">,</span> <span class="n">hi</span> <span class="o">=</span> <span class="n">cp</span><span class="o">.</span><span class="n">predict_interval</span><span class="p">(</span><span class="n">x_grid</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+    <span class="n">bands</span><span class="p">[</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">hi</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)))</span>
+
+<span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">label</span><span class="p">,</span> <span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">)</span> <span class="ow">in</span> <span class="n">bands</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="n">inside</span> <span class="o">=</span> <span class="p">((</span><span class="n">y_grid</span> <span class="o">&gt;=</span> <span class="n">lo</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">y_grid</span> <span class="o">&lt;=</span> <span class="n">hi</span><span class="p">))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">width</span> <span class="o">=</span> <span class="p">(</span><span class="n">hi</span> <span class="o">-</span> <span class="n">lo</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s2">"interval"</span><span class="p">:</span> <span class="n">label</span><span class="p">,</span> <span class="s2">"coverage (all)"</span><span class="p">:</span> <span class="n">inside</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+                 <span class="s2">"coverage x &lt; 1"</span><span class="p">:</span> <span class="n">inside</span><span class="p">[</span><span class="n">wiggly</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="s2">"coverage x ≥ 1"</span><span class="p">:</span> <span class="n">inside</span><span class="p">[</span><span class="o">~</span><span class="n">wiggly</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span>
+                 <span class="s2">"width x &lt; 1"</span><span class="p">:</span> <span class="n">width</span><span class="p">[</span><span class="n">wiggly</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="s2">"width x ≥ 1"</span><span class="p">:</span> <span class="n">width</span><span class="p">[</span><span class="o">~</span><span class="n">wiggly</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()})</span>
+<span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">"interval"</span><span class="p">)</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>coverage (all)</th>
+      <th>coverage x &lt; 1</th>
+      <th>coverage x ≥ 1</th>
+      <th>width x &lt; 1</th>
+      <th>width x ≥ 1</th>
+    </tr>
+    <tr>
+      <th>interval</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>GP band (mean ± 1.645σ)</th>
+      <td>0.938</td>
+      <td>0.75</td>
+      <td>1.0</td>
+      <td>1.121</td>
+      <td>1.109</td>
+    </tr>
+    <tr>
+      <th>split conformal</th>
+      <td>0.962</td>
+      <td>0.85</td>
+      <td>1.0</td>
+      <td>1.235</td>
+      <td>1.235</td>
+    </tr>
+    <tr>
+      <th>adaptive split conformal</th>
+      <td>0.965</td>
+      <td>0.86</td>
+      <td>1.0</td>
+      <td>1.252</td>
+      <td>1.239</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="p">(</span><span class="n">lo</span><span class="p">,</span> <span class="n">hi</span><span class="p">)),</span> <span class="n">color</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">bands</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="p">[</span><span class="n">BLUE</span><span class="p">,</span> <span class="n">ORANGE</span><span class="p">,</span> <span class="n">GREEN</span><span class="p">]):</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">axvspan</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"0.95"</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_grid</span><span class="p">,</span> <span class="n">y_grid</span><span class="p">,</span> <span class="o">**</span><span class="n">TRUTH</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"truth"</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">x_grid</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">lo</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">hi</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"90</span><span class="si">% i</span><span class="s2">nterval"</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">X_g</span><span class="p">,</span> <span class="n">Y_g</span><span class="p">,</span> <span class="o">**</span><span class="n">TRAIN</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"training runs"</span><span class="p">)</span>
+    <span class="n">inside</span> <span class="o">=</span> <span class="p">((</span><span class="n">y_grid</span> <span class="o">&gt;=</span> <span class="n">lo</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">y_grid</span> <span class="o">&lt;=</span> <span class="n">hi</span><span class="p">))</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x_grid</span><span class="p">[</span><span class="o">~</span><span class="n">inside</span><span class="p">],</span> <span class="n">y_grid</span><span class="p">[</span><span class="o">~</span><span class="n">inside</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"#D55E00"</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"truth outside"</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="se">\n</span><span class="s2">coverage </span><span class="si">{</span><span class="n">inside</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2"> (x &lt; 1: </span><span class="si">{</span><span class="n">inside</span><span class="p">[</span><span class="n">wiggly</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2">)"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"x"</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"f(x)"</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s2">"upper right"</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s2">"Gramacy &amp; Lee: shaded region x &lt; 1 is the fast-oscillating part"</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_multi_output_surrogates_12_0.png" src="../_images/tutorials_multi_output_surrogates_12_0.png" />
+</div>
+</div>
+<p><strong>Reading the result.</strong></p>
+<ul class="simple">
+<li><p><strong>The GP’s own band</strong> misses most often on the wiggly side, where its error is largest, and covers everything on the smooth side. Its σ depends on the distance to the nearest training run, not on how hard the function is there, so it cannot know that the left is harder.</p></li>
+<li><p><strong>Split conformal</strong> guarantees the <em>overall</em> rate: on average at least 90% of new points from the same distribution fall inside (96% here). It sizes one constant width from the held-out residuals, which raises coverage on the wiggly side (75% → 85%) but not to 90%, while the smooth side, already fully covered, gets no narrower. The guarantee is <strong>marginal</strong> (averaged over <span class="math notranslate nohighlight">\(x\)</span>), not conditional on <span class="math notranslate nohighlight">\(x\)</span>.</p></li>
+<li><p><strong>Adaptive conformal</strong> can only reshape the interval as well as the model’s σ tracks the error. A stationary GP’s σ is nearly flat on this design (the GP band is about 1.1 wide on both sides), so the adaptive version looks much like the plain one.</p></li>
+</ul>
+<p>In practice: check coverage by region (or by output, or by predicted value) and not only overall. Conditional problems call for a model whose uncertainty can vary with <span class="math notranslate nohighlight">\(x\)</span> (heteroscedastic or non-stationary models, tree ensembles’ spread) or for more data where the function is hard, which is what variance-based active learning provides (see the <a class="reference internal" href="active_learning_benchmarks.html"><span class="doc">active learning tutorial</span></a>).</p>
+<p>## 4. Scoring a surrogate for optimization</p>
+<p>When the outputs are objectives to be minimized together, the question is not only “how accurate is the surrogate?” but “<strong>would it lead to good designs?</strong>” The ZDT1 surrogate from section 1 is used to screen 2,000 candidate designs: the candidates it predicts to be Pareto-optimal are the ones an engineer would run next.</p>
+<p>Decision regret measures what that choice costs, using the <strong>true</strong> objective values:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\text{regret} = \mathrm{HV}\big(\text{front of } Y_\text{true}\big) -
+\mathrm{HV}\big(\text{front of } Y_\text{true}[\text{model's picks}]\big) \;\ge 0,\]</div>
+</div>
+<p>where HV is the hypervolume dominated by a front up to a reference point (larger is better). <code class="docutils literal notranslate"><span class="pre">hypervolume_regret(Y_true,</span> <span class="pre">Y_pred)</span></code> computes exactly this: the picks are <code class="docutils literal notranslate"><span class="pre">pareto_mask(Y_pred)</span></code>, and <code class="docutils literal notranslate"><span class="pre">Y_true</span></code> and <code class="docutils literal notranslate"><span class="pre">Y_pred</span></code> hold the same candidates, row for row.</p>
+<p><code class="docutils literal notranslate"><span class="pre">front_hypervolume_regret(Y_true,</span> <span class="pre">Y_pred)</span></code> instead compares the <em>predicted</em> front with the true one, <span class="math notranslate nohighlight">\(\mathrm{HV}(\text{front}(Y_\text{true})) - \mathrm{HV}(\text{front}(Y_\text{pred}))\)</span>. That measures how well the front’s position is predicted, not whether the picks are good, and because the difference is clipped at zero, a model that is simply <strong>optimistic</strong> (predicts every design to be better than it is) can score zero.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">bench</span> <span class="o">=</span> <span class="n">get_benchmark</span><span class="p">(</span><span class="s2">"zdt1"</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">fitted</span><span class="p">[</span><span class="s2">"zdt1"</span><span class="p">]</span>
+<span class="n">X_cand</span> <span class="o">=</span> <span class="n">bench</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">2000</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s2">"random"</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<span class="n">Y_cand</span> <span class="o">=</span> <span class="n">bench</span><span class="p">(</span><span class="n">X_cand</span><span class="p">)</span>                       <span class="c1"># true objectives of every candidate</span>
+<span class="n">P_cand</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_cand</span><span class="p">)</span>               <span class="c1"># what the surrogate predicts</span>
+<span class="n">ref</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">1.1</span> <span class="o">*</span> <span class="n">Y_cand</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">max</span><span class="p">()])</span>
+
+<span class="n">picks</span> <span class="o">=</span> <span class="n">pareto_mask</span><span class="p">(</span><span class="n">P_cand</span><span class="p">)</span>                  <span class="c1"># candidates the surrogate calls Pareto-optimal</span>
+<span class="n">optimistic</span> <span class="o">=</span> <span class="n">P_cand</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">])</span>   <span class="c1"># same ranking, every f2 predicted 0.5 too low</span>
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">random_picks</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">Y_cand</span><span class="p">),</span> <span class="n">picks</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="n">replace</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="n">table</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+    <span class="s2">"decision regret (true values at the picks)"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"surrogate"</span><span class="p">:</span> <span class="n">hypervolume_regret</span><span class="p">(</span><span class="n">Y_cand</span><span class="p">,</span> <span class="n">P_cand</span><span class="p">,</span> <span class="n">reference_point</span><span class="o">=</span><span class="n">ref</span><span class="p">),</span>
+        <span class="s2">"optimistic surrogate"</span><span class="p">:</span> <span class="n">hypervolume_regret</span><span class="p">(</span><span class="n">Y_cand</span><span class="p">,</span> <span class="n">optimistic</span><span class="p">,</span> <span class="n">reference_point</span><span class="o">=</span><span class="n">ref</span><span class="p">),</span>
+        <span class="c1"># no predictions here, so score the true values of the random picks as a front</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">picks</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2"> random candidates"</span><span class="p">:</span> <span class="n">front_hypervolume_regret</span><span class="p">(</span><span class="n">Y_cand</span><span class="p">,</span> <span class="n">Y_cand</span><span class="p">[</span><span class="n">random_picks</span><span class="p">],</span> <span class="n">reference_point</span><span class="o">=</span><span class="n">ref</span><span class="p">),</span>
+    <span class="p">},</span>
+    <span class="s2">"front_hypervolume_regret(Y_true, Y_pred)"</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">"surrogate"</span><span class="p">:</span> <span class="n">front_hypervolume_regret</span><span class="p">(</span><span class="n">Y_cand</span><span class="p">,</span> <span class="n">P_cand</span><span class="p">,</span> <span class="n">reference_point</span><span class="o">=</span><span class="n">ref</span><span class="p">),</span>
+        <span class="s2">"optimistic surrogate"</span><span class="p">:</span> <span class="n">front_hypervolume_regret</span><span class="p">(</span><span class="n">Y_cand</span><span class="p">,</span> <span class="n">optimistic</span><span class="p">,</span> <span class="n">reference_point</span><span class="o">=</span><span class="n">ref</span><span class="p">),</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">picks</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2"> random candidates"</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span>
+    <span class="p">},</span>
+<span class="p">})</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"surrogate picks </span><span class="si">{</span><span class="n">picks</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">X_cand</span><span class="p">)</span><span class="si">}</span><span class="s2"> candidates; "</span>
+      <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="p">(</span><span class="n">pareto_mask</span><span class="p">(</span><span class="n">Y_cand</span><span class="p">)</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">picks</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2"> of the </span><span class="si">{</span><span class="n">pareto_mask</span><span class="p">(</span><span class="n">Y_cand</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="si">}</span><span class="s2"> truly Pareto-optimal candidates are among them"</span><span class="p">)</span>
+<span class="n">table</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+surrogate picks 14 of 2000 candidates; 13 of the 13 truly Pareto-optimal candidates are among them
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>decision regret (true values at the picks)</th>
+      <th>front_hypervolume_regret(Y_true, Y_pred)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>surrogate</th>
+      <td>0.0000</td>
+      <td>0.0417</td>
+    </tr>
+    <tr>
+      <th>optimistic surrogate</th>
+      <td>0.0000</td>
+      <td>0.0000</td>
+    </tr>
+    <tr>
+      <th>14 random candidates</th>
+      <td>1.7691</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">front</span> <span class="o">=</span> <span class="n">zdt_front</span><span class="p">(</span><span class="s2">"zdt1"</span><span class="p">)</span>
+<span class="n">true_best</span> <span class="o">=</span> <span class="n">pareto_mask</span><span class="p">(</span><span class="n">Y_cand</span><span class="p">)</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mf">4.2</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">ax</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">front</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">front</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="o">**</span><span class="n">TRUTH</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"exact ZDT1 front (zdt_front)"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">Y_cand</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">Y_cand</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">"0.75"</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"candidates (true values)"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">Y_cand</span><span class="p">[</span><span class="n">true_best</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">Y_cand</span><span class="p">[</span><span class="n">true_best</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">facecolor</span><span class="o">=</span><span class="s2">"none"</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s2">"black"</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"best candidates"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">Y_cand</span><span class="p">[</span><span class="n">picks</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">Y_cand</span><span class="p">[</span><span class="n">picks</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">BLUE</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"surrogate's picks"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"True objectives of the candidates"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"f1"</span><span class="p">);</span> <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">"f2"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+<span class="n">ax</span> <span class="o">=</span> <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">front</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">front</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="o">**</span><span class="n">TRUTH</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"exact ZDT1 front"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">P_cand</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">P_cand</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">BLUE</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"surrogate predictions"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">optimistic</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">optimistic</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">PINK</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">zorder</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">"optimistic predictions"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">"Predicted objectives"</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">11</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">"f1"</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_multi_output_surrogates_16_0.png" src="../_images/tutorials_multi_output_surrogates_16_0.png" />
+</div>
+</div>
+<p><strong>Reading the result.</strong> The surrogate’s 14 picks include all 13 truly best candidates, so its decision regret is zero, against a large regret for the same number of random picks. The optimistic surrogate ranks the candidates identically, so its decision regret is the same: it would lead to the same designs. The predicted-front comparison tells a different story: it charges the accurate surrogate for small errors in the front’s position, and gives the optimistic one a perfect score of zero,
+because its predicted front dominates the true one and the difference is clipped.</p>
+<p>Use decision regret (true values at the picks) to judge a surrogate for optimization. Note that these candidates are random designs, which lie well above the exact ZDT1 front (left panel); regret is measured against the best of the candidates, not against the exact front.</p>
+<p>## 5. Summary and next steps</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Step</p></th>
+<th class="head"><p>What to use</p></th>
+<th class="head"><p>What the benchmark showed</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Model selection</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AutoDetectMultiOutputRegressor</span></code> (<code class="docutils literal notranslate"><span class="pre">with_vendored_surrogates()</span></code> for the full search, <code class="docutils literal notranslate"><span class="pre">pre_screen=True</span></code> to prune it)</p></td>
+<td><p>Different outputs of one problem get different models; the held-out score, not the CV score of the winner, is the honest number</p></td>
+</tr>
+<tr class="row-odd"><td><p>Explanations</p></td>
+<td><p>SHAP values, partial dependence on <code class="docutils literal notranslate"><span class="pre">model.estimators_[j]</span></code></p></td>
+<td><p>The five active Friedman inputs stand far above the five inert ones; small importances can be noise</p></td>
+</tr>
+<tr class="row-even"><td><p>Uncertainty</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">predict(return_std=True)</span></code>, <code class="docutils literal notranslate"><span class="pre">SplitConformalPredictor</span></code></p></td>
+<td><p>Conformal intervals fix overall coverage, not coverage where the function is hard; check coverage by region</p></td>
+</tr>
+<tr class="row-odd"><td><p>Optimization</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">pareto_mask</span></code>, <code class="docutils literal notranslate"><span class="pre">hypervolume_regret(Y_true,</span> <span class="pre">Y_pred)</span></code></p></td>
+<td><p>Score the designs the model would pick, using their true values</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Next steps</strong></p>
+<ul class="simple">
+<li><p>The <a class="reference internal" href="cost_savings.html"><span class="doc">cost-savings tutorial</span></a> prices what a surrogate saves in simulator runs; the <a class="reference internal" href="active_learning_benchmarks.html"><span class="doc">active learning tutorial</span></a> chooses the training runs instead of fixing them up front.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">multioutreg.report.auto_detect_report.generate_html_report</span></code> and the Streamlit GUI (<code class="docutils literal notranslate"><span class="pre">streamlit</span> <span class="pre">run</span> <span class="pre">multioutreg/gui/Grid_Search_Surrogate_Models.py</span></code>) turn a fitted model into an HTML report with these figures.</p></li>
+<li><p>More benchmarks are listed in <code class="docutils literal notranslate"><span class="pre">multioutreg.active.benchmarks.BENCHMARKS</span></code>.</p></li>
+</ul>
+<p><strong>References</strong></p>
+<ul class="simple">
+<li><p>Zitzler, E., Deb, K., &amp; Thiele, L. (2000). Comparison of multiobjective evolutionary algorithms: empirical results. <em>Evolutionary Computation</em>, 8(2).</p></li>
+<li><p>Friedman, J. H. (1991). Multivariate adaptive regression splines. <em>Annals of Statistics</em>, 19(1).</p></li>
+<li><p>Gramacy, R. B., &amp; Lee, H. K. H. (2012). Cases for the nugget in modeling computer experiments. <em>Statistics and Computing</em>, 22(3).</p></li>
+<li><p>Lundberg, S. M., &amp; Lee, S.-I. (2017). A unified approach to interpreting model predictions. <em>NeurIPS</em>.</p></li>
+<li><p>Lei, J., G’Sell, M., Rinaldo, A., Tibshirani, R. J., &amp; Wasserman, L. (2018). Distribution-free predictive inference for regression. <em>JASA</em>, 113(523).</p></li>
+</ul>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+<div class="related-pages">
+  <a class="next-page" href="joint_scores.html">
+      <div class="page-info">
+        <div class="context">
+          <span>Next</span>
+        </div>
+        <div class="title">Scoring Joint Predictions: Energy and Variogram Scores</div>
+      </div>
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+    </a>
+  <a class="prev-page" href="../example_reports.html">
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+      <div class="page-info">
+        <div class="context">
+          <span>Previous</span>
+        </div>
+        
+        <div class="title">Example Reports</div>
+        
+      </div>
+    </a>
+</div>
+<div class="bottom-of-page">
+  <div class="left-details">
+    <div class="copyright">
+        Copyright &#169; 2025, takotime808
+    </div>
+  </div>
+  <div class="right-details">
+    <div class="icons">
+      <a class="muted-link " href="https://github.com/takotime808/multioutreg" aria-label="GitHub"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a>
+      
+    </div>
+  </div>
+</div>
+
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>

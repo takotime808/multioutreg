@@ -1,0 +1,1849 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Active Learning on Benchmark Functions" href="active_learning_benchmarks.html"><link rel="prev" title="Scoring Joint Predictions: Energy and Variogram Scores" href="joint_scores.html">
+        <link rel="prefetch" href="../_static/logos/wordmark-light.svg" as="image">
+        <link rel="prefetch" href="../_static/logos/wordmark-dark.svg" as="image">
+
+    <link rel="shortcut icon" href="../_static/favicon.png"><!-- Generated with Sphinx 8.1.3 and Furo 2025.12.19 -->
+        <title>Multi-Fidelity Surrogate Modeling - multioutreg</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/active-learning-savings.css?v=14e41e7a" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/site.css?v=0e7236ba" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Try it without installing: the <a href="https://multioutreg.streamlit.app/">hosted multioutreg app</a>. 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">multioutreg</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo only-light" src="../_static/logos/wordmark-light.svg" alt="Light Logo"/>
+    <img class="sidebar-logo only-dark" src="../_static/logos/wordmark-dark.svg" alt="Dark Logo"/>
+  </div>
+  
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_it_works.html">How It Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reading_the_report.html">Reading the Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example_reports.html">Example Reports</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="multi_output_surrogates.html">Multi-Output Surrogates, Start to Finish</a></li>
+<li class="toctree-l1"><a class="reference internal" href="joint_scores.html">Scoring Joint Predictions: Energy and Variogram Scores</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Multi-Fidelity Surrogate Modeling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_learning_benchmarks.html">Active Learning on Benchmark Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cost_savings.html">Cost Savings: What <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> Saves in an Existing Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="imputation_methods.html">Imputing Missing Inputs: KNN vs. Other Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_learning_missing_inputs.html">Active Learning with Missing Inputs</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../multi_fidelity_gui.html">Multi-Fidelity Surrogate Models page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_the_exported_model.html">Using the Best Model from the Grid Search App</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forecasting_with_chronos.html">Time-Series Forecasting with Chronos</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Why multioutreg</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../cost_savings.html">Cost Savings and ROI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../active_learning_savings.html">Active Learning: The True Curve for Less</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../core_api.html">Core API</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../autoapi/multioutreg/index.html">multioutreg</a><input aria-label="Toggle navigation of multioutreg" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/active/index.html">multioutreg.active</a><input aria-label="Toggle navigation of multioutreg.active" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/acquisition/index.html">multioutreg.active.acquisition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/batch/index.html">multioutreg.active.batch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/benchmarks/index.html">multioutreg.active.benchmarks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/loop/index.html">multioutreg.active.loop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/multi_fidelity/index.html">multioutreg.active.multi_fidelity</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/conformal/index.html">multioutreg.conformal</a><input aria-label="Toggle navigation of multioutreg.conformal" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/base/index.html">multioutreg.conformal.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/cv_plus/index.html">multioutreg.conformal.cv_plus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/metrics/index.html">multioutreg.conformal.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/split_conformal/index.html">multioutreg.conformal.split_conformal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/utils/index.html">multioutreg.conformal.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/figures/index.html">multioutreg.figures</a><input aria-label="Toggle navigation of multioutreg.figures" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/confidence_intervals/index.html">multioutreg.figures.confidence_intervals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/conformal_plots/index.html">multioutreg.figures.conformal_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/coverage_plots/index.html">multioutreg.figures.coverage_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/doe_plots/index.html">multioutreg.figures.doe_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/error_histograms/index.html">multioutreg.figures.error_histograms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/model_comparison/index.html">multioutreg.figures.model_comparison</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/pca_plots/index.html">multioutreg.figures.pca_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/pdp_plots/index.html">multioutreg.figures.pdp_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/performance_metric_figures/index.html">multioutreg.figures.performance_metric_figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/prediction_plots/index.html">multioutreg.figures.prediction_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/residuals/index.html">multioutreg.figures.residuals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/shap_multioutput/index.html">multioutreg.figures.shap_multioutput</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/uct_calibration_extension/index.html">multioutreg.figures.uct_calibration_extension</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/umap_plot_classify/index.html">multioutreg.figures.umap_plot_classify</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/uncertainty_toolbox_extension/index.html">multioutreg.figures.uncertainty_toolbox_extension</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/gui/index.html">multioutreg.gui</a><input aria-label="Toggle navigation of multioutreg.gui" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/background/index.html">multioutreg.gui.background</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/grid_search_core/index.html">multioutreg.gui.grid_search_core</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/input_checks/index.html">multioutreg.gui.input_checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/report_controls/index.html">multioutreg.gui.report_controls</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/report_plotting_utils/index.html">multioutreg.gui.report_plotting_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/results_tabs/index.html">multioutreg.gui.results_tabs</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/metrics/index.html">multioutreg.metrics</a><input aria-label="Toggle navigation of multioutreg.metrics" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/metrics/joint_scores/index.html">multioutreg.metrics.joint_scores</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/metrics/multiobjective_regret/index.html">multioutreg.metrics.multiobjective_regret</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/model_selection/index.html">multioutreg.model_selection</a><input aria-label="Toggle navigation of multioutreg.model_selection" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/auto_detect/index.html">multioutreg.model_selection.auto_detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/evaluation/index.html">multioutreg.model_selection.evaluation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/model_wrappers/index.html">multioutreg.model_selection.model_wrappers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/screening/index.html">multioutreg.model_selection.screening</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/performance/index.html">multioutreg.performance</a><input aria-label="Toggle navigation of multioutreg.performance" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/performance/metrics/index.html">multioutreg.performance.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/performance/metrics_generalized_api/index.html">multioutreg.performance.metrics_generalized_api</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../autoapi/multioutreg/persistence/index.html">multioutreg.persistence</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/report/index.html">multioutreg.report</a><input aria-label="Toggle navigation of multioutreg.report" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/auto_detect_report/index.html">multioutreg.report.auto_detect_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/build/index.html">multioutreg.report.build</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/data/index.html">multioutreg.report.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report/index.html">multioutreg.report.generate_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report1/index.html">multioutreg.report.generate_report1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report1_safe/index.html">multioutreg.report.generate_report1_safe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/render/index.html">multioutreg.report.render</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/template/index.html">multioutreg.report.template</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/verdict/index.html">multioutreg.report.verdict</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/sampling/index.html">multioutreg.sampling</a><input aria-label="Toggle navigation of multioutreg.sampling" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/detect/index.html">multioutreg.sampling.detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/extrapolation/index.html">multioutreg.sampling.extrapolation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/infer_sampling/index.html">multioutreg.sampling.infer_sampling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/pca_sampling_detector/index.html">multioutreg.sampling.pca_sampling_detector</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/surrogates/index.html">multioutreg.surrogates</a><input aria-label="Toggle navigation of multioutreg.surrogates" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/ard_gp_sklearn/index.html">multioutreg.surrogates.ard_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/base_sklearn/index.html">multioutreg.surrogates.base_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bayesian_ridge_sklearn/index.html">multioutreg.surrogates.bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bnn_network/index.html">multioutreg.surrogates.bnn_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bnn_pytorch/index.html">multioutreg.surrogates.bnn_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/catboost_sklearn/index.html">multioutreg.surrogates.catboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/conformal_mixin/index.html">multioutreg.surrogates.conformal_mixin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/conformal_network_sklearn/index.html">multioutreg.surrogates.conformal_network_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/decision_tree_sklearn/index.html">multioutreg.surrogates.decision_tree_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/deep_ensemble_pytorch/index.html">multioutreg.surrogates.deep_ensemble_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/elastic_net_sklearn/index.html">multioutreg.surrogates.elastic_net_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/extra_trees_sklearn/index.html">multioutreg.surrogates.extra_trees_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/forest_uncertainty/index.html">multioutreg.surrogates.forest_uncertainty</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gating_network/index.html">multioutreg.surrogates.gating_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gaussian_copula/index.html">multioutreg.surrogates.gaussian_copula</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gp_sklearn/index.html">multioutreg.surrogates.gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gpx_smt/index.html">multioutreg.surrogates.gpx_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gradient_boosting_sklearn/index.html">multioutreg.surrogates.gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/hist_gradient_boosting_sklearn/index.html">multioutreg.surrogates.hist_gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/knn_sklearn/index.html">multioutreg.surrogates.knn_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/kpls_smt/index.html">multioutreg.surrogates.kpls_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/lightgbm_sklearn/index.html">multioutreg.surrogates.lightgbm_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/linear_sklearn/index.html">multioutreg.surrogates.linear_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/mfk_smt/index.html">multioutreg.surrogates.mfk_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/moe_surrogate/index.html">multioutreg.surrogates.moe_surrogate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/multi_fidelity/index.html">multioutreg.surrogates.multi_fidelity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/multitask_gp_gpytorch/index.html">multioutreg.surrogates.multitask_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/ngboost_sklearn/index.html">multioutreg.surrogates.ngboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/nystroem_gp_sklearn/index.html">multioutreg.surrogates.nystroem_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/pca_output/index.html">multioutreg.surrogates.pca_output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/polynomial_bayesian_ridge_sklearn/index.html">multioutreg.surrogates.polynomial_bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/quantile_sklearn/index.html">multioutreg.surrogates.quantile_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/rf_sklearn/index.html">multioutreg.surrogates.rf_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/rfgp_sklearn/index.html">multioutreg.surrogates.rfgp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/sparse_gp_gpytorch/index.html">multioutreg.surrogates.sparse_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/stacked_vfm/index.html">multioutreg.surrogates.stacked_vfm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/std_recalibration/index.html">multioutreg.surrogates.std_recalibration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/svr_sklearn/index.html">multioutreg.surrogates.svr_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/xgboost_sklearn/index.html">multioutreg.surrogates.xgboost_sklearn</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/index.html">multioutreg.time_series</a><input aria-label="Toggle navigation of multioutreg.time_series" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/chronos_adapter/index.html">multioutreg.time_series.chronos_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/cv/index.html">multioutreg.time_series.cv</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/figures/index.html">multioutreg.time_series.figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/financial/index.html">multioutreg.time_series.financial</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/lag_features/index.html">multioutreg.time_series.lag_features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/lag_forecaster/index.html">multioutreg.time_series.lag_forecaster</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/metrics/index.html">multioutreg.time_series.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/neuralforecast_adapter/index.html">multioutreg.time_series.neuralforecast_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/prophet_adapter/index.html">multioutreg.time_series.prophet_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/returns/index.html">multioutreg.time_series.returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/seasonality/index.html">multioutreg.time_series.seasonality</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/surrogate_forecaster/index.html">multioutreg.time_series.surrogate_forecaster</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/index.html">multioutreg.time_series.ts_dynamic_fit</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/index.html">multioutreg.time_series.ts_dynamic_fit.algs</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.algs" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/arima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.arima</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/lstm/index.html">multioutreg.time_series.ts_dynamic_fit.algs.lstm</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/sarima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.sarima</a></li>
+</ul>
+</li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.data_handling" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/Analyzer/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.Analyzer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/DataProcessor/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.DataProcessor</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/PullData/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.PullData</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/ingest/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.ingest</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/main/index.html">multioutreg.time_series.ts_dynamic_fit.main</a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/index.html">multioutreg.time_series.ts_dynamic_fit.src</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.src" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/ForecastAutoIntervals/index.html">multioutreg.time_series.ts_dynamic_fit.src.ForecastAutoIntervals</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/TSDataLoader/index.html">multioutreg.time_series.ts_dynamic_fit.src.TSDataLoader</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/evaluate/index.html">multioutreg.time_series.ts_dynamic_fit.src.evaluate</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/forecasters/index.html">multioutreg.time_series.ts_dynamic_fit.src.forecasters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/infer/index.html">multioutreg.time_series.ts_dynamic_fit.src.infer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/ranker/index.html">multioutreg.time_series.ts_dynamic_fit.src.ranker</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/visualize/index.html">multioutreg.time_series.ts_dynamic_fit.src.visualize</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_suitability/index.html">multioutreg.time_series.ts_suitability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/uncertainty/index.html">multioutreg.time_series.uncertainty</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/utils/index.html">multioutreg.utils</a><input aria-label="Toggle navigation of multioutreg.utils" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/aux_funcs/index.html">multioutreg.utils.aux_funcs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/figure_utils/index.html">multioutreg.utils.figure_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/imputation/index.html">multioutreg.utils.imputation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/metric_utils/index.html">multioutreg.utils.metric_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/pca_utils/index.html">multioutreg.utils.pca_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/surrogate_utils/index.html">multioutreg.utils.surrogate_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/thread_limits/index.html">multioutreg.utils.thread_limits</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../integrated_surrogates.html">Integrated Surrogate Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../surrogate_hyperparameters.html">Surrogate Hyperparameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../multiobjective_metrics.html">Multi-Objective Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../surrogate_roadmap.html">Expanding the Surrogate Offerings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui_ux_roadmap.html">Improving the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../docs_roadmap.html">Improving the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../report_redesign/implementation_plan.html">Plan: ship the redesigned report as a downloadable file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../active_learning.html">Active Learning Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../parallel_computing.html">Parallelization and Distributed Computing Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pair_plot_report.html">Pair Plots in Reports</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AUDIT_CHECKLIST.html">Statistical / Logic Audit Checklist</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/takotime808/multioutreg/blob/main/docs/tutorials/multi_fidelity_surrogates.ipynb?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/takotime808/multioutreg/edit/main/docs/tutorials/multi_fidelity_surrogates.ipynb" rel="edit" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <div class="admonition note tutorial-meta">
+  <p class="admonition-title">About this tutorial</p>
+  <p>
+  <b>Needs:</b> core install &nbsp;·&nbsp; <b>Runs in:</b> under a minute &nbsp;·&nbsp;
+  <a href="https://colab.research.google.com/github/takotime808/multioutreg/blob/main/docs/tutorials/multi_fidelity_surrogates.ipynb">Open in Colab</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/takotime808/multioutreg/blob/main/docs/tutorials/multi_fidelity_surrogates.ipynb">View on GitHub</a>
+  </p>
+</div><!-- # Copyright (c) 2026 takotime808 --><section id="Multi-Fidelity-Surrogate-Modeling">
+<h1>Multi-Fidelity Surrogate Modeling<a class="headerlink" href="#Multi-Fidelity-Surrogate-Modeling" title="Link to this heading">¶</a></h1>
+<p><strong>What this tutorial covers:</strong></p>
+<p>Many engineering workflows involve simulators or experiments that can be run at different <em>fidelity levels</em> — from fast, inaccurate approximations to slow, high-accuracy runs. Multi-fidelity modeling combines data from all levels to build a surrogate that achieves the accuracy of the expensive high-fidelity source while requiring far fewer expensive evaluations.</p>
+<p><code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> ships three multi-fidelity classes:</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Class</p></th>
+<th class="head"><p>Approach</p></th>
+<th class="head"><p>Levels</p></th>
+<th class="head"><p>Cross-fidelity coupling</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">MultiFidelitySurrogate</span></code></p></td>
+<td><p>Independent per-level surrogates</p></td>
+<td><p>≥ 1</p></td>
+<td><p>None (baseline)</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">StackedVFMSurrogate</span></code></p></td>
+<td><p>Recursive feature augmentation (Perdikaris et al. 2017)</p></td>
+<td><p>≥ 2</p></td>
+<td><p>Full nonlinear</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">AdditiveCorrectionVFM</span></code></p></td>
+<td><p>Scaled correction f_hi = ρ f_lo + δ (Kennedy &amp; O’Hagan 2000)</p></td>
+<td><p>2</p></td>
+<td><p>Scale + additive</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>All three inherit <code class="docutils literal notranslate"><span class="pre">ConformalMixin</span></code>, so distribution-free prediction intervals via <code class="docutils literal notranslate"><span class="pre">wrap_conformal</span></code> / <code class="docutils literal notranslate"><span class="pre">conformal_predict</span></code> are always available.</p>
+<section id="Contents">
+<h2>Contents<a class="headerlink" href="#Contents" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Motivation &amp; data generation</p></li>
+<li><p>MultiFidelitySurrogate — independent per-level baseline</p></li>
+<li><p>StackedVFMSurrogate — nonlinear cross-fidelity coupling</p></li>
+<li><p>Heterogeneous surrogates and uncertainty augmentation</p></li>
+<li><p>Three-level VFM</p></li>
+<li><p>AdditiveCorrectionVFM — Kennedy-O’Hagan style</p></li>
+<li><p>Conformal prediction intervals</p></li>
+<li><p>Multi-output example</p></li>
+<li><p>Model comparison</p></li>
+<li><p>When to use which class</p></li>
+<li><p>What the benchmarks show</p></li>
+</ol>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+from sklearn.model_selection import train_test_split
+import warnings
+warnings.filterwarnings('ignore')
+
+from multioutreg.surrogates import (
+    MultiFidelitySurrogate,
+    StackedVFMSurrogate,
+    AdditiveCorrectionVFM,
+    RandomForestSurrogate,
+    GaussianProcessSurrogate,
+    GradientBoostingSurrogate,
+    LinearRegressionSurrogate,
+    BayesianRidgeSurrogate,
+)
+
+rng = np.random.default_rng(42)
+
+def rmse(y_true, y_pred):
+    """Root mean squared error, returns one value per output column."""
+    return np.sqrt(np.mean((y_true - y_pred) ** 2, axis=0))
+</pre></div>
+</div>
+</div>
+<hr class="docutils" />
+<p>## 1. Motivation &amp; Data Generation</p>
+<p>We simulate a one-dimensional aerodynamic drag coefficient benchmark where:</p>
+<ul>
+<li><p><strong>Low-fidelity</strong> (panel method): fast, 200 cheap evaluations available.</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[c_{d,lo}(x) = \sin(\pi x) + 0.3 x^2\]</div>
+</div>
+</li>
+<li><p><strong>High-fidelity</strong> (RANS CFD): slow, only 25 expensive evaluations available.</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[c_{d,hi}(x) = c_{d,lo}(x) + 0.25\, x \cos(2\pi x) - 0.15 e^{-4x^2}\]</div>
+</div>
+</li>
+</ul>
+<p>The ground truth is the high-fidelity function; the goal is to learn it accurately using mostly low-fidelity data.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def lo_fi(x):
+    """Low-fidelity response (fast, inaccurate)."""
+    return np.sin(np.pi * x) + 0.3 * x**2
+
+def hi_fi(x):
+    """High-fidelity response (slow, accurate)."""
+    return lo_fi(x) + 0.25 * x * np.cos(2 * np.pi * x) - 0.15 * np.exp(-4 * x**2)
+
+# --- Generate data ---
+N_LO = 200   # cheap samples
+N_HI = 25    # expensive samples
+
+X_lo = rng.uniform(-2, 2, (N_LO, 1))
+Y_lo = lo_fi(X_lo) + rng.normal(0, 0.04, (N_LO, 1))   # small observation noise
+
+X_hi = rng.uniform(-2, 2, (N_HI, 1))
+Y_hi = hi_fi(X_hi) + rng.normal(0, 0.02, (N_HI, 1))   # tiny observation noise
+
+# Dense test grid for plotting
+X_test = np.linspace(-2, 2, 300).reshape(-1, 1)
+Y_test = hi_fi(X_test)
+
+print(f"Low-fidelity:   {N_LO} samples   (cheap)")
+print(f"High-fidelity:  {N_HI} samples   (expensive)")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Low-fidelity:   200 samples   (cheap)
+High-fidelity:  25 samples   (expensive)
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, ax = plt.subplots(figsize=(10, 4))
+
+ax.plot(X_test, lo_fi(X_test), 'b--', lw=1.5, label='Low-fidelity (truth)', alpha=0.7)
+ax.plot(X_test, hi_fi(X_test), 'k-',  lw=2.0, label='High-fidelity (truth)')
+ax.scatter(X_lo, Y_lo, s=12, c='steelblue', alpha=0.4, label=f'Lo-fi samples (n={N_LO})')
+ax.scatter(X_hi, Y_hi, s=60, c='k', marker='*', zorder=5, label=f'Hi-fi samples (n={N_HI})')
+
+ax.fill_between(X_test.ravel(),
+                lo_fi(X_test).ravel(),
+                hi_fi(X_test).ravel(),
+                alpha=0.12, color='orange', label='Fidelity gap')
+
+ax.set_xlabel('x  (e.g. angle of attack)', fontsize=12)
+ax.set_ylabel('Response', fontsize=12)
+ax.set_title('Multi-fidelity benchmark: abundant cheap data, scarce expensive data', fontsize=13)
+ax.legend(fontsize=9, loc='upper right')
+plt.tight_layout()
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_multi_fidelity_surrogates_4_0.png" src="../_images/tutorials_multi_fidelity_surrogates_4_0.png" />
+</div>
+</div>
+<p>The orange shaded region is the <em>fidelity gap</em> — the systematic bias that the low-fidelity model introduces. A naive surrogate trained only on the 25 high-fidelity points will overfit; multi-fidelity models use the abundant low-fidelity data to regularise and improve the fit.</p>
+<hr class="docutils" />
+<p>## 2. MultiFidelitySurrogate — Independent Per-Level Baseline</p>
+<p><code class="docutils literal notranslate"><span class="pre">MultiFidelitySurrogate</span></code> is the <strong>simplest</strong> multi-fidelity class: it fits a completely independent surrogate at each fidelity level. There is no cross-fidelity information transfer — each surrogate sees only its own level’s data.</p>
+<p>It is useful as a <strong>baseline</strong> and for workflows where you simply want to query any level at prediction time with a single object.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">MultiFidelitySurrogate</span><span class="p">(</span>
+    <span class="n">surrogate_cls</span><span class="p">,</span>          <span class="c1"># class used to instantiate a surrogate per level</span>
+    <span class="n">fidelity_levels</span><span class="p">,</span>        <span class="c1"># ordered list of level names</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Fit via a dict <code class="docutils literal notranslate"><span class="pre">{level:</span> <span class="pre">(X,</span> <span class="pre">Y)}</span></code>; predict by specifying a <code class="docutils literal notranslate"><span class="pre">level=</span></code> keyword.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>data = {"lo": (X_lo, Y_lo), "hi": (X_hi, Y_hi)}
+
+mfs = MultiFidelitySurrogate(
+    surrogate_cls=RandomForestSurrogate,
+    fidelity_levels=["lo", "hi"],
+)
+mfs.fit(data)
+
+Y_mfs_lo = mfs.predict(X_test, level="lo")
+Y_mfs_hi = mfs.predict(X_test, level="hi")
+
+print("MultiFidelity (RF) — independent surrogates")
+print(f"  Lo-level RMSE vs hi-fi truth:  {rmse(Y_test, Y_mfs_lo).item():.4f}")
+print(f"  Hi-level RMSE vs hi-fi truth:  {rmse(Y_test, Y_mfs_hi).item():.4f}")
+print()
+print("Note: hi-level trained only on 25 points → may overfit or underfit.")
+print("Note: lo-level captures lo-fi trend, not the true hi-fi response.")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+MultiFidelity (RF) — independent surrogates
+  Lo-level RMSE vs hi-fi truth:  0.2237
+  Hi-level RMSE vs hi-fi truth:  0.6372
+
+Note: hi-level trained only on 25 points → may overfit or underfit.
+Note: lo-level captures lo-fi trend, not the true hi-fi response.
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = plt.subplots(1, 2, figsize=(13, 4), sharey=True)
+
+for ax, (level, Y_pred, label) in zip(axes, [
+    ("lo", Y_mfs_lo, "Low-fidelity surrogate"),
+    ("hi", Y_mfs_hi, "High-fidelity surrogate"),
+]):
+    ax.plot(X_test, Y_test, 'k-', lw=2, label='Hi-fi truth', zorder=3)
+    ax.plot(X_test, Y_pred, 'tab:blue', lw=1.8, ls='--', label=f'Prediction ({level})')
+    ax.scatter(X_lo if level == 'lo' else X_hi,
+               Y_lo if level == 'lo' else Y_hi,
+               s=30, c='tab:blue', alpha=0.5, zorder=4)
+    ax.set_xlabel('x'); ax.set_ylabel('Response')
+    ax.set_title(f'{label}  (RMSE={rmse(Y_test, Y_pred).item():.3f})')
+    ax.legend(fontsize=9)
+
+plt.suptitle('MultiFidelitySurrogate — independent per-level RF', y=1.02)
+plt.tight_layout()
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_multi_fidelity_surrogates_7_0.png" src="../_images/tutorials_multi_fidelity_surrogates_7_0.png" />
+</div>
+</div>
+<blockquote>
+<div><p><strong>Takeaway:</strong> The hi-level surrogate trained on only 25 points is noisy. The lo-level is smooth but biased. Neither exploits the complementary information from the other level.</p>
+</div></blockquote>
+<hr class="docutils" />
+<p>## 3. StackedVFMSurrogate — Nonlinear Cross-Fidelity Coupling</p>
+<p><code class="docutils literal notranslate"><span class="pre">StackedVFMSurrogate</span></code> implements the <strong>recursive feature-augmentation</strong> approach from Perdikaris et al. (2017). At each fidelity level <span class="math notranslate nohighlight">\(k &gt; 0\)</span> the input features are <strong>augmented</strong> with all lower-level surrogate predictions before fitting:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\tilde{X}_k = \left[X_k \;\Big|\; f_0(X_k) \;\Big|\; f_1(\tilde{X}_k^{(1)}) \;\Big|\; \cdots \right]\]</div>
+</div>
+<p>This allows the high-fidelity surrogate to learn a <strong>nonlinear correction</strong> over the lower-fidelity predictions.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">StackedVFMSurrogate</span><span class="p">(</span>
+    <span class="n">fidelity_levels</span><span class="p">,</span>        <span class="c1"># ordered list, lowest → highest</span>
+    <span class="n">surrogate_cls</span><span class="p">,</span>          <span class="c1"># one class or list (heterogeneous per level)</span>
+    <span class="n">surrogate_params</span><span class="p">,</span>       <span class="c1"># dict or list of dicts</span>
+    <span class="n">augment_with_std</span><span class="p">,</span>       <span class="c1"># bool — also augment with predicted stds</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Fit via <code class="docutils literal notranslate"><span class="pre">model.fit({&quot;lo&quot;:</span> <span class="pre">(X_lo,</span> <span class="pre">Y_lo),</span> <span class="pre">&quot;hi&quot;:</span> <span class="pre">(X_hi,</span> <span class="pre">Y_hi)})</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Default: Random Forest at every level
+stacked = StackedVFMSurrogate(
+    fidelity_levels=["lo", "hi"],
+)
+stacked.fit(data)
+
+Y_stacked = stacked.predict(X_test)
+
+# Baseline: RF trained on hi-fi only (no cross-fidelity)
+baseline_hi = RandomForestSurrogate()
+baseline_hi.fit(X_hi, Y_hi)
+Y_baseline = baseline_hi.predict(X_test)
+
+print("Feature count after augmentation:")
+for level, n in stacked.augmented_n_features_per_level_.items():
+    print(f"  Level '{level}': {n} features")
+print()
+print(f"Baseline RF (hi only, n=25) RMSE: {rmse(Y_test, Y_baseline).item():.4f}")
+print(f"StackedVFM  (RF/RF)         RMSE: {rmse(Y_test, Y_stacked).item():.4f}")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Feature count after augmentation:
+  Level &#39;lo&#39;: 1 features
+  Level &#39;hi&#39;: 2 features
+
+Baseline RF (hi only, n=25) RMSE: 0.6418
+StackedVFM  (RF/RF)         RMSE: 0.3585
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># You can also predict at any intermediate fidelity level
+Y_at_lo = stacked.predict(X_test, level="lo")
+Y_at_hi = stacked.predict(X_test, level="hi")  # same as default
+
+fig, ax = plt.subplots(figsize=(10, 4))
+ax.plot(X_test, Y_test,     'k-',          lw=2,   label='Hi-fi truth',           zorder=4)
+ax.plot(X_test, Y_baseline, 'tab:red',     lw=1.5, ls=':', label='Baseline RF (hi only)', alpha=0.8)
+ax.plot(X_test, Y_at_lo,    'steelblue',   lw=1.5, ls='--', label='StackedVFM @ lo level')
+ax.plot(X_test, Y_at_hi,    'darkorange',  lw=2,   label='StackedVFM @ hi level (default)')
+ax.scatter(X_hi, Y_hi, s=60, c='k', marker='*', zorder=5, label=f'Hi-fi data (n={N_HI})')
+ax.set_xlabel('x'); ax.set_ylabel('Response')
+ax.set_title('StackedVFMSurrogate vs baseline — multi-level prediction')
+ax.legend(fontsize=9)
+plt.tight_layout()
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_multi_fidelity_surrogates_10_0.png" src="../_images/tutorials_multi_fidelity_surrogates_10_0.png" />
+</div>
+</div>
+<blockquote>
+<div><p><strong>Key insight:</strong> The stacked model’s hi-level prediction inherits the smoothness from the abundant low-fidelity data while correcting the bias using the sparse high-fidelity observations.</p>
+</div></blockquote>
+<hr class="docutils" />
+<p>## 4. Heterogeneous Surrogates and Uncertainty Augmentation</p>
+<p>Pass lists to <code class="docutils literal notranslate"><span class="pre">surrogate_cls</span></code> and <code class="docutils literal notranslate"><span class="pre">surrogate_params</span></code> to use a different model at each level. A common pattern is a fast model at the low level and a GP at the top, but the low-level model matters more than it looks: its predictions become an <strong>input feature</strong> of the level above. A random forest’s piecewise-constant predictions make a jagged feature, which a GP on top then has to fit. Below, the RF → GP stack is compared with a GP at both levels.</p>
+<p>Setting <code class="docutils literal notranslate"><span class="pre">augment_with_std=True</span></code> also passes the <strong>predicted standard deviation</strong> of level <span class="math notranslate nohighlight">\(k\)</span> as an extra feature for level <span class="math notranslate nohighlight">\(k+1\)</span>, allowing the high-fidelity surrogate to downweight regions where the low-fidelity surrogate is uncertain.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># RF (lo) → GP (hi)
+stacked_rf_gp = StackedVFMSurrogate(
+    fidelity_levels=["lo", "hi"],
+    surrogate_cls=[RandomForestSurrogate, GaussianProcessSurrogate],
+    surrogate_params=[{"n_estimators": 100}, {"alpha": 1e-6}],
+)
+stacked_rf_gp.fit(data)
+Y_rf_gp = stacked_rf_gp.predict(X_test)
+
+# RF (lo) → GP (hi) + std augmentation
+stacked_std = StackedVFMSurrogate(
+    fidelity_levels=["lo", "hi"],
+    surrogate_cls=[RandomForestSurrogate, GaussianProcessSurrogate],
+    surrogate_params=[{"n_estimators": 100}, {"alpha": 1e-6}],
+    augment_with_std=True,
+)
+stacked_std.fit(data)
+Y_std_pred, Y_std_unc = stacked_std.predict(X_test, return_std=True)
+
+# GP at both levels
+stacked_gp_gp = StackedVFMSurrogate(
+    fidelity_levels=["lo", "hi"],
+    surrogate_cls=GaussianProcessSurrogate,
+)
+stacked_gp_gp.fit(data)
+Y_gp_gp = stacked_gp_gp.predict(X_test)
+
+print("Augmented features with std augmentation:", stacked_std.augmented_n_features_per_level_)
+print("  (lo: 1 feature, hi: 1 original + 1 lo-pred + 1 lo-std = 3 features)")
+print()
+print(f"RF/RF stacked          RMSE: {rmse(Y_test, Y_stacked).item():.4f}")
+print(f"RF→GP stacked          RMSE: {rmse(Y_test, Y_rf_gp).item():.4f}")
+print(f"RF→GP + std augment    RMSE: {rmse(Y_test, Y_std_pred).item():.4f}")
+print(f"GP→GP stacked          RMSE: {rmse(Y_test, Y_gp_gp).item():.4f}")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Augmented features with std augmentation: {&#39;lo&#39;: 1, &#39;hi&#39;: 3}
+  (lo: 1 feature, hi: 1 original + 1 lo-pred + 1 lo-std = 3 features)
+
+RF/RF stacked          RMSE: 0.3585
+RF→GP stacked          RMSE: 0.6225
+RF→GP + std augment    RMSE: 0.4418
+GP→GP stacked          RMSE: 0.3851
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = plt.subplots(1, 2, figsize=(13, 4))
+
+# Left: predictions
+ax = axes[0]
+ax.plot(X_test, Y_test,      'k-',         lw=2,   label='Hi-fi truth')
+ax.plot(X_test, Y_stacked,   'tab:blue',   lw=1.5, ls='--', label='RF/RF stacked')
+ax.plot(X_test, Y_rf_gp,     'tab:green',  lw=1.8, label='RF→GP stacked')
+ax.plot(X_test, Y_std_pred,  'tab:orange', lw=1.8, ls='-.', label='RF→GP + std aug')
+ax.plot(X_test, Y_gp_gp,     'tab:purple', lw=1.8, ls=':', label='GP→GP stacked')
+ax.scatter(X_hi, Y_hi, s=60, c='k', marker='*', zorder=5)
+ax.set_xlabel('x'); ax.set_ylabel('Response')
+ax.set_title('Heterogeneous surrogate comparison')
+ax.legend(fontsize=9)
+
+# Right: GP predictive uncertainty from the high-level model
+ax = axes[1]
+ax.plot(X_test, Y_test,     'k-', lw=2, label='Hi-fi truth')
+ax.plot(X_test, Y_std_pred, 'tab:orange', lw=2, label='RF→GP prediction')
+ax.fill_between(X_test.ravel(),
+                (Y_std_pred - 2 * Y_std_unc).ravel(),
+                (Y_std_pred + 2 * Y_std_unc).ravel(),
+                alpha=0.25, color='tab:orange', label='±2σ (GP hi-level)')
+ax.scatter(X_hi, Y_hi, s=60, c='k', marker='*', zorder=5)
+ax.set_xlabel('x'); ax.set_ylabel('Response')
+ax.set_title('Predictive uncertainty (return_std=True)')
+ax.legend(fontsize=9)
+
+plt.suptitle('StackedVFMSurrogate: heterogeneous surrogates &amp; uncertainty', y=1.02)
+plt.tight_layout()
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_multi_fidelity_surrogates_13_0.png" src="../_images/tutorials_multi_fidelity_surrogates_13_0.png" />
+</div>
+</div>
+<blockquote>
+<div><p><strong>Note on ``return_std=True``:</strong> Only the intrinsic std of the <strong>highest-level surrogate</strong> is returned. Uncertainty accumulated through lower-level predictions is not analytically propagated (this would require Monte Carlo sampling). In practice this makes the stacked model’s intervals <strong>too narrow</strong> where a lower level is wrong: in the <a class="reference external" href="https://github.com/takotime808/multioutreg/blob/main/examples/mf_surrogates.ipynb">Forrester benchmark</a> only about half of the test points fell inside a
+4-level stack’s nominal 95% band. For calibrated intervals use <code class="docutils literal notranslate"><span class="pre">conformal_predict</span></code> (Section 7).</p>
+</div></blockquote>
+<hr class="docutils" />
+<p>## 5. Three-Level VFM</p>
+<p><code class="docutils literal notranslate"><span class="pre">StackedVFMSurrogate</span></code> generalises naturally to any number of levels. The feature augmentation chain is applied recursively: level 2 sees <code class="docutils literal notranslate"><span class="pre">[X</span> <span class="pre">|</span> <span class="pre">pred_0</span> <span class="pre">|</span> <span class="pre">pred_1]</span></code>, level 3 sees <code class="docutils literal notranslate"><span class="pre">[X</span> <span class="pre">|</span> <span class="pre">pred_0</span> <span class="pre">|</span> <span class="pre">pred_1</span> <span class="pre">|</span> <span class="pre">pred_2]</span></code>, and so on.</p>
+<p>Here we add a <strong>medium-fidelity</strong> tier (e.g. RANS with coarser grid) between the cheap panel method and the expensive high-fidelity CFD. The medium level already contains the oscillating term of the high level (at half its amplitude), so the top level only has to learn a small correction. Two configurations are compared: RF / gradient boosting / GP, and a GP at every level.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def med_fi(x):
+    """Medium-fidelity response — closer to hi-fi than lo-fi, but cheaper."""
+    return lo_fi(x) + 0.12 * x * np.cos(2 * np.pi * x)
+
+N_MED = 60
+X_med = rng.uniform(-2, 2, (N_MED, 1))
+Y_med = med_fi(X_med) + rng.normal(0, 0.03, (N_MED, 1))
+
+data_3 = {
+    "lo":  (X_lo,  Y_lo),
+    "med": (X_med, Y_med),
+    "hi":  (X_hi,  Y_hi),
+}
+
+stacked_3 = StackedVFMSurrogate(
+    fidelity_levels=["lo", "med", "hi"],
+    surrogate_cls=[
+        RandomForestSurrogate,      # lo: fast and plentiful
+        GradientBoostingSurrogate,  # med: moderate cost
+        GaussianProcessSurrogate,   # hi: smooth GP correction
+    ],
+)
+stacked_3.fit(data_3)
+
+Y_3 = stacked_3.predict(X_test)
+
+stacked_3_gp = StackedVFMSurrogate(
+    fidelity_levels=["lo", "med", "hi"],
+    surrogate_cls=GaussianProcessSurrogate,   # GP at every level
+)
+stacked_3_gp.fit(data_3)
+Y_3_gp = stacked_3_gp.predict(X_test)
+
+print("Sample counts:  lo=%d, med=%d, hi=%d" % (N_LO, N_MED, N_HI))
+print("Augmented feature sizes:", stacked_3.augmented_n_features_per_level_)
+print()
+print(f"Baseline RF (hi only)      RMSE: {rmse(Y_test, Y_baseline).item():.4f}")
+print(f"StackedVFM 2-level (RF/RF) RMSE: {rmse(Y_test, Y_stacked).item():.4f}")
+print(f"StackedVFM 3-level RF/GB/GP RMSE: {rmse(Y_test, Y_3).item():.4f}")
+print(f"StackedVFM 3-level GP       RMSE: {rmse(Y_test, Y_3_gp).item():.4f}")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Sample counts:  lo=200, med=60, hi=25
+Augmented feature sizes: {&#39;lo&#39;: 1, &#39;med&#39;: 2, &#39;hi&#39;: 3}
+
+Baseline RF (hi only)      RMSE: 0.6418
+StackedVFM 2-level (RF/RF) RMSE: 0.3585
+StackedVFM 3-level RF/GB/GP RMSE: 0.3984
+StackedVFM 3-level GP       RMSE: 0.0655
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, ax = plt.subplots(figsize=(10, 4))
+
+ax.plot(X_test, Y_test,      'k-',        lw=2.5, label='Hi-fi truth')
+ax.plot(X_test, Y_baseline,  'tab:red',   lw=1.5, ls=':', label='Baseline (hi only)')
+ax.plot(X_test, Y_stacked,   'steelblue', lw=1.8, ls='--', label='2-level VFM (lo+hi)')
+ax.plot(X_test, Y_3,         'darkorange',lw=2,   label='3-level VFM (RF/GB/GP)')
+ax.plot(X_test, Y_3_gp,      'tab:purple',lw=2,   label='3-level VFM (GP at every level)')
+
+ax.scatter(X_hi,  Y_hi,  s=80, c='k',       marker='*', zorder=5, label=f'Hi-fi  (n={N_HI})')
+ax.scatter(X_med, Y_med, s=20, c='orange',   marker='s', alpha=0.5, label=f'Med-fi (n={N_MED})')
+ax.scatter(X_lo,  Y_lo,  s=8,  c='steelblue',alpha=0.3,            label=f'Lo-fi  (n={N_LO})')
+
+ax.set_xlabel('x'); ax.set_ylabel('Response')
+ax.set_title('Three-level VFM: lo + med + hi')
+ax.legend(fontsize=9, ncol=2)
+plt.tight_layout()
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_multi_fidelity_surrogates_16_0.png" src="../_images/tutorials_multi_fidelity_surrogates_16_0.png" />
+</div>
+</div>
+<hr class="docutils" />
+<p>## 6. AdditiveCorrectionVFM — Kennedy-O’Hagan Style</p>
+<p><code class="docutils literal notranslate"><span class="pre">AdditiveCorrectionVFM</span></code> models the high-fidelity response as:</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[f_{hi}(x) = \rho\, f_{lo}(x) + \delta(x)\]</div>
+</div>
+<p>The scale <span class="math notranslate nohighlight">\(\rho\)</span> (one per output) is by default the least-squares slope of <span class="math notranslate nohighlight">\(Y_{hi}\)</span> on <span class="math notranslate nohighlight">\(f_{lo}(X_{hi})\)</span> (<code class="docutils literal notranslate"><span class="pre">rho=&quot;fit&quot;</span></code>); pass a number such as <code class="docutils literal notranslate"><span class="pre">rho=1.0</span></code> to fix it. The correction <span class="math notranslate nohighlight">\(\delta(x)\)</span> is a surrogate trained on <span class="math notranslate nohighlight">\(Y_{hi} - \rho f_{lo}(X_{hi})\)</span>. Where the high-fidelity inputs are also low-fidelity training points, <span class="math notranslate nohighlight">\(f_{lo}\)</span> is evaluated out of fold (<code class="docutils literal notranslate"><span class="pre">oof_cv=5</span></code>), so the correction is not fitted to over-accurate in-sample predictions.</p>
+<p>Uncertainty is combined in <strong>quadrature</strong> (assuming independence):</p>
+<div class="math-wrapper docutils container">
+<div class="math notranslate nohighlight">
+\[\sigma_{hi}(x) = \sqrt{\rho^2 \sigma_{lo}(x)^2 + \sigma_\delta(x)^2}\]</div>
+</div>
+<p>The method <code class="docutils literal notranslate"><span class="pre">predict_components(X)</span></code> returns <code class="docutils literal notranslate"><span class="pre">(ρ</span> <span class="pre">f_lo,</span> <span class="pre">δ)</span></code> separately for diagnostics; the fitted scale is in <code class="docutils literal notranslate"><span class="pre">rho_</span></code>.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">AdditiveCorrectionVFM</span><span class="p">(</span>
+    <span class="n">lo_surrogate_cls</span><span class="p">,</span>       <span class="c1"># default: RandomForestSurrogate</span>
+    <span class="n">hi_surrogate_cls</span><span class="p">,</span>       <span class="c1"># default: GaussianProcessSurrogate (for delta)</span>
+    <span class="n">lo_surrogate_params</span><span class="p">,</span>
+    <span class="n">hi_surrogate_params</span><span class="p">,</span>
+    <span class="n">rho</span><span class="o">=</span><span class="s2">"fit"</span><span class="p">,</span>              <span class="c1"># or a fixed float, e.g. 1.0</span>
+    <span class="n">oof_cv</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Pass <code class="docutils literal notranslate"><span class="pre">data</span> <span class="pre">=</span> <span class="pre">{&quot;lo&quot;:</span> <span class="pre">(X_lo,</span> <span class="pre">Y_lo),</span> <span class="pre">&quot;hi&quot;:</span> <span class="pre">(X_hi,</span> <span class="pre">Y_hi)}</span></code> to <code class="docutils literal notranslate"><span class="pre">fit()</span></code>.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>additive = AdditiveCorrectionVFM(
+    lo_surrogate_cls=RandomForestSurrogate,
+    hi_surrogate_cls=GaussianProcessSurrogate,    # GP is a natural prior for the correction
+    lo_surrogate_params={"n_estimators": 200},
+    hi_surrogate_params={"alpha": 1e-6},
+)
+additive.fit(data)
+
+Y_add, Y_add_std = additive.predict(X_test, return_std=True)
+Y_lo_part, Y_delta_part = additive.predict_components(X_test)
+
+print(f"AdditiveCorrectionVFM RMSE:                 {rmse(Y_test, Y_add).item():.4f}")
+print(f"StackedVFM (RF/RF)    RMSE:                 {rmse(Y_test, Y_stacked).item():.4f}")
+print()
+print(f"Fitted rho_:      {additive.rho_[0]:.4f}")
+print(f"Mean |rho f_lo(x)|: {np.abs(Y_lo_part).mean():.4f}")
+print(f"Mean |delta(x)|:  {np.abs(Y_delta_part).mean():.4f}  (correction magnitude)")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+AdditiveCorrectionVFM RMSE:                 0.2257
+StackedVFM (RF/RF)    RMSE:                 0.3585
+
+Fitted rho_:      1.0332
+Mean |rho f_lo(x)|: 0.7692
+Mean |delta(x)|:  0.1118  (correction magnitude)
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+
+# Panel 1: lo-fi vs corrected vs truth
+ax = axes[0]
+ax.plot(X_test, Y_test,       'k-',        lw=2,   label='Hi-fi truth')
+ax.plot(X_test, Y_lo_part,    'steelblue', lw=1.5, ls='--', label='ρ f_lo(x)')
+ax.plot(X_test, Y_add,        'darkorange',lw=2,   label='ρ f_lo + δ (AdditiveCorrectionVFM)')
+ax.scatter(X_hi, Y_hi, s=60, c='k', marker='*', zorder=5)
+ax.set_xlabel('x'); ax.set_ylabel('Response')
+ax.set_title('Lo-fi vs corrected vs truth')
+ax.legend(fontsize=9)
+
+# Panel 2: the additive correction delta(x)
+ax = axes[1]
+rho = additive.rho_[0]
+true_delta = hi_fi(X_test) - rho * lo_fi(X_test)
+ax.plot(X_test, true_delta,    'k-',        lw=2,   label=f'Target δ = hi − {rho:.2f}·lo')
+ax.plot(X_test, Y_delta_part,  'tab:green', lw=2,   ls='--', label='Learned δ(x) (GP)')
+ax.axhline(0, c='gray', lw=0.8, ls=':')
+ax.scatter(X_hi, hi_fi(X_hi) - rho * lo_fi(X_hi), s=50, c='tab:green', marker='o', zorder=4)
+ax.set_xlabel('x'); ax.set_ylabel('δ(x)')
+ax.set_title('Correction  δ = Y_hi − ρ f_lo(X_hi)')
+ax.legend(fontsize=9)
+
+# Panel 3: combined uncertainty
+ax = axes[2]
+ax.plot(X_test, Y_test, 'k-', lw=2, label='Hi-fi truth')
+ax.plot(X_test, Y_add,  'darkorange', lw=2, label='Prediction')
+ax.fill_between(X_test.ravel(),
+                (Y_add - 2 * Y_add_std).ravel(),
+                (Y_add + 2 * Y_add_std).ravel(),
+                alpha=0.25, color='darkorange', label='±2σ (quadrature)')
+ax.scatter(X_hi, Y_hi, s=60, c='k', marker='*', zorder=5)
+ax.set_xlabel('x'); ax.set_ylabel('Response')
+ax.set_title('Uncertainty: σ_hi = √(ρ²σ_lo² + σ_δ²)')
+ax.legend(fontsize=9)
+
+plt.suptitle('AdditiveCorrectionVFM components', y=1.02)
+plt.tight_layout()
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_multi_fidelity_surrogates_19_0.png" src="../_images/tutorials_multi_fidelity_surrogates_19_0.png" />
+</div>
+</div>
+<blockquote>
+<div><p><strong>When to use ``AdditiveCorrectionVFM``:</strong> When the high level is close to a constant multiple of the low level plus a smooth correction, and you want a simple, interpretable decomposition with <code class="docutils literal notranslate"><span class="pre">predict_components</span></code>. <code class="docutils literal notranslate"><span class="pre">StackedVFMSurrogate</span></code> can capture more complex (input-dependent, regional) gaps.</p>
+<p><strong>Check the fitted ``rho_``.</strong> The least-squares slope is biased when the correction is itself correlated with <span class="math notranslate nohighlight">\(f_{lo}\)</span>. Here it is close to 1 and harmless, but on the <a class="reference external" href="https://github.com/takotime808/multioutreg/blob/main/examples/mf_surrogates.ipynb">Forrester benchmark</a> it fitted 0.44 where 2 was right, and <code class="docutils literal notranslate"><span class="pre">rho=1.0</span></code> predicted better. If <code class="docutils literal notranslate"><span class="pre">rho_</span></code> looks implausible, compare against a fixed <code class="docutils literal notranslate"><span class="pre">rho</span></code>.</p>
+</div></blockquote>
+<hr class="docutils" />
+<p>## 7. Conformal Prediction Intervals</p>
+<p>Both <code class="docutils literal notranslate"><span class="pre">StackedVFMSurrogate</span></code> and <code class="docutils literal notranslate"><span class="pre">AdditiveCorrectionVFM</span></code> inherit <code class="docutils literal notranslate"><span class="pre">ConformalMixin</span></code>. The conformal workflow:</p>
+<ol class="arabic simple">
+<li><p><strong>Fit</strong> the model on training data.</p></li>
+<li><p><strong>Calibrate</strong> on a held-out set: <code class="docutils literal notranslate"><span class="pre">model.wrap_conformal(X_cal,</span> <span class="pre">y_cal)</span></code>.</p></li>
+<li><p><strong>Predict</strong> intervals: <code class="docutils literal notranslate"><span class="pre">y_lo,</span> <span class="pre">y_hi</span> <span class="pre">=</span> <span class="pre">model.conformal_predict(X_test,</span> <span class="pre">alpha=0.1)</span></code>.</p></li>
+</ol>
+<p>This produces <strong>distribution-free</strong> intervals with marginal <span class="math notranslate nohighlight">\((1 - \alpha)\)</span> coverage, regardless of model mis-specification.</p>
+<p><strong>Calibration size.</strong> Split conformal needs at least <span class="math notranslate nohighlight">\(\lceil (1-\alpha)(n+1) \rceil \le n\)</span> calibration points, i.e. <span class="math notranslate nohighlight">\(n \ge 1/\alpha - 1\)</span>. For 90% intervals that is 9 points; with fewer, the interval is infinite. Below, 10 of the 25 high-fidelity points are held out.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Split hi-fi data into train and calibration
+idx = rng.permutation(N_HI)
+n_cal = 10
+X_hi_tr, Y_hi_tr = X_hi[idx[n_cal:]], Y_hi[idx[n_cal:]]
+X_hi_cal, Y_hi_cal = X_hi[idx[:n_cal]], Y_hi[idx[:n_cal]]
+
+data_cp = {"lo": (X_lo, Y_lo), "hi": (X_hi_tr, Y_hi_tr)}
+
+# Fit and calibrate StackedVFM
+cp_stacked = StackedVFMSurrogate(
+    fidelity_levels=["lo", "hi"],
+    surrogate_cls=[RandomForestSurrogate, GaussianProcessSurrogate],
+)
+cp_stacked.fit(data_cp)
+cp_stacked.wrap_conformal(X_hi_cal, Y_hi_cal)
+
+# Conformal intervals at 90% target coverage
+Y_lower, Y_upper = cp_stacked.conformal_predict(X_test, alpha=0.1)
+Y_cp_pred = cp_stacked.predict(X_test)
+
+coverage = np.mean((Y_test &gt;= Y_lower) &amp; (Y_test &lt;= Y_upper))
+mean_width = (Y_upper - Y_lower).mean()
+
+print(f"Target coverage: 90%   Achieved: {coverage:.1%}")
+print(f"Mean interval width: {mean_width:.4f}")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Target coverage: 90%   Achieved: 68.3%
+Mean interval width: 0.3413
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Also calibrate the additive model
+cp_add = AdditiveCorrectionVFM(
+    lo_surrogate_cls=RandomForestSurrogate,
+    hi_surrogate_cls=GaussianProcessSurrogate,
+    hi_surrogate_params={"alpha": 1e-6},
+)
+cp_add.fit(data_cp)
+cp_add.wrap_conformal(X_hi_cal, Y_hi_cal)
+Y_lower_add, Y_upper_add = cp_add.conformal_predict(X_test, alpha=0.1)
+Y_cp_add_pred = cp_add.predict(X_test)
+
+coverage_add = np.mean((Y_test &gt;= Y_lower_add) &amp; (Y_test &lt;= Y_upper_add))
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 4))
+
+for ax, (pred, lo, hi, title, col, cov) in zip(axes, [
+    (Y_cp_pred,     Y_lower,     Y_upper,     'StackedVFM (RF→GP)',        'steelblue',  coverage),
+    (Y_cp_add_pred, Y_lower_add, Y_upper_add, 'AdditiveCorrectionVFM',     'darkorange', coverage_add),
+]):
+    order = np.argsort(Y_test.ravel())
+    xs = np.arange(len(order))
+    ax.fill_between(xs, lo[order, 0], hi[order, 0], alpha=0.3, color=col, label='90% interval')
+    ax.plot(xs, pred[order, 0], lw=1.5, color=col, label='Prediction')
+    ax.scatter(xs, Y_test[order, 0], s=6, c='k', alpha=0.4, label='Truth', zorder=3)
+    uncovered = (Y_test[order, 0] &lt; lo[order, 0]) | (Y_test[order, 0] &gt; hi[order, 0])
+    if uncovered.any():
+        ax.scatter(xs[uncovered], Y_test[order, 0][uncovered], s=25, c='red', zorder=4, label='Uncovered')
+    ax.set_title(f'{title}  (coverage={cov:.1%}, target=90%)')
+    ax.set_xlabel('Sample index (sorted by truth)')
+    ax.legend(fontsize=9, loc='upper left')
+
+plt.suptitle('Conformal prediction intervals (α=0.10)', y=1.02)
+plt.tight_layout()
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_multi_fidelity_surrogates_22_0.png" src="../_images/tutorials_multi_fidelity_surrogates_22_0.png" />
+</div>
+</div>
+<blockquote>
+<div><p><strong>Coverage guarantee:</strong> The guarantee is <em>on average</em> over the draw of the calibration set and test point, assuming they are exchangeable with the training data; it does not require a correct model. With only 10 calibration points the coverage of any one calibration set varies a lot, so the single run above can land well away from the target. The cell below repeats the split 30 times.</p>
+<p><strong>Exchangeability is the catch.</strong> The guarantee holds for test points drawn the same way as the calibration points. Here the calibration points are taken from the 25 high-fidelity points, which happen to leave a large gap in <span class="math notranslate nohighlight">\(x\)</span>, while the test grid covers the gap evenly. The intervals are sized by errors near the data and are too narrow in the gap, so coverage on the whole grid falls short of 90% while coverage outside the gap is close to it. A space-filling high-fidelity design
+(Sobol, LHS) avoids the gap; when predictions are needed far from the data, treat any interval there with suspicion.</p>
+</div></blockquote>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Repeat the train / calibration split to see the spread of realised coverage.
+# The 25 high-fidelity points leave one large gap in x; coverage is reported
+# inside and outside it.
+xs = np.sort(X_hi.ravel())
+k = np.argmax(np.diff(xs))
+gap_lo, gap_hi = xs[k], xs[k + 1]
+in_gap = ((X_test &gt; gap_lo) &amp; (X_test &lt; gap_hi)).ravel()
+
+cov_all, cov_in, cov_out = [], [], []
+for seed in range(30):
+    perm = np.random.default_rng(seed).permutation(N_HI)
+    cal, tr = perm[:n_cal], perm[n_cal:]
+    m = StackedVFMSurrogate(
+        fidelity_levels=["lo", "hi"],
+        surrogate_cls=[RandomForestSurrogate, GaussianProcessSurrogate],
+    )
+    m.fit({"lo": (X_lo, Y_lo), "hi": (X_hi[tr], Y_hi[tr])})
+    m.wrap_conformal(X_hi[cal], Y_hi[cal])
+    lo_s, hi_s = m.conformal_predict(X_test, alpha=0.1)
+    inside = ((Y_test &gt;= lo_s) &amp; (Y_test &lt;= hi_s)).ravel()
+    cov_all.append(inside.mean())
+    cov_in.append(inside[in_gap].mean())
+    cov_out.append(inside[~in_gap].mean())
+
+print(f"Largest gap between high-fidelity points: x in ({gap_lo:.2f}, {gap_hi:.2f})")
+print(f"Mean coverage over 30 splits, whole grid:     {np.mean(cov_all):.1%}  (target 90%)")
+print(f"Mean coverage outside the gap:                {np.mean(cov_out):.1%}")
+print(f"Mean coverage inside the gap:                 {np.mean(cov_in):.1%}")
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 3.2))
+ax = axes[0]
+ax.hist(cov_all, bins=np.linspace(0.3, 1.0, 15), color="steelblue", edgecolor="white")
+ax.axvline(0.9, color="k", ls="--", label="target 90%")
+ax.axvline(np.mean(cov_all), color="darkorange", lw=2, label=f"mean {np.mean(cov_all):.0%}")
+ax.set_xlabel("Realised coverage on the whole test grid")
+ax.set_ylabel("Splits")
+ax.set_title("30 random train / calibration splits")
+ax.legend(fontsize=9)
+
+ax = axes[1]
+ax.axvspan(gap_lo, gap_hi, color="0.9", label="gap in high-fidelity data")
+ax.plot(X_test, Y_test, color="0.6", lw=5, zorder=1, label="Hi-fi truth")
+ax.fill_between(X_test.ravel(), lo_s.ravel(), hi_s.ravel(), color="steelblue", alpha=0.3, label="90% interval (last split)")
+ax.scatter(X_hi, Y_hi, s=40, c="k", zorder=4, label="Hi-fi data")
+ax.set_xlabel("x"); ax.set_ylabel("Response")
+ax.set_title("Where the intervals miss")
+ax.legend(fontsize=8, loc="upper left")
+plt.tight_layout()
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Largest gap between high-fidelity points: x in (-1.04, 0.42)
+Mean coverage over 30 splits, whole grid:     67.7%  (target 90%)
+Mean coverage outside the gap:                92.4%
+Mean coverage inside the gap:                 24.5%
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_multi_fidelity_surrogates_24_1.png" src="../_images/tutorials_multi_fidelity_surrogates_24_1.png" />
+</div>
+</div>
+<hr class="docutils" />
+<p>## 8. Multi-Output Example</p>
+<p>All three classes natively handle multi-output responses. Pass <code class="docutils literal notranslate"><span class="pre">Y</span></code> arrays with shape <code class="docutils literal notranslate"><span class="pre">(n_samples,</span> <span class="pre">n_outputs)</span></code> — both fidelity levels must share the same output dimensionality for <code class="docutils literal notranslate"><span class="pre">AdditiveCorrectionVFM</span></code>, while <code class="docutils literal notranslate"><span class="pre">StackedVFMSurrogate</span></code> can handle mismatched dimensions via the <code class="docutils literal notranslate"><span class="pre">output_dim_mismatch</span></code> parameter.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Multi-output: drag coefficient AND lift coefficient
+def lo_fi_mo(X):
+    x1, x2 = X[:, 0], X[:, 1]
+    cd = np.sin(np.pi * x1) + 0.3 * x1**2                     # drag
+    cl = np.cos(np.pi * x2) + 0.2 * x1 * x2                   # lift
+    return np.column_stack([cd, cl])
+
+def hi_fi_mo(X):
+    Y_lo = lo_fi_mo(X)
+    x1, x2 = X[:, 0], X[:, 1]
+    delta_cd = 0.25 * x1 * np.cos(2 * np.pi * x1) - 0.15 * np.exp(-4 * x1**2)
+    delta_cl = 0.15 * np.sin(3 * np.pi * x2) * x1
+    return Y_lo + np.column_stack([delta_cd, delta_cl])
+
+X_lo_mo = rng.uniform(-1, 1, (150, 2))
+Y_lo_mo = lo_fi_mo(X_lo_mo) + rng.normal(0, 0.04, (150, 2))
+
+X_hi_mo = rng.uniform(-1, 1, (30, 2))
+Y_hi_mo = hi_fi_mo(X_hi_mo) + rng.normal(0, 0.02, (30, 2))
+
+X_test_mo = rng.uniform(-1, 1, (400, 2))
+Y_test_mo = hi_fi_mo(X_test_mo)
+
+print(f"Multi-output problem: {Y_hi_mo.shape[1]} outputs (drag, lift)")
+print(f"Lo-fi: {X_lo_mo.shape}, Hi-fi: {X_hi_mo.shape}")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Multi-output problem: 2 outputs (drag, lift)
+Lo-fi: (150, 2), Hi-fi: (30, 2)
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>data_mo = {"lo": (X_lo_mo, Y_lo_mo), "hi": (X_hi_mo, Y_hi_mo)}
+
+# StackedVFM with RF at both levels
+stacked_mo = StackedVFMSurrogate(
+    fidelity_levels=["lo", "hi"],
+    surrogate_cls=[RandomForestSurrogate, GaussianProcessSurrogate],
+    surrogate_params=[{}, {"alpha": 1e-4}],
+)
+stacked_mo.fit(data_mo)
+Y_stacked_mo = stacked_mo.predict(X_test_mo)
+
+# AdditiveCorrectionVFM
+additive_mo = AdditiveCorrectionVFM(
+    lo_surrogate_cls=RandomForestSurrogate,
+    hi_surrogate_cls=GaussianProcessSurrogate,
+    hi_surrogate_params={"alpha": 1e-4},
+)
+additive_mo.fit(data_mo)
+Y_add_mo = additive_mo.predict(X_test_mo)
+
+# Baseline: RF on hi only
+baseline_mo = RandomForestSurrogate()
+baseline_mo.fit(X_hi_mo, Y_hi_mo)
+Y_base_mo = baseline_mo.predict(X_test_mo)
+
+output_names = ["Drag (cd)", "Lift (cl)"]
+print(f"{'Model':&lt;35} {'RMSE cd':&gt;10} {'RMSE cl':&gt;10}")
+print("-" * 57)
+for label, preds in [
+    ("Baseline RF (hi only)",          Y_base_mo),
+    ("StackedVFM (RF→GP)",             Y_stacked_mo),
+    ("AdditiveCorrectionVFM (RF+GP)",  Y_add_mo),
+]:
+    r = rmse(Y_test_mo, preds)
+    print(f"{label:&lt;35} {r[0]:&gt;10.4f} {r[1]:&gt;10.4f}")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+Model                                  RMSE cd    RMSE cl
+---------------------------------------------------------
+Baseline RF (hi only)                   0.0677     0.1677
+StackedVFM (RF→GP)                      0.0497     0.0727
+AdditiveCorrectionVFM (RF+GP)           0.1185     0.0775
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = plt.subplots(2, 3, figsize=(14, 8))
+
+models = [
+    ("Baseline RF (hi only)",         Y_base_mo),
+    ("StackedVFM (RF→GP)",            Y_stacked_mo),
+    ("AdditiveCorrectionVFM",         Y_add_mo),
+]
+
+for row, out_idx in enumerate([0, 1]):
+    for col, (model_name, Y_pred) in enumerate(models):
+        ax = axes[row, col]
+        r = rmse(Y_test_mo, Y_pred)[out_idx]
+        ax.scatter(Y_test_mo[:, out_idx], Y_pred[:, out_idx],
+                   s=12, alpha=0.4, c='steelblue' if row == 0 else 'darkorange')
+        lims = [Y_test_mo[:, out_idx].min(), Y_test_mo[:, out_idx].max()]
+        ax.plot(lims, lims, 'k--', lw=1)
+        ax.set_xlabel(f'True {output_names[out_idx]}')
+        ax.set_ylabel(f'Predicted')
+        ax.set_title(f'{model_name}\n{output_names[out_idx]}  RMSE={r:.3f}')
+
+plt.suptitle('Multi-output: predicted vs true (parity plots)', y=1.01, fontsize=13)
+plt.tight_layout()
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_multi_fidelity_surrogates_28_0.png" src="../_images/tutorials_multi_fidelity_surrogates_28_0.png" />
+</div>
+</div>
+<hr class="docutils" />
+<p>## 9. Model Comparison</p>
+<p>Summary of all models evaluated in this tutorial on the 1D benchmark.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import pandas as pd
+
+results_1d = [
+    ("MultiFidelity (lo-level, RF)",        rmse(Y_test, Y_mfs_lo).item()),
+    ("MultiFidelity (hi-level, RF)",        rmse(Y_test, Y_mfs_hi).item()),
+    ("Baseline RF (hi only)",               rmse(Y_test, Y_baseline).item()),
+    ("StackedVFM (RF/RF)",                  rmse(Y_test, Y_stacked).item()),
+    ("StackedVFM (RF→GP)",                  rmse(Y_test, Y_rf_gp).item()),
+    ("StackedVFM (RF→GP + std aug)",        rmse(Y_test, Y_std_pred).item()),
+    ("StackedVFM (GP→GP)",                  rmse(Y_test, Y_gp_gp).item()),
+    ("StackedVFM 3-level (GP at every level)", rmse(Y_test, Y_3_gp).item()),
+    ("StackedVFM 3-level (RF/GB/GP)",       rmse(Y_test, Y_3).item()),
+    ("AdditiveCorrectionVFM (RF+GP)",       rmse(Y_test, Y_add).item()),
+]
+
+df = pd.DataFrame(results_1d, columns=["Model", "RMSE"])
+df = df.sort_values("RMSE").reset_index(drop=True)
+df["RMSE"] = df["RMSE"].round(4)
+df
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[20]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Model</th>
+      <th>RMSE</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>StackedVFM 3-level (GP at every level)</td>
+      <td>0.0655</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>MultiFidelity (lo-level, RF)</td>
+      <td>0.2237</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>AdditiveCorrectionVFM (RF+GP)</td>
+      <td>0.2257</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>StackedVFM (RF/RF)</td>
+      <td>0.3585</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>StackedVFM (GP→GP)</td>
+      <td>0.3851</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>StackedVFM 3-level (RF/GB/GP)</td>
+      <td>0.3984</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>StackedVFM (RF→GP + std aug)</td>
+      <td>0.4418</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>StackedVFM (RF→GP)</td>
+      <td>0.6225</td>
+    </tr>
+    <tr>
+      <th>8</th>
+      <td>MultiFidelity (hi-level, RF)</td>
+      <td>0.6372</td>
+    </tr>
+    <tr>
+      <th>9</th>
+      <td>Baseline RF (hi only)</td>
+      <td>0.6418</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[21]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, ax = plt.subplots(figsize=(10, 4))
+
+colors = ['tab:blue' if 'Multi' in m else
+          'tab:red'  if 'Baseline' in m else
+          'darkorange' if 'Additive' in m else
+          'steelblue'
+          for m in df["Model"]]
+
+bars = ax.barh(df["Model"], df["RMSE"], color=colors, edgecolor='k', lw=0.5)
+ax.bar_label(bars, fmt='%.4f', padding=3, fontsize=9)
+ax.set_xlabel('RMSE (lower is better)', fontsize=12)
+ax.set_title('Multi-fidelity surrogate comparison — 1D benchmark', fontsize=13)
+ax.invert_yaxis()
+
+from matplotlib.patches import Patch
+legend_elements = [
+    Patch(facecolor='tab:blue',   label='MultiFidelitySurrogate (independent)'),
+    Patch(facecolor='tab:red',    label='Baseline (hi-fi only)'),
+    Patch(facecolor='steelblue',  label='StackedVFMSurrogate'),
+    Patch(facecolor='darkorange', label='AdditiveCorrectionVFM'),
+]
+ax.legend(handles=legend_elements, fontsize=9, loc='lower right')
+plt.tight_layout()
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_multi_fidelity_surrogates_31_0.png" src="../_images/tutorials_multi_fidelity_surrogates_31_0.png" />
+</div>
+</div>
+<hr class="docutils" />
+<p>## 10. When to Use Which Class</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Situation</p></th>
+<th class="head"><p>Recommended class</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>You want to query any level independently, with no cross-fidelity learning</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MultiFidelitySurrogate</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>The fidelity gap is <strong>nonlinear</strong> or involves regional differences</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">StackedVFMSurrogate</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>You have <strong>3 or more</strong> fidelity levels</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">StackedVFMSurrogate</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Different regions need different surrogate families</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">StackedVFMSurrogate</span></code> with list <code class="docutils literal notranslate"><span class="pre">surrogate_cls</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>The high level is roughly a <strong>constant multiple</strong> of the low level plus a smooth shift</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AdditiveCorrectionVFM</span></code> (check <code class="docutils literal notranslate"><span class="pre">rho_</span></code>)</p></td>
+</tr>
+<tr class="row-odd"><td><p>You want a simple <strong>diagnostic decomposition</strong> <code class="docutils literal notranslate"><span class="pre">ρ</span> <span class="pre">f_lo</span> <span class="pre">+</span> <span class="pre">δ</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">AdditiveCorrectionVFM</span></code> (use <code class="docutils literal notranslate"><span class="pre">predict_components</span></code>)</p></td>
+</tr>
+<tr class="row-even"><td><p>You need <strong>calibrated prediction intervals</strong></p></td>
+<td><p>Any class — call <code class="docutils literal notranslate"><span class="pre">wrap_conformal</span></code> + <code class="docutils literal notranslate"><span class="pre">conformal_predict</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>High-fidelity data is very scarce (&lt; 10 points)</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">StackedVFMSurrogate</span></code> with a GP at every level (see below)</p></td>
+</tr>
+<tr class="row-even"><td><p>Inputs are low-dimensional and the response is smooth</p></td>
+<td><p>A GP at every level, rather than random forests at the lower levels</p></td>
+</tr>
+<tr class="row-odd"><td><p>Output space is multi-output</p></td>
+<td><p>All three classes handle this natively</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="Parameter-cheat-sheet">
+<h3>Parameter cheat-sheet<a class="headerlink" href="#Parameter-cheat-sheet" title="Link to this heading">¶</a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># MultiFidelitySurrogate</span>
+<span class="n">MultiFidelitySurrogate</span><span class="p">(</span><span class="n">surrogate_cls</span><span class="o">=</span><span class="n">RandomForestSurrogate</span><span class="p">,</span> <span class="n">fidelity_levels</span><span class="o">=</span><span class="p">[</span><span class="s2">"lo"</span><span class="p">,</span> <span class="s2">"hi"</span><span class="p">])</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">({</span><span class="s2">"lo"</span><span class="p">:</span> <span class="p">(</span><span class="n">X_lo</span><span class="p">,</span> <span class="n">Y_lo</span><span class="p">),</span> <span class="s2">"hi"</span><span class="p">:</span> <span class="p">(</span><span class="n">X_hi</span><span class="p">,</span> <span class="n">Y_hi</span><span class="p">)})</span>
+<span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">"hi"</span><span class="p">)</span>          <span class="c1"># specify which level</span>
+
+<span class="c1"># StackedVFMSurrogate</span>
+<span class="n">StackedVFMSurrogate</span><span class="p">(</span>
+    <span class="n">fidelity_levels</span><span class="o">=</span><span class="p">[</span><span class="s2">"lo"</span><span class="p">,</span> <span class="s2">"med"</span><span class="p">,</span> <span class="s2">"hi"</span><span class="p">],</span>   <span class="c1"># ordered lowest → highest</span>
+    <span class="n">surrogate_cls</span><span class="o">=</span><span class="p">[</span><span class="n">RF</span><span class="p">,</span> <span class="n">GB</span><span class="p">,</span> <span class="n">GP</span><span class="p">],</span>            <span class="c1"># one class or a list</span>
+    <span class="n">surrogate_params</span><span class="o">=</span><span class="p">[{},</span> <span class="p">{},</span> <span class="p">{</span><span class="s2">"alpha"</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">}],</span>
+    <span class="n">augment_with_std</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>                 <span class="c1"># pass predicted stds as features</span>
+<span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">({</span><span class="s2">"lo"</span><span class="p">:</span> <span class="p">(</span><span class="n">X_lo</span><span class="p">,</span> <span class="n">Y_lo</span><span class="p">),</span> <span class="s2">"med"</span><span class="p">:</span> <span class="p">(</span><span class="n">X_med</span><span class="p">,</span> <span class="n">Y_med</span><span class="p">),</span> <span class="s2">"hi"</span><span class="p">:</span> <span class="p">(</span><span class="n">X_hi</span><span class="p">,</span> <span class="n">Y_hi</span><span class="p">)})</span>
+<span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>                      <span class="c1"># defaults to highest level</span>
+<span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="s2">"med"</span><span class="p">)</span>        <span class="c1"># or specify intermediate level</span>
+<span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">return_std</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>    <span class="c1"># std from hi-level surrogate</span>
+
+<span class="c1"># AdditiveCorrectionVFM</span>
+<span class="n">AdditiveCorrectionVFM</span><span class="p">(</span>
+    <span class="n">lo_surrogate_cls</span><span class="o">=</span><span class="n">RandomForestSurrogate</span><span class="p">,</span>
+    <span class="n">hi_surrogate_cls</span><span class="o">=</span><span class="n">GaussianProcessSurrogate</span><span class="p">,</span>  <span class="c1"># models the correction delta</span>
+    <span class="n">rho</span><span class="o">=</span><span class="s2">"fit"</span><span class="p">,</span>                                  <span class="c1"># or a fixed float</span>
+<span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">({</span><span class="s2">"lo"</span><span class="p">:</span> <span class="p">(</span><span class="n">X_lo</span><span class="p">,</span> <span class="n">Y_lo</span><span class="p">),</span> <span class="s2">"hi"</span><span class="p">:</span> <span class="p">(</span><span class="n">X_hi</span><span class="p">,</span> <span class="n">Y_hi</span><span class="p">)})</span>
+<span class="n">y_pred</span><span class="p">,</span> <span class="n">y_std</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">return_std</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># quadrature uncertainty</span>
+<span class="n">rho_f_lo</span><span class="p">,</span> <span class="n">delta</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">predict_components</span><span class="p">(</span><span class="n">X_test</span><span class="p">)</span>       <span class="c1"># rho * f_lo and delta</span>
+
+<span class="c1"># Conformal intervals (any multi-fidelity class)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">data_train</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">wrap_conformal</span><span class="p">(</span><span class="n">X_cal</span><span class="p">,</span> <span class="n">y_cal</span><span class="p">)</span>         <span class="c1"># calibrate on held-out hi-fi points</span>
+<span class="n">y_lower</span><span class="p">,</span> <span class="n">y_upper</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">conformal_predict</span><span class="p">(</span><span class="n">X_test</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>  <span class="c1"># 90% coverage</span>
+</pre></div>
+</div>
+<hr class="docutils" />
+<p>## 11. What the Benchmarks Show</p>
+<p>This tutorial’s data is a single made-up problem. The <a class="reference external" href="https://github.com/takotime808/multioutreg/blob/main/examples/mf_surrogates.ipynb">multi-fidelity benchmark notebook</a> repeats the comparison on the 4-level Forrester problem of Mainini et al. (2022), with the true function known everywhere and the high-fidelity budget swept from 4 to 25 points over 10 seeds. Its findings:</p>
+<ul class="simple">
+<li><p><strong>Stacking with a GP at every level was the most accurate</strong> from about 6 high-fidelity points on, far ahead of a single-fidelity GP on the same points. The 4-level stack helped most at the smallest budgets.</p></li>
+<li><p><strong>Random forests at the lower levels levelled off</strong> at a much higher error than GPs at the lower levels on that smooth one-dimensional problem.</p></li>
+<li><p><strong>The fitted ``rho`` of ``AdditiveCorrectionVFM`` was biased</strong> (0.44 where 2 makes the correction linear), and <code class="docutils literal notranslate"><span class="pre">rho=1.0</span></code> beat it up to 18 high-fidelity points.</p></li>
+<li><p><strong>The stacked model’s ``return_std`` was too narrow</strong>: about half of the test points fell inside a nominal 95% band. Use conformal intervals when coverage matters.</p></li>
+<li><p><strong>With enough high-fidelity points (about 18–25) a single-fidelity GP caught up</strong>, and the extra levels stopped paying off.</p></li>
+</ul>
+<p>These are results on one benchmark; check them on your own data with cross-validation before relying on them.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[22]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Quick sanity check: all key APIs work end-to-end
+print("=== API smoke test ===")
+
+# MultiFidelitySurrogate
+m = MultiFidelitySurrogate(RandomForestSurrogate, ["lo", "hi"])
+m.fit(data)
+assert m.predict(X_test[:5], level="hi").shape == (5, 1)
+print("MultiFidelitySurrogate          OK")
+
+# StackedVFMSurrogate
+s = StackedVFMSurrogate(fidelity_levels=["lo", "hi"])
+s.fit(data)
+y, std = s.predict(X_test[:5], return_std=True)
+assert y.shape == (5, 1)
+s.wrap_conformal(X_hi[:5], Y_hi[:5])
+lo_cp, hi_cp = s.conformal_predict(X_test[:5], alpha=0.1)
+assert (hi_cp &gt;= lo_cp).all()
+print("StackedVFMSurrogate             OK")
+
+# AdditiveCorrectionVFM
+a = AdditiveCorrectionVFM()
+a.fit(data)
+y_add, std_add = a.predict(X_test[:5], return_std=True)
+f_lo, delta = a.predict_components(X_test[:5])
+assert np.allclose(y_add, f_lo + delta)
+a.wrap_conformal(X_hi[:5], Y_hi[:5])
+lo_cp2, hi_cp2 = a.conformal_predict(X_test[:5], alpha=0.1)
+assert (hi_cp2 &gt;= lo_cp2).all()
+print("AdditiveCorrectionVFM           OK")
+
+print("\nAll assertions passed.")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+=== API smoke test ===
+MultiFidelitySurrogate          OK
+StackedVFMSurrogate             OK
+AdditiveCorrectionVFM           OK
+
+All assertions passed.
+</pre></div></div>
+</div>
+</section>
+</section>
+<hr class="docutils" />
+<section id="References">
+<h2>References<a class="headerlink" href="#References" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Perdikaris, P., Raissi, M., Damianou, A., Lawrence, N. D., &amp; Karniadakis, G. E. (2017). <strong>Nonlinear information fusion algorithms for data-efficient multi-fidelity modelling.</strong> <em>Proceedings of the Royal Society A</em>, 473(2198).</p></li>
+<li><p>Kennedy, M. C., &amp; O’Hagan, A. (2000). <strong>Predicting the output from a complex computer code when fast approximations are available.</strong> <em>Biometrika</em>, 87(1), 1–13.</p></li>
+<li><p>Angelopoulos, A. N., &amp; Bates, S. (2021). <strong>A gentle introduction to conformal prediction and distribution-free uncertainty quantification.</strong> arXiv:2107.07511.</p></li>
+</ul>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+<div class="related-pages">
+  <a class="next-page" href="active_learning_benchmarks.html">
+      <div class="page-info">
+        <div class="context">
+          <span>Next</span>
+        </div>
+        <div class="title">Active Learning on Benchmark Functions</div>
+      </div>
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+    </a>
+  <a class="prev-page" href="joint_scores.html">
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+      <div class="page-info">
+        <div class="context">
+          <span>Previous</span>
+        </div>
+        
+        <div class="title">Scoring Joint Predictions: Energy and Variogram Scores</div>
+        
+      </div>
+    </a>
+</div>
+<div class="bottom-of-page">
+  <div class="left-details">
+    <div class="copyright">
+        Copyright &#169; 2025, takotime808
+    </div>
+  </div>
+  <div class="right-details">
+    <div class="icons">
+      <a class="muted-link " href="https://github.com/takotime808/multioutreg" aria-label="GitHub"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a>
+      
+    </div>
+  </div>
+</div>
+
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Multi-Fidelity Surrogate Modeling</a><ul>
+<li><a class="reference internal" href="#Contents">Contents</a><ul>
+<li><a class="reference internal" href="#Parameter-cheat-sheet">Parameter cheat-sheet</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#References">References</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>

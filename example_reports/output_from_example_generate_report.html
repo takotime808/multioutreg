@@ -1,0 +1,78 @@
+<!-- # Copyright (c) 2025 takotime808 -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Multi-Fidelity Multi-Output Surrogate Modeling Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        table { border-collapse: collapse; margin-bottom: 2em; }
+        th, td { padding: 6px 12px; border: 1px solid #999; text-align: right; }
+        th { background-color: #f0f0f0; }
+        img { max-width: 100%; height: auto; margin-bottom: 2em; }
+    </style>
+</head>
+<body>
+<h1>Multi-Fidelity Multi-Output Surrogate Modeling with UQ</h1>
+<p>This report summarizes model performance and uncertainty metrics computed
+with <code>multioutreg</code>. Plots below illustrate predictions, residuals and
+uncertainty calibration.</p>
+<h2>Overall Metrics</h2>
+<ul>
+    <li>RMSE: 0.462</li>
+    <li>MAE: 0.336</li>
+    <li>NLL: 1339.617</li>
+    <li>Miscalibration Area: 0.491</li>
+</ul>
+<h2>Per Output Metrics</h2>
+<table>
+    <thead>
+        <tr>
+            <th>Output</th>
+            <th>RMSE</th>
+            <th>MAE</th>
+            <th>NLL</th>
+            <th>Miscal. Area</th>
+        </tr>
+    </thead>
+    <tbody>
+    
+        <tr>
+            <td>0</td>
+            <td>0.367</td>
+            <td>0.297</td>
+            <td>925.544</td>
+            <td>0.486</td>
+        </tr>
+    
+        <tr>
+            <td>1</td>
+            <td>0.569</td>
+            <td>0.393</td>
+            <td>1800.081</td>
+            <td>0.495</td>
+        </tr>
+    
+        <tr>
+            <td>2</td>
+            <td>0.427</td>
+            <td>0.318</td>
+            <td>1293.225</td>
+            <td>0.493</td>
+        </tr>
+    
+    </tbody>
+</table>
+<h2>Plots</h2>
+<h3>Predictions with Error Bars</h3>
+<img src="./predictions.png" alt="Predictions">
+<h3>Residuals</h3>
+<img src="./residuals.png" alt="Residuals">
+<h3>Coverage</h3>
+<img src="./coverage.png" alt="Coverage">
+<h3>Prediction Intervals</h3>
+<img src="./intervals.png" alt="Intervals">
+<h3>Uncertainty Metrics</h3>
+<img src="./metrics.png" alt="Metric summary">
+</body>
+</html>

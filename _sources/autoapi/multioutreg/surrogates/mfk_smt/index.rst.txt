@@ -1,0 +1,135 @@
+multioutreg.surrogates.mfk_smt
+==============================
+
+.. py:module:: multioutreg.surrogates.mfk_smt
+
+.. autoapi-nested-parse::
+
+   Multi-fidelity co-kriging surrogate — wraps SMT's ``MFK`` / ``MFKPLS``.
+
+   Recursive co-kriging (Le Gratiet & Garnier 2014), the standard autoregressive
+   (AR1, Kennedy & O'Hagan 2000) multi-fidelity GP. Each level is modelled as::
+
+       f_k(x) = rho_{k-1}(x) * f_{k-1}(x) + delta_k(x)
+
+   with ``delta_k`` a GP. Unlike ``AdditiveCorrectionVFM``, which fits ``rho`` by
+   least squares on the low-fidelity predictions (biased whenever ``delta`` is
+   correlated with ``f_lo``), ``rho`` and ``delta`` are estimated jointly by
+   maximum likelihood, for any number of levels. On the Forrester pair it
+   recovers the true ``rho = 2`` from five high-fidelity points.
+
+   The designs of the levels do not need to be nested. With ``n_comp`` set, the
+   PLS variant (``MFKPLS``) reduces the input dimension before kriging, for
+   high-dimensional inputs.
+
+   Installation
+   ------------
+       pip install smt          # or: pip install multioutreg[smt]
+
+   If the optional dependency is not installed this module still imports, and
+   ``MFKSurrogate`` raises ``ImportError`` at instantiation.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.mfk_smt.MFKSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: MFKSurrogate(fidelity_levels=('lo', 'hi'), rho_regr='constant', corr='squar_exp', poly='constant', n_comp=None, eval_noise=False, propagate_uncertainty=True, n_start=10)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Multi-fidelity co-kriging (AR1) surrogate via SMT, one model per output.
+
+   Requires ``pip install smt``.
+
+   :param fidelity_levels: Level names ordered from lowest to highest fidelity (at least 2).
+   :type fidelity_levels: sequence of str
+   :param rho_regr: Form of the scale factor ``rho(x)`` between consecutive levels.
+   :type rho_regr: {"constant", "linear", "quadratic"}
+   :param corr: Correlation function of each level's GP.
+   :type corr: {"squar_exp", "abs_exp", "pow_exp", "matern52", "matern32"}
+   :param poly: Trend of each level's GP.
+   :type poly: {"constant", "linear", "quadratic"}
+   :param n_comp: Use ``MFKPLS`` with this many PLS components (clamped to the number
+                  of inputs). ``None`` (default) uses plain ``MFK``.
+   :type n_comp: int | None
+   :param eval_noise: Estimate a noise variance per level (for noisy simulators).
+   :type eval_noise: bool
+   :param propagate_uncertainty: Include the lower levels' variance in the predicted std (default
+                                 ``True``). Without it the std counts the lower levels as exact.
+   :type propagate_uncertainty: bool
+   :param n_start: Optimizer restarts for the hyperparameters.
+   :type n_start: int
+
+   .. attribute:: rho_
+
+      Fitted scale factor between each pair of consecutive levels, per
+      output. Only set when ``rho_regr="constant"``.
+
+      :type: np.ndarray, shape (n_outputs, n_levels - 1) | None
+
+
+   .. py:attribute:: fidelity_levels
+      :value: ['lo', 'hi']
+
+
+
+   .. py:attribute:: rho_regr
+      :value: 'constant'
+
+
+
+   .. py:attribute:: corr
+      :value: 'squar_exp'
+
+
+
+   .. py:attribute:: poly
+      :value: 'constant'
+
+
+
+   .. py:attribute:: n_comp
+      :value: None
+
+
+
+   .. py:attribute:: eval_noise
+      :value: False
+
+
+
+   .. py:attribute:: propagate_uncertainty
+      :value: True
+
+
+
+   .. py:attribute:: n_start
+      :value: 10
+
+
+
+   .. py:method:: fit(data)
+
+      Fit on ``{level: (X, Y)}`` with one entry per fidelity level.
+
+      The designs of different levels may differ in size and need not be
+      nested. ``Y`` may be 1-D for a single output.
+
+
+
+   .. py:method:: predict(X, return_std=False, level=None)
+
+      Predict at ``level`` (default: the highest fidelity).
+
+
+

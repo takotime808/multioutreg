@@ -1,0 +1,83 @@
+multioutreg.report.render
+=========================
+
+.. py:module:: multioutreg.report.render
+
+.. autoapi-nested-parse::
+
+   Render :class:`~multioutreg.report.data.ReportData` as a single HTML file.
+
+   The v2 report is one self-contained file: the stylesheet and chart script
+   (``static/report_v2.css`` and ``static/report_v2.js``) are inlined, and the
+   chart data is embedded as JSON in ``<script type="application/json"
+   id="report-data">``. The verdict, scorecard, findings, next steps and every
+   table are rendered server-side, so they read without JavaScript.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.report.render.STYLES
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.report.render.resolve_style
+   multioutreg.report.render.render_styles
+   multioutreg.report.render.json_for_script
+   multioutreg.report.render.report_json_from_html
+   multioutreg.report.render.render_report
+
+
+Module Contents
+---------------
+
+.. py:data:: STYLES
+   :value: ('v2', 'classic')
+
+
+.. py:function:: resolve_style(style: Optional[str] = None, template_path: Any = None) -> str
+
+   Pick the report style.
+
+   A custom template (``template_path`` or the ``MOR_TEMPLATE_PATH``
+   environment variable) is a classic Jinja template, so it always means
+   ``"classic"``. Otherwise ``style`` wins, then ``MOR_REPORT_STYLE``, then
+   ``"v2"``.
+
+
+.. py:function:: render_styles(render: Callable[..., str], styles: Iterable[str], **kwargs: Any) -> Dict[str, str]
+
+   Call ``render(report_style=s, **kwargs)`` once per style; returns ``{style: html}``.
+
+   Styles that resolve to the same one (e.g. both under ``MOR_TEMPLATE_PATH``)
+   are rendered once. Module-level, so it can run as a background job.
+
+
+.. py:function:: json_for_script(text: str) -> str
+
+   Escape JSON so it can sit inside a ``<script>`` element.
+
+   ``<``, ``>`` and ``&`` become ``\u003c`` etc. (still valid JSON), so a
+   value containing ``</script>`` cannot end the element early.
+
+
+.. py:function:: report_json_from_html(html: str) -> Optional[str]
+
+   The embedded report data of a v2 report (``None`` for a classic one).
+
+   Used for the "Download report data (.json)" button, so a caller that only
+   has the HTML (e.g. from a background job) can offer the data too.
+
+
+.. py:function:: render_report(data: multioutreg.report.data.ReportData) -> str
+
+   The v2 report for ``data`` as one HTML string.
+
+

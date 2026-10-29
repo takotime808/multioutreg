@@ -1,0 +1,168 @@
+multioutreg.report.verdict
+==========================
+
+.. py:module:: multioutreg.report.verdict
+
+.. autoapi-nested-parse::
+
+   Rules that turn report metrics into a verdict, findings and next steps.
+
+   Every status is one of ``"good"``, ``"warn"``, ``"crit"`` or ``"neutral"``
+   (no gain, which does not lower the overall status), or ``None`` when the
+   criterion does not apply. The thresholds are printed in the report's appendix
+   so a reader can check how each verdict was reached.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.report.verdict.READY_LABEL
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.report.verdict.Thresholds
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.report.verdict.coverage_band
+   multioutreg.report.verdict.worst
+   multioutreg.report.verdict.coverage_status
+   multioutreg.report.verdict.judge_output
+   multioutreg.report.verdict.build_verdict
+   multioutreg.report.verdict.build_findings
+   multioutreg.report.verdict.build_next_steps
+   multioutreg.report.verdict.summary_points
+
+
+Module Contents
+---------------
+
+.. py:class:: Thresholds
+
+   Pass / caution limits used by :func:`judge_output`.
+
+   ``mf_gain`` and ``mf_hurt`` are RMSE changes in percent against the
+   high-fidelity-only baseline (negative is better). Coverage passes when it is
+   no further below its nominal level than ``z`` binomial standard errors for
+   the test-set size, and gets a caution within twice that.
+
+
+   .. py:attribute:: r2_good
+      :type:  float
+      :value: 0.9
+
+
+
+   .. py:attribute:: r2_warn
+      :type:  float
+      :value: 0.8
+
+
+
+   .. py:attribute:: mf_gain
+      :type:  float
+      :value: -5.0
+
+
+
+   .. py:attribute:: mf_hurt
+      :type:  float
+      :value: 5.0
+
+
+
+   .. py:attribute:: coverage_target
+      :type:  float
+      :value: 0.95
+
+
+
+   .. py:attribute:: z
+      :type:  float
+      :value: 1.96
+
+
+
+   .. py:attribute:: weak_level_r
+      :type:  float
+      :value: 0.5
+
+
+
+   .. py:attribute:: small_test
+      :type:  int
+      :value: 30
+
+
+
+   .. py:method:: as_dict() -> Dict[str, float]
+
+
+.. py:function:: coverage_band(p: float, n: int, z: float = 1.96) -> float
+
+   Half-width of the range of coverage expected from sampling noise alone.
+
+
+.. py:function:: worst(*statuses: Optional[str]) -> Optional[str]
+
+   The most severe status; ``neutral`` counts as ``good``.
+
+
+.. py:function:: coverage_status(coverage: Optional[float], nominal: float, n: int, th: Thresholds = Thresholds()) -> Optional[str]
+
+   Pass at or above ``nominal - band``, caution within ``2 * band``.
+
+   Coverage above nominal passes: wide intervals are safe, and their cost is
+   shown separately as the interval width.
+
+
+.. py:function:: judge_output(o: Dict[str, Any], n_test: int, th: Thresholds = Thresholds()) -> Dict[str, Any]
+
+   Status per criterion for one output (a dict from ``build_report_data``).
+
+   Keys: ``accuracy`` (test R²), ``gaussian`` and ``conformal`` (coverage of
+   each kind of interval), ``bars`` (the error bars a user should report:
+   Gaussian if it passes, else conformal as a caution), ``mf`` (RMSE vs the
+   HF-only baseline) and ``overall`` (the worst of accuracy, bars and mf).
+
+
+.. py:data:: READY_LABEL
+
+.. py:function:: build_verdict(outputs: List[Dict[str, Any]], th: Thresholds = Thresholds()) -> Dict[str, Any]
+
+   Headline, explanation and overall status from each output's ``status``.
+
+
+.. py:function:: build_findings(data: Dict[str, Any], th: Thresholds = Thresholds(), limit: int = 4) -> List[Dict[str, Any]]
+
+   Claim-and-evidence cards for the front page, most severe first.
+
+   Each card is ``{claim, detail, status, section, plot}`` where ``plot`` names
+   the mini chart (``"dumbbell"``, ``"calib:<i>"``, ``"parity:<i>"``, ...).
+
+
+.. py:function:: build_next_steps(data: Dict[str, Any], th: Thresholds = Thresholds()) -> List[Dict[str, str]]
+
+   Actions that follow from the statuses, each tagged with its section.
+
+
+.. py:function:: summary_points(best_cand: dict, gs_rows: List[dict], metrics: Dict[str, Dict[str, float]], baseline_rows: List[dict] | None, baseline_label: str, level_rows: List[dict], level_names: List[str], uncertainty_metrics: Dict[str, float], best_std: numpy.ndarray, n_test: int, conformal_coverage: float | None = None, conformal_alpha: float | None = None) -> List[str]
+
+   Plain-language findings derived from the computed metrics.
+
+   Used by the multi-fidelity page (for its on-screen Summary and the classic
+   report). ``best_cand`` needs ``name`` and ``mf_type``; ``gs_rows`` are the
+   grid-search rows with ``Model`` and ``CV MSE``.
+
+

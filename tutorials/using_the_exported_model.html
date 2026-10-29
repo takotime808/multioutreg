@@ -1,0 +1,4229 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Time-Series Forecasting with Chronos" href="forecasting_with_chronos.html"><link rel="prev" title="Multi-Fidelity Surrogate Models page" href="../multi_fidelity_gui.html">
+        <link rel="prefetch" href="../_static/logos/wordmark-light.svg" as="image">
+        <link rel="prefetch" href="../_static/logos/wordmark-dark.svg" as="image">
+
+    <link rel="shortcut icon" href="../_static/favicon.png"><!-- Generated with Sphinx 8.1.3 and Furo 2025.12.19 -->
+        <title>Using the Best Model from the Grid Search App - multioutreg</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/active-learning-savings.css?v=14e41e7a" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/site.css?v=0e7236ba" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Try it without installing: the <a href="https://multioutreg.streamlit.app/">hosted multioutreg app</a>. 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">multioutreg</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon no-toc" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo only-light" src="../_static/logos/wordmark-light.svg" alt="Light Logo"/>
+    <img class="sidebar-logo only-dark" src="../_static/logos/wordmark-dark.svg" alt="Dark Logo"/>
+  </div>
+  
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_it_works.html">How It Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reading_the_report.html">Reading the Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example_reports.html">Example Reports</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="multi_output_surrogates.html">Multi-Output Surrogates, Start to Finish</a></li>
+<li class="toctree-l1"><a class="reference internal" href="joint_scores.html">Scoring Joint Predictions: Energy and Variogram Scores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multi_fidelity_surrogates.html">Multi-Fidelity Surrogate Modeling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_learning_benchmarks.html">Active Learning on Benchmark Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cost_savings.html">Cost Savings: What <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> Saves in an Existing Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="imputation_methods.html">Imputing Missing Inputs: KNN vs. Other Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_learning_missing_inputs.html">Active Learning with Missing Inputs</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../multi_fidelity_gui.html">Multi-Fidelity Surrogate Models page</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Using the Best Model from the Grid Search App</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forecasting_with_chronos.html">Time-Series Forecasting with Chronos</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Why multioutreg</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../cost_savings.html">Cost Savings and ROI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../active_learning_savings.html">Active Learning: The True Curve for Less</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../core_api.html">Core API</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../autoapi/multioutreg/index.html">multioutreg</a><input aria-label="Toggle navigation of multioutreg" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/active/index.html">multioutreg.active</a><input aria-label="Toggle navigation of multioutreg.active" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/acquisition/index.html">multioutreg.active.acquisition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/batch/index.html">multioutreg.active.batch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/benchmarks/index.html">multioutreg.active.benchmarks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/loop/index.html">multioutreg.active.loop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/multi_fidelity/index.html">multioutreg.active.multi_fidelity</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/conformal/index.html">multioutreg.conformal</a><input aria-label="Toggle navigation of multioutreg.conformal" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/base/index.html">multioutreg.conformal.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/cv_plus/index.html">multioutreg.conformal.cv_plus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/metrics/index.html">multioutreg.conformal.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/split_conformal/index.html">multioutreg.conformal.split_conformal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/utils/index.html">multioutreg.conformal.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/figures/index.html">multioutreg.figures</a><input aria-label="Toggle navigation of multioutreg.figures" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/confidence_intervals/index.html">multioutreg.figures.confidence_intervals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/conformal_plots/index.html">multioutreg.figures.conformal_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/coverage_plots/index.html">multioutreg.figures.coverage_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/doe_plots/index.html">multioutreg.figures.doe_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/error_histograms/index.html">multioutreg.figures.error_histograms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/model_comparison/index.html">multioutreg.figures.model_comparison</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/pca_plots/index.html">multioutreg.figures.pca_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/pdp_plots/index.html">multioutreg.figures.pdp_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/performance_metric_figures/index.html">multioutreg.figures.performance_metric_figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/prediction_plots/index.html">multioutreg.figures.prediction_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/residuals/index.html">multioutreg.figures.residuals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/shap_multioutput/index.html">multioutreg.figures.shap_multioutput</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/uct_calibration_extension/index.html">multioutreg.figures.uct_calibration_extension</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/umap_plot_classify/index.html">multioutreg.figures.umap_plot_classify</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/uncertainty_toolbox_extension/index.html">multioutreg.figures.uncertainty_toolbox_extension</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/gui/index.html">multioutreg.gui</a><input aria-label="Toggle navigation of multioutreg.gui" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/background/index.html">multioutreg.gui.background</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/grid_search_core/index.html">multioutreg.gui.grid_search_core</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/input_checks/index.html">multioutreg.gui.input_checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/report_controls/index.html">multioutreg.gui.report_controls</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/report_plotting_utils/index.html">multioutreg.gui.report_plotting_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/results_tabs/index.html">multioutreg.gui.results_tabs</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/metrics/index.html">multioutreg.metrics</a><input aria-label="Toggle navigation of multioutreg.metrics" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/metrics/joint_scores/index.html">multioutreg.metrics.joint_scores</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/metrics/multiobjective_regret/index.html">multioutreg.metrics.multiobjective_regret</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/model_selection/index.html">multioutreg.model_selection</a><input aria-label="Toggle navigation of multioutreg.model_selection" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/auto_detect/index.html">multioutreg.model_selection.auto_detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/evaluation/index.html">multioutreg.model_selection.evaluation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/model_wrappers/index.html">multioutreg.model_selection.model_wrappers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/screening/index.html">multioutreg.model_selection.screening</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/performance/index.html">multioutreg.performance</a><input aria-label="Toggle navigation of multioutreg.performance" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/performance/metrics/index.html">multioutreg.performance.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/performance/metrics_generalized_api/index.html">multioutreg.performance.metrics_generalized_api</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../autoapi/multioutreg/persistence/index.html">multioutreg.persistence</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/report/index.html">multioutreg.report</a><input aria-label="Toggle navigation of multioutreg.report" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/auto_detect_report/index.html">multioutreg.report.auto_detect_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/build/index.html">multioutreg.report.build</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/data/index.html">multioutreg.report.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report/index.html">multioutreg.report.generate_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report1/index.html">multioutreg.report.generate_report1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report1_safe/index.html">multioutreg.report.generate_report1_safe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/render/index.html">multioutreg.report.render</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/template/index.html">multioutreg.report.template</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/verdict/index.html">multioutreg.report.verdict</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/sampling/index.html">multioutreg.sampling</a><input aria-label="Toggle navigation of multioutreg.sampling" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/detect/index.html">multioutreg.sampling.detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/extrapolation/index.html">multioutreg.sampling.extrapolation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/infer_sampling/index.html">multioutreg.sampling.infer_sampling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/pca_sampling_detector/index.html">multioutreg.sampling.pca_sampling_detector</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/surrogates/index.html">multioutreg.surrogates</a><input aria-label="Toggle navigation of multioutreg.surrogates" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/ard_gp_sklearn/index.html">multioutreg.surrogates.ard_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/base_sklearn/index.html">multioutreg.surrogates.base_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bayesian_ridge_sklearn/index.html">multioutreg.surrogates.bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bnn_network/index.html">multioutreg.surrogates.bnn_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bnn_pytorch/index.html">multioutreg.surrogates.bnn_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/catboost_sklearn/index.html">multioutreg.surrogates.catboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/conformal_mixin/index.html">multioutreg.surrogates.conformal_mixin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/conformal_network_sklearn/index.html">multioutreg.surrogates.conformal_network_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/decision_tree_sklearn/index.html">multioutreg.surrogates.decision_tree_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/deep_ensemble_pytorch/index.html">multioutreg.surrogates.deep_ensemble_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/elastic_net_sklearn/index.html">multioutreg.surrogates.elastic_net_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/extra_trees_sklearn/index.html">multioutreg.surrogates.extra_trees_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/forest_uncertainty/index.html">multioutreg.surrogates.forest_uncertainty</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gating_network/index.html">multioutreg.surrogates.gating_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gaussian_copula/index.html">multioutreg.surrogates.gaussian_copula</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gp_sklearn/index.html">multioutreg.surrogates.gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gpx_smt/index.html">multioutreg.surrogates.gpx_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gradient_boosting_sklearn/index.html">multioutreg.surrogates.gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/hist_gradient_boosting_sklearn/index.html">multioutreg.surrogates.hist_gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/knn_sklearn/index.html">multioutreg.surrogates.knn_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/kpls_smt/index.html">multioutreg.surrogates.kpls_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/lightgbm_sklearn/index.html">multioutreg.surrogates.lightgbm_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/linear_sklearn/index.html">multioutreg.surrogates.linear_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/mfk_smt/index.html">multioutreg.surrogates.mfk_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/moe_surrogate/index.html">multioutreg.surrogates.moe_surrogate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/multi_fidelity/index.html">multioutreg.surrogates.multi_fidelity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/multitask_gp_gpytorch/index.html">multioutreg.surrogates.multitask_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/ngboost_sklearn/index.html">multioutreg.surrogates.ngboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/nystroem_gp_sklearn/index.html">multioutreg.surrogates.nystroem_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/pca_output/index.html">multioutreg.surrogates.pca_output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/polynomial_bayesian_ridge_sklearn/index.html">multioutreg.surrogates.polynomial_bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/quantile_sklearn/index.html">multioutreg.surrogates.quantile_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/rf_sklearn/index.html">multioutreg.surrogates.rf_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/rfgp_sklearn/index.html">multioutreg.surrogates.rfgp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/sparse_gp_gpytorch/index.html">multioutreg.surrogates.sparse_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/stacked_vfm/index.html">multioutreg.surrogates.stacked_vfm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/std_recalibration/index.html">multioutreg.surrogates.std_recalibration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/svr_sklearn/index.html">multioutreg.surrogates.svr_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/xgboost_sklearn/index.html">multioutreg.surrogates.xgboost_sklearn</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/index.html">multioutreg.time_series</a><input aria-label="Toggle navigation of multioutreg.time_series" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/chronos_adapter/index.html">multioutreg.time_series.chronos_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/cv/index.html">multioutreg.time_series.cv</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/figures/index.html">multioutreg.time_series.figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/financial/index.html">multioutreg.time_series.financial</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/lag_features/index.html">multioutreg.time_series.lag_features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/lag_forecaster/index.html">multioutreg.time_series.lag_forecaster</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/metrics/index.html">multioutreg.time_series.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/neuralforecast_adapter/index.html">multioutreg.time_series.neuralforecast_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/prophet_adapter/index.html">multioutreg.time_series.prophet_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/returns/index.html">multioutreg.time_series.returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/seasonality/index.html">multioutreg.time_series.seasonality</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/surrogate_forecaster/index.html">multioutreg.time_series.surrogate_forecaster</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/index.html">multioutreg.time_series.ts_dynamic_fit</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/index.html">multioutreg.time_series.ts_dynamic_fit.algs</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.algs" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/arima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.arima</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/lstm/index.html">multioutreg.time_series.ts_dynamic_fit.algs.lstm</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/sarima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.sarima</a></li>
+</ul>
+</li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.data_handling" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/Analyzer/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.Analyzer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/DataProcessor/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.DataProcessor</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/PullData/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.PullData</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/ingest/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.ingest</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/main/index.html">multioutreg.time_series.ts_dynamic_fit.main</a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/index.html">multioutreg.time_series.ts_dynamic_fit.src</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.src" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/ForecastAutoIntervals/index.html">multioutreg.time_series.ts_dynamic_fit.src.ForecastAutoIntervals</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/TSDataLoader/index.html">multioutreg.time_series.ts_dynamic_fit.src.TSDataLoader</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/evaluate/index.html">multioutreg.time_series.ts_dynamic_fit.src.evaluate</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/forecasters/index.html">multioutreg.time_series.ts_dynamic_fit.src.forecasters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/infer/index.html">multioutreg.time_series.ts_dynamic_fit.src.infer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/ranker/index.html">multioutreg.time_series.ts_dynamic_fit.src.ranker</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/visualize/index.html">multioutreg.time_series.ts_dynamic_fit.src.visualize</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_suitability/index.html">multioutreg.time_series.ts_suitability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/uncertainty/index.html">multioutreg.time_series.uncertainty</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/utils/index.html">multioutreg.utils</a><input aria-label="Toggle navigation of multioutreg.utils" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/aux_funcs/index.html">multioutreg.utils.aux_funcs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/figure_utils/index.html">multioutreg.utils.figure_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/imputation/index.html">multioutreg.utils.imputation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/metric_utils/index.html">multioutreg.utils.metric_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/pca_utils/index.html">multioutreg.utils.pca_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/surrogate_utils/index.html">multioutreg.utils.surrogate_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/thread_limits/index.html">multioutreg.utils.thread_limits</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../integrated_surrogates.html">Integrated Surrogate Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../surrogate_hyperparameters.html">Surrogate Hyperparameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../multiobjective_metrics.html">Multi-Objective Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../surrogate_roadmap.html">Expanding the Surrogate Offerings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui_ux_roadmap.html">Improving the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../docs_roadmap.html">Improving the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../report_redesign/implementation_plan.html">Plan: ship the redesigned report as a downloadable file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../active_learning.html">Active Learning Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../parallel_computing.html">Parallelization and Distributed Computing Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pair_plot_report.html">Pair Plots in Reports</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AUDIT_CHECKLIST.html">Statistical / Logic Audit Checklist</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/takotime808/multioutreg/blob/main/docs/tutorials/using_the_exported_model.ipynb?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/takotime808/multioutreg/edit/main/docs/tutorials/using_the_exported_model.ipynb" rel="edit" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon no-toc" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <div class="admonition note tutorial-meta">
+  <p class="admonition-title">About this tutorial</p>
+  <p>
+  <b>Needs:</b> the lightgbm extra &nbsp;·&nbsp; <b>Runs in:</b> up to 3 minutes &nbsp;·&nbsp;
+  <a href="https://colab.research.google.com/github/takotime808/multioutreg/blob/main/docs/tutorials/using_the_exported_model.ipynb">Open in Colab</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/takotime808/multioutreg/blob/main/docs/tutorials/using_the_exported_model.ipynb">View on GitHub</a>
+  </p>
+</div><!-- # Copyright (c) 2026 takotime808 --><section id="Using-the-Best-Model-from-the-Grid-Search-App">
+<h1>Using the Best Model from the Grid Search App<a class="headerlink" href="#Using-the-Best-Model-from-the-Grid-Search-App" title="Link to this heading">¶</a></h1>
+<p><strong>What this tutorial covers:</strong></p>
+<p>The grid-search app (<code class="docutils literal notranslate"><span class="pre">Grid_Search_Surrogate_Models.py</span></code>) tries every candidate surrogate on each output and reports the winners as a <em>Best Model Configuration</em> such as</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">[{</span><span class="nt">"model"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ard_gp"</span><span class="p">,</span><span class="w"> </span><span class="nt">"alpha"</span><span class="p">:</span><span class="w"> </span><span class="mf">1e-06</span><span class="p">},</span><span class="w"> </span><span class="p">{</span><span class="nt">"model"</span><span class="p">:</span><span class="w"> </span><span class="s2">"ard_gp"</span><span class="p">,</span><span class="w"> </span><span class="nt">"alpha"</span><span class="p">:</span><span class="w"> </span><span class="mf">1e-06</span><span class="p">},</span><span class="w"> </span><span class="err">...</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>That list says which models won. It is not a model you can call. To get one, use the <strong>Export the Model</strong> section under the results, which has two downloads:</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>File</p></th>
+<th class="head"><p>What it is</p></th>
+<th class="head"><p>Use it to</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">multioutreg_grid_search_model.joblib</span></code></p></td>
+<td><p>The fitted model as a scikit-learn <code class="docutils literal notranslate"><span class="pre">Pipeline</span></code>, with every preprocessing step the app applied, plus metadata</p></td>
+<td><p>Predict on new data straight away</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">multioutreg_grid_search_config.json</span></code></p></td>
+<td><p>A description of the run: columns, preprocessing, winning model and hyperparameters per output, conformal quantiles, package versions</p></td>
+<td><p>Read what was chosen, or rebuild and refit the model on new data</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>This notebook covers both files:</p>
+<ol class="arabic simple">
+<li><p>Getting the files</p></li>
+<li><p>Loading the model</p></li>
+<li><p>What is inside the pipeline</p></li>
+<li><p>Predicting on new data</p></li>
+<li><p>Uncertainty: model std and conformal intervals</p></li>
+<li><p>Rows with missing inputs</p></li>
+<li><p>A what-if sweep</p></li>
+<li><p>Rebuilding the model from the JSON config</p></li>
+<li><p>Things to know before sharing the file</p></li>
+</ol>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import warnings
+
+warnings.filterwarnings("ignore")
+
+import lightgbm  # import before sklearn's OpenMP users on macOS
+import json
+import logging
+from importlib.metadata import version
+from pathlib import Path
+
+import joblib
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import ParameterGrid, train_test_split
+
+import multioutreg
+from multioutreg.conformal.base import BaseConformalPredictor
+from multioutreg.gui.grid_search_core import (
+    build_model_bundle,
+    build_model_pipeline,
+    default_surrogate_defs,
+    select_per_target,
+    serialize_model_bundle,
+)
+from multioutreg.utils.imputation import drop_unusable_rows, impute_train_test
+
+_quiet = logging.getLogger("lightgbm_quiet")
+_quiet.setLevel(logging.ERROR)
+lightgbm.register_logger(_quiet)  # LightGBM logs every fit during the grid search
+pd.set_option("display.precision", 3)
+</pre></div>
+</div>
+</div>
+<hr class="docutils" />
+<p>## 1. Getting the Files</p>
+<p><strong>From the app.</strong> Start it with</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>streamlit<span class="w"> </span>run<span class="w"> </span>multioutreg/gui/Grid_Search_Surrogate_Models.py
+</pre></div>
+</div>
+<p>then:</p>
+<ol class="arabic simple">
+<li><p>Upload a CSV, or click <strong>Try with sample data</strong>. This notebook uses the same sample: 300 rows, five inputs <code class="docutils literal notranslate"><span class="pre">feature_0</span></code> to <code class="docutils literal notranslate"><span class="pre">feature_4</span></code>, and three outputs (<code class="docutils literal notranslate"><span class="pre">output_pressure</span></code>, <code class="docutils literal notranslate"><span class="pre">output_temperature</span></code>, <code class="docutils literal notranslate"><span class="pre">output_velocity</span></code>).</p></li>
+<li><p>Under <strong>⚙️ Advanced Settings</strong>, tick <strong>Compute conformal prediction intervals</strong> (alpha 0.1) and <strong>Skip computationally expensive models</strong>. Neither is required, but this notebook uses both.</p></li>
+<li><p>Click <strong>Run Grid Search</strong>. When it finishes, scroll to <strong>Export the Model</strong> and click <strong>Download Trained Model (.joblib)</strong> and <strong>Download Model Config (.json)</strong>.</p></li>
+</ol>
+<p><strong>Without the app.</strong> So that this notebook runs on its own, the next cell makes the same two files in code. It repeats the app’s steps in the app’s order, with the app’s split sizes and seeds. If you downloaded the files from the app, put them next to this notebook and skip the next cell.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>DATA = Path(multioutreg.__file__).parent / "gui" / "data" / "example_dataset_3_outputs.csv"
+MODEL_FILE = Path("multioutreg_grid_search_model.joblib")
+CONFIG_FILE = Path("multioutreg_grid_search_config.json")
+EXPENSIVE = {"gpr", "ngb", "cpn", "ard_gp", "gpx", "kpls", "sgpr"}
+
+
+def make_app_download(df, input_cols, output_cols, conformal_alpha=0.1, skip_expensive=True):
+    # Same order as the app: drop rows missing a target, split, impute, (PCA),
+    # hold out a calibration split, select per output, then calibrate.
+    df = drop_unusable_rows(df, output_cols, [])
+    X_train, X_test, y_train, y_test = train_test_split(
+        df[input_cols].values, df[output_cols].values, test_size=0.25, random_state=0)
+    X_train, X_test, imputer = impute_train_test(X_train, X_test, return_imputer=True)
+    X_train, X_cal, y_train, y_cal = train_test_split(
+        X_train, y_train, test_size=0.2, random_state=0)
+    defs = [d for d in default_surrogate_defs() if not (skip_expensive and d[0] in EXPENSIVE)]
+    result = select_per_target(defs, X_train, y_train)
+    residuals = np.abs(y_cal - result.model.predict(X_cal))
+    q = np.array([BaseConformalPredictor._conformal_quantile(r, conformal_alpha)
+                  for r in residuals.T])
+    bundle = build_model_bundle(
+        build_model_pipeline(result.model, input_cols, imputer),
+        input_cols, output_cols, result.combo,
+        conformal_alpha=conformal_alpha, conformal_quantiles=q,
+        data_split={"test_size": 0.25, "random_state": 0,
+                    "calibration_fraction": 0.2, "validation_fraction": 0.2},
+    )
+    MODEL_FILE.write_bytes(serialize_model_bundle(bundle))
+    CONFIG_FILE.write_text(json.dumps(bundle["config"], indent=2))
+
+
+sample = pd.read_csv(DATA)
+INPUTS = [c for c in sample.columns if c.startswith("feature_")]
+OUTPUTS = [c for c in sample.columns if c.startswith("output_")]
+if not MODEL_FILE.exists():
+    make_app_download(sample, INPUTS, OUTPUTS)
+print(f"{MODEL_FILE}: {MODEL_FILE.stat().st_size / 1e6:.2f} MB")
+print(f"{CONFIG_FILE}: {CONFIG_FILE.stat().st_size / 1e3:.1f} kB")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+multioutreg_grid_search_model.joblib: 0.40 MB
+multioutreg_grid_search_config.json: 1.1 kB
+</pre></div></div>
+</div>
+<hr class="docutils" />
+<p>## 2. Loading the Model</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">.joblib</span></code> file holds a plain dictionary. <code class="docutils literal notranslate"><span class="pre">joblib.load</span></code> needs <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> to be installed, because the pipeline contains multioutreg classes.</p>
+<blockquote>
+<div><p><strong>Only load ``.joblib`` files you made yourself or got from someone you trust.</strong> Loading one is unpickling it, and a pickle can run arbitrary code.</p>
+</div></blockquote>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>bundle = joblib.load(MODEL_FILE)
+sorted(bundle)
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+[&#39;config&#39;,
+ &#39;conformal&#39;,
+ &#39;input_columns&#39;,
+ &#39;output_columns&#39;,
+ &#39;pipeline&#39;,
+ &#39;versions&#39;]
+</pre></div></div>
+</div>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Key</p></th>
+<th class="head"><p>Contents</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pipeline</span></code></p></td>
+<td><p>The fitted <code class="docutils literal notranslate"><span class="pre">sklearn.pipeline.Pipeline</span></code>. This is the model.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">input_columns</span></code> / <code class="docutils literal notranslate"><span class="pre">output_columns</span></code></p></td>
+<td><p>Column names in training order. Predictions come back in <code class="docutils literal notranslate"><span class="pre">output_columns</span></code> order.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">conformal</span></code></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">{&quot;alpha&quot;,</span> <span class="pre">&quot;quantiles&quot;}</span></code> if conformal intervals were computed, else <code class="docutils literal notranslate"><span class="pre">None</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">config</span></code></p></td>
+<td><p>The same dictionary as the <code class="docutils literal notranslate"><span class="pre">.json</span></code> download</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">versions</span></code></p></td>
+<td><p>Python and package versions the model was trained with</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>A pickled scikit-learn model is only guaranteed to load and behave the same under the versions it was saved with. Compare them before trusting the predictions:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>installed = {"multioutreg": version("multioutreg"), "scikit-learn": version("scikit-learn"),
+             "numpy": version("numpy"), "joblib": version("joblib")}
+pd.DataFrame({"saved with": {k: bundle["versions"].get(k) for k in installed},
+              "installed": installed})
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>saved with</th>
+      <th>installed</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>multioutreg</th>
+      <td>0.0.1</td>
+      <td>0.0.1</td>
+    </tr>
+    <tr>
+      <th>scikit-learn</th>
+      <td>1.9.1</td>
+      <td>1.9.1</td>
+    </tr>
+    <tr>
+      <th>numpy</th>
+      <td>1.26.4</td>
+      <td>1.26.4</td>
+    </tr>
+    <tr>
+      <th>joblib</th>
+      <td>1.5.3</td>
+      <td>1.5.3</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<hr class="docutils" />
+<p>## 3. What Is Inside the Pipeline</p>
+<p>The pipeline puts new rows through the same steps, in the same order, as the app put the training rows through:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pipe = bundle["pipeline"]
+pipe
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>.sk-global {
+  /* Definition of color scheme common for light and dark mode */
+  --sklearn-color-text: #000;
+  --sklearn-color-text-muted: #666;
+  --sklearn-color-line: gray;
+  /* Definition of color scheme for unfitted estimators */
+  --sklearn-color-unfitted-level-0: #fff5e6;
+  --sklearn-color-unfitted-level-1: #f6e4d2;
+  --sklearn-color-unfitted-level-2: #ffe0b3;
+  --sklearn-color-unfitted-level-3: chocolate;
+  /* Definition of color scheme for fitted estimators */
+  --sklearn-color-fitted-level-0: #f0f8ff;
+  --sklearn-color-fitted-level-1: #d4ebff;
+  --sklearn-color-fitted-level-2: #b3dbfd;
+  --sklearn-color-fitted-level-3: cornflowerblue;
+}
+
+.sk-global.light {
+  /* Specific color for light theme */
+  --sklearn-color-text-on-default-background: black;
+  --sklearn-color-background: white;
+  --sklearn-color-border-box: black;
+  --sklearn-color-icon: #696969;
+}
+
+.sk-global.dark {
+  --sklearn-color-text-on-default-background: white;
+  --sklearn-color-background: #111;
+  --sklearn-color-border-box: white;
+  --sklearn-color-icon: #878787;
+}
+
+.sk-global {
+  color: var(--sklearn-color-text);
+}
+
+.sk-global pre {
+  padding: 0;
+}
+
+.sk-global input.sk-hidden--visually {
+  border: 0;
+  clip-path: inset(100%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+
+.sk-global div.sk-dashed-wrapped {
+  border: 1px dashed var(--sklearn-color-line);
+  margin: 0 0.4em 0.5em 0.4em;
+  box-sizing: border-box;
+  padding-bottom: 0.4em;
+  background-color: var(--sklearn-color-background);
+}
+
+.sk-global div.sk-container {
+  /* jupyter's `normalize.less` sets `[hidden] { display: none; }`
+     but bootstrap.min.css set `[hidden] { display: none !important; }`
+     so we also need the `!important` here to be able to override the
+     default hidden behavior on the sphinx rendered scikit-learn.org.
+     See: https://github.com/scikit-learn/scikit-learn/issues/21755 */
+  display: inline-block !important;
+  position: relative;
+}
+
+.sk-global div.sk-text-repr-fallback {
+  display: none;
+}
+
+div.sk-parallel-item,
+div.sk-serial,
+div.sk-item {
+  /* draw centered vertical line to link estimators */
+  background-image: linear-gradient(var(--sklearn-color-text-on-default-background), var(--sklearn-color-text-on-default-background));
+  background-size: 2px 100%;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+/* Parallel-specific style estimator block */
+
+.sk-global div.sk-parallel-item::after {
+  content: "";
+  width: 100%;
+  border-bottom: 2px solid var(--sklearn-color-text-on-default-background);
+  flex-grow: 1;
+}
+
+.sk-global div.sk-parallel {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background-color: var(--sklearn-color-background);
+  position: relative;
+}
+
+.sk-global div.sk-parallel-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.sk-global div.sk-parallel-item:first-child::after {
+  align-self: flex-end;
+  width: 50%;
+}
+
+.sk-global div.sk-parallel-item:last-child::after {
+  align-self: flex-start;
+  width: 50%;
+}
+
+.sk-global div.sk-parallel-item:only-child::after {
+  width: 0;
+}
+
+/* Serial-specific style estimator block */
+
+.sk-global div.sk-serial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--sklearn-color-background);
+  padding-right: 1em;
+  padding-left: 1em;
+}
+
+
+/* Toggleable style: style used for estimator/Pipeline/ColumnTransformer box that is
+clickable and can be expanded/collapsed.
+- Pipeline and ColumnTransformer use this feature and define the default style
+- Estimators will overwrite some part of the style using the `sk-estimator` class
+*/
+
+/* Pipeline and ColumnTransformer style (default) */
+
+.sk-global div.sk-toggleable {
+  /* Default theme specific background. It is overwritten whether we have a
+  specific estimator or a Pipeline/ColumnTransformer */
+  background-color: var(--sklearn-color-background);
+}
+
+/* Toggleable label */
+.sk-global label.sk-toggleable__label {
+  cursor: pointer;
+  display: flex;
+  width: 100%;
+  margin-bottom: 0;
+  padding: 0.5em;
+  box-sizing: border-box;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+}
+
+.sk-global label.sk-toggleable__label .caption {
+  font-size: 0.6rem;
+  font-weight: lighter;
+  color: var(--sklearn-color-text-muted);
+}
+
+.sk-global label.sk-toggleable__label-arrow:before {
+  /* Arrow on the left of the label */
+  content: "▸";
+  float: left;
+  margin-right: 0.25em;
+  color: var(--sklearn-color-icon);
+}
+
+.sk-global label.sk-toggleable__label-arrow:hover:before {
+  color: var(--sklearn-color-text);
+}
+
+/* Toggleable content - dropdown */
+
+.sk-global div.sk-toggleable__content {
+  display: none;
+  text-align: left;
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+.sk-global div.sk-toggleable__content.fitted {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+.sk-global div.sk-toggleable__content pre {
+  margin: 0.2em;
+  border-radius: 0.25em;
+  color: var(--sklearn-color-text);
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+.sk-global div.sk-toggleable__content.fitted pre {
+  /* unfitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+.sk-global input.sk-toggleable__control:checked~div.sk-toggleable__content {
+  /* Expand drop-down */
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.sk-global input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {
+  content: "▾";
+}
+
+/* Pipeline/ColumnTransformer-specific style */
+
+.sk-global div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+.sk-global div.sk-label.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Estimator-specific style */
+
+/* Colorize estimator box */
+.sk-global div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+.sk-global div.sk-estimator.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+.sk-global div.sk-label label.sk-toggleable__label,
+.sk-global div.sk-label label {
+  /* The background is the default theme color */
+  color: var(--sklearn-color-text-on-default-background);
+}
+
+/* On hover, darken the color of the background */
+.sk-global div.sk-label:hover label.sk-toggleable__label {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+/* Label box, darken color on hover, fitted */
+.sk-global div.sk-label.fitted:hover label.sk-toggleable__label.fitted {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Estimator label */
+
+.sk-global div.sk-label label {
+  font-family: monospace;
+  font-weight: bold;
+  line-height: 1.2em;
+}
+
+.sk-global div.sk-label-container {
+  text-align: center;
+}
+
+/* Estimator-specific */
+.sk-global div.sk-estimator {
+  font-family: monospace;
+  border: 1px dotted var(--sklearn-color-border-box);
+  border-radius: 0.25em;
+  box-sizing: border-box;
+  margin-bottom: 0.5em;
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+.sk-global div.sk-estimator.fitted {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+/* on hover */
+.sk-global div.sk-estimator:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+.sk-global div.sk-estimator.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Specification for estimator info (e.g. "i" and "?") */
+
+/* Common style for "i" and "?" */
+
+.sk-estimator-doc-link,
+a:link.sk-estimator-doc-link,
+a:visited.sk-estimator-doc-link {
+  float: right;
+  font-size: smaller;
+  line-height: 1em;
+  font-family: monospace;
+  background-color: var(--sklearn-color-unfitted-level-0);
+  border-radius: 1em;
+  height: 1em;
+  width: 1em;
+  text-decoration: none !important;
+  margin-left: 0.5em;
+  text-align: center;
+  /* unfitted */
+  border: var(--sklearn-color-unfitted-level-3) 1pt solid;
+  color: var(--sklearn-color-unfitted-level-3);
+}
+
+.sk-estimator-doc-link.fitted,
+a:link.sk-estimator-doc-link.fitted,
+a:visited.sk-estimator-doc-link.fitted {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+  border: var(--sklearn-color-fitted-level-3) 1pt solid;
+  color: var(--sklearn-color-fitted-level-3);
+}
+
+/* On hover */
+div.sk-estimator:hover .sk-estimator-doc-link:hover,
+.sk-estimator-doc-link:hover,
+div.sk-label-container:hover .sk-estimator-doc-link:hover,
+.sk-estimator-doc-link:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-3);
+  border: var(--sklearn-color-fitted-level-0) 1pt solid;
+  color: var(--sklearn-color-unfitted-level-0);
+  text-decoration: none;
+}
+
+div.sk-estimator.fitted:hover .sk-estimator-doc-link.fitted:hover,
+.sk-estimator-doc-link.fitted:hover,
+div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
+.sk-estimator-doc-link.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-3);
+  border: var(--sklearn-color-fitted-level-0) 1pt solid;
+  color: var(--sklearn-color-fitted-level-0);
+  text-decoration: none;
+}
+
+/* Span, style for the box shown on hovering the info icon */
+.sk-estimator-doc-link span {
+  display: none;
+  z-index: 9999;
+  position: relative;
+  font-weight: normal;
+  right: .2ex;
+  padding: .5ex;
+  margin: .5ex;
+  width: min-content;
+  min-width: 20ex;
+  max-width: 50ex;
+  color: var(--sklearn-color-text);
+  box-shadow: 2pt 2pt 4pt #999;
+  /* unfitted */
+  background: var(--sklearn-color-unfitted-level-0);
+  border: .5pt solid var(--sklearn-color-unfitted-level-3);
+}
+
+.sk-estimator-doc-link.fitted span {
+  /* fitted */
+  background: var(--sklearn-color-fitted-level-0);
+  border: var(--sklearn-color-fitted-level-3);
+}
+
+.sk-estimator-doc-link:hover span {
+  display: block;
+}
+
+/* "?"-specific style due to the `<a>` HTML tag */
+
+.sk-global a.estimator_doc_link {
+  float: right;
+  font-size: 1rem;
+  line-height: 1em;
+  font-family: monospace;
+  background-color: var(--sklearn-color-unfitted-level-0);
+  border-radius: 1rem;
+  height: 1rem;
+  width: 1rem;
+  text-decoration: none;
+  /* unfitted */
+  color: var(--sklearn-color-unfitted-level-1);
+  border: var(--sklearn-color-unfitted-level-1) 1pt solid;
+}
+
+.sk-global a.estimator_doc_link.fitted {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+  border: var(--sklearn-color-fitted-level-1) 1pt solid;
+  color: var(--sklearn-color-fitted-level-1);
+}
+
+/* On hover */
+.sk-global a.estimator_doc_link:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-3);
+  color: var(--sklearn-color-background);
+  text-decoration: none;
+}
+
+.sk-global a.estimator_doc_link.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-3);
+}
+
+.sk-top-container.sk-global {
+  /* pydata-sphinx-theme hides overflow, so scrolling is disabled.
+   We need to set it to !important and add tabindex="0" in the HTML
+   to allow keyboard-only users to navigate the display. */
+  overflow-x: scroll !important;
+  max-width: 100%;
+}
+
+.estimator-table {
+    font-family: monospace;
+}
+
+.estimator-table summary {
+    padding: .5rem;
+    cursor: pointer;
+}
+
+.estimator-table summary::marker {
+    font-size: 0.7rem;
+}
+
+.estimator-table details[open] {
+    padding-left: 0.1rem;
+    padding-right: 0.1rem;
+    padding-bottom: 0.3rem;
+}
+
+.estimator-table .parameters-table {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-top: 0;
+}
+
+.estimator-table .parameters-table tr:nth-child(odd) {
+    background-color: #fff;
+}
+
+.estimator-table .parameters-table tr:nth-child(even) {
+    background-color: #f6f6f6;
+}
+
+.estimator-table .parameters-table tr:hover td {
+    background-color: #e0e0e0;
+}
+
+.estimator-table table :is(td, th) {
+    border: 1px solid rgba(106, 105, 104, 0.232);
+}
+
+/*
+    `table td`is set in notebook with right text-align.
+    We need to overwrite it.
+*/
+.estimator-table table td.param {
+    text-align: left;
+    position: relative;
+    padding: 0;
+}
+
+.user-set td {
+    color:rgb(255, 94, 0);
+    text-align: left !important;
+}
+
+.user-set td.value {
+    color:rgb(255, 94, 0);
+    background-color: transparent;
+}
+
+.default td, .estimator-table th {
+    color: black;
+    text-align: left !important;
+}
+
+.user-set td i,
+.default td i {
+    color: black;
+}
+
+td.fitted-att-type {
+    white-space: preserve nowrap;
+}
+
+/*
+    Styles for parameter documentation links
+    We need styling for visited so jupyter doesn't overwrite it
+*/
+a.param-doc-link,
+a.param-doc-link:link,
+a.param-doc-link:visited {
+    text-decoration: underline dashed;
+    text-underline-offset: .3em;
+    color: inherit;
+    display: block;
+    padding: .5em;
+}
+
+@supports(anchor-name: --doc-link) {
+    a.param-doc-link,
+    a.param-doc-link:link,
+    a.param-doc-link:visited {
+    anchor-name: --doc-link;
+    }
+}
+
+/* "hack" to make the entire area of the cell containing the link clickable */
+a.param-doc-link::before {
+    position: absolute;
+    content: "";
+    inset: 0;
+}
+
+.param-doc-description {
+    display: none;
+    position: absolute;
+    z-index: 9999;
+    left: 0;
+    padding: .5ex;
+    margin-left: 1.5em;
+    color: var(--sklearn-color-text);
+    box-shadow: .3em .3em .4em #999;
+    width: max-content;
+    text-align: left;
+    max-height: 10em;
+    overflow-y: auto;
+
+    /* unfitted */
+    background: var(--sklearn-color-unfitted-level-0);
+    border: thin solid var(--sklearn-color-unfitted-level-3);
+}
+
+@supports(position-area: center right) {
+    .param-doc-description {
+    position-area: center right;
+    position: fixed;
+    margin-left: 0;
+    }
+}
+
+/* Fitted state for parameter tooltips */
+.fitted .param-doc-description {
+    /* fitted */
+    background: var(--sklearn-color-fitted-level-0);
+    border: thin solid var(--sklearn-color-fitted-level-3);
+}
+
+.param-doc-link:hover .param-doc-description {
+    display: block;
+}
+
+.copy-paste-icon {
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48IS0tIUZvbnQgQXdlc29tZSBGcmVlIDYuNy4yIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlL2ZyZWUgQ29weXJpZ2h0IDIwMjUgRm9udGljb25zLCBJbmMuLS0+PHBhdGggZD0iTTIwOCAwTDMzMi4xIDBjMTIuNyAwIDI0LjkgNS4xIDMzLjkgMTQuMWw2Ny45IDY3LjljOSA5IDE0LjEgMjEuMiAxNC4xIDMzLjlMNDQ4IDMzNmMwIDI2LjUtMjEuNSA0OC00OCA0OGwtMTkyIDBjLTI2LjUgMC00OC0yMS41LTQ4LTQ4bDAtMjg4YzAtMjYuNSAyMS41LTQ4IDQ4LTQ4ek00OCAxMjhsODAgMCAwIDY0LTY0IDAgMCAyNTYgMTkyIDAgMC0zMiA2NCAwIDAgNDhjMCAyNi41LTIxLjUgNDgtNDggNDhMNDggNTEyYy0yNi41IDAtNDgtMjEuNS00OC00OEwwIDE3NmMwLTI2LjUgMjEuNS00OCA0OC00OHoiLz48L3N2Zz4=);
+    background-repeat: no-repeat;
+    background-size: 14px 14px;
+    background-position: 0;
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+    background-color: transparent;
+}
+
+.copy-paste-icon:focus-visible {
+    outline: 1px solid currentColor;
+    outline-offset: 1px;
+}
+
+.features {
+  font-family: monospace;
+  cursor: pointer;
+  background-color: var(--sklearn-color-unfitted-level-0);
+  border: 1px dotted var(--sklearn-color-border-box);
+  border-radius: .20em;
+  margin-bottom: 0.5em;
+  font-size: inherit; /* Needed for jupyter */
+}
+
+.features.fitted {
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+.features summary {
+  cursor: pointer;
+  display: flex;
+  margin-bottom: 0;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  padding: .25em;
+}
+
+.features details[open] > summary {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-unfitted-level-2);
+  border-radius: .20em 0 0 0;
+}
+
+.features.fitted details[open] > summary {
+  background-color: var(--sklearn-color-fitted-level-2);
+  border-radius: .20em 0 0 0;
+}
+
+.features details > summary .arrow::before {
+  content: "▸";
+  color: grey;
+}
+
+.features details[open] > summary .arrow::before {
+  content: "▾";
+}
+
+.features details:hover > summary {
+  margin: 0;
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+.features.fitted details:hover > summary {
+  margin: 0;
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+.features .features-container {
+  max-height: 10em;
+  overflow: auto;
+  scrollbar-width: thin;
+  padding: .25em 0.1rem;
+  background-color: var(--sklearn-color-unfitted-level-0);
+  border-radius: 0 0 .5em .5em;
+}
+
+.features.fitted .features-container {
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+.features .image-container {
+  block-size: 1em;
+  inline-size: 1em;
+  padding: 0;
+  margin: 0%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.features .copy-paste-icon {
+  background-size: 1em 1em;
+  width: 1em;
+  height: 1em;
+  filter: grayscale(100%) opacity(60%);
+}
+
+.features .features-container table {
+  width: 100%;
+  margin: 0.01em;
+}
+
+.features .features-container table tr:nth-child(odd) {
+  background-color: #fff;
+}
+
+.features .features-container table tr:nth-child(even) {
+  background-color: #f6f6f6;
+}
+
+.features .features-container table tr:hover {
+  background-color: #e0e0e0;
+}
+
+.features .features-container table {
+  table-layout: inherit;
+}
+
+.features .features-container table td {
+  text-align: left;
+  padding: 0 0.5em;
+  border: 1px solid rgba(106, 105, 104, 0.232);
+  white-space: nowrap;
+  color: var(--sklearn-color-text);
+}
+
+.total_features {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5em;
+}
+</style><body><div id="sk-container-id-1" tabindex="0" class="sk-top-container sk-global"><div class="sk-text-repr-fallback"><pre>Pipeline(steps=[(&#x27;columns&#x27;,
+                 InputColumnSelector(columns=[&#x27;feature_0&#x27;, &#x27;feature_1&#x27;,
+                                              &#x27;feature_2&#x27;, &#x27;feature_3&#x27;,
+                                              &#x27;feature_4&#x27;])),
+                (&#x27;imputer&#x27;, KNNImputer(keep_empty_features=True)),
+                (&#x27;model&#x27;,
+                 PerTargetRegressorWithStd(estimators=[XGBRegressor(base_score=None,
+                                                                    booster=None,
+                                                                    callbacks=None,
+                                                                    colsample_bylevel=None,
+                                                                    colsample_bynode=None,
+                                                                    colsample_bytree=None,
+                                                                    device=None...
+                                                                    interaction_constraints=None,
+                                                                    learning_rate=0.05,
+                                                                    max_bin=None,
+                                                                    max_cat_threshold=None,
+                                                                    max_cat_to_onehot=None,
+                                                                    max_delta_step=None,
+                                                                    max_depth=4,
+                                                                    max_leaves=None,
+                                                                    min_child_weight=None,
+                                                                    missing=nan,
+                                                                    monotone_constraints=None,
+                                                                    multi_strategy=None,
+                                                                    n_estimators=200,
+                                                                    n_jobs=None,
+                                                                    num_parallel_tree=None, ...),
+                                                       _PBREstimator(),
+                                                       ExtraTreesWithUncertainty(n_estimators=50)]))])</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label fitted sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-1" type="checkbox" ><label for="sk-estimator-id-1" class="sk-toggleable__label fitted sk-toggleable__label-arrow"><div><div>Pipeline</div></div><div><a class="sk-estimator-doc-link fitted" rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.pipeline.Pipeline.html">?<span>Documentation for Pipeline</span></a><span class="sk-estimator-doc-link fitted">i<span>Fitted</span></span></div></label><div class="sk-toggleable__content fitted" data-param-prefix="">
+        <div class="estimator-table">
+            <details>
+                <summary>Parameters</summary>
+                <table class="parameters-table">
+                  <tbody>
+
+        <tr class="user-set">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy steps to clipboard"
+                 onclick="copyToClipboard('steps',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-steps;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.pipeline.Pipeline.html#:~:text=steps,-list%20of%20tuples">
+            steps
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-steps;">
+            steps: list of tuples<br><br>List of (name of step, estimator) tuples that are to be chained in<br>sequential order. To be compatible with the scikit-learn API, all steps<br>must define `fit`. All non-last steps must also define `transform`. See<br>:ref:`Combining Estimators &lt;combining_estimators&gt;` for more details.</span>
+        </a>
+    </td>
+            <td class="value">[(&#x27;columns&#x27;, ...), (&#x27;imputer&#x27;, ...), ...]</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy transform_input to clipboard"
+                 onclick="copyToClipboard('transform_input',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-transform_input;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.pipeline.Pipeline.html#:~:text=transform_input,-list%20of%20str%2C%20default%3DNone">
+            transform_input
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-transform_input;">
+            transform_input: list of str, default=None<br><br>The names of the :term:`metadata` parameters that should be transformed by the<br>pipeline before passing it to the step consuming it.<br><br>This enables transforming some input arguments to ``fit`` (other than ``X``)<br>to be transformed by the steps of the pipeline up to the step which requires<br>them. Requirement is defined via :ref:`metadata routing &lt;metadata_routing&gt;`.<br>For instance, this can be used to pass a validation set through the pipeline.<br><br>You can only set this if metadata routing is enabled, which you<br>can enable using ``sklearn.set_config(enable_metadata_routing=True)``.<br><br>.. versionadded:: 1.6</span>
+        </a>
+    </td>
+            <td class="value">None</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy memory to clipboard"
+                 onclick="copyToClipboard('memory',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-memory;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.pipeline.Pipeline.html#:~:text=memory,-str%20or%20object%20with%20the%20joblib.Memory%20interface%2C%20default%3DNone">
+            memory
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-memory;">
+            memory: str or object with the joblib.Memory interface, default=None<br><br>Used to cache the fitted transformers of the pipeline. The last step<br>will never be cached, even if it is a transformer. By default, no<br>caching is performed. If a string is given, it is the path to the<br>caching directory. Enabling caching triggers a clone of the transformers<br>before fitting. Therefore, the transformer instance given to the<br>pipeline cannot be inspected directly. Use the attribute ``named_steps``<br>or ``steps`` to inspect estimators within the pipeline. Caching the<br>transformers is advantageous when fitting is time consuming. See<br>:ref:`sphx_glr_auto_examples_neighbors_plot_caching_nearest_neighbors.py`<br>for an example on how to enable caching.</span>
+        </a>
+    </td>
+            <td class="value">None</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy verbose to clipboard"
+                 onclick="copyToClipboard('verbose',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-verbose;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.pipeline.Pipeline.html#:~:text=verbose,-bool%2C%20default%3DFalse">
+            verbose
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-verbose;">
+            verbose: bool, default=False<br><br>If True, the time elapsed while fitting each step will be printed as it<br>is completed.</span>
+        </a>
+    </td>
+            <td class="value">False</td>
+        </tr>
+
+                  </tbody>
+                </table>
+            </details>
+        </div>
+    </div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-estimator fitted sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-2" type="checkbox" ><label for="sk-estimator-id-2" class="sk-toggleable__label fitted sk-toggleable__label-arrow"><div><div>InputColumnSelector</div></div></label><div class="sk-toggleable__content fitted" data-param-prefix="columns__">
+        <div class="estimator-table">
+            <details>
+                <summary>Parameters</summary>
+                <table class="parameters-table">
+                  <tbody>
+
+        <tr class="user-set">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy columns to clipboard"
+                 onclick="copyToClipboard('columns',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">columns</td>
+            <td class="value">[&#x27;feature_0&#x27;, &#x27;feature_1&#x27;, ...]</td>
+        </tr>
+
+                  </tbody>
+                </table>
+            </details>
+        </div>
+
+        <div class="estimator-table">
+            <details>
+                <summary>Fitted attributes</summary>
+                <table class="parameters-table">
+                    <tbody>
+                        <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Value</th>
+                        </tr>
+
+       <tr class="default">
+           <td class="param"><a class="param-doc-link" style="text-decoration:none;">columns_</a></td>
+           <td class="fitted-att-type">list</td>
+           <td>[&#x27;fe..._0&#x27;, &#x27;fe..._1&#x27;, &#x27;fe..._2&#x27;, &#x27;fe..._3&#x27;, ...]</td>
+
+
+       </tr>
+
+                    </tbody>
+                </table>
+            </details>
+        </div>
+    </div></div></div><div class="sk-item"><div class="sk-estimator fitted sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-3" type="checkbox" ><label for="sk-estimator-id-3" class="sk-toggleable__label fitted sk-toggleable__label-arrow"><div><div>KNNImputer</div></div><div><a class="sk-estimator-doc-link fitted" rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html">?<span>Documentation for KNNImputer</span></a></div></label><div class="sk-toggleable__content fitted" data-param-prefix="imputer__">
+        <div class="estimator-table">
+            <details>
+                <summary>Parameters</summary>
+                <table class="parameters-table">
+                  <tbody>
+
+        <tr class="user-set">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy keep_empty_features to clipboard"
+                 onclick="copyToClipboard('keep_empty_features',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-keep_empty_features;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html#:~:text=keep_empty_features,-bool%2C%20default%3DFalse">
+            keep_empty_features
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-keep_empty_features;">
+            keep_empty_features: bool, default=False<br><br>If True, features that consist exclusively of missing values when<br>`fit` is called are returned in results when `transform` is called.<br>The imputed value is always `0`.<br><br>.. versionadded:: 1.2</span>
+        </a>
+    </td>
+            <td class="value">True</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy missing_values to clipboard"
+                 onclick="copyToClipboard('missing_values',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-missing_values;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html#:~:text=missing_values,-int%2C%20float%2C%20str%2C%20np.nan%20or%20None%2C%20default%3Dnp.nan">
+            missing_values
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-missing_values;">
+            missing_values: int, float, str, np.nan or None, default=np.nan<br><br>The placeholder for the missing values. All occurrences of<br>`missing_values` will be imputed. For pandas&#x27; dataframes with<br>nullable integer dtypes with missing values, `missing_values`<br>should be set to np.nan, since `pd.NA` will be converted to np.nan.</span>
+        </a>
+    </td>
+            <td class="value">nan</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy n_neighbors to clipboard"
+                 onclick="copyToClipboard('n_neighbors',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-n_neighbors;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html#:~:text=n_neighbors,-int%2C%20default%3D5">
+            n_neighbors
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-n_neighbors;">
+            n_neighbors: int, default=5<br><br>Number of neighboring samples to use for imputation.</span>
+        </a>
+    </td>
+            <td class="value">5</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy weights to clipboard"
+                 onclick="copyToClipboard('weights',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-weights;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html#:~:text=weights,-%7B%27uniform%27%2C%20%27distance%27%7D%20or%20callable%2C%20default%3D%27uniform%27">
+            weights
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-weights;">
+            weights: {&#x27;uniform&#x27;, &#x27;distance&#x27;} or callable, default=&#x27;uniform&#x27;<br><br>Weight function used in prediction.  Possible values:<br><br>- &#x27;uniform&#x27; : uniform weights. All points in each neighborhood are<br>  weighted equally.<br>- &#x27;distance&#x27; : weight points by the inverse of their distance.<br>  in this case, closer neighbors of a query point will have a<br>  greater influence than neighbors which are further away.<br>- callable : a user-defined function which accepts an<br>  array of distances, and returns an array of the same shape<br>  containing the weights.</span>
+        </a>
+    </td>
+            <td class="value">&#x27;uniform&#x27;</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy metric to clipboard"
+                 onclick="copyToClipboard('metric',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-metric;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html#:~:text=metric,-%7B%27nan_euclidean%27%7D%20or%20callable%2C%20default%3D%27nan_euclidean%27">
+            metric
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-metric;">
+            metric: {&#x27;nan_euclidean&#x27;} or callable, default=&#x27;nan_euclidean&#x27;<br><br>Distance metric for searching neighbors. Possible values:<br><br>- &#x27;nan_euclidean&#x27;<br>- callable : a user-defined function which conforms to the definition<br>  of ``func_metric(x, y, *, missing_values=np.nan)``. `x` and `y`<br>  corresponds to a row (i.e. 1-D arrays) of `X` and `Y`, respectively.<br>  The callable should returns a scalar distance value.</span>
+        </a>
+    </td>
+            <td class="value">&#x27;nan_euclidean&#x27;</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy copy to clipboard"
+                 onclick="copyToClipboard('copy',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-copy;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html#:~:text=copy,-bool%2C%20default%3DTrue">
+            copy
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-copy;">
+            copy: bool, default=True<br><br>If True, a copy of X will be created. If False, imputation will<br>be done in-place whenever possible.</span>
+        </a>
+    </td>
+            <td class="value">True</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy add_indicator to clipboard"
+                 onclick="copyToClipboard('add_indicator',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-add_indicator;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html#:~:text=add_indicator,-bool%2C%20default%3DFalse">
+            add_indicator
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-add_indicator;">
+            add_indicator: bool, default=False<br><br>If True, a :class:`MissingIndicator` transform will stack onto the<br>output of the imputer&#x27;s transform. This allows a predictive estimator<br>to account for missingness despite imputation. If a feature has no<br>missing values at fit/train time, the feature won&#x27;t appear on the<br>missing indicator even if there are missing values at transform/test<br>time.</span>
+        </a>
+    </td>
+            <td class="value">False</td>
+        </tr>
+
+                  </tbody>
+                </table>
+            </details>
+        </div>
+
+        <div class="estimator-table">
+            <details>
+                <summary>Fitted attributes</summary>
+                <table class="parameters-table">
+                    <tbody>
+                        <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Value</th>
+                        </tr>
+
+       <tr class="default">
+           <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-indicator_;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html#:~:text=indicator_,-%3Aclass%3A~sklearn.impute.MissingIndicator">
+            indicator_
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-indicator_;">
+            indicator_: :class:`~sklearn.impute.MissingIndicator`<br><br>Indicator used to add binary indicators for missing values.<br>``None`` if add_indicator is False.</span>
+        </a>
+    </td>
+           <td class="fitted-att-type">NoneType</td>
+           <td>None</td>
+
+
+       </tr>
+
+
+       <tr class="default">
+           <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-n_features_in_;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html#:~:text=n_features_in_,-int">
+            n_features_in_
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-n_features_in_;">
+            n_features_in_: int<br><br>Number of features seen during :term:`fit`.<br><br>.. versionadded:: 0.24</span>
+        </a>
+    </td>
+           <td class="fitted-att-type">int</td>
+           <td>5</td>
+
+
+       </tr>
+
+                    </tbody>
+                </table>
+            </details>
+        </div>
+    </div></div></div>
+        <div class="features fitted">
+          <details>
+            <summary>
+              <div class="arrow"></div>
+              <div>5 features</div>
+              <div class="image-container">
+                <button type="button" class="copy-paste-icon"
+                  title="Copy output features (max 100)"
+                  aria-label="Copy output features (max 100)"
+                  onclick="
+                  event.stopPropagation();
+                  event.preventDefault();
+                  copyFeatureNamesToClipboard(this);
+                  "
+                >
+                </button>
+              </div>
+            </summary>
+            <div class="features-container">
+                <table class="features-table">
+                  <tbody>
+
+        <tr>
+          <td>x0</td>
+        </tr>
+
+
+        <tr>
+          <td>x1</td>
+        </tr>
+
+
+        <tr>
+          <td>x2</td>
+        </tr>
+
+
+        <tr>
+          <td>x3</td>
+        </tr>
+
+
+        <tr>
+          <td>x4</td>
+        </tr>
+
+
+                  </tbody>
+                </table>
+            </div>
+          </details>
+        </div>
+    <div class="sk-item"><div class="sk-estimator fitted sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-4" type="checkbox" ><label for="sk-estimator-id-4" class="sk-toggleable__label fitted sk-toggleable__label-arrow"><div><div>PerTargetRegressorWithStd</div></div></label><div class="sk-toggleable__content fitted" data-param-prefix="model__">
+        <div class="estimator-table">
+            <details>
+                <summary>Parameters</summary>
+                <table class="parameters-table">
+                  <tbody>
+
+        <tr class="user-set">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy estimators to clipboard"
+                 onclick="copyToClipboard('estimators',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">estimators</td>
+            <td class="value">[XGBRegressor(...ree=None, ...), _PBREstimator(), ...]</td>
+        </tr>
+
+                  </tbody>
+                </table>
+            </details>
+        </div>
+
+        <div class="estimator-table">
+            <details>
+                <summary>Fitted attributes</summary>
+                <table class="parameters-table">
+                    <tbody>
+                        <tr>
+                        <th>Name</th>
+                        <th>Type</th>
+                        <th>Value</th>
+                        </tr>
+
+       <tr class="default">
+           <td class="param"><a class="param-doc-link" style="text-decoration:none;">estimators_</a></td>
+           <td class="fitted-att-type">list</td>
+           <td>[XGBRegressor(...ree=None, ...), _PBREstimator(), ExtraTreesWit...estimators=50)]</td>
+
+
+       </tr>
+
+                    </tbody>
+                </table>
+            </details>
+        </div>
+    </div></div></div></div></div></div></div><script>/*  Authors: The scikit-learn developers
+ SPDX-License-Identifier: BSD-3-Clause
+*/
+
+function copyToClipboard(text, element) {
+    // Get the parameter prefix from the closest toggleable content
+    const toggleableContent = element.closest('.sk-toggleable__content');
+    const paramPrefix = toggleableContent ? toggleableContent.dataset.paramPrefix : '';
+    const fullParamName = paramPrefix ? `${paramPrefix}${text}` : text;
+
+    const originalStyle = element.style;
+    const computedStyle = window.getComputedStyle(element);
+    const originalWidth = computedStyle.width;
+    const originalHTML = element.innerHTML.replace('Copied!', '');
+
+    navigator.clipboard.writeText(fullParamName)
+        .then(() => {
+            element.style.width = originalWidth;
+            element.style.color = 'green';
+            element.innerHTML = "Copied!";
+
+            setTimeout(() => {
+                element.innerHTML = originalHTML;
+                element.style = originalStyle;
+            }, 2000);
+        })
+        .catch(err => {
+            console.error('Failed to copy:', err);
+            element.style.color = 'red';
+            element.innerHTML = "Failed!";
+            setTimeout(() => {
+                element.innerHTML = originalHTML;
+                element.style = originalStyle;
+            }, 2000);
+        });
+    return false;
+}
+
+document.querySelectorAll('.copy-paste-icon').forEach(function(element) {
+    const toggleableContent = element.closest('.sk-toggleable__content');
+    const paramPrefix = toggleableContent ? toggleableContent.dataset.paramPrefix : '';
+
+    const parent = element.parentElement;
+    if (!parent || !parent.nextElementSibling) {
+        console.warn('Expected copy-paste icon is missing from the DOM structure');
+        return;
+    }
+
+    const paramName = element.parentElement.nextElementSibling
+        .textContent.trim().split(' ')[0];
+    const fullParamName = paramPrefix ? `${paramPrefix}${paramName}` : paramName;
+
+    element.setAttribute('title', fullParamName);
+});
+
+/**
+ * Copy the list of feature names formatted as a Python list.
+ *
+ * @param {HTMLElement} element - The copy button inside a `.features` block; its siblings
+ *   contain a `details` element and a table containing feature named.
+ * @returns {boolean} Always returns `false` so callers can prevent the default click behavior.
+ */
+function copyFeatureNamesToClipboard(element) {
+    var detailsElem = element.closest('.features').querySelector('details');
+    var wasOpen = detailsElem.open;
+    detailsElem.open = true;
+    var content = element.closest('.features').querySelector('tbody')
+                  .innerText.trim();
+    if (!wasOpen) detailsElem.open = false;
+    const rows = content.split('\n').map(row => `    "${row}"`);
+    const formattedText = `[\n${rows.join(',\n')},\n]`;
+    const originalHTML = element.innerHTML.replace('✔', '');
+    const originalStyle = element.style;
+    const copyMark = document.createElement('span');
+    copyMark.innerHTML = '✔';
+    copyMark.style.color = 'blue';
+    copyMark.style.fontSize = '1em';
+
+    navigator.clipboard.writeText(formattedText)
+        .then(() => {
+            element.style.display = 'none';
+            element.parentElement.appendChild(copyMark);
+
+            setTimeout(() => {
+                copyMark.remove();
+                element.innerHTML = originalHTML;
+                element.style = originalStyle;
+            }, 1000);
+        })
+        .catch(err => {
+            console.error('Failed to copy:', err);
+            element.style.color = 'orange';
+            element.innerHTML = "Failed!";
+            setTimeout(() => {
+                element.innerHTML = originalHTML;
+                element.style = originalStyle;
+            }, 1000);
+        });
+    return false;
+}
+/**
+ * Adapted from Skrub
+ * https://github.com/skrub-data/skrub/blob/403466d1d5d4dc76a7ef569b3f8228db59a31dc3/skrub/_reporting/_data/templates/report.js#L789
+ * @returns "light" or "dark"
+ */
+function detectTheme(element) {
+    const body = document.querySelector('body');
+
+    // Check VSCode theme
+    const themeKindAttr = body.getAttribute('data-vscode-theme-kind');
+    const themeNameAttr = body.getAttribute('data-vscode-theme-name');
+
+    if (themeKindAttr && themeNameAttr) {
+        const themeKind = themeKindAttr.toLowerCase();
+        const themeName = themeNameAttr.toLowerCase();
+
+        if (themeKind.includes("dark") || themeName.includes("dark")) {
+            return "dark";
+        }
+        if (themeKind.includes("light") || themeName.includes("light")) {
+            return "light";
+        }
+    }
+
+    // Check Jupyter theme
+    if (body.getAttribute('data-jp-theme-light') === 'false') {
+        return 'dark';
+    } else if (body.getAttribute('data-jp-theme-light') === 'true') {
+        return 'light';
+    }
+
+    // Guess based on a parent element's color
+    const color = window.getComputedStyle(element.parentNode, null).getPropertyValue('color');
+    const match = color.match(/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)\s*$/i);
+    if (match) {
+        const [r, g, b] = [
+            parseFloat(match[1]),
+            parseFloat(match[2]),
+            parseFloat(match[3])
+        ];
+
+        // https://en.wikipedia.org/wiki/HSL_and_HSV#Lightness
+        const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+
+        if (luma > 180) {
+            // If the text is very bright we have a dark theme
+            return 'dark';
+        }
+        if (luma < 75) {
+            // If the text is very dark we have a light theme
+            return 'light';
+        }
+        // Otherwise fall back to the next heuristic.
+    }
+
+    // Fallback to system preference
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+
+function forceTheme(elementId) {
+    const estimatorElement = document.querySelector(`#${elementId}`);
+    if (estimatorElement === null) {
+        console.error(`Element with id ${elementId} not found.`);
+    } else {
+        const theme = detectTheme(estimatorElement);
+        estimatorElement.classList.add(theme);
+    }
+}
+
+forceTheme('sk-container-id-1');</script></body></div>
+</div>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Step</p></th>
+<th class="head"><p>What it does</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">columns</span></code></p></td>
+<td><p>Picks <code class="docutils literal notranslate"><span class="pre">input_columns</span></code> out of a DataFrame in training order. Extra columns are ignored and a missing one raises <code class="docutils literal notranslate"><span class="pre">KeyError</span></code>. A NumPy array must already have exactly these columns in this order.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">imputer</span></code></p></td>
+<td><p>The <code class="docutils literal notranslate"><span class="pre">KNNImputer</span></code> fitted on the training split. It fills empty input cells from the 5 most similar training rows. Rows without gaps pass through unchanged.</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="docutils literal notranslate"><span class="pre">pca</span></code></p></td>
+<td><p>Only present if <strong>Apply PCA to input features</strong> was ticked: the fitted <code class="docutils literal notranslate"><span class="pre">StandardScaler</span></code> + <code class="docutils literal notranslate"><span class="pre">PCA</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">model</span></code></p></td>
+<td><p>The selected model for each output, refitted on the full training split</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p>All steps are already fitted. <strong>Do not call ``pipe.fit``</strong>: that would retrain everything on whatever data you pass it.</p>
+<p>The models chosen for each output are in <code class="docutils literal notranslate"><span class="pre">pipe.named_steps[&quot;model&quot;].estimators_</span></code>, in <code class="docutils literal notranslate"><span class="pre">output_columns</span></code> order. Some come wrapped in their own scaler pipeline, because distance- and kernel-based models need standardised inputs.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>models = pipe.named_steps["model"].estimators_
+pd.DataFrame({
+    "output": bundle["output_columns"],
+    "selected": [cfg["model"] for cfg in bundle["config"]["models"]],
+    "estimator": [type(m).__name__ if not hasattr(m, "steps")
+                  else " → ".join(type(s).__name__ for _, s in m.steps) for m in models],
+    "hyperparameters": [{k: v for k, v in cfg.items() if k != "model"}
+                        for cfg in bundle["config"]["models"]],
+})
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>output</th>
+      <th>selected</th>
+      <th>estimator</th>
+      <th>hyperparameters</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>output_pressure</td>
+      <td>xgb</td>
+      <td>XGBRegressor</td>
+      <td>{'learning_rate': 0.05, 'max_depth': 4, 'n_est...</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>output_temperature</td>
+      <td>pbr</td>
+      <td>_PBREstimator</td>
+      <td>{'degree': 2, 'interaction_only': False}</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>output_velocity</td>
+      <td>et</td>
+      <td>ExtraTreesWithUncertainty</td>
+      <td>{'max_depth': None, 'n_estimators': 50}</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>The JSON config has the same information in a form you can read, diff or store with an experiment log:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>config = json.loads(CONFIG_FILE.read_text())
+print(json.dumps({k: config[k] for k in ("input_columns", "output_columns",
+                                         "preprocessing", "conformal", "data_split")}, indent=2))
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+{
+  &#34;input_columns&#34;: [
+    &#34;feature_0&#34;,
+    &#34;feature_1&#34;,
+    &#34;feature_2&#34;,
+    &#34;feature_3&#34;,
+    &#34;feature_4&#34;
+  ],
+  &#34;output_columns&#34;: [
+    &#34;output_pressure&#34;,
+    &#34;output_temperature&#34;,
+    &#34;output_velocity&#34;
+  ],
+  &#34;preprocessing&#34;: {
+    &#34;imputer&#34;: {
+      &#34;type&#34;: &#34;KNNImputer&#34;,
+      &#34;n_neighbors&#34;: 5
+    },
+    &#34;pca&#34;: null
+  },
+  &#34;conformal&#34;: {
+    &#34;alpha&#34;: 0.1,
+    &#34;quantiles&#34;: {
+      &#34;output_pressure&#34;: 0.2397258854058052,
+      &#34;output_temperature&#34;: 0.1799988240208874,
+      &#34;output_velocity&#34;: 0.15328330499408338
+    }
+  },
+  &#34;data_split&#34;: {
+    &#34;test_size&#34;: 0.25,
+    &#34;random_state&#34;: 0,
+    &#34;calibration_fraction&#34;: 0.2,
+    &#34;validation_fraction&#34;: 0.2
+  }
+}
+</pre></div></div>
+</div>
+<hr class="docutils" />
+<p>## 4. Predicting on New Data</p>
+<p>Pass a DataFrame with the input columns. Here the “new data” is the 25% of the sample the app held out as its test set. The model never saw these rows, and we know their true outputs, so we can check the predictions. To show that the <code class="docutils literal notranslate"><span class="pre">columns</span></code> step matches by name, the columns are shuffled and an unrelated <code class="docutils literal notranslate"><span class="pre">batch_id</span></code> column is added.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>_, new_rows = train_test_split(sample, test_size=0.25, random_state=0)
+new_inputs = new_rows[INPUTS[::-1]].assign(batch_id="B-17")
+new_inputs.head()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>feature_4</th>
+      <th>feature_3</th>
+      <th>feature_2</th>
+      <th>feature_1</th>
+      <th>feature_0</th>
+      <th>batch_id</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>208</th>
+      <td>2.316</td>
+      <td>0.755</td>
+      <td>-1.087</td>
+      <td>1.744</td>
+      <td>0.237</td>
+      <td>B-17</td>
+    </tr>
+    <tr>
+      <th>188</th>
+      <td>-1.761</td>
+      <td>1.978</td>
+      <td>0.909</td>
+      <td>0.325</td>
+      <td>-1.356</td>
+      <td>B-17</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>-1.314</td>
+      <td>-0.859</td>
+      <td>1.972</td>
+      <td>-1.372</td>
+      <td>-0.668</td>
+      <td>B-17</td>
+    </tr>
+    <tr>
+      <th>221</th>
+      <td>-2.077</td>
+      <td>1.176</td>
+      <td>1.549</td>
+      <td>-0.623</td>
+      <td>-1.957</td>
+      <td>B-17</td>
+    </tr>
+    <tr>
+      <th>239</th>
+      <td>-2.219</td>
+      <td>1.498</td>
+      <td>2.813</td>
+      <td>2.841</td>
+      <td>2.229</td>
+      <td>B-17</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pred = pd.DataFrame(pipe.predict(new_inputs), columns=bundle["output_columns"],
+                    index=new_inputs.index)
+pred.head()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>output_pressure</th>
+      <th>output_temperature</th>
+      <th>output_velocity</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>208</th>
+      <td>0.421</td>
+      <td>0.809</td>
+      <td>0.108</td>
+    </tr>
+    <tr>
+      <th>188</th>
+      <td>-1.005</td>
+      <td>-0.129</td>
+      <td>5.727</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>-0.669</td>
+      <td>4.328</td>
+      <td>3.757</td>
+    </tr>
+    <tr>
+      <th>221</th>
+      <td>-1.032</td>
+      <td>1.846</td>
+      <td>8.051</td>
+    </tr>
+    <tr>
+      <th>239</th>
+      <td>1.027</td>
+      <td>7.143</td>
+      <td>9.175</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>The predictions should give the same test-set metrics the app reported in its <strong>Metrics Table</strong>:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from sklearn.metrics import mean_absolute_error, r2_score, root_mean_squared_error
+
+pd.DataFrame({
+    name: {"r2": r2_score(new_rows[name], pred[name]),
+           "rmse": root_mean_squared_error(new_rows[name], pred[name]),
+           "mae": mean_absolute_error(new_rows[name], pred[name])}
+    for name in bundle["output_columns"]
+}).T
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>r2</th>
+      <th>rmse</th>
+      <th>mae</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>output_pressure</th>
+      <td>0.953</td>
+      <td>0.157</td>
+      <td>0.116</td>
+    </tr>
+    <tr>
+      <th>output_temperature</th>
+      <td>0.998</td>
+      <td>0.110</td>
+      <td>0.091</td>
+    </tr>
+    <tr>
+      <th>output_velocity</th>
+      <td>0.999</td>
+      <td>0.126</td>
+      <td>0.071</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<hr class="docutils" />
+<p>## 5. Uncertainty: Model Std and Conformal Intervals</p>
+<p><strong>Model standard deviation.</strong> <code class="docutils literal notranslate"><span class="pre">predict(X,</span> <span class="pre">return_std=True)</span></code> is passed through to each output’s model and returns <code class="docutils literal notranslate"><span class="pre">(mean,</span> <span class="pre">std)</span></code>. Not every model has an uncertainty estimate. Where a model has none, its column of <code class="docutils literal notranslate"><span class="pre">std</span></code> is <code class="docutils literal notranslate"><span class="pre">NaN</span></code>:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>mean, std = pipe.predict(new_inputs, return_std=True)
+std = pd.DataFrame(std, columns=bundle["output_columns"], index=new_inputs.index)
+std.describe().loc[["count", "mean", "min", "max"]]
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>output_pressure</th>
+      <th>output_temperature</th>
+      <th>output_velocity</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>count</th>
+      <td>0.0</td>
+      <td>75.000</td>
+      <td>75.000</td>
+    </tr>
+    <tr>
+      <th>mean</th>
+      <td>NaN</td>
+      <td>0.106</td>
+      <td>0.291</td>
+    </tr>
+    <tr>
+      <th>min</th>
+      <td>NaN</td>
+      <td>0.101</td>
+      <td>0.020</td>
+    </tr>
+    <tr>
+      <th>max</th>
+      <td>NaN</td>
+      <td>0.116</td>
+      <td>1.505</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p><strong>Conformal intervals.</strong> If the run computed conformal intervals, the bundle stores one quantile <code class="docutils literal notranslate"><span class="pre">q</span></code> per output. The interval for a prediction is <code class="docutils literal notranslate"><span class="pre">[pred</span> <span class="pre">-</span> <span class="pre">q,</span> <span class="pre">pred</span> <span class="pre">+</span> <span class="pre">q]</span></code>. It is the same width for every row, and it works whichever model won.</p>
+<p>It was calibrated on rows the model never trained on. With <code class="docutils literal notranslate"><span class="pre">alpha</span> <span class="pre">=</span> <span class="pre">0.1</span></code>, about 90% of new rows should fall inside it, provided the new rows come from the same distribution as the training data.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>q = pd.Series(bundle["conformal"]["quantiles"])
+lower, upper = pred - q, pred + q
+covered = (new_rows[q.index] &gt;= lower) &amp; (new_rows[q.index] &lt;= upper)
+pd.DataFrame({"half-width q": q, "coverage on new rows": covered.mean(),
+              "target": 1 - bundle["conformal"]["alpha"]})
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>half-width q</th>
+      <th>coverage on new rows</th>
+      <th>target</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>output_pressure</th>
+      <td>0.240</td>
+      <td>0.907</td>
+      <td>0.9</td>
+    </tr>
+    <tr>
+      <th>output_temperature</th>
+      <td>0.180</td>
+      <td>0.907</td>
+      <td>0.9</td>
+    </tr>
+    <tr>
+      <th>output_velocity</th>
+      <td>0.153</td>
+      <td>0.933</td>
+      <td>0.9</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = plt.subplots(1, 3, figsize=(13, 4))
+for ax, name in zip(axes, bundle["output_columns"]):
+    ax.errorbar(new_rows[name], pred[name], yerr=q[name], fmt="o", ms=3, alpha=0.5,
+                elinewidth=0.8, label=f"prediction ± conformal q")
+    lims = [min(new_rows[name].min(), pred[name].min()), max(new_rows[name].max(), pred[name].max())]
+    ax.plot(lims, lims, "k--", lw=1, label="y = x")
+    ax.set(title=name, xlabel="true", ylabel="predicted")
+fig.tight_layout()
+fig.legend(*axes[0].get_legend_handles_labels(), loc="upper center", ncol=2,
+           bbox_to_anchor=(0.5, 0.0), frameon=False)
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+&lt;matplotlib.legend.Legend at 0x13495b530&gt;
+</pre></div></div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_using_the_exported_model_23_1.png" src="../_images/tutorials_using_the_exported_model_23_1.png" />
+</div>
+</div>
+<hr class="docutils" />
+<p>## 6. Rows with Missing Inputs</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">imputer</span></code> step lets the pipeline take rows with empty input cells, even if the training data had none. Here three of the new rows lose one value each:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>gappy = new_rows[INPUTS].head(3).copy()
+gappy.iloc[0, 1] = np.nan
+gappy.iloc[1, 3] = np.nan
+gappy.iloc[2, 4] = np.nan
+upto_imputer = pipe[: [name for name, _ in pipe.steps].index("imputer") + 1]
+filled = pd.DataFrame(upto_imputer.transform(gappy), columns=INPUTS, index=gappy.index)
+pd.DataFrame([
+    {"row": i, "column": col, "filled in": filled.loc[i, col], "true value": new_rows.loc[i, col]}
+    for i, col in gappy.isna().stack().loc[lambda s: s].index
+])
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>row</th>
+      <th>column</th>
+      <th>filled in</th>
+      <th>true value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>208</td>
+      <td>feature_1</td>
+      <td>0.334</td>
+      <td>1.744</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>188</td>
+      <td>feature_3</td>
+      <td>-1.715</td>
+      <td>1.978</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>12</td>
+      <td>feature_4</td>
+      <td>-0.793</td>
+      <td>-1.314</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>pd.DataFrame({
+    "complete row": pipe.predict(new_rows[INPUTS].head(3))[:, 0],
+    "row with a gap": pipe.predict(gappy)[:, 0],
+}, index=gappy.index).rename_axis(f"{OUTPUTS[0]} prediction")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>complete row</th>
+      <th>row with a gap</th>
+    </tr>
+    <tr>
+      <th>output_pressure prediction</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>208</th>
+      <td>0.421</td>
+      <td>0.341</td>
+    </tr>
+    <tr>
+      <th>188</th>
+      <td>-1.005</td>
+      <td>-1.046</td>
+    </tr>
+    <tr>
+      <th>12</th>
+      <td>-0.669</td>
+      <td>-0.667</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">upto_imputer</span></code> is a slice of the pipeline: the steps up to and including <code class="docutils literal notranslate"><span class="pre">imputer</span></code>. Slicing a pipeline like this is how you look at what any intermediate step does.</p>
+<p>A filled-in value is an estimate. Its quality depends on how well the other inputs predict the missing one. In this sample the five inputs were drawn independently, so the neighbours carry little information and the filled values are rough. Treat predictions for rows with gaps as less reliable than predictions for complete rows. The conformal intervals were calibrated on complete rows only.</p>
+<hr class="docutils" />
+<p>## 7. A What-If Sweep</p>
+<p>A surrogate is cheap to call, so you can explore it. Below, <code class="docutils literal notranslate"><span class="pre">feature_0</span></code> is swept across its training range while the other inputs are held at their training medians, and each output is plotted with its conformal band. Stay inside the training range: predictions outside it are extrapolation, and the intervals no longer apply.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>grid = pd.DataFrame({c: np.full(200, sample[c].median()) for c in INPUTS})
+grid["feature_0"] = np.linspace(sample["feature_0"].min(), sample["feature_0"].max(), 200)
+sweep = pd.DataFrame(pipe.predict(grid), columns=bundle["output_columns"])
+
+fig, axes = plt.subplots(1, 3, figsize=(13, 3.6))
+for ax, name in zip(axes, bundle["output_columns"]):
+    ax.plot(grid["feature_0"], sweep[name])
+    ax.fill_between(grid["feature_0"], sweep[name] - q[name], sweep[name] + q[name], alpha=0.25)
+    ax.set(title=name, xlabel="feature_0")
+fig.suptitle("Sweeping feature_0 with the other inputs at their training medians")
+fig.tight_layout()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_using_the_exported_model_29_0.png" src="../_images/tutorials_using_the_exported_model_29_0.png" />
+</div>
+</div>
+<p>Only <code class="docutils literal notranslate"><span class="pre">output_pressure</span></code> responds to <code class="docutils literal notranslate"><span class="pre">feature_0</span></code>. The other two outputs stay flat, which tells you they depend on the other inputs instead. Sweeping one input at a time like this is a quick way to see what drives each output.</p>
+<p>The same pattern works for optimisation. Any optimiser that calls a function of the inputs, such as <code class="docutils literal notranslate"><span class="pre">scipy.optimize.minimize</span></code> or <code class="docutils literal notranslate"><span class="pre">differential_evolution</span></code>, can call <code class="docutils literal notranslate"><span class="pre">pipe.predict</span></code> on a one-row DataFrame.</p>
+<hr class="docutils" />
+<p>## 8. Rebuilding the Model from the JSON Config</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">.joblib</span></code> file is the trained model. The <code class="docutils literal notranslate"><span class="pre">.json</span></code> file is the recipe for it. Use the recipe when:</p>
+<ul class="simple">
+<li><p>you have more or newer data and want to <strong>refit</strong> the winning configuration without rerunning the whole grid search, or</p></li>
+<li><p>the <code class="docutils literal notranslate"><span class="pre">.joblib</span></code> will not load because your package versions differ from the ones it was saved with.</p></li>
+</ul>
+<p>Each entry in <code class="docutils literal notranslate"><span class="pre">config[&quot;models&quot;]</span></code> names a candidate from <code class="docutils literal notranslate"><span class="pre">default_surrogate_defs()</span></code> and gives its hyperparameters. Some values are not JSON: a GP kernel is stored as its <code class="docutils literal notranslate"><span class="pre">repr</span></code>, and a tuple becomes a list. So each value is matched against the candidate’s grid instead of being passed in as is:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def _as_json(value):
+    return json.loads(json.dumps(value, default=repr))
+
+
+def estimator_from_config(entry):
+    # Return an unfitted estimator for one entry of config["models"].
+    defs = {name: (factory, grid) for name, factory, grid in default_surrogate_defs()}
+    factory, grid = defs[entry["model"]]
+    wanted = {k: v for k, v in entry.items() if k != "model"}
+    for params in ParameterGrid(grid):
+        if _as_json(params) == wanted:
+            return factory(**params)
+    raise ValueError(f"{entry} is not in the grid of {entry['model']!r}")
+
+
+def pipeline_from_config(config):
+    # Unfitted pipeline with the same steps as the exported one.
+    from sklearn.decomposition import PCA
+    from sklearn.impute import KNNImputer
+    from sklearn.pipeline import Pipeline, make_pipeline
+    from sklearn.preprocessing import StandardScaler
+
+    from multioutreg.gui.grid_search_core import InputColumnSelector, PerTargetRegressorWithStd
+
+    steps = [("columns", InputColumnSelector(config["input_columns"]))]
+    imp = config["preprocessing"]["imputer"]
+    if imp is not None:
+        steps.append(("imputer", KNNImputer(n_neighbors=imp["n_neighbors"],
+                                            keep_empty_features=True)))
+    pca = config["preprocessing"]["pca"]
+    if pca is not None:
+        steps.append(("pca", make_pipeline(StandardScaler(), PCA(n_components=pca["n_components"]))))
+    steps.append(("model", PerTargetRegressorWithStd(
+        [estimator_from_config(e) for e in config["models"]])))
+    return Pipeline(steps)
+
+
+rebuilt = pipeline_from_config(config)
+rebuilt
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<style>.sk-global {
+  /* Definition of color scheme common for light and dark mode */
+  --sklearn-color-text: #000;
+  --sklearn-color-text-muted: #666;
+  --sklearn-color-line: gray;
+  /* Definition of color scheme for unfitted estimators */
+  --sklearn-color-unfitted-level-0: #fff5e6;
+  --sklearn-color-unfitted-level-1: #f6e4d2;
+  --sklearn-color-unfitted-level-2: #ffe0b3;
+  --sklearn-color-unfitted-level-3: chocolate;
+  /* Definition of color scheme for fitted estimators */
+  --sklearn-color-fitted-level-0: #f0f8ff;
+  --sklearn-color-fitted-level-1: #d4ebff;
+  --sklearn-color-fitted-level-2: #b3dbfd;
+  --sklearn-color-fitted-level-3: cornflowerblue;
+}
+
+.sk-global.light {
+  /* Specific color for light theme */
+  --sklearn-color-text-on-default-background: black;
+  --sklearn-color-background: white;
+  --sklearn-color-border-box: black;
+  --sklearn-color-icon: #696969;
+}
+
+.sk-global.dark {
+  --sklearn-color-text-on-default-background: white;
+  --sklearn-color-background: #111;
+  --sklearn-color-border-box: white;
+  --sklearn-color-icon: #878787;
+}
+
+.sk-global {
+  color: var(--sklearn-color-text);
+}
+
+.sk-global pre {
+  padding: 0;
+}
+
+.sk-global input.sk-hidden--visually {
+  border: 0;
+  clip-path: inset(100%);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+
+.sk-global div.sk-dashed-wrapped {
+  border: 1px dashed var(--sklearn-color-line);
+  margin: 0 0.4em 0.5em 0.4em;
+  box-sizing: border-box;
+  padding-bottom: 0.4em;
+  background-color: var(--sklearn-color-background);
+}
+
+.sk-global div.sk-container {
+  /* jupyter's `normalize.less` sets `[hidden] { display: none; }`
+     but bootstrap.min.css set `[hidden] { display: none !important; }`
+     so we also need the `!important` here to be able to override the
+     default hidden behavior on the sphinx rendered scikit-learn.org.
+     See: https://github.com/scikit-learn/scikit-learn/issues/21755 */
+  display: inline-block !important;
+  position: relative;
+}
+
+.sk-global div.sk-text-repr-fallback {
+  display: none;
+}
+
+div.sk-parallel-item,
+div.sk-serial,
+div.sk-item {
+  /* draw centered vertical line to link estimators */
+  background-image: linear-gradient(var(--sklearn-color-text-on-default-background), var(--sklearn-color-text-on-default-background));
+  background-size: 2px 100%;
+  background-repeat: no-repeat;
+  background-position: center center;
+}
+
+/* Parallel-specific style estimator block */
+
+.sk-global div.sk-parallel-item::after {
+  content: "";
+  width: 100%;
+  border-bottom: 2px solid var(--sklearn-color-text-on-default-background);
+  flex-grow: 1;
+}
+
+.sk-global div.sk-parallel {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background-color: var(--sklearn-color-background);
+  position: relative;
+}
+
+.sk-global div.sk-parallel-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.sk-global div.sk-parallel-item:first-child::after {
+  align-self: flex-end;
+  width: 50%;
+}
+
+.sk-global div.sk-parallel-item:last-child::after {
+  align-self: flex-start;
+  width: 50%;
+}
+
+.sk-global div.sk-parallel-item:only-child::after {
+  width: 0;
+}
+
+/* Serial-specific style estimator block */
+
+.sk-global div.sk-serial {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--sklearn-color-background);
+  padding-right: 1em;
+  padding-left: 1em;
+}
+
+
+/* Toggleable style: style used for estimator/Pipeline/ColumnTransformer box that is
+clickable and can be expanded/collapsed.
+- Pipeline and ColumnTransformer use this feature and define the default style
+- Estimators will overwrite some part of the style using the `sk-estimator` class
+*/
+
+/* Pipeline and ColumnTransformer style (default) */
+
+.sk-global div.sk-toggleable {
+  /* Default theme specific background. It is overwritten whether we have a
+  specific estimator or a Pipeline/ColumnTransformer */
+  background-color: var(--sklearn-color-background);
+}
+
+/* Toggleable label */
+.sk-global label.sk-toggleable__label {
+  cursor: pointer;
+  display: flex;
+  width: 100%;
+  margin-bottom: 0;
+  padding: 0.5em;
+  box-sizing: border-box;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+}
+
+.sk-global label.sk-toggleable__label .caption {
+  font-size: 0.6rem;
+  font-weight: lighter;
+  color: var(--sklearn-color-text-muted);
+}
+
+.sk-global label.sk-toggleable__label-arrow:before {
+  /* Arrow on the left of the label */
+  content: "▸";
+  float: left;
+  margin-right: 0.25em;
+  color: var(--sklearn-color-icon);
+}
+
+.sk-global label.sk-toggleable__label-arrow:hover:before {
+  color: var(--sklearn-color-text);
+}
+
+/* Toggleable content - dropdown */
+
+.sk-global div.sk-toggleable__content {
+  display: none;
+  text-align: left;
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+.sk-global div.sk-toggleable__content.fitted {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+.sk-global div.sk-toggleable__content pre {
+  margin: 0.2em;
+  border-radius: 0.25em;
+  color: var(--sklearn-color-text);
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+.sk-global div.sk-toggleable__content.fitted pre {
+  /* unfitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+.sk-global input.sk-toggleable__control:checked~div.sk-toggleable__content {
+  /* Expand drop-down */
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.sk-global input.sk-toggleable__control:checked~label.sk-toggleable__label-arrow:before {
+  content: "▾";
+}
+
+/* Pipeline/ColumnTransformer-specific style */
+
+.sk-global div.sk-label input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+.sk-global div.sk-label.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Estimator-specific style */
+
+/* Colorize estimator box */
+.sk-global div.sk-estimator input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+.sk-global div.sk-estimator.fitted input.sk-toggleable__control:checked~label.sk-toggleable__label {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+.sk-global div.sk-label label.sk-toggleable__label,
+.sk-global div.sk-label label {
+  /* The background is the default theme color */
+  color: var(--sklearn-color-text-on-default-background);
+}
+
+/* On hover, darken the color of the background */
+.sk-global div.sk-label:hover label.sk-toggleable__label {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+/* Label box, darken color on hover, fitted */
+.sk-global div.sk-label.fitted:hover label.sk-toggleable__label.fitted {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Estimator label */
+
+.sk-global div.sk-label label {
+  font-family: monospace;
+  font-weight: bold;
+  line-height: 1.2em;
+}
+
+.sk-global div.sk-label-container {
+  text-align: center;
+}
+
+/* Estimator-specific */
+.sk-global div.sk-estimator {
+  font-family: monospace;
+  border: 1px dotted var(--sklearn-color-border-box);
+  border-radius: 0.25em;
+  box-sizing: border-box;
+  margin-bottom: 0.5em;
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-0);
+}
+
+.sk-global div.sk-estimator.fitted {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+/* on hover */
+.sk-global div.sk-estimator:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+.sk-global div.sk-estimator.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+/* Specification for estimator info (e.g. "i" and "?") */
+
+/* Common style for "i" and "?" */
+
+.sk-estimator-doc-link,
+a:link.sk-estimator-doc-link,
+a:visited.sk-estimator-doc-link {
+  float: right;
+  font-size: smaller;
+  line-height: 1em;
+  font-family: monospace;
+  background-color: var(--sklearn-color-unfitted-level-0);
+  border-radius: 1em;
+  height: 1em;
+  width: 1em;
+  text-decoration: none !important;
+  margin-left: 0.5em;
+  text-align: center;
+  /* unfitted */
+  border: var(--sklearn-color-unfitted-level-3) 1pt solid;
+  color: var(--sklearn-color-unfitted-level-3);
+}
+
+.sk-estimator-doc-link.fitted,
+a:link.sk-estimator-doc-link.fitted,
+a:visited.sk-estimator-doc-link.fitted {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+  border: var(--sklearn-color-fitted-level-3) 1pt solid;
+  color: var(--sklearn-color-fitted-level-3);
+}
+
+/* On hover */
+div.sk-estimator:hover .sk-estimator-doc-link:hover,
+.sk-estimator-doc-link:hover,
+div.sk-label-container:hover .sk-estimator-doc-link:hover,
+.sk-estimator-doc-link:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-3);
+  border: var(--sklearn-color-fitted-level-0) 1pt solid;
+  color: var(--sklearn-color-unfitted-level-0);
+  text-decoration: none;
+}
+
+div.sk-estimator.fitted:hover .sk-estimator-doc-link.fitted:hover,
+.sk-estimator-doc-link.fitted:hover,
+div.sk-label-container:hover .sk-estimator-doc-link.fitted:hover,
+.sk-estimator-doc-link.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-3);
+  border: var(--sklearn-color-fitted-level-0) 1pt solid;
+  color: var(--sklearn-color-fitted-level-0);
+  text-decoration: none;
+}
+
+/* Span, style for the box shown on hovering the info icon */
+.sk-estimator-doc-link span {
+  display: none;
+  z-index: 9999;
+  position: relative;
+  font-weight: normal;
+  right: .2ex;
+  padding: .5ex;
+  margin: .5ex;
+  width: min-content;
+  min-width: 20ex;
+  max-width: 50ex;
+  color: var(--sklearn-color-text);
+  box-shadow: 2pt 2pt 4pt #999;
+  /* unfitted */
+  background: var(--sklearn-color-unfitted-level-0);
+  border: .5pt solid var(--sklearn-color-unfitted-level-3);
+}
+
+.sk-estimator-doc-link.fitted span {
+  /* fitted */
+  background: var(--sklearn-color-fitted-level-0);
+  border: var(--sklearn-color-fitted-level-3);
+}
+
+.sk-estimator-doc-link:hover span {
+  display: block;
+}
+
+/* "?"-specific style due to the `<a>` HTML tag */
+
+.sk-global a.estimator_doc_link {
+  float: right;
+  font-size: 1rem;
+  line-height: 1em;
+  font-family: monospace;
+  background-color: var(--sklearn-color-unfitted-level-0);
+  border-radius: 1rem;
+  height: 1rem;
+  width: 1rem;
+  text-decoration: none;
+  /* unfitted */
+  color: var(--sklearn-color-unfitted-level-1);
+  border: var(--sklearn-color-unfitted-level-1) 1pt solid;
+}
+
+.sk-global a.estimator_doc_link.fitted {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-0);
+  border: var(--sklearn-color-fitted-level-1) 1pt solid;
+  color: var(--sklearn-color-fitted-level-1);
+}
+
+/* On hover */
+.sk-global a.estimator_doc_link:hover {
+  /* unfitted */
+  background-color: var(--sklearn-color-unfitted-level-3);
+  color: var(--sklearn-color-background);
+  text-decoration: none;
+}
+
+.sk-global a.estimator_doc_link.fitted:hover {
+  /* fitted */
+  background-color: var(--sklearn-color-fitted-level-3);
+}
+
+.sk-top-container.sk-global {
+  /* pydata-sphinx-theme hides overflow, so scrolling is disabled.
+   We need to set it to !important and add tabindex="0" in the HTML
+   to allow keyboard-only users to navigate the display. */
+  overflow-x: scroll !important;
+  max-width: 100%;
+}
+
+.estimator-table {
+    font-family: monospace;
+}
+
+.estimator-table summary {
+    padding: .5rem;
+    cursor: pointer;
+}
+
+.estimator-table summary::marker {
+    font-size: 0.7rem;
+}
+
+.estimator-table details[open] {
+    padding-left: 0.1rem;
+    padding-right: 0.1rem;
+    padding-bottom: 0.3rem;
+}
+
+.estimator-table .parameters-table {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-top: 0;
+}
+
+.estimator-table .parameters-table tr:nth-child(odd) {
+    background-color: #fff;
+}
+
+.estimator-table .parameters-table tr:nth-child(even) {
+    background-color: #f6f6f6;
+}
+
+.estimator-table .parameters-table tr:hover td {
+    background-color: #e0e0e0;
+}
+
+.estimator-table table :is(td, th) {
+    border: 1px solid rgba(106, 105, 104, 0.232);
+}
+
+/*
+    `table td`is set in notebook with right text-align.
+    We need to overwrite it.
+*/
+.estimator-table table td.param {
+    text-align: left;
+    position: relative;
+    padding: 0;
+}
+
+.user-set td {
+    color:rgb(255, 94, 0);
+    text-align: left !important;
+}
+
+.user-set td.value {
+    color:rgb(255, 94, 0);
+    background-color: transparent;
+}
+
+.default td, .estimator-table th {
+    color: black;
+    text-align: left !important;
+}
+
+.user-set td i,
+.default td i {
+    color: black;
+}
+
+td.fitted-att-type {
+    white-space: preserve nowrap;
+}
+
+/*
+    Styles for parameter documentation links
+    We need styling for visited so jupyter doesn't overwrite it
+*/
+a.param-doc-link,
+a.param-doc-link:link,
+a.param-doc-link:visited {
+    text-decoration: underline dashed;
+    text-underline-offset: .3em;
+    color: inherit;
+    display: block;
+    padding: .5em;
+}
+
+@supports(anchor-name: --doc-link) {
+    a.param-doc-link,
+    a.param-doc-link:link,
+    a.param-doc-link:visited {
+    anchor-name: --doc-link;
+    }
+}
+
+/* "hack" to make the entire area of the cell containing the link clickable */
+a.param-doc-link::before {
+    position: absolute;
+    content: "";
+    inset: 0;
+}
+
+.param-doc-description {
+    display: none;
+    position: absolute;
+    z-index: 9999;
+    left: 0;
+    padding: .5ex;
+    margin-left: 1.5em;
+    color: var(--sklearn-color-text);
+    box-shadow: .3em .3em .4em #999;
+    width: max-content;
+    text-align: left;
+    max-height: 10em;
+    overflow-y: auto;
+
+    /* unfitted */
+    background: var(--sklearn-color-unfitted-level-0);
+    border: thin solid var(--sklearn-color-unfitted-level-3);
+}
+
+@supports(position-area: center right) {
+    .param-doc-description {
+    position-area: center right;
+    position: fixed;
+    margin-left: 0;
+    }
+}
+
+/* Fitted state for parameter tooltips */
+.fitted .param-doc-description {
+    /* fitted */
+    background: var(--sklearn-color-fitted-level-0);
+    border: thin solid var(--sklearn-color-fitted-level-3);
+}
+
+.param-doc-link:hover .param-doc-description {
+    display: block;
+}
+
+.copy-paste-icon {
+    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0NDggNTEyIj48IS0tIUZvbnQgQXdlc29tZSBGcmVlIDYuNy4yIGJ5IEBmb250YXdlc29tZSAtIGh0dHBzOi8vZm9udGF3ZXNvbWUuY29tIExpY2Vuc2UgLSBodHRwczovL2ZvbnRhd2Vzb21lLmNvbS9saWNlbnNlL2ZyZWUgQ29weXJpZ2h0IDIwMjUgRm9udGljb25zLCBJbmMuLS0+PHBhdGggZD0iTTIwOCAwTDMzMi4xIDBjMTIuNyAwIDI0LjkgNS4xIDMzLjkgMTQuMWw2Ny45IDY3LjljOSA5IDE0LjEgMjEuMiAxNC4xIDMzLjlMNDQ4IDMzNmMwIDI2LjUtMjEuNSA0OC00OCA0OGwtMTkyIDBjLTI2LjUgMC00OC0yMS41LTQ4LTQ4bDAtMjg4YzAtMjYuNSAyMS41LTQ4IDQ4LTQ4ek00OCAxMjhsODAgMCAwIDY0LTY0IDAgMCAyNTYgMTkyIDAgMC0zMiA2NCAwIDAgNDhjMCAyNi41LTIxLjUgNDgtNDggNDhMNDggNTEyYy0yNi41IDAtNDgtMjEuNS00OC00OEwwIDE3NmMwLTI2LjUgMjEuNS00OCA0OC00OHoiLz48L3N2Zz4=);
+    background-repeat: no-repeat;
+    background-size: 14px 14px;
+    background-position: 0;
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    border: none;
+    padding: 0;
+    background-color: transparent;
+}
+
+.copy-paste-icon:focus-visible {
+    outline: 1px solid currentColor;
+    outline-offset: 1px;
+}
+
+.features {
+  font-family: monospace;
+  cursor: pointer;
+  background-color: var(--sklearn-color-unfitted-level-0);
+  border: 1px dotted var(--sklearn-color-border-box);
+  border-radius: .20em;
+  margin-bottom: 0.5em;
+  font-size: inherit; /* Needed for jupyter */
+}
+
+.features.fitted {
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+.features summary {
+  cursor: pointer;
+  display: flex;
+  margin-bottom: 0;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  padding: .25em;
+}
+
+.features details[open] > summary {
+  color: var(--sklearn-color-text);
+  background-color: var(--sklearn-color-unfitted-level-2);
+  border-radius: .20em 0 0 0;
+}
+
+.features.fitted details[open] > summary {
+  background-color: var(--sklearn-color-fitted-level-2);
+  border-radius: .20em 0 0 0;
+}
+
+.features details > summary .arrow::before {
+  content: "▸";
+  color: grey;
+}
+
+.features details[open] > summary .arrow::before {
+  content: "▾";
+}
+
+.features details:hover > summary {
+  margin: 0;
+  background-color: var(--sklearn-color-unfitted-level-2);
+}
+
+.features.fitted details:hover > summary {
+  margin: 0;
+  background-color: var(--sklearn-color-fitted-level-2);
+}
+
+.features .features-container {
+  max-height: 10em;
+  overflow: auto;
+  scrollbar-width: thin;
+  padding: .25em 0.1rem;
+  background-color: var(--sklearn-color-unfitted-level-0);
+  border-radius: 0 0 .5em .5em;
+}
+
+.features.fitted .features-container {
+  background-color: var(--sklearn-color-fitted-level-0);
+}
+
+.features .image-container {
+  block-size: 1em;
+  inline-size: 1em;
+  padding: 0;
+  margin: 0%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.features .copy-paste-icon {
+  background-size: 1em 1em;
+  width: 1em;
+  height: 1em;
+  filter: grayscale(100%) opacity(60%);
+}
+
+.features .features-container table {
+  width: 100%;
+  margin: 0.01em;
+}
+
+.features .features-container table tr:nth-child(odd) {
+  background-color: #fff;
+}
+
+.features .features-container table tr:nth-child(even) {
+  background-color: #f6f6f6;
+}
+
+.features .features-container table tr:hover {
+  background-color: #e0e0e0;
+}
+
+.features .features-container table {
+  table-layout: inherit;
+}
+
+.features .features-container table td {
+  text-align: left;
+  padding: 0 0.5em;
+  border: 1px solid rgba(106, 105, 104, 0.232);
+  white-space: nowrap;
+  color: var(--sklearn-color-text);
+}
+
+.total_features {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5em;
+}
+</style><body><div id="sk-container-id-2" tabindex="0" class="sk-top-container sk-global"><div class="sk-text-repr-fallback"><pre>Pipeline(steps=[(&#x27;columns&#x27;,
+                 InputColumnSelector(columns=[&#x27;feature_0&#x27;, &#x27;feature_1&#x27;,
+                                              &#x27;feature_2&#x27;, &#x27;feature_3&#x27;,
+                                              &#x27;feature_4&#x27;])),
+                (&#x27;imputer&#x27;, KNNImputer(keep_empty_features=True)),
+                (&#x27;model&#x27;,
+                 PerTargetRegressorWithStd(estimators=[XGBRegressor(base_score=None,
+                                                                    booster=None,
+                                                                    callbacks=None,
+                                                                    colsample_bylevel=None,
+                                                                    colsample_bynode=None,
+                                                                    colsample_bytree=None,
+                                                                    device=None...
+                                                                    interaction_constraints=None,
+                                                                    learning_rate=0.05,
+                                                                    max_bin=None,
+                                                                    max_cat_threshold=None,
+                                                                    max_cat_to_onehot=None,
+                                                                    max_delta_step=None,
+                                                                    max_depth=4,
+                                                                    max_leaves=None,
+                                                                    min_child_weight=None,
+                                                                    missing=nan,
+                                                                    monotone_constraints=None,
+                                                                    multi_strategy=None,
+                                                                    n_estimators=200,
+                                                                    n_jobs=None,
+                                                                    num_parallel_tree=None, ...),
+                                                       _PBREstimator(),
+                                                       ExtraTreesWithUncertainty(n_estimators=50)]))])</pre><b>In a Jupyter environment, please rerun this cell to show the HTML representation or trust the notebook. <br />On GitHub, the HTML representation is unable to render, please try loading this page with nbviewer.org.</b></div><div class="sk-container" hidden><div class="sk-item sk-dashed-wrapped"><div class="sk-label-container"><div class="sk-label  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-5" type="checkbox" ><label for="sk-estimator-id-5" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>Pipeline</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.pipeline.Pipeline.html">?<span>Documentation for Pipeline</span></a><span class="sk-estimator-doc-link ">i<span>Not fitted</span></span></div></label><div class="sk-toggleable__content " data-param-prefix="">
+        <div class="estimator-table">
+            <details>
+                <summary>Parameters</summary>
+                <table class="parameters-table">
+                  <tbody>
+
+        <tr class="user-set">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy steps to clipboard"
+                 onclick="copyToClipboard('steps',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-steps;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.pipeline.Pipeline.html#:~:text=steps,-list%20of%20tuples">
+            steps
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-steps;">
+            steps: list of tuples<br><br>List of (name of step, estimator) tuples that are to be chained in<br>sequential order. To be compatible with the scikit-learn API, all steps<br>must define `fit`. All non-last steps must also define `transform`. See<br>:ref:`Combining Estimators &lt;combining_estimators&gt;` for more details.</span>
+        </a>
+    </td>
+            <td class="value">[(&#x27;columns&#x27;, ...), (&#x27;imputer&#x27;, ...), ...]</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy transform_input to clipboard"
+                 onclick="copyToClipboard('transform_input',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-transform_input;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.pipeline.Pipeline.html#:~:text=transform_input,-list%20of%20str%2C%20default%3DNone">
+            transform_input
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-transform_input;">
+            transform_input: list of str, default=None<br><br>The names of the :term:`metadata` parameters that should be transformed by the<br>pipeline before passing it to the step consuming it.<br><br>This enables transforming some input arguments to ``fit`` (other than ``X``)<br>to be transformed by the steps of the pipeline up to the step which requires<br>them. Requirement is defined via :ref:`metadata routing &lt;metadata_routing&gt;`.<br>For instance, this can be used to pass a validation set through the pipeline.<br><br>You can only set this if metadata routing is enabled, which you<br>can enable using ``sklearn.set_config(enable_metadata_routing=True)``.<br><br>.. versionadded:: 1.6</span>
+        </a>
+    </td>
+            <td class="value">None</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy memory to clipboard"
+                 onclick="copyToClipboard('memory',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-memory;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.pipeline.Pipeline.html#:~:text=memory,-str%20or%20object%20with%20the%20joblib.Memory%20interface%2C%20default%3DNone">
+            memory
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-memory;">
+            memory: str or object with the joblib.Memory interface, default=None<br><br>Used to cache the fitted transformers of the pipeline. The last step<br>will never be cached, even if it is a transformer. By default, no<br>caching is performed. If a string is given, it is the path to the<br>caching directory. Enabling caching triggers a clone of the transformers<br>before fitting. Therefore, the transformer instance given to the<br>pipeline cannot be inspected directly. Use the attribute ``named_steps``<br>or ``steps`` to inspect estimators within the pipeline. Caching the<br>transformers is advantageous when fitting is time consuming. See<br>:ref:`sphx_glr_auto_examples_neighbors_plot_caching_nearest_neighbors.py`<br>for an example on how to enable caching.</span>
+        </a>
+    </td>
+            <td class="value">None</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy verbose to clipboard"
+                 onclick="copyToClipboard('verbose',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-verbose;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.pipeline.Pipeline.html#:~:text=verbose,-bool%2C%20default%3DFalse">
+            verbose
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-verbose;">
+            verbose: bool, default=False<br><br>If True, the time elapsed while fitting each step will be printed as it<br>is completed.</span>
+        </a>
+    </td>
+            <td class="value">False</td>
+        </tr>
+
+                  </tbody>
+                </table>
+            </details>
+        </div>
+    </div></div></div><div class="sk-serial"><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-6" type="checkbox" ><label for="sk-estimator-id-6" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>InputColumnSelector</div></div></label><div class="sk-toggleable__content " data-param-prefix="columns__">
+        <div class="estimator-table">
+            <details>
+                <summary>Parameters</summary>
+                <table class="parameters-table">
+                  <tbody>
+
+        <tr class="user-set">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy columns to clipboard"
+                 onclick="copyToClipboard('columns',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">columns</td>
+            <td class="value">[&#x27;feature_0&#x27;, &#x27;feature_1&#x27;, ...]</td>
+        </tr>
+
+                  </tbody>
+                </table>
+            </details>
+        </div>
+    </div></div></div><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-7" type="checkbox" ><label for="sk-estimator-id-7" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>KNNImputer</div></div><div><a class="sk-estimator-doc-link " rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html">?<span>Documentation for KNNImputer</span></a></div></label><div class="sk-toggleable__content " data-param-prefix="imputer__">
+        <div class="estimator-table">
+            <details>
+                <summary>Parameters</summary>
+                <table class="parameters-table">
+                  <tbody>
+
+        <tr class="user-set">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy keep_empty_features to clipboard"
+                 onclick="copyToClipboard('keep_empty_features',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-keep_empty_features;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html#:~:text=keep_empty_features,-bool%2C%20default%3DFalse">
+            keep_empty_features
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-keep_empty_features;">
+            keep_empty_features: bool, default=False<br><br>If True, features that consist exclusively of missing values when<br>`fit` is called are returned in results when `transform` is called.<br>The imputed value is always `0`.<br><br>.. versionadded:: 1.2</span>
+        </a>
+    </td>
+            <td class="value">True</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy missing_values to clipboard"
+                 onclick="copyToClipboard('missing_values',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-missing_values;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html#:~:text=missing_values,-int%2C%20float%2C%20str%2C%20np.nan%20or%20None%2C%20default%3Dnp.nan">
+            missing_values
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-missing_values;">
+            missing_values: int, float, str, np.nan or None, default=np.nan<br><br>The placeholder for the missing values. All occurrences of<br>`missing_values` will be imputed. For pandas&#x27; dataframes with<br>nullable integer dtypes with missing values, `missing_values`<br>should be set to np.nan, since `pd.NA` will be converted to np.nan.</span>
+        </a>
+    </td>
+            <td class="value">nan</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy n_neighbors to clipboard"
+                 onclick="copyToClipboard('n_neighbors',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-n_neighbors;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html#:~:text=n_neighbors,-int%2C%20default%3D5">
+            n_neighbors
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-n_neighbors;">
+            n_neighbors: int, default=5<br><br>Number of neighboring samples to use for imputation.</span>
+        </a>
+    </td>
+            <td class="value">5</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy weights to clipboard"
+                 onclick="copyToClipboard('weights',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-weights;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html#:~:text=weights,-%7B%27uniform%27%2C%20%27distance%27%7D%20or%20callable%2C%20default%3D%27uniform%27">
+            weights
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-weights;">
+            weights: {&#x27;uniform&#x27;, &#x27;distance&#x27;} or callable, default=&#x27;uniform&#x27;<br><br>Weight function used in prediction.  Possible values:<br><br>- &#x27;uniform&#x27; : uniform weights. All points in each neighborhood are<br>  weighted equally.<br>- &#x27;distance&#x27; : weight points by the inverse of their distance.<br>  in this case, closer neighbors of a query point will have a<br>  greater influence than neighbors which are further away.<br>- callable : a user-defined function which accepts an<br>  array of distances, and returns an array of the same shape<br>  containing the weights.</span>
+        </a>
+    </td>
+            <td class="value">&#x27;uniform&#x27;</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy metric to clipboard"
+                 onclick="copyToClipboard('metric',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-metric;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html#:~:text=metric,-%7B%27nan_euclidean%27%7D%20or%20callable%2C%20default%3D%27nan_euclidean%27">
+            metric
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-metric;">
+            metric: {&#x27;nan_euclidean&#x27;} or callable, default=&#x27;nan_euclidean&#x27;<br><br>Distance metric for searching neighbors. Possible values:<br><br>- &#x27;nan_euclidean&#x27;<br>- callable : a user-defined function which conforms to the definition<br>  of ``func_metric(x, y, *, missing_values=np.nan)``. `x` and `y`<br>  corresponds to a row (i.e. 1-D arrays) of `X` and `Y`, respectively.<br>  The callable should returns a scalar distance value.</span>
+        </a>
+    </td>
+            <td class="value">&#x27;nan_euclidean&#x27;</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy copy to clipboard"
+                 onclick="copyToClipboard('copy',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-copy;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html#:~:text=copy,-bool%2C%20default%3DTrue">
+            copy
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-copy;">
+            copy: bool, default=True<br><br>If True, a copy of X will be created. If False, imputation will<br>be done in-place whenever possible.</span>
+        </a>
+    </td>
+            <td class="value">True</td>
+        </tr>
+
+
+        <tr class="default">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy add_indicator to clipboard"
+                 onclick="copyToClipboard('add_indicator',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">
+        <a class="param-doc-link"
+            style="anchor-name: --doc-link-add_indicator;"
+            rel="noreferrer" target="_blank" href="https://scikit-learn.org/1.9/modules/generated/sklearn.impute.KNNImputer.html#:~:text=add_indicator,-bool%2C%20default%3DFalse">
+            add_indicator
+            <span class="param-doc-description"
+            style="position-anchor: --doc-link-add_indicator;">
+            add_indicator: bool, default=False<br><br>If True, a :class:`MissingIndicator` transform will stack onto the<br>output of the imputer&#x27;s transform. This allows a predictive estimator<br>to account for missingness despite imputation. If a feature has no<br>missing values at fit/train time, the feature won&#x27;t appear on the<br>missing indicator even if there are missing values at transform/test<br>time.</span>
+        </a>
+    </td>
+            <td class="value">False</td>
+        </tr>
+
+                  </tbody>
+                </table>
+            </details>
+        </div>
+    </div></div></div><div class="sk-item"><div class="sk-estimator  sk-toggleable"><input class="sk-toggleable__control sk-hidden--visually sk-global" id="sk-estimator-id-8" type="checkbox" ><label for="sk-estimator-id-8" class="sk-toggleable__label  sk-toggleable__label-arrow"><div><div>PerTargetRegressorWithStd</div></div></label><div class="sk-toggleable__content " data-param-prefix="model__">
+        <div class="estimator-table">
+            <details>
+                <summary>Parameters</summary>
+                <table class="parameters-table">
+                  <tbody>
+
+        <tr class="user-set">
+            <td><button type="button" class="copy-paste-icon"
+                 aria-label="Copy estimators to clipboard"
+                 onclick="copyToClipboard('estimators',
+                          this.parentElement.nextElementSibling)"
+            ></button></td>
+            <td class="param">estimators</td>
+            <td class="value">[XGBRegressor(...ree=None, ...), _PBREstimator(), ...]</td>
+        </tr>
+
+                  </tbody>
+                </table>
+            </details>
+        </div>
+    </div></div></div></div></div></div></div><script>/*  Authors: The scikit-learn developers
+ SPDX-License-Identifier: BSD-3-Clause
+*/
+
+function copyToClipboard(text, element) {
+    // Get the parameter prefix from the closest toggleable content
+    const toggleableContent = element.closest('.sk-toggleable__content');
+    const paramPrefix = toggleableContent ? toggleableContent.dataset.paramPrefix : '';
+    const fullParamName = paramPrefix ? `${paramPrefix}${text}` : text;
+
+    const originalStyle = element.style;
+    const computedStyle = window.getComputedStyle(element);
+    const originalWidth = computedStyle.width;
+    const originalHTML = element.innerHTML.replace('Copied!', '');
+
+    navigator.clipboard.writeText(fullParamName)
+        .then(() => {
+            element.style.width = originalWidth;
+            element.style.color = 'green';
+            element.innerHTML = "Copied!";
+
+            setTimeout(() => {
+                element.innerHTML = originalHTML;
+                element.style = originalStyle;
+            }, 2000);
+        })
+        .catch(err => {
+            console.error('Failed to copy:', err);
+            element.style.color = 'red';
+            element.innerHTML = "Failed!";
+            setTimeout(() => {
+                element.innerHTML = originalHTML;
+                element.style = originalStyle;
+            }, 2000);
+        });
+    return false;
+}
+
+document.querySelectorAll('.copy-paste-icon').forEach(function(element) {
+    const toggleableContent = element.closest('.sk-toggleable__content');
+    const paramPrefix = toggleableContent ? toggleableContent.dataset.paramPrefix : '';
+
+    const parent = element.parentElement;
+    if (!parent || !parent.nextElementSibling) {
+        console.warn('Expected copy-paste icon is missing from the DOM structure');
+        return;
+    }
+
+    const paramName = element.parentElement.nextElementSibling
+        .textContent.trim().split(' ')[0];
+    const fullParamName = paramPrefix ? `${paramPrefix}${paramName}` : paramName;
+
+    element.setAttribute('title', fullParamName);
+});
+
+/**
+ * Copy the list of feature names formatted as a Python list.
+ *
+ * @param {HTMLElement} element - The copy button inside a `.features` block; its siblings
+ *   contain a `details` element and a table containing feature named.
+ * @returns {boolean} Always returns `false` so callers can prevent the default click behavior.
+ */
+function copyFeatureNamesToClipboard(element) {
+    var detailsElem = element.closest('.features').querySelector('details');
+    var wasOpen = detailsElem.open;
+    detailsElem.open = true;
+    var content = element.closest('.features').querySelector('tbody')
+                  .innerText.trim();
+    if (!wasOpen) detailsElem.open = false;
+    const rows = content.split('\n').map(row => `    "${row}"`);
+    const formattedText = `[\n${rows.join(',\n')},\n]`;
+    const originalHTML = element.innerHTML.replace('✔', '');
+    const originalStyle = element.style;
+    const copyMark = document.createElement('span');
+    copyMark.innerHTML = '✔';
+    copyMark.style.color = 'blue';
+    copyMark.style.fontSize = '1em';
+
+    navigator.clipboard.writeText(formattedText)
+        .then(() => {
+            element.style.display = 'none';
+            element.parentElement.appendChild(copyMark);
+
+            setTimeout(() => {
+                copyMark.remove();
+                element.innerHTML = originalHTML;
+                element.style = originalStyle;
+            }, 1000);
+        })
+        .catch(err => {
+            console.error('Failed to copy:', err);
+            element.style.color = 'orange';
+            element.innerHTML = "Failed!";
+            setTimeout(() => {
+                element.innerHTML = originalHTML;
+                element.style = originalStyle;
+            }, 1000);
+        });
+    return false;
+}
+/**
+ * Adapted from Skrub
+ * https://github.com/skrub-data/skrub/blob/403466d1d5d4dc76a7ef569b3f8228db59a31dc3/skrub/_reporting/_data/templates/report.js#L789
+ * @returns "light" or "dark"
+ */
+function detectTheme(element) {
+    const body = document.querySelector('body');
+
+    // Check VSCode theme
+    const themeKindAttr = body.getAttribute('data-vscode-theme-kind');
+    const themeNameAttr = body.getAttribute('data-vscode-theme-name');
+
+    if (themeKindAttr && themeNameAttr) {
+        const themeKind = themeKindAttr.toLowerCase();
+        const themeName = themeNameAttr.toLowerCase();
+
+        if (themeKind.includes("dark") || themeName.includes("dark")) {
+            return "dark";
+        }
+        if (themeKind.includes("light") || themeName.includes("light")) {
+            return "light";
+        }
+    }
+
+    // Check Jupyter theme
+    if (body.getAttribute('data-jp-theme-light') === 'false') {
+        return 'dark';
+    } else if (body.getAttribute('data-jp-theme-light') === 'true') {
+        return 'light';
+    }
+
+    // Guess based on a parent element's color
+    const color = window.getComputedStyle(element.parentNode, null).getPropertyValue('color');
+    const match = color.match(/^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)\s*$/i);
+    if (match) {
+        const [r, g, b] = [
+            parseFloat(match[1]),
+            parseFloat(match[2]),
+            parseFloat(match[3])
+        ];
+
+        // https://en.wikipedia.org/wiki/HSL_and_HSV#Lightness
+        const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+
+        if (luma > 180) {
+            // If the text is very bright we have a dark theme
+            return 'dark';
+        }
+        if (luma < 75) {
+            // If the text is very dark we have a light theme
+            return 'light';
+        }
+        // Otherwise fall back to the next heuristic.
+    }
+
+    // Fallback to system preference
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+}
+
+
+function forceTheme(elementId) {
+    const estimatorElement = document.querySelector(`#${elementId}`);
+    if (estimatorElement === null) {
+        console.error(`Element with id ${elementId} not found.`);
+    } else {
+        const theme = detectTheme(estimatorElement);
+        estimatorElement.classList.add(theme);
+    }
+}
+
+forceTheme('sk-container-id-2');</script></body></div>
+</div>
+<p>Fit it on the same rows the app trained on, and compare with the exported model:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>train_rows, _ = train_test_split(sample, test_size=0.25, random_state=0)
+train_rows, _ = train_test_split(train_rows, test_size=config["data_split"]["calibration_fraction"],
+                                 random_state=0)
+rebuilt.fit(train_rows, train_rows[config["output_columns"]].values)
+
+refit_pred = rebuilt.predict(new_inputs)
+diff = np.abs(pred.values - refit_pred)
+pd.DataFrame({"model": [m["model"] for m in config["models"]],
+              "mean |exported - rebuilt|": diff.mean(axis=0),
+              "max |exported - rebuilt|": diff.max(axis=0),
+              "std of the output": new_rows[config["output_columns"]].std().values},
+             index=config["output_columns"])
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="output_area rendered_html docutils container">
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>model</th>
+      <th>mean |exported - rebuilt|</th>
+      <th>max |exported - rebuilt|</th>
+      <th>std of the output</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>output_pressure</th>
+      <td>xgb</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.733</td>
+    </tr>
+    <tr>
+      <th>output_temperature</th>
+      <td>pbr</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>2.800</td>
+    </tr>
+    <tr>
+      <th>output_velocity</th>
+      <td>et</td>
+      <td>0.046</td>
+      <td>0.323</td>
+      <td>5.254</td>
+    </tr>
+  </tbody>
+</table>
+</div></div>
+</div>
+<p>Models that are deterministic or have a fixed seed come back identical. Several of the tree-ensemble candidates (<code class="docutils literal notranslate"><span class="pre">rf</span></code>, <code class="docutils literal notranslate"><span class="pre">et</span></code>, <code class="docutils literal notranslate"><span class="pre">gb</span></code>) have no fixed seed, so each fit grows slightly different trees. If one of them won, its rebuilt predictions differ a little from the exported ones but are equally good. For the exact exported model, use the <code class="docutils literal notranslate"><span class="pre">.joblib</span></code>. (The same randomness means a rerun of the app can occasionally pick a different winner for an output where two candidates scored almost the
+same.)</p>
+<p>Refitting on new data works the same way: call <code class="docutils literal notranslate"><span class="pre">rebuilt.fit(new_df,</span> <span class="pre">new_df[outputs].values)</span></code>.</p>
+<p>Two caveats:</p>
+<ul class="simple">
+<li><p><strong>The conformal quantiles do not carry over.</strong> They belong to the exported model. After refitting, recalibrate on rows the refit did not use: take the absolute residuals on those rows and compute <code class="docutils literal notranslate"><span class="pre">BaseConformalPredictor._conformal_quantile(residuals,</span> <span class="pre">alpha)</span></code> for each output, as <code class="docutils literal notranslate"><span class="pre">make_app_download</span></code> does above.</p></li>
+<li><p><strong>The config only rebuilds candidates that are installed.</strong> Models such as <code class="docutils literal notranslate"><span class="pre">lgbm</span></code>, <code class="docutils literal notranslate"><span class="pre">xgb</span></code>, <code class="docutils literal notranslate"><span class="pre">catboost</span></code>, <code class="docutils literal notranslate"><span class="pre">gpx</span></code> and <code class="docutils literal notranslate"><span class="pre">kpls</span></code> come from optional extras. If the winner needs one, install that extra first.</p></li>
+</ul>
+<hr class="docutils" />
+<p>## 9. Things to Know Before Sharing the File</p>
+<ul class="simple">
+<li><p><strong>It contains your training inputs.</strong> The KNN imputer stores the training rows, and so do GP-type and nearest-neighbour models. Treat the <code class="docutils literal notranslate"><span class="pre">.joblib</span></code> like the dataset it was trained on. The <code class="docutils literal notranslate"><span class="pre">.json</span></code> config contains no data.</p></li>
+<li><p><strong>It is a pickle.</strong> Anyone who loads it runs whatever it contains. Share it only with people who trust you, and load only files from sources you trust.</p></li>
+<li><p><strong>Versions matter.</strong> Keep the <code class="docutils literal notranslate"><span class="pre">versions</span></code> from the config alongside the file. If a future environment can’t load it, rebuild from the config (section 8).</p></li>
+<li><p><strong>It answers for the training distribution only.</strong> Inputs outside the training range, or rows where many cells were filled in, give predictions the reported metrics and conformal coverage do not cover.</p></li>
+</ul>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+<div class="related-pages">
+  <a class="next-page" href="forecasting_with_chronos.html">
+      <div class="page-info">
+        <div class="context">
+          <span>Next</span>
+        </div>
+        <div class="title">Time-Series Forecasting with Chronos</div>
+      </div>
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+    </a>
+  <a class="prev-page" href="../multi_fidelity_gui.html">
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+      <div class="page-info">
+        <div class="context">
+          <span>Previous</span>
+        </div>
+        
+        <div class="title">Multi-Fidelity Surrogate Models page</div>
+        
+      </div>
+    </a>
+</div>
+<div class="bottom-of-page">
+  <div class="left-details">
+    <div class="copyright">
+        Copyright &#169; 2025, takotime808
+    </div>
+  </div>
+  <div class="right-details">
+    <div class="icons">
+      <a class="muted-link " href="https://github.com/takotime808/multioutreg" aria-label="GitHub"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a>
+      
+    </div>
+  </div>
+</div>
+
+      </footer>
+    </div>
+    <aside class="toc-drawer no-toc">
+      
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>

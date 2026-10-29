@@ -1,0 +1,37 @@
+multioutreg.time_series
+=======================
+
+.. py:module:: multioutreg.time_series
+
+.. autoapi-nested-parse::
+
+   Time-series forecasting: foundation-model adapters, surrogate forecasters and CV.
+
+   Exports are resolved lazily so importing the package does not pull in
+   torch, chronos or matplotlib until one of the names below is used.
+
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/time_series/chronos_adapter/index
+   /autoapi/multioutreg/time_series/cv/index
+   /autoapi/multioutreg/time_series/figures/index
+   /autoapi/multioutreg/time_series/financial/index
+   /autoapi/multioutreg/time_series/lag_features/index
+   /autoapi/multioutreg/time_series/lag_forecaster/index
+   /autoapi/multioutreg/time_series/metrics/index
+   /autoapi/multioutreg/time_series/neuralforecast_adapter/index
+   /autoapi/multioutreg/time_series/prophet_adapter/index
+   /autoapi/multioutreg/time_series/returns/index
+   /autoapi/multioutreg/time_series/seasonality/index
+   /autoapi/multioutreg/time_series/surrogate_forecaster/index
+   /autoapi/multioutreg/time_series/ts_dynamic_fit/index
+   /autoapi/multioutreg/time_series/ts_suitability/index
+   /autoapi/multioutreg/time_series/uncertainty/index
+
+

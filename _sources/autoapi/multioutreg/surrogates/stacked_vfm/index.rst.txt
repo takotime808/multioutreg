@@ -1,0 +1,461 @@
+multioutreg.surrogates.stacked_vfm
+==================================
+
+.. py:module:: multioutreg.surrogates.stacked_vfm
+
+.. autoapi-nested-parse::
+
+   Stacked Variable Fidelity Model surrogates.
+
+   Two classes are provided:
+
+   * StackedVFMSurrogate — Recursive feature-augmentation multi-fidelity model.
+     Each fidelity level receives the original features augmented with all
+     lower-level surrogate predictions (and optionally their stds), enabling
+     nonlinear cross-fidelity information transfer with any existing surrogate.
+
+   * AdditiveCorrectionVFM — Two-level autoregressive correction (Kennedy-O'Hagan AR1).
+     A per-output scale rho is fitted by least squares of Y_hi on f_lo(X_hi) and
+     a linear trend in x, a
+     correction surrogate is trained on delta = Y_hi - rho * f_lo(X_hi), and the
+     prediction is f_hi(x) = rho * f_lo(x) + delta(x).
+
+   .. rubric:: References
+
+   Perdikaris et al. (2017) "Nonlinear information fusion algorithms for
+   data-efficient multi-fidelity modelling." Proceedings of the Royal Society A.
+
+   Kennedy & O'Hagan (2000) "Predicting the output from a complex computer code
+   when fast approximations are available." Biometrika.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.stacked_vfm.StackedVFMSurrogate
+   multioutreg.surrogates.stacked_vfm.AdditiveCorrectionVFM
+
+
+Module Contents
+---------------
+
+.. py:class:: StackedVFMSurrogate(fidelity_levels: List[str], surrogate_cls=None, surrogate_params: Union[dict, List[dict], None] = None, augment_with_std: bool = False, output_dim_mismatch: Literal['error', 'truncate', 'pad'] = 'error', oof_cv: Optional[int] = 5, random_state: Optional[int] = 0, n_mc_samples: int = 100)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Stacked Variable Fidelity Model surrogate.
+
+   Implements the recursive feature-augmentation approach described in
+   Perdikaris et al. (2017).  At each fidelity level k, the input feature
+   matrix is augmented with the predictions (and optionally predicted stds)
+   of all lower-level surrogates before fitting, enabling the higher-fidelity
+   surrogate to learn a nonlinear correction over the lower-fidelity
+   prediction.
+
+   :param fidelity_levels: Ordered list of fidelity level names from lowest to highest.
+                           Must have at least 2 elements.
+   :type fidelity_levels: list[str]
+   :param surrogate_cls: Surrogate class(es) to instantiate per level.  A single class is
+                         used for all levels.  A list must have the same length as
+                         ``fidelity_levels`` and is used element-wise (heterogeneous experts).
+                         Defaults to ``RandomForestSurrogate``.
+   :type surrogate_cls: type | list[type] | None
+   :param surrogate_params: Constructor kwargs for each surrogate.  A single dict applies to all
+                            levels; a list is paired element-wise with ``surrogate_cls``.
+   :type surrogate_params: dict | list[dict] | None
+   :param augment_with_std: If True, the predicted standard deviation of level k is also appended
+                            to the feature matrix for level k+1 alongside the predictions.
+                            Requires each surrogate to support ``predict(X, return_std=True)``.
+
+                            Note: std features are treated as deterministic inputs, which is an
+                            approximation (see Perdikaris et al. 2017).  If the surrogate does not
+                            natively produce uncertainty (e.g. LinearRegressionSurrogate), the std
+                            columns will be all-zero and uninformative.
+   :type augment_with_std: bool, default False
+   :param output_dim_mismatch: Policy when the augmented feature count at predict time does not match
+                               what was seen at fit time (can arise if surrogates are swapped via
+                               ``set_params`` without re-fitting).
+                               ``"error"`` raises ValueError.
+                               ``"truncate"`` clips extra augmentation columns.
+                               ``"pad"`` zero-pads missing augmentation columns.
+   :type output_dim_mismatch: {"error", "truncate", "pad"}, default "error"
+   :param oof_cv: Folds used for out-of-fold lower-level predictions while fitting.
+                  When a level's training inputs are also training inputs of a lower
+                  level (nested designs), the lower model's predictions there are
+                  in-sample and over-accurate; the higher level then over-trusts them
+                  and does worse at new points. Those rows instead get predictions from
+                  a lower model fitted without them. Rows that are not lower-level
+                  training points use the full model, as does ``predict``. ``None`` or
+                  ``0`` uses in-sample predictions (the old behaviour).
+   :type oof_cv: int or None, default 5
+   :param random_state: Seed for the out-of-fold split and the Monte Carlo draws.
+   :type random_state: int or None, default 0
+   :param n_mc_samples: Draws used by ``predict(..., return_std=True)`` to propagate
+                        lower-level uncertainty. Each lower level's prediction is replaced
+                        by a sample from ``N(mean, std)`` and passed up the stack; the
+                        returned std combines the top level's own std with the spread of its
+                        mean across draws. Without this the top level treats lower-level
+                        predictions as exact and its intervals are much too narrow. ``0``
+                        returns the top level's std alone (the old behaviour). Lower-level
+                        surrogates must support ``predict(X, return_std=True)``.
+   :type n_mc_samples: int, default 100
+
+   .. attribute:: surrogates_
+
+      Fitted surrogate per level, keyed by level name.
+
+      :type: dict[str, surrogate]
+
+   .. attribute:: n_outputs_per_level_
+
+      Number of outputs for each level as seen at fit time.
+
+      :type: dict[str, int]
+
+   .. attribute:: augmented_n_features_per_level_
+
+      Total number of features (original + augmented) used for each level.
+
+      :type: dict[str, int]
+
+   .. attribute:: n_features_in_
+
+      Number of raw input features (from level 0 data).
+
+      :type: int
+
+   .. admonition:: Examples
+
+      >>> import numpy as np
+      >>> from multioutreg.surrogates import StackedVFMSurrogate
+      >>> from multioutreg.surrogates import GaussianProcessSurrogate, RandomForestSurrogate
+      >>> rng = np.random.default_rng(0)
+      >>> X_lo = rng.standard_normal((80, 3))
+      >>> Y_lo = np.sin(X_lo).sum(axis=1, keepdims=True)
+      >>> X_hi = rng.standard_normal((30, 3))
+      >>> Y_hi = np.sin(X_hi).sum(axis=1, keepdims=True) + 0.1 * rng.standard_normal((30, 1))
+      >>> model = StackedVFMSurrogate(
+      ...     fidelity_levels=["lo", "hi"],
+      ...     surrogate_cls=[RandomForestSurrogate, GaussianProcessSurrogate],
+      ... )
+      >>> model.fit({"lo": (X_lo, Y_lo), "hi": (X_hi, Y_hi)})
+      StackedVFMSurrogate(...)
+      >>> y_pred = model.predict(X_hi)
+      >>> y_pred.shape
+      (30, 1)
+
+
+   .. py:attribute:: fidelity_levels
+
+
+   .. py:attribute:: surrogate_cls
+      :value: None
+
+
+
+   .. py:attribute:: surrogate_params
+      :value: None
+
+
+
+   .. py:attribute:: augment_with_std
+      :value: False
+
+
+
+   .. py:attribute:: output_dim_mismatch
+      :value: 'error'
+
+
+
+   .. py:attribute:: oof_cv
+      :value: 5
+
+
+
+   .. py:attribute:: random_state
+      :value: 0
+
+
+
+   .. py:attribute:: n_mc_samples
+      :value: 100
+
+
+
+   .. py:method:: fit(data: Dict[str, Tuple[numpy.ndarray, numpy.ndarray]]) -> StackedVFMSurrogate
+
+      Fit all level surrogates, augmenting features recursively.
+
+      :param data: Keys must match ``fidelity_levels`` (ordered lowest → highest).
+                   ``X`` has shape ``(n_samples, n_features)``; ``Y`` has shape
+                   ``(n_samples,)`` or ``(n_samples, n_outputs)``.
+                   Different levels may have different sample counts.
+      :type data: dict[str, (X, Y)]
+
+      :rtype: self
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, level: Optional[str] = None, return_std: bool = False) -> Union[numpy.ndarray, Tuple[numpy.ndarray, numpy.ndarray]]
+
+      Predict at a specified fidelity level.
+
+      :param X: Raw (un-augmented) input features.  Must match ``n_features_in_``.
+      :type X: np.ndarray, shape (n_samples, n_features)
+      :param level: Fidelity level to predict at.  Defaults to the highest level
+                    (last entry in ``fidelity_levels``).
+      :type level: str or None
+      :param return_std: If True, also return the predictive standard deviation. Lower-level
+                         uncertainty is propagated by Monte Carlo (``n_mc_samples`` draws):
+                         the std is the root mean square, over draws, of the top level's
+                         std and of its mean's deviation from ``y_pred``. ``y_pred`` itself
+                         is the plug-in prediction, the same as with ``return_std=False``.
+                         With ``n_mc_samples=0`` only the top level's own std is returned,
+                         which underestimates the total uncertainty.
+      :type return_std: bool, default False
+
+      :returns: * **y_pred** (*np.ndarray, shape (n_samples, n_outputs)*)
+                * **y_std** (*np.ndarray, shape (n_samples, n_outputs)  [only if return_std]*)
+
+      :raises ValueError: If ``level`` is not in ``fidelity_levels``.
+      :raises AttributeError: If the model has not been fitted.
+
+
+
+   .. py:method:: get_params(deep: bool = True) -> dict
+
+      Constructor arguments this surrogate was built with, by name.
+
+      Arguments taken through ``**kwargs`` (passed on to the wrapped
+      estimator) are listed individually; defaults filled in inside the
+      constructor are not. ``deep`` is accepted for scikit-learn
+      compatibility; nested estimator parameters are not expanded.
+
+
+
+   .. py:method:: set_params(**params) -> StackedVFMSurrogate
+
+      Set constructor arguments and rebuild the surrogate.
+
+      The surrogate is reconstructed from the merged arguments, so a fitted
+      surrogate must be refitted afterwards.
+
+
+
+.. py:class:: AdditiveCorrectionVFM(lo_surrogate_cls=None, hi_surrogate_cls=None, lo_surrogate_params: Optional[dict] = None, hi_surrogate_params: Optional[dict] = None, rho: Union[Literal['fit'], float] = 'fit', oof_cv: Optional[int] = 5, random_state: Optional[int] = 0)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Two-level autoregressive correction (Kennedy-O'Hagan AR1) surrogate.
+
+   The high-fidelity response is modelled as:
+
+       f_hi(x) = rho * f_lo(x) + delta(x)
+
+   ``rho`` (one per output) is fitted by least squares of ``Y_hi`` on
+   ``f_lo(X_hi)`` together with a linear trend in ``x``, and ``delta`` is a
+   surrogate fitted to
+   ``Y_hi - rho * f_lo(X_hi)``.  Both ``f_lo`` and ``delta`` are arbitrary
+   surrogate models, so the correction can be nonlinear.  With a fixed
+   ``rho=1`` the low-fidelity model is assumed to be on the same scale as the
+   high-fidelity one, and any scale difference has to be learned by ``delta``
+   from the (few) high-fidelity points.
+
+   Uncertainty is combined in quadrature (assuming independence):
+
+       sigma_hi(x) = sqrt(rho^2 * sigma_lo(x)^2 + sigma_delta(x)^2)
+
+   Note: The independence assumption is approximate because ``delta`` is
+   computed using ``f_lo``.  In practice the combined std slightly
+   overestimates true uncertainty — a conservative, safe approximation.
+
+   This class assumes ``Y_lo`` and ``Y_hi`` share the same output
+   dimensionality.  For heterogeneous output spaces or more than two fidelity
+   levels, use ``StackedVFMSurrogate``.
+
+   :param lo_surrogate_cls: Surrogate class for the low-fidelity model.  Defaults to
+                            ``RandomForestSurrogate`` (fast, handles multi-output natively).
+   :type lo_surrogate_cls: type | None
+   :param hi_surrogate_cls: Surrogate class for the correction (delta) model.  Defaults to
+                            ``GaussianProcessSurrogate`` — corrections are typically small and
+                            smooth, making a GP a natural prior.
+
+                            Warning: GP scales as O(n^3).  For hi-fi datasets with >500 samples,
+                            prefer a sparse GP (RFFGPSurrogate, NystroemGPSurrogate) or RF.
+   :type hi_surrogate_cls: type | None
+   :param lo_surrogate_params: Constructor kwargs for the low-fidelity surrogate.
+   :type lo_surrogate_params: dict | None
+   :param hi_surrogate_params: Constructor kwargs for the correction surrogate.
+   :type hi_surrogate_params: dict | None
+   :param rho: Scale on the low-fidelity prediction. ``"fit"`` estimates it per output
+               jointly with a linear trend, by least squares of ``Y_hi`` on
+               ``[f_lo(X_hi), X_hi, 1]``, so a discrepancy that trends with ``x``
+               does not bias it (on Forrester it recovers ``rho = 2``).  It falls
+               back to ``"slope"`` when there are no more than ``n_features + 2``
+               high-fidelity points, or when ``f_lo`` is (nearly) linear in ``X`` on
+               them.  ``"slope"`` is the plain least-squares slope of ``Y_hi`` on
+               ``f_lo(X_hi)`` (with an intercept, which ``delta`` absorbs), the
+               estimate used before; when ``f_lo`` is constant on the high-fidelity
+               inputs it is 1.  A number fixes it (``rho=1.0`` is the plain additive
+               correction).  A fitted ``rho`` also multiplies the low-fidelity
+               model's own error, so with a biased or strongly smoothed ``f_lo``
+               (e.g. a random forest on few points) ``rho=1.0`` can predict better;
+               compare both on held-out data.
+   :type rho: "fit", "slope" or float, default "fit"
+   :param oof_cv: Folds for out-of-fold ``f_lo`` predictions at high-fidelity inputs
+                  that are also low-fidelity training points (nested designs).  The
+                  full model is in-sample there, so ``rho`` and ``delta`` would be
+                  fitted against predictions more accurate than at new points.  ``None``
+                  or ``0`` uses the full model everywhere.
+   :type oof_cv: int or None, default 5
+   :param random_state: Seed for the out-of-fold split.
+   :type random_state: int or None, default 0
+
+   .. attribute:: surrogate_lo_
+
+      Fitted low-fidelity surrogate.
+
+      :type: surrogate
+
+   .. attribute:: surrogate_delta_
+
+      Fitted correction surrogate.
+
+      :type: surrogate
+
+   .. attribute:: rho_
+
+      Scale applied to the low-fidelity prediction.
+
+      :type: np.ndarray, shape (n_outputs,)
+
+   .. attribute:: n_outputs_
+
+      Number of outputs (must match between lo and hi data).
+
+      :type: int
+
+   .. admonition:: Examples
+
+      >>> import numpy as np
+      >>> from multioutreg.surrogates import AdditiveCorrectionVFM
+      >>> rng = np.random.default_rng(42)
+      >>> X_lo = rng.standard_normal((100, 2))
+      >>> Y_lo = np.sin(X_lo).sum(axis=1, keepdims=True)
+      >>> X_hi = rng.standard_normal((25, 2))
+      >>> Y_hi = np.sin(X_hi).sum(axis=1, keepdims=True) + 0.05 * X_hi[:, :1]
+      >>> model = AdditiveCorrectionVFM()
+      >>> model.fit({"lo": (X_lo, Y_lo), "hi": (X_hi, Y_hi)})
+      AdditiveCorrectionVFM(...)
+      >>> y_pred, y_std = model.predict(X_hi, return_std=True)
+      >>> y_pred.shape
+      (25, 1)
+
+
+   .. py:attribute:: lo_surrogate_cls
+      :value: None
+
+
+
+   .. py:attribute:: hi_surrogate_cls
+      :value: None
+
+
+
+   .. py:attribute:: lo_surrogate_params
+      :value: None
+
+
+
+   .. py:attribute:: hi_surrogate_params
+      :value: None
+
+
+
+   .. py:attribute:: rho
+      :value: 'fit'
+
+
+
+   .. py:attribute:: oof_cv
+      :value: 5
+
+
+
+   .. py:attribute:: random_state
+      :value: 0
+
+
+
+   .. py:method:: fit(data: Dict[str, Tuple[numpy.ndarray, numpy.ndarray]]) -> AdditiveCorrectionVFM
+
+      Fit the low-fidelity surrogate and the additive correction model.
+
+      :param data: Each value is an (X, Y) tuple.  ``Y_lo`` and ``Y_hi`` must have
+                   the same number of columns (same output space).
+      :type data: dict with keys "lo" and "hi"
+
+      :rtype: self
+
+      :raises ValueError: If required keys are missing or output dimensions differ.
+
+
+
+   .. py:method:: predict(X: numpy.ndarray, return_std: bool = False) -> Union[numpy.ndarray, Tuple[numpy.ndarray, numpy.ndarray]]
+
+      Predict high-fidelity output as rho * f_lo(x) + delta(x).
+
+      :param X:
+      :type X: np.ndarray, shape (n_samples, n_features)
+      :param return_std: If True, return combined predictive std in quadrature:
+                         ``sigma_hi = sqrt(rho^2 * sigma_lo^2 + sigma_delta^2)``.
+      :type return_std: bool, default False
+
+      :returns: * **y_pred** (*np.ndarray, shape (n_samples, n_outputs)*)
+                * **y_std** (*np.ndarray, shape (n_samples, n_outputs)  [only if return_std]*)
+
+      :raises AttributeError: If the model has not been fitted.
+
+
+
+   .. py:method:: predict_components(X: numpy.ndarray) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+      Return (rho * f_lo(x), delta(x)) separately for diagnostics.
+
+      Useful for inspecting how much correction is applied and where.  The
+      two parts sum to ``predict(X)``; ``rho_`` holds the scale.
+
+      :param X:
+      :type X: np.ndarray, shape (n_samples, n_features)
+
+      :returns: * **y_lo** (*np.ndarray, shape (n_samples, n_outputs)*) -- Scaled low-fidelity term ``rho * f_lo(x)``.
+                * **delta** (*np.ndarray, shape (n_samples, n_outputs)*)
+
+
+
+   .. py:method:: get_params(deep: bool = True) -> dict
+
+      Constructor arguments this surrogate was built with, by name.
+
+      Arguments taken through ``**kwargs`` (passed on to the wrapped
+      estimator) are listed individually; defaults filled in inside the
+      constructor are not. ``deep`` is accepted for scikit-learn
+      compatibility; nested estimator parameters are not expanded.
+
+
+
+   .. py:method:: set_params(**params) -> AdditiveCorrectionVFM
+
+      Set constructor arguments and rebuild the surrogate.
+
+      The surrogate is reconstructed from the merged arguments, so a fitted
+      surrogate must be refitted afterwards.
+
+
+

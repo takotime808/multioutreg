@@ -1,0 +1,98 @@
+multioutreg.time_series.neuralforecast_adapter
+==============================================
+
+.. py:module:: multioutreg.time_series.neuralforecast_adapter
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.time_series.neuralforecast_adapter.NeuralForecaster
+
+
+Module Contents
+---------------
+
+.. py:class:: NeuralForecaster(model_type: str = 'nbeats', input_size: int = 24, max_steps: int = 500)
+
+   Thin sklearn-style wrapper around Nixtla NeuralForecast (N-BEATS / N-HiTS).
+
+   Supports N-BEATS and N-HiTS from the ``neuralforecast`` library.  Both
+   models use split-conformal prediction intervals (via NeuralForecast's
+   ``val_size`` mechanism) when enough data is available; otherwise the
+   lower and upper bounds mirror the point forecast (no uncertainty fan).
+
+   Requires::
+
+       pip install neuralforecast
+
+   :param model_type: ``"nbeats"`` (N-BEATS) or ``"nhits"`` (N-HiTS).
+   :type model_type: str, default "nbeats"
+   :param input_size: Look-back context window fed to the model.
+   :type input_size: int, default 24
+   :param max_steps: Maximum training iterations.
+   :type max_steps: int, default 500
+
+   .. admonition:: Examples
+
+      >>> import pandas as pd, numpy as np
+      >>> dates = pd.date_range("2022-01-01", periods=200, freq="D")
+      >>> y = pd.Series(np.sin(np.linspace(0, 4*np.pi, 200)), index=dates)
+      >>> f = NeuralForecaster("nbeats", input_size=24, max_steps=50).fit(y)
+      >>> result = f.predict(prediction_length=12)
+      >>> result.quantiles.shape  # (1, 3, 12)
+
+
+   .. py:attribute:: model_type
+      :value: 'nbeats'
+
+
+
+   .. py:attribute:: input_size
+      :value: 24
+
+
+
+   .. py:attribute:: max_steps
+      :value: 500
+
+
+
+   .. py:method:: fit(y: pandas.Series | np.ndarray, freq: str = 'D') -> NeuralForecaster
+
+      Store the training series; actual model training is deferred to predict().
+
+      NeuralForecast requires the forecast horizon (``h``) at model
+      construction time, so training is deferred until predict() is called
+      with the desired ``prediction_length``.
+
+      :param y: If pd.Series with DatetimeIndex, the index is used automatically.
+      :type y: 1D array or pd.Series
+      :param freq: Frequency string used when synthesising a date range.
+      :type freq: str, default "D"
+
+      :rtype: self
+
+
+
+   .. py:method:: predict(prediction_length: int, quantiles: Sequence[float] = (0.1, 0.5, 0.9)) -> multioutreg.time_series.chronos_adapter.ForecastResult
+
+      Train and forecast ``prediction_length`` steps ahead.
+
+      If enough data is available (``len(y) - input_size > 2 *
+      prediction_length``), split-conformal prediction intervals are
+      computed via NeuralForecast's ``val_size`` mechanism.  The resulting
+      ``lo-80`` / ``hi-80`` columns are mapped to the requested quantiles
+      using linear interpolation (same strategy as ProphetForecaster).
+
+      :param prediction_length:
+      :type prediction_length: int
+      :param quantiles:
+      :type quantiles: sequence of float
+
+      :rtype: ForecastResult, shape ``[1, len(quantiles), prediction_length]``
+
+
+

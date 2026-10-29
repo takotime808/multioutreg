@@ -1,0 +1,1216 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="./">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="genindex.html"><link rel="search" title="Search" href="search.html"><link rel="next" title="Improving the GUI" href="gui_ux_roadmap.html"><link rel="prev" title="References" href="references.html">
+        <link rel="prefetch" href="_static/logos/wordmark-light.svg" as="image">
+        <link rel="prefetch" href="_static/logos/wordmark-dark.svg" as="image">
+
+    <link rel="shortcut icon" href="_static/favicon.png"><!-- Generated with Sphinx 8.1.3 and Furo 2025.12.19 -->
+        <title>Expanding the Surrogate Offerings - multioutreg</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="_static/styles/furo-extensions.css?v=8dab3a3b" />
+    <link rel="stylesheet" type="text/css" href="_static/css/active-learning-savings.css?v=14e41e7a" />
+    <link rel="stylesheet" type="text/css" href="_static/css/site.css?v=0e7236ba" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Try it without installing: the <a href="https://multioutreg.streamlit.app/">hosted multioutreg app</a>. 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="index.html"><div class="brand">multioutreg</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="index.html">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo only-light" src="_static/logos/wordmark-light.svg" alt="Light Logo"/>
+    <img class="sidebar-logo only-dark" src="_static/logos/wordmark-dark.svg" alt="Dark Logo"/>
+  </div>
+  
+  
+</a><form class="sidebar-search-container" method="get" action="search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="how_it_works.html">How It Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="reading_the_report.html">Reading the Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="example_reports.html">Example Reports</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/multi_output_surrogates.html">Multi-Output Surrogates, Start to Finish</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/joint_scores.html">Scoring Joint Predictions: Energy and Variogram Scores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/multi_fidelity_surrogates.html">Multi-Fidelity Surrogate Modeling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/active_learning_benchmarks.html">Active Learning on Benchmark Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/cost_savings.html">Cost Savings: What <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> Saves in an Existing Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/imputation_methods.html">Imputing Missing Inputs: KNN vs. Other Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/active_learning_missing_inputs.html">Active Learning with Missing Inputs</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="multi_fidelity_gui.html">Multi-Fidelity Surrogate Models page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/using_the_exported_model.html">Using the Best Model from the Grid Search App</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorials/forecasting_with_chronos.html">Time-Series Forecasting with Chronos</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Why multioutreg</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="cost_savings.html">Cost Savings and ROI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_learning_savings.html">Active Learning: The True Curve for Less</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="core_api.html">Core API</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="api.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="autoapi/multioutreg/index.html">multioutreg</a><input aria-label="Toggle navigation of multioutreg" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/active/index.html">multioutreg.active</a><input aria-label="Toggle navigation of multioutreg.active" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/acquisition/index.html">multioutreg.active.acquisition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/batch/index.html">multioutreg.active.batch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/benchmarks/index.html">multioutreg.active.benchmarks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/loop/index.html">multioutreg.active.loop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/active/multi_fidelity/index.html">multioutreg.active.multi_fidelity</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/conformal/index.html">multioutreg.conformal</a><input aria-label="Toggle navigation of multioutreg.conformal" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/base/index.html">multioutreg.conformal.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/cv_plus/index.html">multioutreg.conformal.cv_plus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/metrics/index.html">multioutreg.conformal.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/split_conformal/index.html">multioutreg.conformal.split_conformal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/conformal/utils/index.html">multioutreg.conformal.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/figures/index.html">multioutreg.figures</a><input aria-label="Toggle navigation of multioutreg.figures" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/confidence_intervals/index.html">multioutreg.figures.confidence_intervals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/conformal_plots/index.html">multioutreg.figures.conformal_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/coverage_plots/index.html">multioutreg.figures.coverage_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/doe_plots/index.html">multioutreg.figures.doe_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/error_histograms/index.html">multioutreg.figures.error_histograms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/model_comparison/index.html">multioutreg.figures.model_comparison</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/pca_plots/index.html">multioutreg.figures.pca_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/pdp_plots/index.html">multioutreg.figures.pdp_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/performance_metric_figures/index.html">multioutreg.figures.performance_metric_figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/prediction_plots/index.html">multioutreg.figures.prediction_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/residuals/index.html">multioutreg.figures.residuals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/shap_multioutput/index.html">multioutreg.figures.shap_multioutput</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/uct_calibration_extension/index.html">multioutreg.figures.uct_calibration_extension</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/umap_plot_classify/index.html">multioutreg.figures.umap_plot_classify</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/figures/uncertainty_toolbox_extension/index.html">multioutreg.figures.uncertainty_toolbox_extension</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/gui/index.html">multioutreg.gui</a><input aria-label="Toggle navigation of multioutreg.gui" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/background/index.html">multioutreg.gui.background</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/grid_search_core/index.html">multioutreg.gui.grid_search_core</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/input_checks/index.html">multioutreg.gui.input_checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/report_controls/index.html">multioutreg.gui.report_controls</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/report_plotting_utils/index.html">multioutreg.gui.report_plotting_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/gui/results_tabs/index.html">multioutreg.gui.results_tabs</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/metrics/index.html">multioutreg.metrics</a><input aria-label="Toggle navigation of multioutreg.metrics" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/metrics/joint_scores/index.html">multioutreg.metrics.joint_scores</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/metrics/multiobjective_regret/index.html">multioutreg.metrics.multiobjective_regret</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/model_selection/index.html">multioutreg.model_selection</a><input aria-label="Toggle navigation of multioutreg.model_selection" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/model_selection/auto_detect/index.html">multioutreg.model_selection.auto_detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/model_selection/evaluation/index.html">multioutreg.model_selection.evaluation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/model_selection/model_wrappers/index.html">multioutreg.model_selection.model_wrappers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/model_selection/screening/index.html">multioutreg.model_selection.screening</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/performance/index.html">multioutreg.performance</a><input aria-label="Toggle navigation of multioutreg.performance" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/performance/metrics/index.html">multioutreg.performance.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/performance/metrics_generalized_api/index.html">multioutreg.performance.metrics_generalized_api</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="autoapi/multioutreg/persistence/index.html">multioutreg.persistence</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/report/index.html">multioutreg.report</a><input aria-label="Toggle navigation of multioutreg.report" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/auto_detect_report/index.html">multioutreg.report.auto_detect_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/build/index.html">multioutreg.report.build</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/data/index.html">multioutreg.report.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/generate_report/index.html">multioutreg.report.generate_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/generate_report1/index.html">multioutreg.report.generate_report1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/generate_report1_safe/index.html">multioutreg.report.generate_report1_safe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/render/index.html">multioutreg.report.render</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/template/index.html">multioutreg.report.template</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/report/verdict/index.html">multioutreg.report.verdict</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/sampling/index.html">multioutreg.sampling</a><input aria-label="Toggle navigation of multioutreg.sampling" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/sampling/detect/index.html">multioutreg.sampling.detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/sampling/extrapolation/index.html">multioutreg.sampling.extrapolation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/sampling/infer_sampling/index.html">multioutreg.sampling.infer_sampling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/sampling/pca_sampling_detector/index.html">multioutreg.sampling.pca_sampling_detector</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/surrogates/index.html">multioutreg.surrogates</a><input aria-label="Toggle navigation of multioutreg.surrogates" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/ard_gp_sklearn/index.html">multioutreg.surrogates.ard_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/base_sklearn/index.html">multioutreg.surrogates.base_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/bayesian_ridge_sklearn/index.html">multioutreg.surrogates.bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/bnn_network/index.html">multioutreg.surrogates.bnn_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/bnn_pytorch/index.html">multioutreg.surrogates.bnn_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/catboost_sklearn/index.html">multioutreg.surrogates.catboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/conformal_mixin/index.html">multioutreg.surrogates.conformal_mixin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/conformal_network_sklearn/index.html">multioutreg.surrogates.conformal_network_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/decision_tree_sklearn/index.html">multioutreg.surrogates.decision_tree_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/deep_ensemble_pytorch/index.html">multioutreg.surrogates.deep_ensemble_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/elastic_net_sklearn/index.html">multioutreg.surrogates.elastic_net_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/extra_trees_sklearn/index.html">multioutreg.surrogates.extra_trees_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/forest_uncertainty/index.html">multioutreg.surrogates.forest_uncertainty</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gating_network/index.html">multioutreg.surrogates.gating_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gaussian_copula/index.html">multioutreg.surrogates.gaussian_copula</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gp_sklearn/index.html">multioutreg.surrogates.gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gpx_smt/index.html">multioutreg.surrogates.gpx_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/gradient_boosting_sklearn/index.html">multioutreg.surrogates.gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/hist_gradient_boosting_sklearn/index.html">multioutreg.surrogates.hist_gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/knn_sklearn/index.html">multioutreg.surrogates.knn_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/kpls_smt/index.html">multioutreg.surrogates.kpls_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/lightgbm_sklearn/index.html">multioutreg.surrogates.lightgbm_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/linear_sklearn/index.html">multioutreg.surrogates.linear_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/mfk_smt/index.html">multioutreg.surrogates.mfk_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/moe_surrogate/index.html">multioutreg.surrogates.moe_surrogate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/multi_fidelity/index.html">multioutreg.surrogates.multi_fidelity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/multitask_gp_gpytorch/index.html">multioutreg.surrogates.multitask_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/ngboost_sklearn/index.html">multioutreg.surrogates.ngboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/nystroem_gp_sklearn/index.html">multioutreg.surrogates.nystroem_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/pca_output/index.html">multioutreg.surrogates.pca_output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/polynomial_bayesian_ridge_sklearn/index.html">multioutreg.surrogates.polynomial_bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/quantile_sklearn/index.html">multioutreg.surrogates.quantile_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/rf_sklearn/index.html">multioutreg.surrogates.rf_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/rfgp_sklearn/index.html">multioutreg.surrogates.rfgp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/sparse_gp_gpytorch/index.html">multioutreg.surrogates.sparse_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/stacked_vfm/index.html">multioutreg.surrogates.stacked_vfm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/std_recalibration/index.html">multioutreg.surrogates.std_recalibration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/svr_sklearn/index.html">multioutreg.surrogates.svr_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/surrogates/xgboost_sklearn/index.html">multioutreg.surrogates.xgboost_sklearn</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/index.html">multioutreg.time_series</a><input aria-label="Toggle navigation of multioutreg.time_series" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/chronos_adapter/index.html">multioutreg.time_series.chronos_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/cv/index.html">multioutreg.time_series.cv</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/figures/index.html">multioutreg.time_series.figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/financial/index.html">multioutreg.time_series.financial</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/lag_features/index.html">multioutreg.time_series.lag_features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/lag_forecaster/index.html">multioutreg.time_series.lag_forecaster</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/metrics/index.html">multioutreg.time_series.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/neuralforecast_adapter/index.html">multioutreg.time_series.neuralforecast_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/prophet_adapter/index.html">multioutreg.time_series.prophet_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/returns/index.html">multioutreg.time_series.returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/seasonality/index.html">multioutreg.time_series.seasonality</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/surrogate_forecaster/index.html">multioutreg.time_series.surrogate_forecaster</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/index.html">multioutreg.time_series.ts_dynamic_fit</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/algs/index.html">multioutreg.time_series.ts_dynamic_fit.algs</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.algs" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/algs/arima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.arima</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/algs/lstm/index.html">multioutreg.time_series.ts_dynamic_fit.algs.lstm</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/algs/sarima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.sarima</a></li>
+</ul>
+</li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.data_handling" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/Analyzer/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.Analyzer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/DataProcessor/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.DataProcessor</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/PullData/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.PullData</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/ingest/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.ingest</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/main/index.html">multioutreg.time_series.ts_dynamic_fit.main</a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/index.html">multioutreg.time_series.ts_dynamic_fit.src</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.src" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/ForecastAutoIntervals/index.html">multioutreg.time_series.ts_dynamic_fit.src.ForecastAutoIntervals</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/TSDataLoader/index.html">multioutreg.time_series.ts_dynamic_fit.src.TSDataLoader</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/evaluate/index.html">multioutreg.time_series.ts_dynamic_fit.src.evaluate</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/forecasters/index.html">multioutreg.time_series.ts_dynamic_fit.src.forecasters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/infer/index.html">multioutreg.time_series.ts_dynamic_fit.src.infer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/ranker/index.html">multioutreg.time_series.ts_dynamic_fit.src.ranker</a></li>
+<li class="toctree-l6"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_dynamic_fit/src/visualize/index.html">multioutreg.time_series.ts_dynamic_fit.src.visualize</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/ts_suitability/index.html">multioutreg.time_series.ts_suitability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/time_series/uncertainty/index.html">multioutreg.time_series.uncertainty</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="autoapi/multioutreg/utils/index.html">multioutreg.utils</a><input aria-label="Toggle navigation of multioutreg.utils" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/aux_funcs/index.html">multioutreg.utils.aux_funcs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/figure_utils/index.html">multioutreg.utils.figure_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/imputation/index.html">multioutreg.utils.imputation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/metric_utils/index.html">multioutreg.utils.metric_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/pca_utils/index.html">multioutreg.utils.pca_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/surrogate_utils/index.html">multioutreg.utils.surrogate_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="autoapi/multioutreg/utils/thread_limits/index.html">multioutreg.utils.thread_limits</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="integrated_surrogates.html">Integrated Surrogate Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="surrogate_hyperparameters.html">Surrogate Hyperparameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multiobjective_metrics.html">Multi-Objective Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="references.html">References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul class="current">
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Expanding the Surrogate Offerings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_ux_roadmap.html">Improving the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="docs_roadmap.html">Improving the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="report_redesign/implementation_plan.html">Plan: ship the redesigned report as a downloadable file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_learning.html">Active Learning Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="parallel_computing.html">Parallelization and Distributed Computing Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pair_plot_report.html">Pair Plots in Reports</a></li>
+<li class="toctree-l1"><a class="reference internal" href="AUDIT_CHECKLIST.html">Statistical / Logic Audit Checklist</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/takotime808/multioutreg/blob/main/docs/surrogate_roadmap.md?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/takotime808/multioutreg/edit/main/docs/surrogate_roadmap.md" rel="edit" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section class="tex2jax_ignore mathjax_ignore" id="expanding-the-surrogate-offerings">
+<h1>Expanding the Surrogate Offerings<a class="headerlink" href="#expanding-the-surrogate-offerings" title="Link to this heading">¶</a></h1>
+<p>Candidate surrogates and methods for extending the multi-fidelity and
+multi-output capabilities of <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code>. See
+<a class="reference internal" href="integrated_surrogates.html"><span class="std std-doc">Integrated Surrogates</span></a> for what is available today.</p>
+<p><em>Last reviewed 2026-10-26, against <code class="docutils literal notranslate"><span class="pre">main</span></code> at #43.</em></p>
+<section id="status-at-a-glance">
+<h2>Status at a Glance<a class="headerlink" href="#status-at-a-glance" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Area</p></th>
+<th class="head"><p>Done</p></th>
+<th class="head"><p>Open</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Active learning</p></td>
+<td><p>Acquisitions, query-by-committee, batch selection, the loop, cost-aware multi-fidelity acquisition (<code class="docutils literal notranslate"><span class="pre">multioutreg.active</span></code>, prototype)</p></td>
+<td><p>Max-value entropy search, CLI and GUI, NaN std in Auto-Detect</p></td>
+</tr>
+<tr class="row-odd"><td><p>Benchmarks</p></td>
+<td><p>18 problems in <code class="docutils literal notranslate"><span class="pre">multioutreg.active.benchmarks.BENCHMARKS</span></code>, including DTLZ2; AL, cost-savings, multi-output and hypervolume notebooks</p></td>
+<td><p>The rest of the port list; the multi-fidelity and Himmelblau notebooks</p></td>
+</tr>
+<tr class="row-even"><td><p>Multi-objective metrics</p></td>
+<td><p>Exact N-D <code class="docutils literal notranslate"><span class="pre">hypervolume()</span></code> (#36); decision regret as the default, front comparison as <code class="docutils literal notranslate"><span class="pre">front_*</span></code>; joint <code class="docutils literal notranslate"><span class="pre">energy_score</span></code> and <code class="docutils literal notranslate"><span class="pre">variogram_score</span></code></p></td>
+<td><p>Multivariate CRPS variants, joint coverage of prediction regions</p></td>
+</tr>
+<tr class="row-odd"><td><p>Multi-fidelity surrogates</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">MFKSurrogate</span></code> (candidate 1: SMT co-kriging, maximum-likelihood <code class="docutils literal notranslate"><span class="pre">rho</span></code>); Stacked VFM intervals; joint <code class="docutils literal notranslate"><span class="pre">rho</span></code> in <code class="docutils literal notranslate"><span class="pre">AdditiveCorrectionVFM</span></code></p></td>
+<td><p>The other five candidates</p></td>
+</tr>
+<tr class="row-even"><td><p>Multi-output surrogates</p></td>
+<td><p>Multi-task GP (1), PCA output reduction (2), Gaussian copula (5); energy and variogram scores</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">RegressorChain</span></code> (3), natively joint models (4); joint conformal regions</p></td>
+</tr>
+<tr class="row-odd"><td><p>Cross-cutting</p></td>
+<td><p>Benchmark suite (1), std recalibration (2), model persistence (5), extrapolation flag (6)</p></td>
+<td><p>Items 3, 4, 7–12; wiring 2, 5 and 6 into the GUI, CLI and report</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="current-state">
+<h2>Current State<a class="headerlink" href="#current-state" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>Multi-output:</strong> every base surrogate is per-output (one model per output
+column, via <code class="docutils literal notranslate"><span class="pre">MultiOutputRegressor</span></code> or an internal <code class="docutils literal notranslate"><span class="pre">estimators_</span></code> list). Only
+<code class="docutils literal notranslate"><span class="pre">BNNSurrogate</span></code>, <code class="docutils literal notranslate"><span class="pre">DeepEnsembleSurrogate</span></code> and <code class="docutils literal notranslate"><span class="pre">MixtureOfExpertsSurrogate</span></code>
+predict outputs jointly, and they do so through a shared network rather than
+an explicit model of output correlation.</p></li>
+<li><p><strong>Multi-fidelity:</strong></p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">MultiFidelitySurrogate</span></code> fits one surrogate per fidelity level with no
+coupling between levels.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">StackedVFMSurrogate</span></code> feeds lower-level predictions in as input features
+(NARGP-like).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">AdditiveCorrectionVFM</span></code> implements a two-level AR1 correction with a
+constant per-output scale <code class="docutils literal notranslate"><span class="pre">rho</span></code>, fit by least squares.</p></li>
+</ul>
+</li>
+<li><p>None of the multi-fidelity models take part in the Auto-Detect or
+grid-search CLIs; they are opt-in only.</p></li>
+</ul>
+</section>
+<section id="multi-fidelity-candidates">
+<h2>Multi-Fidelity Candidates<a class="headerlink" href="#multi-fidelity-candidates" title="Link to this heading">¶</a></h2>
+<p>Ordered by value relative to implementation effort.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>#</p></th>
+<th class="head"><p>Addition</p></th>
+<th class="head"><p>Rationale</p></th>
+<th class="head"><p>Effort</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><strong><code class="docutils literal notranslate"><span class="pre">MFKSurrogate</span></code> / <code class="docutils literal notranslate"><span class="pre">MFKPLSSurrogate</span></code></strong> wrapping <code class="docutils literal notranslate"><span class="pre">smt.applications.MFK</span></code> / <code class="docutils literal notranslate"><span class="pre">MFKPLS</span></code></p></td>
+<td><p>True recursive co-kriging (Le Gratiet). Learns <code class="docutils literal notranslate"><span class="pre">rho</span></code> and the correction GP jointly by maximum likelihood, for any number of levels. <code class="docutils literal notranslate"><span class="pre">smt</span></code> is already an optional extra, so it follows the <code class="docutils literal notranslate"><span class="pre">GPXSurrogate</span></code> / <code class="docutils literal notranslate"><span class="pre">KPLSSurrogate</span></code> pattern.</p></td>
+<td><p>Low</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><strong>Input-dependent <code class="docutils literal notranslate"><span class="pre">rho(x)</span></code></strong> in <code class="docutils literal notranslate"><span class="pre">AdditiveCorrectionVFM</span></code></p></td>
+<td><p>Replace the constant per-output scale with a polynomial or GP in <code class="docutils literal notranslate"><span class="pre">x</span></code>, the standard extension of Kennedy–O’Hagan.</p></td>
+<td><p>Low</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p><strong>Fidelity as an input</strong></p></td>
+<td><p>Treat fidelity as a continuous feature (mesh size, timestep, tolerance) with a product kernel, as in BoTorch’s <code class="docutils literal notranslate"><span class="pre">SingleTaskMultiFidelityGP</span></code> or a GPyTorch equivalent. Handles sample points that are not nested across levels, and fidelity that is a dial rather than a fixed set of levels.</p></td>
+<td><p>Medium</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p><strong>Proper NARGP</strong></p></td>
+<td><p>GP with kernel <code class="docutils literal notranslate"><span class="pre">k(x)·k(f_lo)</span> <span class="pre">+</span> <span class="pre">k(x)</span></code> on <code class="docutils literal notranslate"><span class="pre">[x,</span> <span class="pre">f_lo(x)]</span></code>, with uncertainty propagated by Monte Carlo. <code class="docutils literal notranslate"><span class="pre">StackedVFMSurrogate</span></code> with GP levels approximates this but lacks the kernel structure.</p></td>
+<td><p>Medium</p></td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><p><strong>Multi-fidelity neural networks</strong></p></td>
+<td><p>Either a composite network (Meng &amp; Karniadakis 2020) with linear and nonlinear correction sub-networks, or pretraining on low-fidelity data followed by fine-tuning on high-fidelity data. Reuses <code class="docutils literal notranslate"><span class="pre">_torch_utils.py</span></code> and the deep-ensemble tooling.</p></td>
+<td><p>Medium</p></td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><p><strong>Multi-fidelity deep GP</strong> (Cutajar et al. 2019, via emukit or GPyTorch)</p></td>
+<td><p>Strongest option for nonlinear relationships between levels, at a substantially higher implementation and compute cost.</p></td>
+<td><p>High</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="supporting-methods">
+<h3>Supporting Methods<a class="headerlink" href="#supporting-methods" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Cost-aware choice of the next fidelity to run:</strong> multi-fidelity expected
+improvement, max-value entropy search, or variance reduction per unit cost.
+Variance reduction per unit cost and multi-fidelity EI are in
+<code class="docutils literal notranslate"><span class="pre">multioutreg.active.multi_fidelity</span></code>; max-value entropy search is still to do
+(see <a class="reference internal" href="#active-learning"><span class="std std-ref">Active Learning</span></a>).</p></li>
+<li><p><strong>Evaluation:</strong> accuracy-vs-cost curves, and the value each level adds (e.g.
+high-fidelity error with and without the low-fidelity data).</p></li>
+<li><p><strong>Model selection:</strong> a selection path in Auto-Detect that understands
+fidelity levels, so the multi-fidelity surrogates are no longer opt-in only.</p></li>
+</ul>
+</section>
+</section>
+<section id="multi-output-candidates">
+<h2>Multi-Output Candidates<a class="headerlink" href="#multi-output-candidates" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>#</p></th>
+<th class="head"><p>Addition</p></th>
+<th class="head"><p>Rationale</p></th>
+<th class="head"><p>Effort</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><strong>Multi-task GP (ICM / LMC)</strong> via GPyTorch <code class="docutils literal notranslate"><span class="pre">MultitaskKernel</span></code> + <code class="docutils literal notranslate"><span class="pre">MultitaskGaussianLikelihood</span></code></p></td>
+<td><p>The standard way to model correlation between outputs in a GP. Also handles outputs observed on different rows. GPyTorch is already an optional extra; can reuse the patterns in <code class="docutils literal notranslate"><span class="pre">sparse_gp_gpytorch.py</span></code>.</p></td>
+<td><p>Medium</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><strong>Output-reduction wrapper (PCA, kernel PCA or POD)</strong></p></td>
+<td><p>Wraps any surrogate: fit it on the top-k output components, then map predictions and variances back to the original outputs. The standard approach for field outputs (spectra, pressure distributions, time series) that would otherwise need hundreds of independent models.</p></td>
+<td><p>Low</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p><strong><code class="docutils literal notranslate"><span class="pre">RegressorChain</span></code> wrapper with Monte Carlo uncertainty propagation</strong></p></td>
+<td><p>Cheap way to capture outputs that depend on each other in sequence.</p></td>
+<td><p>Low</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p><strong>Natively joint models</strong></p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">PLSRegression</span></code>; a joint-tree random forest (sklearn’s <code class="docutils literal notranslate"><span class="pre">RandomForestRegressor</span></code> supports multiple outputs directly, which the current wrapper splits apart); CatBoost with <code class="docutils literal notranslate"><span class="pre">loss_function=&quot;MultiRMSE&quot;</span></code>; reduced-rank regression.</p></td>
+<td><p>Low each</p></td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><p><strong>Gaussian copula on residuals</strong></p></td>
+<td><p>Wrapper that adds output correlation to any per-output surrogate: estimate the correlation of normalized residuals and expose <code class="docutils literal notranslate"><span class="pre">predict(X,</span> <span class="pre">return_cov=True)</span></code>. <code class="docutils literal notranslate"><span class="pre">multioutreg.performance.metrics_generalized_api</span></code> already accepts <code class="docutils literal notranslate"><span class="pre">return_cov</span></code>.</p></td>
+<td><p>Low–Medium</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<section id="id1">
+<h3>Supporting Methods<a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Joint metrics:</strong> energy score, variogram score, multivariate CRPS, and
+joint coverage of the prediction region. These test whether output
+correlations are captured, which per-output metrics cannot.</p></li>
+<li><p><strong>Joint conformal regions:</strong> the <code class="docutils literal notranslate"><span class="pre">multioutreg.conformal</span></code> module is per-output.
+Max-norm or Mahalanobis nonconformity scores would give simultaneous coverage
+across all outputs.</p></li>
+</ul>
+</section>
+</section>
+<section id="combined-multi-output-and-multi-fidelity">
+<h2>Combined Multi-Output and Multi-Fidelity<a class="headerlink" href="#combined-multi-output-and-multi-fidelity" title="Link to this heading">¶</a></h2>
+<p>A multi-task GP with fidelity as an additional task dimension handles both in
+one model, including outputs that only exist at some fidelity levels, which is
+common in simulation data.</p>
+</section>
+<section id="active-learning">
+<h2>Active Learning<a class="headerlink" href="#active-learning" title="Link to this heading">¶</a></h2>
+<p>The detailed design, including multi-fidelity active learning, is on the
+<a class="reference internal" href="active_learning.html"><span class="std std-doc">Active Learning Plan</span></a> page.</p>
+<section id="id2">
+<h3>Current State<a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">multioutreg.active</span></code> (prototype, phases 1–2 of the
+<a class="reference internal" href="active_learning.html#delivery-phases"><span class="std std-ref">Active Learning Plan</span></a>) provides:</p>
+<ul class="simple">
+<li><p><strong>Acquisitions</strong> (<code class="docutils literal notranslate"><span class="pre">acquisition.py</span></code>): <code class="docutils literal notranslate"><span class="pre">max_variance</span></code> on standardized std
+(<code class="docutils literal notranslate"><span class="pre">output_scale</span></code>), <code class="docutils literal notranslate"><span class="pre">upper_confidence_bound</span></code>, <code class="docutils literal notranslate"><span class="pre">expected_improvement</span></code> and
+<code class="docutils literal notranslate"><span class="pre">probability_of_improvement</span></code>, with per-output weights and <code class="docutils literal notranslate"><span class="pre">aggregate</span></code>.</p></li>
+<li><p><strong>Query-by-committee:</strong> <code class="docutils literal notranslate"><span class="pre">CommitteeSurrogate</span></code> fits bootstrap copies of any
+surrogate so KNN, linear models and plain trees can take part.
+<code class="docutils literal notranslate"><span class="pre">predict_mean_std</span></code> refuses an all-zero std instead of reading it as
+certainty.</p></li>
+<li><p><strong>Batch selection:</strong> <code class="docutils literal notranslate"><span class="pre">select_batch</span></code> uses greedy local penalization.</p></li>
+<li><p><strong>Loop:</strong> <code class="docutils literal notranslate"><span class="pre">ActiveLearner</span></code> (ask/tell, <code class="docutils literal notranslate"><span class="pre">space_filling</span></code> initial designs,
+<code class="docutils literal notranslate"><span class="pre">heldout_metrics</span></code>).</p></li>
+<li><p><strong>Multi-fidelity:</strong> <code class="docutils literal notranslate"><span class="pre">fidelity_info</span></code>, <code class="docutils literal notranslate"><span class="pre">level_trust</span></code>, <code class="docutils literal notranslate"><span class="pre">effective_costs</span></code>,
+<code class="docutils literal notranslate"><span class="pre">variance_reduction_per_cost</span></code>, <code class="docutils literal notranslate"><span class="pre">mf_expected_improvement</span></code> and
+<code class="docutils literal notranslate"><span class="pre">MultiFidelityActiveLearner</span></code>.</p></li>
+</ul>
+<p>The <a class="reference internal" href="tutorials/active_learning_benchmarks.html"><span class="std std-doc">Active Learning on Benchmark Functions</span></a>
+tutorial covers all of these, and the
+<a class="reference internal" href="tutorials/cost_savings.html"><span class="std std-doc">Cost Savings</span></a> tutorial prices them against
+passive designs. None of it is exposed through <code class="docutils literal notranslate"><span class="pre">mor_cli</span></code>, the GUI or the
+reports yet.</p>
+</section>
+<section id="candidates">
+<h3>Candidates<a class="headerlink" href="#candidates" title="Link to this heading">¶</a></h3>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>#</p></th>
+<th class="head"><p>Addition</p></th>
+<th class="head"><p>Rationale</p></th>
+<th class="head"><p>Effort</p></th>
+<th class="head"><p>Status</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><strong>Acquisition functions</strong> on <code class="docutils literal notranslate"><span class="pre">(mean,</span> <span class="pre">std)</span></code> arrays of shape <code class="docutils literal notranslate"><span class="pre">(n,</span> <span class="pre">n_outputs)</span></code></p></td>
+<td><p>Max variance (sum or max of standardized std across outputs) for global surrogate accuracy; UCB/LCB, EI and PI for optimization; conformal interval width as a coverage-backed alternative.</p></td>
+<td><p>Low</p></td>
+<td><p>Done, except the conformal-width score</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><strong>Query-by-committee</strong> for surrogates without <code class="docutils literal notranslate"><span class="pre">return_std</span></code></p></td>
+<td><p>Disagreement across a bootstrap ensemble or across the Auto-Detect candidates, so KNN, linear models and plain trees can take part.</p></td>
+<td><p>Low</p></td>
+<td><p>Bootstrap done; Auto-Detect candidates open (see Cross-Cutting item 7)</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p><strong>Batch selection</strong></p></td>
+<td><p>Combine uncertainty with a distance penalty to points already chosen (k-means++ / maximin style) so a batch does not cluster in one region.</p></td>
+<td><p>Low–Medium</p></td>
+<td><p>Done</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p><strong>Active-learning loop</strong></p></td>
+<td><p>Initial LHS/Sobol design → fit → score a QMC candidate pool → pick a batch → call a user-supplied simulator → refit, stopping on a budget or when held-out metrics plateau.</p></td>
+<td><p>Medium</p></td>
+<td><p>Done</p></td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><p><strong>Cost-aware multi-fidelity acquisition</strong></p></td>
+<td><p>Variance reduction per unit cost, multi-fidelity EI or max-value entropy search across levels (the item under Multi-Fidelity → Supporting Methods).</p></td>
+<td><p>Medium–High</p></td>
+<td><p>Variance reduction and MF-EI done; MES open</p></td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><p><strong>CLI and GUI</strong></p></td>
+<td><p>A <code class="docutils literal notranslate"><span class="pre">mor_cli</span></code> command that writes a CSV of the next points to run, and a Streamlit page following the existing page patterns.</p></td>
+<td><p>Low–Medium</p></td>
+<td><p>Not started</p></td>
+</tr>
+<tr class="row-even"><td><p>7</p></td>
+<td><p><strong>Integrated variance (ALC / MF-ALC)</strong> for GPs</p></td>
+<td><p>Scores a candidate by how much it reduces variance over the whole domain rather than at the point itself; phase 3 of the plan.</p></td>
+<td><p>Medium</p></td>
+<td><p>Not started</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="issues-to-resolve">
+<h3>Issues to Resolve<a class="headerlink" href="#issues-to-resolve" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Zero std read as certainty (partly fixed):</strong> <code class="docutils literal notranslate"><span class="pre">predict_mean_std</span></code> now
+raises on an all-zero std, so the active-learning path is safe.
+<code class="docutils literal notranslate"><span class="pre">AutoDetectMultiOutputRegressor.predict</span></code> itself still fills <code class="docutils literal notranslate"><span class="pre">std</span></code> with zeros
+when the selected model has no <code class="docutils literal notranslate"><span class="pre">return_std</span></code>, so other callers (GUI, reports)
+still see false certainty. Returning NaN needs the downstream NaN handling
+listed under <a class="reference internal" href="#issues-to-resolve-first"><span class="std std-ref">Cross-Cutting</span></a> first.</p></li>
+<li><p>~~<strong>Output scaling</strong>~~: done. <code class="docutils literal notranslate"><span class="pre">output_scale</span></code> standardizes std per output
+before <code class="docutils literal notranslate"><span class="pre">max_variance</span></code> combines them.</p></li>
+<li><p><strong>Sampling detection:</strong> an adaptively built design is no longer Random, LHS
+or Sobol and will likely be reported as “Uncertain”. Reports should say when
+a design was built adaptively.</p></li>
+</ul>
+</section>
+</section>
+<section id="cross-cutting-additions">
+<h2>Cross-Cutting Additions<a class="headerlink" href="#cross-cutting-additions" title="Link to this heading">¶</a></h2>
+<p>Gaps that are not specific to multi-fidelity or multi-output modelling, but
+that the candidates above either depend on or would benefit from.</p>
+<section id="id3">
+<h3>Candidates<a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<p>All items except 1 are not started.</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>#</p></th>
+<th class="head"><p>Addition</p></th>
+<th class="head"><p>Rationale</p></th>
+<th class="head"><p>Effort</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>1</p></td>
+<td><p><strong>Benchmark suite</strong> of analytic test problems, in <code class="docutils literal notranslate"><span class="pre">multioutreg.active.benchmarks</span></code> (<strong>done</strong>; see <a class="reference internal" href="#benchmark-suite"><span class="std std-ref">Benchmark Suite</span></a> below for what is in and what is next)</p></td>
+<td><p>Nothing in the package compared surrogates on problems with a known answer. Without it, the multi-fidelity candidates and the accuracy-vs-cost evaluation above have nothing to be judged on.</p></td>
+<td><p>Low</p></td>
+</tr>
+<tr class="row-odd"><td><p>2</p></td>
+<td><p><strong>Std recalibration</strong> (variance scaling or isotonic, Kuleshov et al. 2018)</p></td>
+<td><p>All calibration in the package today is conformal; nothing corrects a model’s own <code class="docutils literal notranslate"><span class="pre">std</span></code> when it is over- or under-dispersed. Acquisition functions and the joint metrics consume <code class="docutils literal notranslate"><span class="pre">std</span></code> directly. <code class="docutils literal notranslate"><span class="pre">uncertainty-toolbox</span></code> (a core dependency) already provides a std recalibrator.</p></td>
+<td><p>Low</p></td>
+</tr>
+<tr class="row-even"><td><p>3</p></td>
+<td><p><strong>Global sensitivity analysis</strong> (first-order and total Sobol indices)</p></td>
+<td><p>A primary use of a fitted surrogate, and absent from the package; the SHAP and PDP figures answer a different question. Saltelli/Jansen estimators can run on <code class="docutils literal notranslate"><span class="pre">scipy.stats.qmc</span></code> samples, and repeating them over posterior draws gives indices with uncertainty.</p></td>
+<td><p>Low</p></td>
+</tr>
+<tr class="row-odd"><td><p>4</p></td>
+<td><p><strong>Gradient-enhanced surrogates</strong> (<code class="docutils literal notranslate"><span class="pre">smt</span></code> GEKPLS)</p></td>
+<td><p>Many simulators return adjoint gradients; using them cuts the number of samples needed substantially. <code class="docutils literal notranslate"><span class="pre">smt</span></code> is already an optional extra.</p></td>
+<td><p>Low</p></td>
+</tr>
+<tr class="row-even"><td><p>5</p></td>
+<td><p><strong>Model persistence</strong></p></td>
+<td><p>There is no save/load API for fitted surrogates (<code class="docutils literal notranslate"><span class="pre">joblib</span></code> is used only in reports and time series), so a model trained in the GUI or CLI cannot be reused. Store the package version, feature and output names, and the fidelity levels alongside the model.</p></td>
+<td><p>Low</p></td>
+</tr>
+<tr class="row-odd"><td><p>6</p></td>
+<td><p><strong>Extrapolation flag</strong></p></td>
+<td><p>Nothing warns when a prediction point lies outside the training design. A convex-hull, Mahalanobis or nearest-neighbour distance check fits alongside the existing sampling and DOE diagnostics.</p></td>
+<td><p>Low</p></td>
+</tr>
+<tr class="row-even"><td><p>7</p></td>
+<td><p><strong>Ensembling Auto-Detect candidates</strong></p></td>
+<td><p>Auto-Detect keeps one winner. Stacking, or a model-averaged mixture of the candidates’ predictive distributions, usually beats it, and the candidates’ disagreement is the committee estimate that query-by-committee needs (see <a class="reference internal" href="#active-learning"><span class="std std-ref">Active Learning</span></a>).</p></td>
+<td><p>Medium</p></td>
+</tr>
+<tr class="row-odd"><td><p>8</p></td>
+<td><p><strong>Optimization on the surrogate</strong></p></td>
+<td><p>Acquisition functions choose where to sample, but nothing optimizes the fitted surrogate itself: inverse design, constrained optimization, or a Pareto front across outputs (the natural use of a multi-output surrogate).</p></td>
+<td><p>Medium</p></td>
+</tr>
+<tr class="row-even"><td><p>9</p></td>
+<td><p><strong>Categorical and mixed-integer inputs</strong> (<code class="docutils literal notranslate"><span class="pre">smt</span></code> mixed-integer kernels, GPyTorch categorical kernels)</p></td>
+<td><p>Categorical columns are currently dropped (<code class="docutils literal notranslate"><span class="pre">gui/pages/lhs_detector_app.py</span></code>).</p></td>
+<td><p>Medium</p></td>
+</tr>
+<tr class="row-odd"><td><p>10</p></td>
+<td><p><strong>Missing outputs in per-output wrappers</strong></p></td>
+<td><p>Mask missing values per output instead of dropping whole rows. Simpler than the multi-task GP route above, and common when simulation runs fail partway.</p></td>
+<td><p>Low–Medium</p></td>
+</tr>
+<tr class="row-even"><td><p>11</p></td>
+<td><p><strong>Hyperparameter search beyond grid search</strong> (random search, Optuna)</p></td>
+<td><p>Model selection uses <code class="docutils literal notranslate"><span class="pre">GridSearchCV</span></code> only, which scales poorly as candidates and parameters grow. <code class="docutils literal notranslate"><span class="pre">ray[tune]</span></code> and <code class="docutils literal notranslate"><span class="pre">hyperopt</span></code> are commented out of <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>.</p></td>
+<td><p>Low–Medium</p></td>
+</tr>
+<tr class="row-odd"><td><p>12</p></td>
+<td><p><strong>Extrapolation for out-of-bounds (OOB) predictions</strong></p></td>
+<td><p>Item 6 only detects OOB points; nothing controls what the surrogate returns there. Tree models (random forest, extra trees, the gradient-boosting family) hold the boundary value flat, GPs revert to their constant mean, and the networks are unconstrained, so the same OOB query gets very different answers across Auto-Detect candidates. Add a per-surrogate <code class="docutils literal notranslate"><span class="pre">extrapolation</span></code> policy, driven by the item 6 distance: <code class="docutils literal notranslate"><span class="pre">&quot;warn&quot;</span></code> (default), <code class="docutils literal notranslate"><span class="pre">&quot;clip&quot;</span></code> inputs to the training bounds, a fitted linear or polynomial trend added beyond the bounds (or a GP with a linear mean), and <code class="docutils literal notranslate"><span class="pre">std</span></code> inflated with distance from the design. Benchmark each policy on held-out OOB regions of the benchmark-suite problems.</p></td>
+<td><p>Medium</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="benchmark-suite">
+<h3>Benchmark Suite<a class="headerlink" href="#benchmark-suite" title="Link to this heading">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">multioutreg.active.benchmarks</span></code> holds NumPy versions of analytic problems with
+known answers. Further candidates come from BenchmarkFcns
+(<a class="reference external" href="https://github.com/mazhar-ansari-ardeh/BenchmarkFcns">https://github.com/mazhar-ansari-ardeh/BenchmarkFcns</a>, MIT; ~310
+functions). Port the formulas rather than depend on the package: PyPI ships
+only a source distribution (needs a C++ compiler and Eigen), and it requires
+Python ≥ 3.11 while CI still tests 3.10. The package is still useful in a
+test to cross-check the ports.</p>
+<p><strong>In the package:</strong> Forrester, Branin, Currin, Branin–Currin, Ishigami,
+Hartmann-3, Park and Borehole; and, from the first BenchmarkFcns batch,
+Friedman 1, Gramacy &amp; Lee, Himmelblau, ZDT1–3 (with <code class="docutils literal notranslate"><span class="pre">zdt_front</span></code> for the exact
+Pareto front), Viennet 2, multi-fidelity Branin (<code class="docutils literal notranslate"><span class="pre">branin_mf</span></code>) and the
+heterogeneous function.</p>
+<p><strong>Notebooks on the benchmarks.</strong> Done: the
+<a class="reference internal" href="tutorials/active_learning_benchmarks.html"><span class="std std-doc">Active Learning on Benchmark Functions</span></a> and
+<a class="reference internal" href="tutorials/cost_savings.html"><span class="std std-doc">Cost Savings</span></a> tutorials; <code class="docutils literal notranslate"><span class="pre">examples/hypervolume_regret.ipynb</span></code>
+(ZDT1, plus a three-objective DTLZ2 defined inline, #36); and the
+<a class="reference internal" href="tutorials/multi_output_surrogates.html"><span class="std std-doc">Multi-Output Surrogates tutorial</span></a>, which uses ZDT1 and ZDT3
+(per-output model selection, decision regret against <code class="docutils literal notranslate"><span class="pre">zdt_front</span></code>), Friedman 1 (SHAP and
+partial dependence against the five inert inputs) and Gramacy &amp; Lee (GP and conformal
+coverage by region). Viennet 2 was left out: all three outputs are quadratics, so a GP fits
+each exactly and it says nothing about model selection; Kursawe (next to port) is the better
+multi-target example. Still to build:</p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Notebook</p></th>
+<th class="head"><p>Benchmarks</p></th>
+<th class="head"><p>What it demonstrates</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Multi-fidelity, scale and warping</p></td>
+<td><p>Heterogeneous, <code class="docutils literal notranslate"><span class="pre">branin_mf</span></code> (add to <code class="docutils literal notranslate"><span class="pre">examples/mf_surrogates.ipynb</span></code>)</p></td>
+<td><p>The heterogeneous function’s scale between levels varies with <code class="docutils literal notranslate"><span class="pre">x</span></code>, so a constant <code class="docutils literal notranslate"><span class="pre">rho</span></code> cannot fit it and stacking (which sees <code class="docutils literal notranslate"><span class="pre">x</span></code>) should win. In <code class="docutils literal notranslate"><span class="pre">branin_mf</span></code> the low level sees stretched inputs, which no scaled correction matches.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Batch active learning</p></td>
+<td><p>Himmelblau</p></td>
+<td><p>Four equal minima: a good <code class="docutils literal notranslate"><span class="pre">select_batch</span></code> batch spreads across all four basins. The AL tutorial’s batch section uses Branin (three minima); Himmelblau would make the spread easier to see.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Next to port:</strong></p>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Benchmark</p></th>
+<th class="head"><p>Dim → outputs</p></th>
+<th class="head"><p>Use</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>DTLZ2</p></td>
+<td><p>d → m</p></td>
+<td><p>Outputs on a sphere, so strongly dependent: tests the multi-task GP, PCA output reduction and copula / energy-score candidates. Already written inline in <code class="docutils literal notranslate"><span class="pre">examples/hypervolume_regret.ipynb</span></code>; move it into <code class="docutils literal notranslate"><span class="pre">benchmarks.py</span></code> with a <code class="docutils literal notranslate"><span class="pre">dtlz_front</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Kursawe</p></td>
+<td><p>3 → 2</p></td>
+<td><p>One smooth and one non-smooth output; trees should win the second.</p></td>
+</tr>
+<tr class="row-even"><td><p>BNH (with constraints)</p></td>
+<td><p>2 → 2 + 2 constraints</p></td>
+<td><p>Objectives and constraints predicted together; regret on the feasible set. CF1–CF10 are harder versions.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Hartmann-6</p></td>
+<td><p>6 → 1</p></td>
+<td><p>Standard smooth GP and Bayesian-optimization benchmark.</p></td>
+</tr>
+<tr class="row-even"><td><p>Six-hump camel</p></td>
+<td><p>2 → 1</p></td>
+<td><p>Six local minima, two global: EI vs max-variance, visually.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Step (N1–N3)</p></td>
+<td><p>any → 1</p></td>
+<td><p>Discontinuous: GPs fail and trees win, which shows why model selection matters.</p></td>
+</tr>
+<tr class="row-even"><td><p>Rosenbrock, Styblinski-Tang</p></td>
+<td><p>scalable → 1</p></td>
+<td><p>Dimension and sample-size sweeps for <code class="docutils literal notranslate"><span class="pre">cv=&quot;auto&quot;</span></code> and kernel choice.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Wing weight, Piston, OTL circuit, Robot arm</p></td>
+<td><p>10, 7, 6, 8 → 1</p></td>
+<td><p>Engineering functions with physical inputs; each has a low-fidelity level, so they also give higher-dimensional multi-fidelity tests.</p></td>
+</tr>
+<tr class="row-even"><td><p>Xiong 1-D, Gano</p></td>
+<td><p>1, 2 → 1</p></td>
+<td><p>Small plottable multi-fidelity companions to Forrester.</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Not worth porting:</strong> the CEC 2014–2022 competition suites (shifted and
+rotated optimizer landscapes that need large data files), extremely rugged
+optimization functions such as Eggholder, Cross-in-tray and Rana (no
+surrogate fits them, so they only show that everything fails), and the
+systematic bi-fidelity versions of classic optimization functions.</p>
+</section>
+<section id="issues-to-resolve-first">
+<h3>Issues to Resolve First<a class="headerlink" href="#issues-to-resolve-first" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>~~<strong>Default fidelity level</strong>~~: done. <code class="docutils literal notranslate"><span class="pre">MultiFidelitySurrogate.predict</span></code> now
+uses the <em>highest</em> level (the last in <code class="docutils literal notranslate"><span class="pre">fidelity_levels</span></code>) when <code class="docutils literal notranslate"><span class="pre">level</span></code> is not
+given (follow-up to item 1c in the <a class="reference internal" href="AUDIT_CHECKLIST.html"><span class="std std-doc">audit checklist</span></a>).</p></li>
+<li><p><strong>NaN std downstream:</strong> returning NaN instead of zero std (the first issue
+under <a class="reference internal" href="#active-learning"><span class="std std-ref">Active Learning</span></a>) first needs NaN handling in the
+GUI and report plots, which pass <code class="docutils literal notranslate"><span class="pre">best_std</span></code> directly to uncertainty-toolbox.</p></li>
+</ul>
+</section>
+<section id="open-follow-ups-from-branch-integration">
+<h3>Open Follow-ups from Branch Integration<a class="headerlink" href="#open-follow-ups-from-branch-integration" title="Link to this heading">¶</a></h3>
+<p>Left over after the old feature branches were rebuilt on <code class="docutils literal notranslate"><span class="pre">main</span></code> (#29–#31).
+Open unless marked done:</p>
+<ul class="simple">
+<li><p>~~<strong>Fitted <code class="docutils literal notranslate"><span class="pre">rho</span></code> in <code class="docutils literal notranslate"><span class="pre">AdditiveCorrectionVFM</span></code></strong>~~: done. Found by
+<code class="docutils literal notranslate"><span class="pre">examples/mf_surrogates.ipynb</span></code> (4-level Forrester, reference XC4): the
+least-squares slope of <code class="docutils literal notranslate"><span class="pre">Y_hi</span></code> on <code class="docutils literal notranslate"><span class="pre">f_lo(X_hi)</span></code> is biased whenever the
+discrepancy <code class="docutils literal notranslate"><span class="pre">f_hi</span> <span class="pre">-</span> <span class="pre">rho</span> <span class="pre">*</span> <span class="pre">f_lo</span></code> is correlated with <code class="docutils literal notranslate"><span class="pre">f_lo</span></code>, and on Forrester
+it fitted about 0.6 where 2 makes the correction linear. <code class="docutils literal notranslate"><span class="pre">rho=&quot;fit&quot;</span></code> now
+regresses <code class="docutils literal notranslate"><span class="pre">Y_hi</span></code> on <code class="docutils literal notranslate"><span class="pre">[f_lo(X_hi),</span> <span class="pre">X_hi,</span> <span class="pre">1]</span></code> jointly and keeps the <code class="docutils literal notranslate"><span class="pre">f_lo</span></code>
+coefficient. Over 10 seeds with 8 high-fidelity points it fits 2.00 ± 0.03
+and the median RMSE drops from 2.8 to 0.13 (<code class="docutils literal notranslate"><span class="pre">rho=1</span></code>: 1.7). It falls back to
+the plain slope (still available as <code class="docutils literal notranslate"><span class="pre">rho=&quot;slope&quot;</span></code>) with no more than
+<code class="docutils literal notranslate"><span class="pre">n_features</span> <span class="pre">+</span> <span class="pre">2</span></code> high-fidelity points, or when <code class="docutils literal notranslate"><span class="pre">f_lo</span></code> is nearly linear in
+<code class="docutils literal notranslate"><span class="pre">X</span></code>. A nonlinear discrepancy still biases it; <code class="docutils literal notranslate"><span class="pre">MFKSurrogate</span></code> estimates <code class="docutils literal notranslate"><span class="pre">rho</span></code>
+by maximum likelihood.</p></li>
+<li><p>~~<strong>Stacked VFM intervals</strong>~~: done. The same notebook showed the 4-level
+GP stack covering only about half the test grid with its nominal 95% band,
+because the top-level <code class="docutils literal notranslate"><span class="pre">std</span></code> treated lower-level predictions as exact.
+<code class="docutils literal notranslate"><span class="pre">StackedVFMSurrogate.predict(...,</span> <span class="pre">return_std=True)</span></code> now propagates
+lower-level uncertainty by Monte Carlo (<code class="docutils literal notranslate"><span class="pre">n_mc_samples=100</span></code>, seeded by
+<code class="docutils literal notranslate"><span class="pre">random_state</span></code>): each lower level’s prediction is drawn from
+<code class="docutils literal notranslate"><span class="pre">N(mean,</span> <span class="pre">std)</span></code> and passed up the stack, and the std combines the top
+level’s own std with the spread of its mean across draws. Coverage on the
+notebook’s grid goes from 0.53 to 1.00; the point prediction is unchanged.
+The bands are now conservative (draws are independent per level and the GP
+std includes observation noise); use <code class="docutils literal notranslate"><span class="pre">conformal_predict()</span></code> for tight
+calibrated intervals, or <code class="docutils literal notranslate"><span class="pre">n_mc_samples=0</span></code> for the old std.</p></li>
+<li><p><strong>More benchmark notebooks:</strong> the Forrester notebook is the first piece of
+the benchmark suite (candidate 1); the notebooks planned under
+<a class="reference internal" href="#benchmark-suite"><span class="std std-ref">Benchmark Suite</span></a> are the next pieces.</p></li>
+<li><p>~~<strong>UMAP import in the sampling figure</strong>~~: done. <code class="docutils literal notranslate"><span class="pre">figures/umap_plot_classify.py</span></code>
+imports <code class="docutils literal notranslate"><span class="pre">umap</span></code> inside <code class="docutils literal notranslate"><span class="pre">generate_umap_plot</span></code>, so the module imports without
+<code class="docutils literal notranslate"><span class="pre">umap-learn</span></code> and the PCA fallback runs; a test reloads it with <code class="docutils literal notranslate"><span class="pre">umap</span></code> unavailable.</p></li>
+<li><p>~~<strong>Regret semantics in <code class="docutils literal notranslate"><span class="pre">multioutreg.metrics</span></code></strong>~~: done. <code class="docutils literal notranslate"><span class="pre">hypervolume_regret</span></code>,
+<code class="docutils literal notranslate"><span class="pre">scalarized_regret</span></code> and <code class="docutils literal notranslate"><span class="pre">epsilon_regret</span></code> are now decision regret: the true objectives
+evaluated at the candidates on the predicted Pareto front, so <code class="docutils literal notranslate"><span class="pre">Y_true</span></code> and <code class="docutils literal notranslate"><span class="pre">Y_pred</span></code> must be
+the same candidates. An optimistic model no longer scores 0. The front comparison is kept as
+<code class="docutils literal notranslate"><span class="pre">front_hypervolume_regret</span></code>, <code class="docutils literal notranslate"><span class="pre">front_scalarized_regret</span></code> and <code class="docutils literal notranslate"><span class="pre">front_epsilon_regret</span></code>;
+<code class="docutils literal notranslate"><span class="pre">RegretTracker</span></code>, GUI page 01, the report text and both regret notebooks use the new
+semantics. Caveat: identical predicted rows are mutually non-dominated, so a constant
+predictor picks every candidate and scores 0 hypervolume and ε regret (documented in
+<code class="docutils literal notranslate"><span class="pre">multioutreg/metrics/README.md</span></code>).</p></li>
+<li><p>~~<strong>Conformal predictors and package surrogates</strong>~~: done. <code class="docutils literal notranslate"><span class="pre">CloneMixin</span></code> (inherited by every
+<code class="docutils literal notranslate"><span class="pre">BaseSurrogate</span></code> and <code class="docutils literal notranslate"><span class="pre">ConformalMixin</span></code> surrogate) supports <code class="docutils literal notranslate"><span class="pre">sklearn.clone</span></code> and provides generic
+<code class="docutils literal notranslate"><span class="pre">get_params</span></code> / <code class="docutils literal notranslate"><span class="pre">set_params</span></code> built from the constructor arguments, so <code class="docutils literal notranslate"><span class="pre">SplitConformalPredictor</span></code>
+and <code class="docutils literal notranslate"><span class="pre">CVPlusConformalPredictor</span></code> accept the package’s own surrogates (tested for every plain
+surrogate). Using them in <code class="docutils literal notranslate"><span class="pre">GridSearchCV</span></code> still needs <code class="docutils literal notranslate"><span class="pre">__sklearn_tags__</span></code> (scikit-learn ≥ 1.6).</p></li>
+<li><p>~~<strong>SHAP figure run time</strong>~~: done. <code class="docutils literal notranslate"><span class="pre">figures.shap_multioutput.generate_shap_plot</span></code>
+explained every row against the full data as background, which took 37 s for
+100 rows of the 10-input Friedman 1 problem with a GP. It now explains up to
+<code class="docutils literal notranslate"><span class="pre">max_rows=200</span></code> rows against a k-means summary (<code class="docutils literal notranslate"><span class="pre">background_size=10</span></code>): 3 s,
+with the same feature ranking (mean |SHAP| correlation 0.9995).</p></li>
+<li><p><strong>Branch cleanup:</strong> the local <code class="docutils literal notranslate"><span class="pre">ts-review</span></code> branch and
+<code class="docutils literal notranslate"><span class="pre">origin/main-backup-pre-ai</span></code> are fully merged and can be deleted. Tag any
+tip whose source is still needed (e.g. <code class="docutils literal notranslate"><span class="pre">archive/crossval-datasize-dep</span></code> on
+<code class="docutils literal notranslate"><span class="pre">9f72fa2</span></code>) before deleting, so the commit stays reachable.</p></li>
+</ul>
+</section>
+</section>
+<section id="recommended-next-batch">
+<h2>Recommended Next Batch<a class="headerlink" href="#recommended-next-batch" title="Link to this heading">¶</a></h2>
+<p>The benchmark suite from the original first batch is done, and the active-learning
+prototype went in ahead of the surrogate work. Everything below is low effort and
+uses dependencies already declared in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>.</p>
+<p><strong>Correctness fixes first.</strong> These are small and change results users already
+see:</p>
+<ol class="arabic simple">
+<li><p>~~Decision regret as the default in <code class="docutils literal notranslate"><span class="pre">multioutreg.metrics</span></code>.~~ Done.</p></li>
+<li><p>~~<code class="docutils literal notranslate"><span class="pre">MultiFidelitySurrogate.predict</span></code> defaulting to the highest level.~~ Done.</p></li>
+<li><p>~~<code class="docutils literal notranslate"><span class="pre">get_params</span></code> / <code class="docutils literal notranslate"><span class="pre">set_params</span></code> on <code class="docutils literal notranslate"><span class="pre">BaseSurrogate</span></code>, so the conformal predictors
+accept the package’s own surrogates.~~ Done (in <code class="docutils literal notranslate"><span class="pre">CloneMixin</span></code>).</p></li>
+<li><p>~~A lazy <code class="docutils literal notranslate"><span class="pre">umap</span></code> import in <code class="docutils literal notranslate"><span class="pre">figures/umap_plot_classify.py</span></code>.~~ Done.</p></li>
+</ol>
+<p><strong>Then the original first batch, minus the benchmark suite:</strong></p>
+<ol class="arabic simple" start="5">
+<li><p>~~<code class="docutils literal notranslate"><span class="pre">MFKSurrogate</span></code> (SMT co-kriging). This also replaces the biased least-squares
+<code class="docutils literal notranslate"><span class="pre">rho</span></code> for users who need AR1.~~ Done: <code class="docutils literal notranslate"><span class="pre">MFKSurrogate</span></code> (<code class="docutils literal notranslate"><span class="pre">surrogates/mfk_smt.py</span></code>)
+wraps <code class="docutils literal notranslate"><span class="pre">MFK</span></code> (or <code class="docutils literal notranslate"><span class="pre">MFKPLS</span></code> with <code class="docutils literal notranslate"><span class="pre">n_comp</span></code>) per output, for any number of levels
+and non-nested designs. On Forrester with 20 low- and 5 high-fidelity points
+it fits <code class="docutils literal notranslate"><span class="pre">rho</span></code> = 2.00 (the true value) and an RMSE of 0.002, against 0.44 for
+the least-squares <code class="docutils literal notranslate"><span class="pre">rho</span></code>; <code class="docutils literal notranslate"><span class="pre">rho_</span></code> exposes the fitted factors.</p></li>
+<li><p>~~The PCA output-reduction wrapper.~~ Done: <code class="docutils literal notranslate"><span class="pre">PCAOutputSurrogate</span></code>
+(<code class="docutils literal notranslate"><span class="pre">surrogates/pca_output.py</span></code>). Fits any surrogate on the top-k components of
+standardized <code class="docutils literal notranslate"><span class="pre">Y</span></code> (<code class="docutils literal notranslate"><span class="pre">n_components</span></code> is a count or a variance fraction); the std
+adds the training truncation error, and <code class="docutils literal notranslate"><span class="pre">return_cov=True</span></code> gives the full
+output covariance.</p></li>
+<li><p>~~The multi-task GP (GPyTorch).~~ Done: <code class="docutils literal notranslate"><span class="pre">MultiTaskGPSurrogate</span></code>
+(<code class="docutils literal notranslate"><span class="pre">surrogates/multitask_gp_gpytorch.py</span></code>). ICM kernel in Hadamard form with a
+noise level per output; <code class="docutils literal notranslate"><span class="pre">Y</span></code> may contain NaN for unobserved outputs, and
+<code class="docutils literal notranslate"><span class="pre">output_corr_</span></code> holds the learned correlation.</p></li>
+<li><p>~~The Gaussian copula wrapper, plus energy-score and variogram-score metrics
+(with DTLZ2 ported as their benchmark).~~ Done: <code class="docutils literal notranslate"><span class="pre">GaussianCopulaSurrogate</span></code> (<code class="docutils literal notranslate"><span class="pre">surrogates/gaussian_copula.py</span></code>; <code class="docutils literal notranslate"><span class="pre">R</span></code> from
+rank-normalized out-of-fold residuals), <code class="docutils literal notranslate"><span class="pre">energy_score</span></code>, <code class="docutils literal notranslate"><span class="pre">variogram_score</span></code>
+and <code class="docutils literal notranslate"><span class="pre">gaussian_samples</span></code> in <code class="docutils literal notranslate"><span class="pre">multioutreg.metrics</span></code>, and <code class="docutils literal notranslate"><span class="pre">dtlz2</span></code> / <code class="docutils literal notranslate"><span class="pre">dtlz_front</span></code>
+(any number of objectives) in <code class="docutils literal notranslate"><span class="pre">multioutreg.active.benchmarks</span></code>.</p></li>
+<li><p>~~Std recalibration and the extrapolation flag.~~ Done:
+<code class="docutils literal notranslate"><span class="pre">StdRecalibratedSurrogate</span></code> (<code class="docutils literal notranslate"><span class="pre">surrogates/std_recalibration.py</span></code>; per-output
+std factors from out-of-fold predictions via uncertainty-toolbox, or
+closed-form NLL) and <code class="docutils literal notranslate"><span class="pre">ExtrapolationDetector</span></code>
+(<code class="docutils literal notranslate"><span class="pre">sampling/extrapolation.py</span></code>; <code class="docutils literal notranslate"><span class="pre">knn</span></code>, <code class="docutils literal notranslate"><span class="pre">mahalanobis</span></code>, <code class="docutils literal notranslate"><span class="pre">hull</span></code> or <code class="docutils literal notranslate"><span class="pre">box</span></code>).
+Neither is wired into the GUI, CLI or report yet.</p></li>
+<li><p>~~Model persistence.~~ Done: <code class="docutils literal notranslate"><span class="pre">multioutreg.persistence.save_model</span></code> /
+<code class="docutils literal notranslate"><span class="pre">load_model</span></code>, storing input and output names, fidelity levels and package
+versions, and warning on a version mismatch. <code class="docutils literal notranslate"><span class="pre">load_model</span></code> also opens the
+Grid Search app’s download and plain <code class="docutils literal notranslate"><span class="pre">joblib</span></code> dumps. The GUI pages still
+use their own serializers.</p></li>
+</ol>
+<p><strong>Then wire active learning into the product:</strong> the <code class="docutils literal notranslate"><span class="pre">mor_cli</span></code> ask/tell command
+and a Streamlit page (Active Learning candidate 6).</p>
+<p>New surrogates should follow the existing conventions: inherit from
+<code class="docutils literal notranslate"><span class="pre">ConformalMixin</span></code> (or <code class="docutils literal notranslate"><span class="pre">BaseSurrogate</span></code>), implement <code class="docutils literal notranslate"><span class="pre">predict(X,</span> <span class="pre">return_std=...)</span></code>,
+add a row to <a class="reference internal" href="integrated_surrogates.html"><span class="std std-doc">Integrated Surrogates</span></a>, and include
+unit tests under <code class="docutils literal notranslate"><span class="pre">tests/unit/surrogates/</span></code>.</p>
+</section>
+<section id="references">
+<h2>References<a class="headerlink" href="#references" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Kennedy, M. C., &amp; O’Hagan, A. (2000). Predicting the output from a complex
+computer code when fast approximations are available. <em>Biometrika</em>, 87(1).</p></li>
+<li><p>Le Gratiet, L., &amp; Garnier, J. (2014). Recursive co-kriging model for design
+of computer experiments with multiple levels of fidelity. <em>International
+Journal for Uncertainty Quantification</em>, 4(5).</p></li>
+<li><p>Perdikaris, P., et al. (2017). Nonlinear information fusion algorithms for
+data-efficient multi-fidelity modelling. <em>Proc. R. Soc. A</em>, 473.</p></li>
+<li><p>Cutajar, K., et al. (2019). Deep Gaussian processes for multi-fidelity
+modeling. <em>arXiv:1903.07320</em>.</p></li>
+<li><p>Meng, X., &amp; Karniadakis, G. E. (2020). A composite neural network that learns
+from multi-fidelity data. <em>Journal of Computational Physics</em>, 401.</p></li>
+<li><p>Álvarez, M. A., Rosasco, L., &amp; Lawrence, N. D. (2012). Kernels for
+vector-valued functions: a review. <em>Foundations and Trends in Machine
+Learning</em>, 4(3).</p></li>
+<li><p>Gneiting, T., &amp; Raftery, A. E. (2007). Strictly proper scoring rules,
+prediction, and estimation. <em>JASA</em>, 102(477).</p></li>
+<li><p>Jones, D. R., Schonlau, M., &amp; Welch, W. J. (1998). Efficient global
+optimization of expensive black-box functions. <em>Journal of Global
+Optimization</em>, 13(4).</p></li>
+<li><p>Srinivas, N., Krause, A., Kakade, S. M., &amp; Seeger, M. (2010). Gaussian
+process optimization in the bandit setting: no regret and experimental
+design. <em>ICML</em>.</p></li>
+<li><p>Kuleshov, V., Fenner, N., &amp; Ermon, S. (2018). Accurate uncertainties for
+deep learning using calibrated regression. <em>ICML</em>.</p></li>
+<li><p>Saltelli, A., et al. (2010). Variance based sensitivity analysis of model
+output. Design and estimator for the total sensitivity index. <em>Computer
+Physics Communications</em>, 181(2).</p></li>
+<li><p>Bouhlel, M. A., &amp; Martins, J. R. R. A. (2019). Gradient-enhanced kriging
+for high-dimensional problems. <em>Engineering with Computers</em>, 35(1).</p></li>
+<li><p>Settles, B. (2009). Active learning literature survey. <em>Computer Sciences
+Technical Report 1648</em>, University of Wisconsin–Madison.</p></li>
+</ul>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+<div class="related-pages">
+  <a class="next-page" href="gui_ux_roadmap.html">
+      <div class="page-info">
+        <div class="context">
+          <span>Next</span>
+        </div>
+        <div class="title">Improving the GUI</div>
+      </div>
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+    </a>
+  <a class="prev-page" href="references.html">
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+      <div class="page-info">
+        <div class="context">
+          <span>Previous</span>
+        </div>
+        
+        <div class="title">References</div>
+        
+      </div>
+    </a>
+</div>
+<div class="bottom-of-page">
+  <div class="left-details">
+    <div class="copyright">
+        Copyright &#169; 2025, takotime808
+    </div>
+  </div>
+  <div class="right-details">
+    <div class="icons">
+      <a class="muted-link " href="https://github.com/takotime808/multioutreg" aria-label="GitHub"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a>
+      
+    </div>
+  </div>
+</div>
+
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Expanding the Surrogate Offerings</a><ul>
+<li><a class="reference internal" href="#status-at-a-glance">Status at a Glance</a></li>
+<li><a class="reference internal" href="#current-state">Current State</a></li>
+<li><a class="reference internal" href="#multi-fidelity-candidates">Multi-Fidelity Candidates</a><ul>
+<li><a class="reference internal" href="#supporting-methods">Supporting Methods</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#multi-output-candidates">Multi-Output Candidates</a><ul>
+<li><a class="reference internal" href="#id1">Supporting Methods</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#combined-multi-output-and-multi-fidelity">Combined Multi-Output and Multi-Fidelity</a></li>
+<li><a class="reference internal" href="#active-learning">Active Learning</a><ul>
+<li><a class="reference internal" href="#id2">Current State</a></li>
+<li><a class="reference internal" href="#candidates">Candidates</a></li>
+<li><a class="reference internal" href="#issues-to-resolve">Issues to Resolve</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#cross-cutting-additions">Cross-Cutting Additions</a><ul>
+<li><a class="reference internal" href="#id3">Candidates</a></li>
+<li><a class="reference internal" href="#benchmark-suite">Benchmark Suite</a></li>
+<li><a class="reference internal" href="#issues-to-resolve-first">Issues to Resolve First</a></li>
+<li><a class="reference internal" href="#open-follow-ups-from-branch-integration">Open Follow-ups from Branch Integration</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#recommended-next-batch">Recommended Next Batch</a></li>
+<li><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="_static/doctools.js?v=9bcbadda"></script>
+    <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="_static/copybutton.js?v=f281be69"></script>
+    <script src="_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>

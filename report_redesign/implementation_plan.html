@@ -1,0 +1,838 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Active Learning Plan" href="../active_learning.html"><link rel="prev" title="Improving the Documentation" href="../docs_roadmap.html">
+        <link rel="prefetch" href="../_static/logos/wordmark-light.svg" as="image">
+        <link rel="prefetch" href="../_static/logos/wordmark-dark.svg" as="image">
+
+    <link rel="shortcut icon" href="../_static/favicon.png"><!-- Generated with Sphinx 8.1.3 and Furo 2025.12.19 -->
+        <title>Plan: ship the redesigned report as a downloadable file - multioutreg</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/active-learning-savings.css?v=14e41e7a" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/site.css?v=0e7236ba" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Try it without installing: the <a href="https://multioutreg.streamlit.app/">hosted multioutreg app</a>. 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">multioutreg</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo only-light" src="../_static/logos/wordmark-light.svg" alt="Light Logo"/>
+    <img class="sidebar-logo only-dark" src="../_static/logos/wordmark-dark.svg" alt="Dark Logo"/>
+  </div>
+  
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_it_works.html">How It Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reading_the_report.html">Reading the Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example_reports.html">Example Reports</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/multi_output_surrogates.html">Multi-Output Surrogates, Start to Finish</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/joint_scores.html">Scoring Joint Predictions: Energy and Variogram Scores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/multi_fidelity_surrogates.html">Multi-Fidelity Surrogate Modeling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/active_learning_benchmarks.html">Active Learning on Benchmark Functions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/cost_savings.html">Cost Savings: What <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> Saves in an Existing Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/imputation_methods.html">Imputing Missing Inputs: KNN vs. Other Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/active_learning_missing_inputs.html">Active Learning with Missing Inputs</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../multi_fidelity_gui.html">Multi-Fidelity Surrogate Models page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/using_the_exported_model.html">Using the Best Model from the Grid Search App</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../tutorials/forecasting_with_chronos.html">Time-Series Forecasting with Chronos</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Why multioutreg</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../cost_savings.html">Cost Savings and ROI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../active_learning_savings.html">Active Learning: The True Curve for Less</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../core_api.html">Core API</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../autoapi/multioutreg/index.html">multioutreg</a><input aria-label="Toggle navigation of multioutreg" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/active/index.html">multioutreg.active</a><input aria-label="Toggle navigation of multioutreg.active" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/acquisition/index.html">multioutreg.active.acquisition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/batch/index.html">multioutreg.active.batch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/benchmarks/index.html">multioutreg.active.benchmarks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/loop/index.html">multioutreg.active.loop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/multi_fidelity/index.html">multioutreg.active.multi_fidelity</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/conformal/index.html">multioutreg.conformal</a><input aria-label="Toggle navigation of multioutreg.conformal" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/base/index.html">multioutreg.conformal.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/cv_plus/index.html">multioutreg.conformal.cv_plus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/metrics/index.html">multioutreg.conformal.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/split_conformal/index.html">multioutreg.conformal.split_conformal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/utils/index.html">multioutreg.conformal.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/figures/index.html">multioutreg.figures</a><input aria-label="Toggle navigation of multioutreg.figures" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/confidence_intervals/index.html">multioutreg.figures.confidence_intervals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/conformal_plots/index.html">multioutreg.figures.conformal_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/coverage_plots/index.html">multioutreg.figures.coverage_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/doe_plots/index.html">multioutreg.figures.doe_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/error_histograms/index.html">multioutreg.figures.error_histograms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/model_comparison/index.html">multioutreg.figures.model_comparison</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/pca_plots/index.html">multioutreg.figures.pca_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/pdp_plots/index.html">multioutreg.figures.pdp_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/performance_metric_figures/index.html">multioutreg.figures.performance_metric_figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/prediction_plots/index.html">multioutreg.figures.prediction_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/residuals/index.html">multioutreg.figures.residuals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/shap_multioutput/index.html">multioutreg.figures.shap_multioutput</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/uct_calibration_extension/index.html">multioutreg.figures.uct_calibration_extension</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/umap_plot_classify/index.html">multioutreg.figures.umap_plot_classify</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/uncertainty_toolbox_extension/index.html">multioutreg.figures.uncertainty_toolbox_extension</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/gui/index.html">multioutreg.gui</a><input aria-label="Toggle navigation of multioutreg.gui" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/background/index.html">multioutreg.gui.background</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/grid_search_core/index.html">multioutreg.gui.grid_search_core</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/input_checks/index.html">multioutreg.gui.input_checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/report_controls/index.html">multioutreg.gui.report_controls</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/report_plotting_utils/index.html">multioutreg.gui.report_plotting_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/results_tabs/index.html">multioutreg.gui.results_tabs</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/metrics/index.html">multioutreg.metrics</a><input aria-label="Toggle navigation of multioutreg.metrics" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/metrics/joint_scores/index.html">multioutreg.metrics.joint_scores</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/metrics/multiobjective_regret/index.html">multioutreg.metrics.multiobjective_regret</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/model_selection/index.html">multioutreg.model_selection</a><input aria-label="Toggle navigation of multioutreg.model_selection" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/auto_detect/index.html">multioutreg.model_selection.auto_detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/evaluation/index.html">multioutreg.model_selection.evaluation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/model_wrappers/index.html">multioutreg.model_selection.model_wrappers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/screening/index.html">multioutreg.model_selection.screening</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/performance/index.html">multioutreg.performance</a><input aria-label="Toggle navigation of multioutreg.performance" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/performance/metrics/index.html">multioutreg.performance.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/performance/metrics_generalized_api/index.html">multioutreg.performance.metrics_generalized_api</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../autoapi/multioutreg/persistence/index.html">multioutreg.persistence</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/report/index.html">multioutreg.report</a><input aria-label="Toggle navigation of multioutreg.report" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/auto_detect_report/index.html">multioutreg.report.auto_detect_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/build/index.html">multioutreg.report.build</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/data/index.html">multioutreg.report.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report/index.html">multioutreg.report.generate_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report1/index.html">multioutreg.report.generate_report1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report1_safe/index.html">multioutreg.report.generate_report1_safe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/render/index.html">multioutreg.report.render</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/template/index.html">multioutreg.report.template</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/verdict/index.html">multioutreg.report.verdict</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/sampling/index.html">multioutreg.sampling</a><input aria-label="Toggle navigation of multioutreg.sampling" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/detect/index.html">multioutreg.sampling.detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/extrapolation/index.html">multioutreg.sampling.extrapolation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/infer_sampling/index.html">multioutreg.sampling.infer_sampling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/pca_sampling_detector/index.html">multioutreg.sampling.pca_sampling_detector</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/surrogates/index.html">multioutreg.surrogates</a><input aria-label="Toggle navigation of multioutreg.surrogates" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/ard_gp_sklearn/index.html">multioutreg.surrogates.ard_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/base_sklearn/index.html">multioutreg.surrogates.base_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bayesian_ridge_sklearn/index.html">multioutreg.surrogates.bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bnn_network/index.html">multioutreg.surrogates.bnn_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bnn_pytorch/index.html">multioutreg.surrogates.bnn_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/catboost_sklearn/index.html">multioutreg.surrogates.catboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/conformal_mixin/index.html">multioutreg.surrogates.conformal_mixin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/conformal_network_sklearn/index.html">multioutreg.surrogates.conformal_network_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/decision_tree_sklearn/index.html">multioutreg.surrogates.decision_tree_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/deep_ensemble_pytorch/index.html">multioutreg.surrogates.deep_ensemble_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/elastic_net_sklearn/index.html">multioutreg.surrogates.elastic_net_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/extra_trees_sklearn/index.html">multioutreg.surrogates.extra_trees_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/forest_uncertainty/index.html">multioutreg.surrogates.forest_uncertainty</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gating_network/index.html">multioutreg.surrogates.gating_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gaussian_copula/index.html">multioutreg.surrogates.gaussian_copula</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gp_sklearn/index.html">multioutreg.surrogates.gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gpx_smt/index.html">multioutreg.surrogates.gpx_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gradient_boosting_sklearn/index.html">multioutreg.surrogates.gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/hist_gradient_boosting_sklearn/index.html">multioutreg.surrogates.hist_gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/knn_sklearn/index.html">multioutreg.surrogates.knn_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/kpls_smt/index.html">multioutreg.surrogates.kpls_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/lightgbm_sklearn/index.html">multioutreg.surrogates.lightgbm_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/linear_sklearn/index.html">multioutreg.surrogates.linear_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/mfk_smt/index.html">multioutreg.surrogates.mfk_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/moe_surrogate/index.html">multioutreg.surrogates.moe_surrogate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/multi_fidelity/index.html">multioutreg.surrogates.multi_fidelity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/multitask_gp_gpytorch/index.html">multioutreg.surrogates.multitask_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/ngboost_sklearn/index.html">multioutreg.surrogates.ngboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/nystroem_gp_sklearn/index.html">multioutreg.surrogates.nystroem_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/pca_output/index.html">multioutreg.surrogates.pca_output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/polynomial_bayesian_ridge_sklearn/index.html">multioutreg.surrogates.polynomial_bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/quantile_sklearn/index.html">multioutreg.surrogates.quantile_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/rf_sklearn/index.html">multioutreg.surrogates.rf_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/rfgp_sklearn/index.html">multioutreg.surrogates.rfgp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/sparse_gp_gpytorch/index.html">multioutreg.surrogates.sparse_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/stacked_vfm/index.html">multioutreg.surrogates.stacked_vfm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/std_recalibration/index.html">multioutreg.surrogates.std_recalibration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/svr_sklearn/index.html">multioutreg.surrogates.svr_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/xgboost_sklearn/index.html">multioutreg.surrogates.xgboost_sklearn</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/index.html">multioutreg.time_series</a><input aria-label="Toggle navigation of multioutreg.time_series" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/chronos_adapter/index.html">multioutreg.time_series.chronos_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/cv/index.html">multioutreg.time_series.cv</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/figures/index.html">multioutreg.time_series.figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/financial/index.html">multioutreg.time_series.financial</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/lag_features/index.html">multioutreg.time_series.lag_features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/lag_forecaster/index.html">multioutreg.time_series.lag_forecaster</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/metrics/index.html">multioutreg.time_series.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/neuralforecast_adapter/index.html">multioutreg.time_series.neuralforecast_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/prophet_adapter/index.html">multioutreg.time_series.prophet_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/returns/index.html">multioutreg.time_series.returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/seasonality/index.html">multioutreg.time_series.seasonality</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/surrogate_forecaster/index.html">multioutreg.time_series.surrogate_forecaster</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/index.html">multioutreg.time_series.ts_dynamic_fit</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/index.html">multioutreg.time_series.ts_dynamic_fit.algs</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.algs" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/arima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.arima</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/lstm/index.html">multioutreg.time_series.ts_dynamic_fit.algs.lstm</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/sarima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.sarima</a></li>
+</ul>
+</li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.data_handling" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/Analyzer/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.Analyzer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/DataProcessor/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.DataProcessor</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/PullData/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.PullData</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/ingest/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.ingest</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/main/index.html">multioutreg.time_series.ts_dynamic_fit.main</a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/index.html">multioutreg.time_series.ts_dynamic_fit.src</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.src" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/ForecastAutoIntervals/index.html">multioutreg.time_series.ts_dynamic_fit.src.ForecastAutoIntervals</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/TSDataLoader/index.html">multioutreg.time_series.ts_dynamic_fit.src.TSDataLoader</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/evaluate/index.html">multioutreg.time_series.ts_dynamic_fit.src.evaluate</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/forecasters/index.html">multioutreg.time_series.ts_dynamic_fit.src.forecasters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/infer/index.html">multioutreg.time_series.ts_dynamic_fit.src.infer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/ranker/index.html">multioutreg.time_series.ts_dynamic_fit.src.ranker</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/visualize/index.html">multioutreg.time_series.ts_dynamic_fit.src.visualize</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_suitability/index.html">multioutreg.time_series.ts_suitability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/uncertainty/index.html">multioutreg.time_series.uncertainty</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/utils/index.html">multioutreg.utils</a><input aria-label="Toggle navigation of multioutreg.utils" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/aux_funcs/index.html">multioutreg.utils.aux_funcs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/figure_utils/index.html">multioutreg.utils.figure_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/imputation/index.html">multioutreg.utils.imputation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/metric_utils/index.html">multioutreg.utils.metric_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/pca_utils/index.html">multioutreg.utils.pca_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/surrogate_utils/index.html">multioutreg.utils.surrogate_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/thread_limits/index.html">multioutreg.utils.thread_limits</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../integrated_surrogates.html">Integrated Surrogate Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../surrogate_hyperparameters.html">Surrogate Hyperparameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../multiobjective_metrics.html">Multi-Objective Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../surrogate_roadmap.html">Expanding the Surrogate Offerings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui_ux_roadmap.html">Improving the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../docs_roadmap.html">Improving the Documentation</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Plan: ship the redesigned report as a downloadable file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../active_learning.html">Active Learning Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../parallel_computing.html">Parallelization and Distributed Computing Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pair_plot_report.html">Pair Plots in Reports</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AUDIT_CHECKLIST.html">Statistical / Logic Audit Checklist</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/takotime808/multioutreg/blob/main/docs/report_redesign/implementation_plan.md?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/takotime808/multioutreg/edit/main/docs/report_redesign/implementation_plan.md" rel="edit" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section class="tex2jax_ignore mathjax_ignore" id="plan-ship-the-redesigned-report-as-a-downloadable-file">
+<h1>Plan: ship the redesigned report as a downloadable file<a class="headerlink" href="#plan-ship-the-redesigned-report-as-a-downloadable-file" title="Link to this heading">¶</a></h1>
+<p>Status: <strong>implemented</strong> (2026-10-28), phases 1–5; the redesigned report is the default.
+Design reference: <code class="docutils literal notranslate"><span class="pre">docs/_extra/report_redesign/report_redesign.html</span></code> (mockups A–D: front
+page, per-output, error bars, fidelity &amp; drivers), served with the docs at
+<code class="docutils literal notranslate"><span class="pre">report_redesign/report_redesign.html</span></code>.</p>
+<section id="what-shipped">
+<h2>What shipped<a class="headerlink" href="#what-shipped" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">multioutreg/report/data.py</span></code>, <code class="docutils literal notranslate"><span class="pre">verdict.py</span></code>, <code class="docutils literal notranslate"><span class="pre">build.py</span></code>, <code class="docutils literal notranslate"><span class="pre">render.py</span></code>, with
+<code class="docutils literal notranslate"><span class="pre">templates/report_v2.html.j2</span></code>, <code class="docutils literal notranslate"><span class="pre">static/report_v2.css</span></code> and <code class="docutils literal notranslate"><span class="pre">static/report_v2.js</span></code> (no
+dependencies, inlined into every report).</p></li>
+<li><p>All three report callers branch on <code class="docutils literal notranslate"><span class="pre">report_style</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;v2&quot;</span></code> default, <code class="docutils literal notranslate"><span class="pre">&quot;classic&quot;</span></code>). The
+classic path is unchanged: with embedded images masked (they vary between runs even
+on the old code), its HTML is identical to the previous version for all three callers.</p></li>
+<li><p>GUI: a <strong>Report format</strong> radio on each page, and <strong>Download report data (.json)</strong>
+next to the HTML download (<code class="docutils literal notranslate"><span class="pre">multioutreg/gui/report_controls.py</span></code>). CLI:
+<code class="docutils literal notranslate"><span class="pre">--report-style</span></code>, plus real uncertainty metrics in place of the <code class="docutils literal notranslate"><span class="pre">dummy_metric</span></code>
+placeholder both commands passed.</p></li>
+<li><p>CV fold spread: <code class="docutils literal notranslate"><span class="pre">CV</span> <span class="pre">RMSE</span> <span class="pre">std</span></code> on the multi-fidelity page’s rows, and
+<code class="docutils literal notranslate"><span class="pre">GridSearchResult.cv_table</span></code> (one row per config, with the outputs it won) from
+<code class="docutils literal notranslate"><span class="pre">select_per_target</span></code>. SHAP shares and PDP grids come from
+<code class="docutils literal notranslate"><span class="pre">figures.shap_multioutput.shap_importance_table</span></code> (seeded, so reports are
+reproducible) and <code class="docutils literal notranslate"><span class="pre">figures.pdp_plots.pdp_grid_data</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">_summary_points</span></code> moved to <code class="docutils literal notranslate"><span class="pre">multioutreg.report.verdict.summary_points</span></code> (page 02
+imports it under the old name).</p></li>
+<li><p>Docs: <a class="reference internal" href="../reading_the_report.html"><span class="doc">Reading the Report</span></a>, <a class="reference internal" href="../example_reports.html"><span class="doc">Example Reports</span></a>, and
+<code class="docutils literal notranslate"><span class="pre">examples/make_example_reports.py</span></code>, which regenerates the examples in both styles.</p></li>
+</ul>
+<p>Departures from the plan: the classic path stays in each caller rather than going
+through <code class="docutils literal notranslate"><span class="pre">render_report</span></code> (that is what keeps it byte-for-byte unchanged); the “Skipped”
+lines come from <code class="docutils literal notranslate"><span class="pre">build_report_data</span></code> instead of <code class="docutils literal notranslate"><span class="pre">safe_plot_b64</span></code> callers, because the v2
+path no longer draws those PNGs at all; and the regret table lives in section 2.</p>
+</section>
+<section id="goal">
+<h2>Goal<a class="headerlink" href="#goal" title="Link to this heading">¶</a></h2>
+<p>Users get the redesigned report (verdict and scorecard first, the seven question-led
+sections, small multiples, a collapsed appendix) <strong>as the file they download</strong>, with the
+same download buttons and CLI output they use today. The downloaded copy must:</p>
+<ol class="arabic simple">
+<li><p>Be <strong>one self-contained <code class="docutils literal notranslate"><span class="pre">.html</span></code> file</strong>: no network requests, no sidecar files. It opens
+from disk, from an email attachment or from a shared drive.</p></li>
+<li><p><strong>Work without JavaScript</strong> for the parts that carry the message (verdict, scorecard,
+findings, next steps, every table). Charts can need JS; a <code class="docutils literal notranslate"><span class="pre">&lt;noscript&gt;</span></code> note says so.</p></li>
+<li><p><strong>Print or save to PDF cleanly</strong> (all outputs shown, appendix expanded, no nav chrome).</p></li>
+<li><p>Stay <strong>small</strong>: under 2 MB for a typical run (3–6 outputs, ≤ 500 test points).</p></li>
+<li><p>Keep the <strong>classic report available</strong> while the new one reaches parity.</p></li>
+</ol>
+</section>
+<section id="what-the-mockup-does-that-a-download-can-t-keep">
+<h2>What the mockup does that a download can’t keep<a class="headerlink" href="#what-the-mockup-does-that-a-download-can-t-keep" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Mockup behavior</p></th>
+<th class="head"><p>Problem in a downloaded file</p></th>
+<th class="head"><p>Plan</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Google Fonts (IBM Plex)</p></td>
+<td><p>Network request; offline it falls back silently, under a privacy/firewall policy it may hang</p></td>
+<td><p>System font stack. Optionally inline a Latin-subset Plex woff2 (~60 KB) behind a flag</p></td>
+</tr>
+<tr class="row-odd"><td><p>Hash-routed views (<code class="docutils literal notranslate"><span class="pre">#front</span></code>, <code class="docutils literal notranslate"><span class="pre">#drivers</span></code>) with <code class="docutils literal notranslate"><span class="pre">hidden</span></code> sections</p></td>
+<td><p>Only one view prints; deep sections are hidden from search and from readers without JS</p></td>
+<td><p>One long scrolling page; the rail links to <code class="docutils literal notranslate"><span class="pre">#sec-1</span></code>…<code class="docutils literal notranslate"><span class="pre">#sec-7</span></code> anchors</p></td>
+</tr>
+<tr class="row-even"><td><p>Output switcher shows one output at a time</p></td>
+<td><p>Prints only the selected output</p></td>
+<td><p>Switcher is a screen-only control; <code class="docutils literal notranslate"><span class="pre">&#64;media</span> <span class="pre">print</span></code> and <code class="docutils literal notranslate"><span class="pre">beforeprint</span></code> render every output stacked</p></td>
+</tr>
+<tr class="row-odd"><td><p>Synthetic data generated in JS</p></td>
+<td><p>—</p></td>
+<td><p>Real data embedded as JSON by Python (below)</p></td>
+</tr>
+<tr class="row-even"><td><p>“Design note” boxes, notes toggle</p></td>
+<td><p>Not report content</p></td>
+<td><p>Dropped</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="architecture">
+<h2>Architecture<a class="headerlink" href="#architecture" title="Link to this heading">¶</a></h2>
+<p>All three report builders (<code class="docutils literal notranslate"><span class="pre">gui/grid_search_core.py</span></code>, <code class="docutils literal notranslate"><span class="pre">gui/pages/02_Multi_Fidelity_Surrogate_Models.py</span></code>,
+<code class="docutils literal notranslate"><span class="pre">report/auto_detect_report.py</span></code>) currently copy the same render code and call
+<code class="docutils literal notranslate"><span class="pre">Template(text).render(...)</span></code> on <code class="docutils literal notranslate"><span class="pre">report/template.html</span></code>. The plan puts one pipeline behind them:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>caller-specific inputs ──► build_report_data(...) ──► ReportData ──► render_report(data, style)
+                                                       │                 │
+                                                       ├─ verdict.py     ├─ "v2": report_v2.html.j2 + inlined css/js + JSON blob
+                                                       └─ to_json()      └─ "classic": template.html (unchanged)
+</pre></div>
+</div>
+<p>New modules in <code class="docutils literal notranslate"><span class="pre">multioutreg/report/</span></code>:</p>
+<ul class="simple">
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">data.py</span></code></strong>: <code class="docutils literal notranslate"><span class="pre">ReportData</span></code> dataclasses: run metadata (model, dataset name, data hash,
+seed, package version, date, CV scheme), per-output arrays (<code class="docutils literal notranslate"><span class="pre">y</span></code>, <code class="docutils literal notranslate"><span class="pre">pred</span></code>, <code class="docutils literal notranslate"><span class="pre">std</span></code>,
+residuals), metrics, uncertainty curves (nominal levels → Gaussian and conformal
+coverage), baseline rows, level rows, SHAP shares, PDP grids, CV results with fold
+spread, skipped steps with reasons, and legacy PNG figures. <code class="docutils literal notranslate"><span class="pre">to_json()</span></code> converts numpy
+to lists, NaN/inf to <code class="docutils literal notranslate"><span class="pre">null</span></code>, rounds to 4 significant figures and downsamples scatter
+data above a cap (default 2,000 points per output) so file size stays bounded.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">verdict.py</span></code></strong>: thresholds (<code class="docutils literal notranslate"><span class="pre">r2_good=0.90</span></code>, <code class="docutils literal notranslate"><span class="pre">r2_warn=0.80</span></code>, <code class="docutils literal notranslate"><span class="pre">mf_gain=-5%</span></code>, <code class="docutils literal notranslate"><span class="pre">mf_hurt=+5%</span></code>,
+coverage judged against the 95% target ± 1.96·√(p(1−p)/n_test)), <code class="docutils literal notranslate"><span class="pre">judge(output)</span></code> →
+per-criterion status, overall verdict sentence, structured findings
+(<code class="docutils literal notranslate"><span class="pre">claim,</span> <span class="pre">status,</span> <span class="pre">section,</span> <span class="pre">plot_key</span></code>) and next steps. <code class="docutils literal notranslate"><span class="pre">_summary_points</span></code> moves here from
+page 02 so every caller gets findings.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">build.py</span></code></strong>: <code class="docutils literal notranslate"><span class="pre">build_report_data(...)</span></code> takes the arguments the callers already pass
+(<code class="docutils literal notranslate"><span class="pre">metrics</span></code>, <code class="docutils literal notranslate"><span class="pre">uncertainty_metrics</span></code>, <code class="docutils literal notranslate"><span class="pre">y_test</span></code>, <code class="docutils literal notranslate"><span class="pre">best_pred</span></code>, <code class="docutils literal notranslate"><span class="pre">best_std</span></code>,
+<code class="docutils literal notranslate"><span class="pre">calibration_residuals</span></code>, <code class="docutils literal notranslate"><span class="pre">level_summary</span></code>, <code class="docutils literal notranslate"><span class="pre">baseline_comparison</span></code>, <code class="docutils literal notranslate"><span class="pre">grid_search_results</span></code>, …)
+and computes the derived series (coverage curves, interval widths as % of range,
+residual trend slope and its p-value, SHAP shares, PDP grids with 10th–90th ICE bands).</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">render.py</span></code></strong>: <code class="docutils literal notranslate"><span class="pre">render_report(data,</span> <span class="pre">style=&quot;v2&quot;)</span> <span class="pre">-&gt;</span> <span class="pre">str</span></code>. Uses a Jinja <code class="docutils literal notranslate"><span class="pre">Environment</span></code>
+with <strong><code class="docutils literal notranslate"><span class="pre">autoescape=True</span></code></strong> (today’s <code class="docutils literal notranslate"><span class="pre">Template()</span></code> doesn’t escape user-supplied
+<code class="docutils literal notranslate"><span class="pre">description</span></code> / <code class="docutils literal notranslate"><span class="pre">notes</span></code>). Reads <code class="docutils literal notranslate"><span class="pre">report_v2.css</span></code> and <code class="docutils literal notranslate"><span class="pre">report_v2.js</span></code> from package data and
+inlines them, so they stay normal editable files but the output is a single file.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">templates/report_v2.html.j2</span></code>, <code class="docutils literal notranslate"><span class="pre">static/report_v2.css</span></code>, <code class="docutils literal notranslate"><span class="pre">static/report_v2.js</span></code></strong>: added
+to <code class="docutils literal notranslate"><span class="pre">[tool.setuptools.package-data]</span></code> in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code>.</p></li>
+</ul>
+<p>The JSON goes into <code class="docutils literal notranslate"><span class="pre">&lt;script</span> <span class="pre">type=&quot;application/json&quot;</span> <span class="pre">id=&quot;report-data&quot;&gt;</span></code>. It must escape
+<code class="docutils literal notranslate"><span class="pre">&lt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> as <code class="docutils literal notranslate"><span class="pre">&lt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&gt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&amp;</span></code> so a column name containing <code class="docutils literal notranslate"><span class="pre">&lt;/script&gt;</span></code>
+can’t break out. Add a test for that.</p>
+<section id="what-renders-where">
+<h3>What renders where<a class="headerlink" href="#what-renders-where" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p><strong>Jinja (server-side HTML, works without JS):</strong> run header, verdict, scorecard,
+finding-card text, next steps, level / baseline / CV / threshold tables, skipped and
+warning lines, appendix.</p></li>
+<li><p><strong>JS from the JSON blob (inline SVG):</strong> parity, residuals with trend annotation,
+residual histogram, ordered intervals, Gaussian-vs-conformal calibration with noise band,
+coverage at 95%, interval width, MF-vs-HF dumbbell, level r-vs-R² quadrant, SHAP heatmap,
+PDP grid, CV dot plot. Port the drawing helpers (<code class="docutils literal notranslate"><span class="pre">frame</span></code>, <code class="docutils literal notranslate"><span class="pre">ticks</span></code>, <code class="docutils literal notranslate"><span class="pre">dot</span></code>, …) from the
+mockup as plain ES2017 with no dependencies (~25–30 KB unminified).</p></li>
+<li><p><strong>Kept as base64 PNG:</strong> figures with no JS equivalent yet (UMAP sampling, PCA variance,
+SHAP beeswarm, DOE plots), in section 6 or the appendix.</p></li>
+</ul>
+</section>
+</section>
+<section id="data-gaps-to-close">
+<h2>Data gaps to close<a class="headerlink" href="#data-gaps-to-close" title="Link to this heading">¶</a></h2>
+<div class="table-wrapper colwidths-auto docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Needed by</p></th>
+<th class="head"><p>Gap</p></th>
+<th class="head"><p>Fix</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Section 7 CV dot plot</p></td>
+<td><p>Fold spread is computed then discarded (<code class="docutils literal notranslate"><span class="pre">fold_mse</span></code> in <code class="docutils literal notranslate"><span class="pre">grid_search_core.py:494</span></code>, <code class="docutils literal notranslate"><span class="pre">fold_sse</span></code> in page 02 <code class="docutils literal notranslate"><span class="pre">:915</span></code>)</p></td>
+<td><p>Return <code class="docutils literal notranslate"><span class="pre">CV</span> <span class="pre">RMSE</span> <span class="pre">std</span></code> alongside <code class="docutils literal notranslate"><span class="pre">CV</span> <span class="pre">RMSE</span></code> in each grid-search row</p></td>
+</tr>
+<tr class="row-odd"><td><p>Section 5 heatmap</p></td>
+<td><p>SHAP is only rendered as one PNG per output</p></td>
+<td><p>Return mean |SHAP| per feature × output from <code class="docutils literal notranslate"><span class="pre">figures/shap_multioutput.py</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>Section 5 PDP grid</p></td>
+<td><p>PDPs are only rendered as PNGs</p></td>
+<td><p>Return grid values and ICE percentiles from <code class="docutils literal notranslate"><span class="pre">figures/pdp_plots.py</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p>Run header</p></td>
+<td><p>No data hash or package version</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">hashlib.sha1</span></code> of the training frame (first 7 chars); <code class="docutils literal notranslate"><span class="pre">importlib.metadata.version(&quot;multioutreg&quot;)</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p>“Skipped” lines</p></td>
+<td><p>Optional steps return an error string shown in red</p></td>
+<td><p><code class="docutils literal notranslate"><span class="pre">safe_plot_b64</span></code> callers record <code class="docutils literal notranslate"><span class="pre">{section,</span> <span class="pre">reason}</span></code> in <code class="docutils literal notranslate"><span class="pre">data.skipped</span></code> instead</p></td>
+</tr>
+<tr class="row-odd"><td><p>Section 4</p></td>
+<td><p>Only page 02 has level and baseline rows</p></td>
+<td><p>Section hidden for single-fidelity callers (as today)</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="download-and-viewing">
+<h2>Download and viewing<a class="headerlink" href="#download-and-viewing" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong>GUI:</strong> keep every existing <code class="docutils literal notranslate"><span class="pre">st.download_button</span></code> and file name (<code class="docutils literal notranslate"><span class="pre">model_report.html</span></code>,
+<code class="docutils literal notranslate"><span class="pre">mf_model_report.html</span></code>, <code class="docutils literal notranslate"><span class="pre">model_report_auto.html</span></code>). Add a “Report format” control to each
+page’s report options: <em>Redesigned (default)</em> / <em>Classic</em>. Optionally add an inline
+preview with <code class="docutils literal notranslate"><span class="pre">st.components.v1.html(html,</span> <span class="pre">height=900,</span> <span class="pre">scrolling=True)</span></code> under the button.</p></li>
+<li><p><strong>Extra download:</strong> “Download report data (.json)”, the same blob, so users can archive
+results or rebuild the report later without retraining.</p></li>
+<li><p><strong>CLI:</strong> <code class="docutils literal notranslate"><span class="pre">--report-style</span> <span class="pre">{v2,classic}</span></code> on <code class="docutils literal notranslate"><span class="pre">mor_cli/grid_search.py</span></code> and
+<code class="docutils literal notranslate"><span class="pre">mor_cli/grid_search_auto_detect.py</span></code>; <code class="docutils literal notranslate"><span class="pre">MOR_REPORT_STYLE</span></code> env var as the default.
+<code class="docutils literal notranslate"><span class="pre">MOR_TEMPLATE_PATH</span></code> keeps overriding the classic template.</p></li>
+<li><p><strong>Inside the report:</strong> a “Print / Save as PDF” button (<code class="docutils literal notranslate"><span class="pre">window.print()</span></code>), a light/dark
+toggle (follows the system by default; print always light), and the sticky section rail
+(hidden under 960px and in print).</p></li>
+<li><p><strong>Print CSS:</strong> hide rail, toggles and switchers; <code class="docutils literal notranslate"><span class="pre">details[open]</span></code> forced via a
+<code class="docutils literal notranslate"><span class="pre">beforeprint</span></code> handler; <code class="docutils literal notranslate"><span class="pre">break-inside:</span> <span class="pre">avoid</span></code> on panels and figures; all outputs rendered.</p></li>
+</ul>
+</section>
+<section id="phases-each-one-is-shippable">
+<h2>Phases (each one is shippable)<a class="headerlink" href="#phases-each-one-is-shippable" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p><strong>Data model and verdict (Python only).</strong> <code class="docutils literal notranslate"><span class="pre">data.py</span></code>, <code class="docutils literal notranslate"><span class="pre">verdict.py</span></code>, <code class="docutils literal notranslate"><span class="pre">build.py</span></code> with unit
+tests on a synthetic multi-fidelity fixture. Move <code class="docutils literal notranslate"><span class="pre">_summary_points</span></code>. Add CV fold std.
+No user-visible change.</p></li>
+<li><p><strong>Static v2 template.</strong> Jinja-only page: header, verdict, scorecard, findings, next
+steps, tables, skipped lines, existing PNGs placed in the new section order, appendix,
+print CSS. Behind <code class="docutils literal notranslate"><span class="pre">style=&quot;v2&quot;</span></code>, off by default. Already an improvement on its own and
+fully downloadable.</p></li>
+<li><p><strong>Charts.</strong> <code class="docutils literal notranslate"><span class="pre">report_v2.js</span></code> renders the SVG figures from the JSON blob; add the SHAP
+share and PDP grid data. Replace the matching PNGs in v2.</p></li>
+<li><p><strong>Wire up callers.</strong> All three <code class="docutils literal notranslate"><span class="pre">generate_html_report</span></code> functions become thin adapters
+(signatures unchanged, so the CLI and existing tests keep working) that call
+<code class="docutils literal notranslate"><span class="pre">build_report_data</span></code> + <code class="docutils literal notranslate"><span class="pre">render_report</span></code>. Add the GUI format control, JSON download and
+CLI flag. Make v2 the default once the parity checklist below passes.</p></li>
+<li><p><strong>Docs and examples.</strong> Regenerate <code class="docutils literal notranslate"><span class="pre">docs/example_reports/</span></code> in both styles, add a Sphinx
+page explaining how to read the report and the verdict thresholds, update
+<code class="docutils literal notranslate"><span class="pre">docs/multi_fidelity_gui.md</span></code>.</p></li>
+</ol>
+</section>
+<section id="tests">
+<h2>Tests<a class="headerlink" href="#tests" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">verdict.py</span></code>: every threshold boundary; coverage band shrinks with <code class="docutils literal notranslate"><span class="pre">n_test</span></code>; an output
+gets the worst status of its criteria.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">render.py</span></code>:</p>
+<ul>
+<li><p>output contains no <code class="docutils literal notranslate"><span class="pre">http://</span></code> / <code class="docutils literal notranslate"><span class="pre">https://</span></code> in any <code class="docutils literal notranslate"><span class="pre">src</span></code>, <code class="docutils literal notranslate"><span class="pre">href</span></code> or <code class="docutils literal notranslate"><span class="pre">&#64;import</span></code>
+(self-contained check);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">#report-data</span></code> parses as JSON and round-trips <code class="docutils literal notranslate"><span class="pre">ReportData</span></code>;</p></li>
+<li><p>a column named <code class="docutils literal notranslate"><span class="pre">&lt;/script&gt;&lt;script&gt;alert(1)&lt;/script&gt;</span></code> is escaped in HTML and JSON;</p></li>
+<li><p>size under 2 MB for a 6-output, 500-point fixture;</p></li>
+<li><p>classic style output is byte-identical to today’s for the same inputs.</p></li>
+</ul>
+</li>
+<li><p>Existing <code class="docutils literal notranslate"><span class="pre">tests/unit/gui/pages/test_*</span></code> and <code class="docutils literal notranslate"><span class="pre">tests/unit/report/*</span></code> keep passing (adapters
+keep the signatures).</p></li>
+<li><p>Optional, marked <code class="docutils literal notranslate"><span class="pre">slow</span></code>: headless Chromium (Playwright) opens the file from <code class="docutils literal notranslate"><span class="pre">file://</span></code>,
+checks for zero console errors, and prints it to PDF.</p></li>
+</ul>
+<p>Run with the usual workaround: <code class="docutils literal notranslate"><span class="pre">OMP_NUM_THREADS=1</span></code> and <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">lightgbm</span></code> first.</p>
+</section>
+<section id="parity-checklist-before-v2-becomes-the-default">
+<h2>Parity checklist before v2 becomes the default<a class="headerlink" href="#parity-checklist-before-v2-becomes-the-default" title="Link to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>[x] Every section and table in <code class="docutils literal notranslate"><span class="pre">template.html</span></code> has a home in v2 (main body or appendix)</p></li>
+<li><p>[x] Imputation summary, regret metrics and PCA sections are present when their inputs are</p></li>
+<li><p>[ ] Opens offline from disk in Chrome, Firefox and Safari with no console errors.
+<em>Chrome (headless) checked: every chart slot draws, no errors, on the synthetic
+fixture and all three examples. Firefox and Safari not yet checked.</em></p></li>
+<li><p>[x] Readable with JS disabled (verdict, scorecard, tables are server-rendered; a
+<code class="docutils literal notranslate"><span class="pre">&lt;noscript&gt;</span></code> line says charts need JavaScript)</p></li>
+<li><p>[x] Prints to PDF with every output and the appendix shown (Chrome; 15 pages for the
+3-output fixture)</p></li>
+<li><p>[x] File size within budget on the largest example dataset (155–200 KB for the
+examples; a 6-output, 500-point fixture is under 2 MB in the tests)</p></li>
+</ul>
+</section>
+<section id="open-questions">
+<h2>Open questions<a class="headerlink" href="#open-questions" title="Link to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Inline the Plex font (+60 KB) or use system fonts only? Recommendation: system fonts.</p></li>
+<li><p>Should the verdict thresholds be user-editable in the GUI, or fixed and printed in the
+appendix? Recommendation: fixed for now, passed as a <code class="docutils literal notranslate"><span class="pre">thresholds=</span></code> argument so they can
+be exposed later.</p></li>
+<li><p>Remove the classic template after one release, or keep it indefinitely?
+Recommendation: keep it for one release, then delete it along with the unused
+<code class="docutils literal notranslate"><span class="pre">generate_report*.py</span></code> / <code class="docutils literal notranslate"><span class="pre">report_template.html</span></code> scripts.</p></li>
+</ol>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+<div class="related-pages">
+  <a class="next-page" href="../active_learning.html">
+      <div class="page-info">
+        <div class="context">
+          <span>Next</span>
+        </div>
+        <div class="title">Active Learning Plan</div>
+      </div>
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+    </a>
+  <a class="prev-page" href="../docs_roadmap.html">
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+      <div class="page-info">
+        <div class="context">
+          <span>Previous</span>
+        </div>
+        
+        <div class="title">Improving the Documentation</div>
+        
+      </div>
+    </a>
+</div>
+<div class="bottom-of-page">
+  <div class="left-details">
+    <div class="copyright">
+        Copyright &#169; 2025, takotime808
+    </div>
+  </div>
+  <div class="right-details">
+    <div class="icons">
+      <a class="muted-link " href="https://github.com/takotime808/multioutreg" aria-label="GitHub"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a>
+      
+    </div>
+  </div>
+</div>
+
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Plan: ship the redesigned report as a downloadable file</a><ul>
+<li><a class="reference internal" href="#what-shipped">What shipped</a></li>
+<li><a class="reference internal" href="#goal">Goal</a></li>
+<li><a class="reference internal" href="#what-the-mockup-does-that-a-download-can-t-keep">What the mockup does that a download can’t keep</a></li>
+<li><a class="reference internal" href="#architecture">Architecture</a><ul>
+<li><a class="reference internal" href="#what-renders-where">What renders where</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#data-gaps-to-close">Data gaps to close</a></li>
+<li><a class="reference internal" href="#download-and-viewing">Download and viewing</a></li>
+<li><a class="reference internal" href="#phases-each-one-is-shippable">Phases (each one is shippable)</a></li>
+<li><a class="reference internal" href="#tests">Tests</a></li>
+<li><a class="reference internal" href="#parity-checklist-before-v2-becomes-the-default">Parity checklist before v2 becomes the default</a></li>
+<li><a class="reference internal" href="#open-questions">Open questions</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    </body>
+</html>

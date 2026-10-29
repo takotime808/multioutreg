@@ -1,0 +1,138 @@
+multioutreg.surrogates.pca_output
+=================================
+
+.. py:module:: multioutreg.surrogates.pca_output
+
+.. autoapi-nested-parse::
+
+   Output-reduction wrapper: fit any surrogate on the principal components of Y.
+
+   Field outputs (spectra, pressure distributions, time series sampled on a grid)
+   have hundreds of strongly correlated columns. Fitting one model per column is
+   slow and ignores the correlation. This wrapper standardizes ``Y``, projects it
+   onto its top ``k`` principal components, fits the wrapped surrogate on the
+   ``k`` component scores, and maps predictions back to the original outputs.
+
+   Uncertainty is mapped back the same way. With component scores
+   ``z_k ~ N(mu_k, sigma_k^2)`` treated as independent and loadings ``V``
+   (``k x m``), the predictive covariance of the outputs is::
+
+       Cov(Y) = S V^T diag(sigma^2) V S + diag(r)
+
+   where ``S`` is the diagonal matrix of output scales and ``r`` is the per-output
+   variance of the training reconstruction error (the part of ``Y`` the discarded
+   components carry). ``predict(X, return_std=True)`` returns the square root of
+   its diagonal; ``predict(X, return_cov=True)`` returns the full matrix, so the
+   outputs come out correlated even when the wrapped surrogate is per-output.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.pca_output.PCAOutputSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: PCAOutputSurrogate(surrogate_cls=None, n_components=0.99, standardize=True, include_truncation_error=True, **surrogate_kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Fit a surrogate on the top principal components of the outputs.
+
+   :param surrogate_cls: Surrogate fitted on the component scores. It must accept
+                         ``fit(X, Z)`` and ``predict(X, return_std=True)``. Defaults to
+                         ``GaussianProcessSurrogate``.
+   :type surrogate_cls: type | None
+   :param n_components: Number of components to keep, or (if a float in ``(0, 1]``) the
+                        fraction of output variance to retain, as in
+                        :class:`sklearn.decomposition.PCA`. Clamped to the number of outputs
+                        and training rows.
+   :type n_components: int | float
+   :param standardize: Scale each output to unit variance before PCA, so outputs in large
+                       units do not dominate the components. Default ``True``.
+   :type standardize: bool
+   :param include_truncation_error: Add the per-output variance of the training reconstruction error to
+                                    the predictive variance. Without it the discarded components count
+                                    as known exactly and the std is too small. Default ``True``.
+   :type include_truncation_error: bool
+   :param \*\*surrogate_kwargs: Passed to ``surrogate_cls``.
+
+   .. attribute:: pca_
+
+
+
+      :type: sklearn.decomposition.PCA
+
+   .. attribute:: n_components_
+
+      Number of components kept.
+
+      :type: int
+
+   .. attribute:: explained_variance_ratio_
+
+      Fraction of standardized output variance each kept component explains.
+
+      :type: np.ndarray
+
+   .. attribute:: truncation_var_
+
+      Per-output variance of the reconstruction error on the training data,
+      in the original output units.
+
+      :type: np.ndarray
+
+
+   .. py:attribute:: surrogate_cls
+      :value: None
+
+
+
+   .. py:attribute:: n_components
+      :value: 0.99
+
+
+
+   .. py:attribute:: standardize
+      :value: True
+
+
+
+   .. py:attribute:: include_truncation_error
+      :value: True
+
+
+
+   .. py:attribute:: surrogate_kwargs
+
+
+   .. py:method:: fit(X, Y)
+
+
+   .. py:method:: predict_components(X, return_std=False)
+
+      Predicted principal-component scores, shape ``(n, n_components_)``.
+
+
+
+   .. py:method:: predict(X, return_std=False, return_cov=False)
+
+      Predict outputs, optionally with per-output std or the full covariance.
+
+      :param X:
+      :type X: array-like of shape (n_samples, n_features)
+      :param return_std: Also return the per-output std, shape ``(n_samples, n_outputs)``.
+      :type return_std: bool
+      :param return_cov: Also return the predictive covariance of the outputs for each row,
+                         shape ``(n_samples, n_outputs, n_outputs)``. Takes precedence over
+                         ``return_std``.
+      :type return_cov: bool
+
+
+

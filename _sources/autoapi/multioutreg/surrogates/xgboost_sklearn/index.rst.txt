@@ -1,0 +1,91 @@
+multioutreg.surrogates.xgboost_sklearn
+======================================
+
+.. py:module:: multioutreg.surrogates.xgboost_sklearn
+
+.. autoapi-nested-parse::
+
+   XGBoost surrogate — optional dependency ``pip install xgboost``.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.xgboost_sklearn.XGBoostSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: XGBoostSurrogate(n_estimators: int = 200, learning_rate: float = 0.05, max_depth: int = 6, verbosity: int = 0, **kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   XGBoost regression surrogate.
+
+   Wraps :class:`xgboost.XGBRegressor` in a ``MultiOutputRegressor``.
+   Handles missing values natively; GPU support available via
+   ``device="cuda"``; widely used engineering competition standard.
+
+   Requires the optional ``xgboost`` package::
+
+       pip install xgboost
+
+   Uncertainty is not natively returned; use :meth:`wrap_conformal` /
+   :meth:`conformal_predict` for distribution-free prediction intervals.
+
+   :param n_estimators: Number of boosting rounds.
+   :type n_estimators: int, default 200
+   :param learning_rate: Shrinkage applied to each tree.
+   :type learning_rate: float, default 0.05
+   :param max_depth: Maximum tree depth.
+   :type max_depth: int, default 6
+   :param verbosity: XGBoost verbosity.  ``0`` is silent.
+   :type verbosity: int, default 0
+   :param \*\*kwargs: Additional keyword arguments forwarded to ``XGBRegressor``.
+
+
+   .. py:attribute:: n_estimators
+      :value: 200
+
+
+
+   .. py:attribute:: learning_rate
+      :value: 0.05
+
+
+
+   .. py:attribute:: max_depth
+      :value: 6
+
+
+
+   .. py:attribute:: verbosity
+      :value: 0
+
+
+
+   .. py:method:: get_params(deep: bool = True) -> dict
+
+      Constructor arguments this surrogate was built with, by name.
+
+      Arguments taken through ``**kwargs`` (passed on to the wrapped
+      estimator) are listed individually; defaults filled in inside the
+      constructor are not. ``deep`` is accepted for scikit-learn
+      compatibility; nested estimator parameters are not expanded.
+
+
+
+   .. py:method:: set_params(**params) -> XGBoostSurrogate
+
+      Set constructor arguments and rebuild the surrogate.
+
+      The surrogate is reconstructed from the merged arguments, so a fitted
+      surrogate must be refitted afterwards.
+
+
+

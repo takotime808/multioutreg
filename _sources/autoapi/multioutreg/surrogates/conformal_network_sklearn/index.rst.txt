@@ -1,0 +1,97 @@
+multioutreg.surrogates.conformal_network_sklearn
+================================================
+
+.. py:module:: multioutreg.surrogates.conformal_network_sklearn
+
+.. autoapi-nested-parse::
+
+   Neural-network surrogate with split-conformal uncertainty estimates.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.conformal_network_sklearn.ConformalPredictionNetworkSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: ConformalPredictionNetworkSurrogate(hidden_layer_sizes=(100, ), alpha=0.0001, max_iter=500, calibration_fraction=0.2, conformal_quantile=0.9, random_state=None, scale_inputs=True)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   MLP surrogate with calibrated residual-based predictive uncertainty.
+
+   Inputs are standardised by default (``scale_inputs=True``); the MLP's
+   optimisation and L2 penalty otherwise depend on the inputs' units.
+
+
+   .. py:attribute:: hidden_layer_sizes
+      :value: (100,)
+
+
+
+   .. py:attribute:: alpha
+      :value: 0.0001
+
+
+
+   .. py:attribute:: max_iter
+      :value: 500
+
+
+
+   .. py:attribute:: calibration_fraction
+      :value: 0.2
+
+
+
+   .. py:attribute:: conformal_quantile
+      :value: 0.9
+
+
+
+   .. py:attribute:: random_state
+      :value: None
+
+
+
+   .. py:attribute:: scale_inputs
+      :value: True
+
+
+
+   .. py:attribute:: model
+
+
+   .. py:method:: get_params(deep=True)
+
+      Constructor arguments this surrogate was built with, by name.
+
+      Arguments taken through ``**kwargs`` (passed on to the wrapped
+      estimator) are listed individually; defaults filled in inside the
+      constructor are not. ``deep`` is accepted for scikit-learn
+      compatibility; nested estimator parameters are not expanded.
+
+
+
+   .. py:method:: set_params(**params)
+
+      Set constructor arguments and rebuild the surrogate.
+
+      The surrogate is reconstructed from the merged arguments, so a fitted
+      surrogate must be refitted afterwards.
+
+
+
+   .. py:method:: fit(X, Y)
+
+
+   .. py:method:: predict(X, return_std=False)
+
+

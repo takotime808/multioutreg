@@ -1,0 +1,111 @@
+multioutreg.sampling.extrapolation
+==================================
+
+.. py:module:: multioutreg.sampling.extrapolation
+
+.. autoapi-nested-parse::
+
+   Flag prediction points that lie outside the training design.
+
+   A surrogate's prediction far from its training data is an extrapolation, and
+   each model family extrapolates differently: trees hold the boundary value,
+   GPs revert to their mean, networks are unconstrained. Their std does not
+   always warn about it either. :class:`ExtrapolationDetector` scores how far a
+   point is from the training inputs and flags points beyond a threshold taken
+   from the training data themselves.
+
+   Methods (inputs are standardized first):
+
+   ``"knn"`` (default)
+       Mean distance to the ``n_neighbors`` nearest training points. Follows the
+       actual shape of the design, including holes inside its bounding box.
+   ``"mahalanobis"``
+       Mahalanobis distance from the training mean. Cheap; assumes a roughly
+       elliptical design.
+   ``"hull"``
+       Outside the convex hull of the training points (score 1) or inside
+       (score 0), via a linear program per point. Exact, but slower for large
+       designs and conservative in high dimensions, where most new points are
+       outside the hull.
+   ``"box"``
+       Outside the per-feature training range; the score is the largest
+       standardized distance beyond it.
+
+   For ``"knn"`` and ``"mahalanobis"`` the threshold is the ``quantile`` of the
+   training points' own scores, computed leave-one-out for ``"knn"`` so a point
+   is not its own neighbour.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.sampling.extrapolation.ExtrapolationDetector
+
+
+Module Contents
+---------------
+
+.. py:class:: ExtrapolationDetector(method='knn', n_neighbors=5, quantile=0.99)
+
+   Score and flag points by their distance from the training inputs.
+
+   :param method:
+   :type method: {"knn", "mahalanobis", "hull", "box"}
+   :param n_neighbors: Neighbours averaged by ``"knn"``.
+   :type n_neighbors: int
+   :param quantile: Training-score quantile used as the threshold for ``"knn"`` and
+                    ``"mahalanobis"``. Default 0.99.
+   :type quantile: float in (0, 1]
+
+   .. attribute:: threshold_
+
+      Scores above this are flagged.
+
+      :type: float
+
+   .. attribute:: train_scores_
+
+      Training points' own scores (leave-one-out for ``"knn"``).
+
+      :type: np.ndarray
+
+
+   .. py:attribute:: method
+      :value: 'knn'
+
+
+
+   .. py:attribute:: n_neighbors
+      :value: 5
+
+
+
+   .. py:attribute:: quantile
+      :value: 0.99
+
+
+
+   .. py:method:: fit(X)
+
+
+   .. py:method:: score(X)
+
+      Distance-from-design score per row; larger is further out.
+
+
+
+   .. py:method:: is_extrapolation(X)
+
+      Boolean mask: ``True`` where the point is outside the training design.
+
+
+
+   .. py:method:: fit_flag(X_train, X)
+
+      Fit on ``X_train`` and return the flags for ``X``.
+
+
+

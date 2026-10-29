@@ -1,0 +1,30 @@
+multioutreg.surrogates.extra_trees_sklearn
+==========================================
+
+.. py:module:: multioutreg.surrogates.extra_trees_sklearn
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.extra_trees_sklearn.ExtraTreesRegressorSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: ExtraTreesRegressorSurrogate(include_noise=True, noise_cv=5, **kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.forest_uncertainty.ForestSurrogate`
+
+
+   Extra-Trees surrogate; std = tree spread + held-out noise estimate.
+
+   Extra-Trees does not bootstrap by default, so the noise is estimated by
+   ``noise_cv``-fold refits (out-of-bag when ``bootstrap=True``).
+   ``include_noise=False`` returns the tree spread alone (epistemic only).
+   See :mod:`multioutreg.surrogates.forest_uncertainty`.
+
+

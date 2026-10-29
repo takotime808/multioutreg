@@ -1,0 +1,1608 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="../">
+  <head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../genindex.html"><link rel="search" title="Search" href="../search.html"><link rel="next" title="Imputing Missing Inputs: KNN vs. Other Methods" href="imputation_methods.html"><link rel="prev" title="Active Learning on Benchmark Functions" href="active_learning_benchmarks.html">
+        <link rel="prefetch" href="../_static/logos/wordmark-light.svg" as="image">
+        <link rel="prefetch" href="../_static/logos/wordmark-dark.svg" as="image">
+
+    <link rel="shortcut icon" href="../_static/favicon.png"><!-- Generated with Sphinx 8.1.3 and Furo 2025.12.19 -->
+        <title>Cost Savings: What multioutreg Saves in an Existing Workflow - multioutreg</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=d111a655" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo.css?v=7bdb33bb" />
+    <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-design.min.css?v=95c83b7e" />
+    <link rel="stylesheet" type="text/css" href="../_static/nbsphinx-code-cells.css?v=2aa19091" />
+    <link rel="stylesheet" type="text/css" href="../_static/styles/furo-extensions.css?v=8dab3a3b" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/active-learning-savings.css?v=14e41e7a" />
+    <link rel="stylesheet" type="text/css" href="../_static/css/site.css?v=0e7236ba" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f2f2f2;
+  --color-code-foreground: #1e1e1e;
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle site navigation sidebar">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc" aria-label="Toggle table of contents sidebar">
+<label class="overlay sidebar-overlay" for="__navigation"></label>
+<label class="overlay toc-overlay" for="__toc"></label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+<div class="announcement">
+  <aside class="announcement-content">
+     Try it without installing: the <a href="https://multioutreg.streamlit.app/">hosted multioutreg app</a>. 
+  </aside>
+</div>
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <span class="icon"><svg><use href="#svg-menu"></use></svg></span>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../index.html"><div class="brand">multioutreg</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../index.html">
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo only-light" src="../_static/logos/wordmark-light.svg" alt="Light Logo"/>
+    <img class="sidebar-logo only-dark" src="../_static/logos/wordmark-dark.svg" alt="Dark Logo"/>
+  </div>
+  
+  
+</a><form class="sidebar-search-container" method="get" action="../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../install.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../how_it_works.html">How It Works</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../reading_the_report.html">Reading the Report</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../example_reports.html">Example Reports</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Tutorials</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="multi_output_surrogates.html">Multi-Output Surrogates, Start to Finish</a></li>
+<li class="toctree-l1"><a class="reference internal" href="joint_scores.html">Scoring Joint Predictions: Energy and Variogram Scores</a></li>
+<li class="toctree-l1"><a class="reference internal" href="multi_fidelity_surrogates.html">Multi-Fidelity Surrogate Modeling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_learning_benchmarks.html">Active Learning on Benchmark Functions</a></li>
+<li class="toctree-l1 current current-page"><a class="current reference internal" href="#">Cost Savings: What <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> Saves in an Existing Workflow</a></li>
+<li class="toctree-l1"><a class="reference internal" href="imputation_methods.html">Imputing Missing Inputs: KNN vs. Other Methods</a></li>
+<li class="toctree-l1"><a class="reference internal" href="active_learning_missing_inputs.html">Active Learning with Missing Inputs</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../multi_fidelity_gui.html">Multi-Fidelity Surrogate Models page</a></li>
+<li class="toctree-l1"><a class="reference internal" href="using_the_exported_model.html">Using the Best Model from the Grid Search App</a></li>
+<li class="toctree-l1"><a class="reference internal" href="forecasting_with_chronos.html">Time-Series Forecasting with Chronos</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Why multioutreg</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../cost_savings.html">Cost Savings and ROI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../active_learning_savings.html">Active Learning: The True Curve for Less</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../core_api.html">Core API</a></li>
+<li class="toctree-l1 has-children"><a class="reference internal" href="../api.html">API Reference</a><input aria-label="Toggle navigation of API Reference" class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l2 has-children"><a class="reference internal" href="../autoapi/multioutreg/index.html">multioutreg</a><input aria-label="Toggle navigation of multioutreg" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/active/index.html">multioutreg.active</a><input aria-label="Toggle navigation of multioutreg.active" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/acquisition/index.html">multioutreg.active.acquisition</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/batch/index.html">multioutreg.active.batch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/benchmarks/index.html">multioutreg.active.benchmarks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/loop/index.html">multioutreg.active.loop</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/active/multi_fidelity/index.html">multioutreg.active.multi_fidelity</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/conformal/index.html">multioutreg.conformal</a><input aria-label="Toggle navigation of multioutreg.conformal" class="toctree-checkbox" id="toctree-checkbox-4" name="toctree-checkbox-4" role="switch" type="checkbox"/><label for="toctree-checkbox-4"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/base/index.html">multioutreg.conformal.base</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/cv_plus/index.html">multioutreg.conformal.cv_plus</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/metrics/index.html">multioutreg.conformal.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/split_conformal/index.html">multioutreg.conformal.split_conformal</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/conformal/utils/index.html">multioutreg.conformal.utils</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/figures/index.html">multioutreg.figures</a><input aria-label="Toggle navigation of multioutreg.figures" class="toctree-checkbox" id="toctree-checkbox-5" name="toctree-checkbox-5" role="switch" type="checkbox"/><label for="toctree-checkbox-5"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/confidence_intervals/index.html">multioutreg.figures.confidence_intervals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/conformal_plots/index.html">multioutreg.figures.conformal_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/coverage_plots/index.html">multioutreg.figures.coverage_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/doe_plots/index.html">multioutreg.figures.doe_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/error_histograms/index.html">multioutreg.figures.error_histograms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/model_comparison/index.html">multioutreg.figures.model_comparison</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/pca_plots/index.html">multioutreg.figures.pca_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/pdp_plots/index.html">multioutreg.figures.pdp_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/performance_metric_figures/index.html">multioutreg.figures.performance_metric_figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/prediction_plots/index.html">multioutreg.figures.prediction_plots</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/residuals/index.html">multioutreg.figures.residuals</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/shap_multioutput/index.html">multioutreg.figures.shap_multioutput</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/uct_calibration_extension/index.html">multioutreg.figures.uct_calibration_extension</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/umap_plot_classify/index.html">multioutreg.figures.umap_plot_classify</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/figures/uncertainty_toolbox_extension/index.html">multioutreg.figures.uncertainty_toolbox_extension</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/gui/index.html">multioutreg.gui</a><input aria-label="Toggle navigation of multioutreg.gui" class="toctree-checkbox" id="toctree-checkbox-6" name="toctree-checkbox-6" role="switch" type="checkbox"/><label for="toctree-checkbox-6"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/background/index.html">multioutreg.gui.background</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/grid_search_core/index.html">multioutreg.gui.grid_search_core</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/input_checks/index.html">multioutreg.gui.input_checks</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/report_controls/index.html">multioutreg.gui.report_controls</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/report_plotting_utils/index.html">multioutreg.gui.report_plotting_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/gui/results_tabs/index.html">multioutreg.gui.results_tabs</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/metrics/index.html">multioutreg.metrics</a><input aria-label="Toggle navigation of multioutreg.metrics" class="toctree-checkbox" id="toctree-checkbox-7" name="toctree-checkbox-7" role="switch" type="checkbox"/><label for="toctree-checkbox-7"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/metrics/joint_scores/index.html">multioutreg.metrics.joint_scores</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/metrics/multiobjective_regret/index.html">multioutreg.metrics.multiobjective_regret</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/model_selection/index.html">multioutreg.model_selection</a><input aria-label="Toggle navigation of multioutreg.model_selection" class="toctree-checkbox" id="toctree-checkbox-8" name="toctree-checkbox-8" role="switch" type="checkbox"/><label for="toctree-checkbox-8"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/auto_detect/index.html">multioutreg.model_selection.auto_detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/evaluation/index.html">multioutreg.model_selection.evaluation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/model_wrappers/index.html">multioutreg.model_selection.model_wrappers</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/model_selection/screening/index.html">multioutreg.model_selection.screening</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/performance/index.html">multioutreg.performance</a><input aria-label="Toggle navigation of multioutreg.performance" class="toctree-checkbox" id="toctree-checkbox-9" name="toctree-checkbox-9" role="switch" type="checkbox"/><label for="toctree-checkbox-9"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/performance/metrics/index.html">multioutreg.performance.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/performance/metrics_generalized_api/index.html">multioutreg.performance.metrics_generalized_api</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="../autoapi/multioutreg/persistence/index.html">multioutreg.persistence</a></li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/report/index.html">multioutreg.report</a><input aria-label="Toggle navigation of multioutreg.report" class="toctree-checkbox" id="toctree-checkbox-10" name="toctree-checkbox-10" role="switch" type="checkbox"/><label for="toctree-checkbox-10"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/auto_detect_report/index.html">multioutreg.report.auto_detect_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/build/index.html">multioutreg.report.build</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/data/index.html">multioutreg.report.data</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report/index.html">multioutreg.report.generate_report</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report1/index.html">multioutreg.report.generate_report1</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/generate_report1_safe/index.html">multioutreg.report.generate_report1_safe</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/render/index.html">multioutreg.report.render</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/template/index.html">multioutreg.report.template</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/report/verdict/index.html">multioutreg.report.verdict</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/sampling/index.html">multioutreg.sampling</a><input aria-label="Toggle navigation of multioutreg.sampling" class="toctree-checkbox" id="toctree-checkbox-11" name="toctree-checkbox-11" role="switch" type="checkbox"/><label for="toctree-checkbox-11"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/detect/index.html">multioutreg.sampling.detect</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/extrapolation/index.html">multioutreg.sampling.extrapolation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/infer_sampling/index.html">multioutreg.sampling.infer_sampling</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/sampling/pca_sampling_detector/index.html">multioutreg.sampling.pca_sampling_detector</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/surrogates/index.html">multioutreg.surrogates</a><input aria-label="Toggle navigation of multioutreg.surrogates" class="toctree-checkbox" id="toctree-checkbox-12" name="toctree-checkbox-12" role="switch" type="checkbox"/><label for="toctree-checkbox-12"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/ard_gp_sklearn/index.html">multioutreg.surrogates.ard_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/base_sklearn/index.html">multioutreg.surrogates.base_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bayesian_ridge_sklearn/index.html">multioutreg.surrogates.bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bnn_network/index.html">multioutreg.surrogates.bnn_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/bnn_pytorch/index.html">multioutreg.surrogates.bnn_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/catboost_sklearn/index.html">multioutreg.surrogates.catboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/conformal_mixin/index.html">multioutreg.surrogates.conformal_mixin</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/conformal_network_sklearn/index.html">multioutreg.surrogates.conformal_network_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/decision_tree_sklearn/index.html">multioutreg.surrogates.decision_tree_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/deep_ensemble_pytorch/index.html">multioutreg.surrogates.deep_ensemble_pytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/elastic_net_sklearn/index.html">multioutreg.surrogates.elastic_net_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/extra_trees_sklearn/index.html">multioutreg.surrogates.extra_trees_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/forest_uncertainty/index.html">multioutreg.surrogates.forest_uncertainty</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gating_network/index.html">multioutreg.surrogates.gating_network</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gaussian_copula/index.html">multioutreg.surrogates.gaussian_copula</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gp_sklearn/index.html">multioutreg.surrogates.gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gpx_smt/index.html">multioutreg.surrogates.gpx_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/gradient_boosting_sklearn/index.html">multioutreg.surrogates.gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/hist_gradient_boosting_sklearn/index.html">multioutreg.surrogates.hist_gradient_boosting_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/knn_sklearn/index.html">multioutreg.surrogates.knn_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/kpls_smt/index.html">multioutreg.surrogates.kpls_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/lightgbm_sklearn/index.html">multioutreg.surrogates.lightgbm_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/linear_sklearn/index.html">multioutreg.surrogates.linear_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/mfk_smt/index.html">multioutreg.surrogates.mfk_smt</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/moe_surrogate/index.html">multioutreg.surrogates.moe_surrogate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/multi_fidelity/index.html">multioutreg.surrogates.multi_fidelity</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/multitask_gp_gpytorch/index.html">multioutreg.surrogates.multitask_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/ngboost_sklearn/index.html">multioutreg.surrogates.ngboost_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/nystroem_gp_sklearn/index.html">multioutreg.surrogates.nystroem_gp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/pca_output/index.html">multioutreg.surrogates.pca_output</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/polynomial_bayesian_ridge_sklearn/index.html">multioutreg.surrogates.polynomial_bayesian_ridge_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/quantile_sklearn/index.html">multioutreg.surrogates.quantile_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/rf_sklearn/index.html">multioutreg.surrogates.rf_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/rfgp_sklearn/index.html">multioutreg.surrogates.rfgp_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/sparse_gp_gpytorch/index.html">multioutreg.surrogates.sparse_gp_gpytorch</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/stacked_vfm/index.html">multioutreg.surrogates.stacked_vfm</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/std_recalibration/index.html">multioutreg.surrogates.std_recalibration</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/svr_sklearn/index.html">multioutreg.surrogates.svr_sklearn</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/surrogates/xgboost_sklearn/index.html">multioutreg.surrogates.xgboost_sklearn</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/index.html">multioutreg.time_series</a><input aria-label="Toggle navigation of multioutreg.time_series" class="toctree-checkbox" id="toctree-checkbox-13" name="toctree-checkbox-13" role="switch" type="checkbox"/><label for="toctree-checkbox-13"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/chronos_adapter/index.html">multioutreg.time_series.chronos_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/cv/index.html">multioutreg.time_series.cv</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/figures/index.html">multioutreg.time_series.figures</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/financial/index.html">multioutreg.time_series.financial</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/lag_features/index.html">multioutreg.time_series.lag_features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/lag_forecaster/index.html">multioutreg.time_series.lag_forecaster</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/metrics/index.html">multioutreg.time_series.metrics</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/neuralforecast_adapter/index.html">multioutreg.time_series.neuralforecast_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/prophet_adapter/index.html">multioutreg.time_series.prophet_adapter</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/returns/index.html">multioutreg.time_series.returns</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/seasonality/index.html">multioutreg.time_series.seasonality</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/surrogate_forecaster/index.html">multioutreg.time_series.surrogate_forecaster</a></li>
+<li class="toctree-l4 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/index.html">multioutreg.time_series.ts_dynamic_fit</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit" class="toctree-checkbox" id="toctree-checkbox-14" name="toctree-checkbox-14" role="switch" type="checkbox"/><label for="toctree-checkbox-14"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/index.html">multioutreg.time_series.ts_dynamic_fit.algs</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.algs" class="toctree-checkbox" id="toctree-checkbox-15" name="toctree-checkbox-15" role="switch" type="checkbox"/><label for="toctree-checkbox-15"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/arima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.arima</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/lstm/index.html">multioutreg.time_series.ts_dynamic_fit.algs.lstm</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/algs/sarima/index.html">multioutreg.time_series.ts_dynamic_fit.algs.sarima</a></li>
+</ul>
+</li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.data_handling" class="toctree-checkbox" id="toctree-checkbox-16" name="toctree-checkbox-16" role="switch" type="checkbox"/><label for="toctree-checkbox-16"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/Analyzer/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.Analyzer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/DataProcessor/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.DataProcessor</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/PullData/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.PullData</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/data_handling/ingest/index.html">multioutreg.time_series.ts_dynamic_fit.data_handling.ingest</a></li>
+</ul>
+</li>
+<li class="toctree-l5"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/main/index.html">multioutreg.time_series.ts_dynamic_fit.main</a></li>
+<li class="toctree-l5 has-children"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/index.html">multioutreg.time_series.ts_dynamic_fit.src</a><input aria-label="Toggle navigation of multioutreg.time_series.ts_dynamic_fit.src" class="toctree-checkbox" id="toctree-checkbox-17" name="toctree-checkbox-17" role="switch" type="checkbox"/><label for="toctree-checkbox-17"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/ForecastAutoIntervals/index.html">multioutreg.time_series.ts_dynamic_fit.src.ForecastAutoIntervals</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/TSDataLoader/index.html">multioutreg.time_series.ts_dynamic_fit.src.TSDataLoader</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/evaluate/index.html">multioutreg.time_series.ts_dynamic_fit.src.evaluate</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/forecasters/index.html">multioutreg.time_series.ts_dynamic_fit.src.forecasters</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/infer/index.html">multioutreg.time_series.ts_dynamic_fit.src.infer</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/ranker/index.html">multioutreg.time_series.ts_dynamic_fit.src.ranker</a></li>
+<li class="toctree-l6"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_dynamic_fit/src/visualize/index.html">multioutreg.time_series.ts_dynamic_fit.src.visualize</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/ts_suitability/index.html">multioutreg.time_series.ts_suitability</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/time_series/uncertainty/index.html">multioutreg.time_series.uncertainty</a></li>
+</ul>
+</li>
+<li class="toctree-l3 has-children"><a class="reference internal" href="../autoapi/multioutreg/utils/index.html">multioutreg.utils</a><input aria-label="Toggle navigation of multioutreg.utils" class="toctree-checkbox" id="toctree-checkbox-18" name="toctree-checkbox-18" role="switch" type="checkbox"/><label for="toctree-checkbox-18"><span class="icon"><svg><use href="#svg-arrow-right"></use></svg></span></label><ul>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/aux_funcs/index.html">multioutreg.utils.aux_funcs</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/figure_utils/index.html">multioutreg.utils.figure_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/imputation/index.html">multioutreg.utils.imputation</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/metric_utils/index.html">multioutreg.utils.metric_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/pca_utils/index.html">multioutreg.utils.pca_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/surrogate_utils/index.html">multioutreg.utils.surrogate_utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="../autoapi/multioutreg/utils/thread_limits/index.html">multioutreg.utils.thread_limits</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../cli.html">CLI Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../integrated_surrogates.html">Integrated Surrogate Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../surrogate_hyperparameters.html">Surrogate Hyperparameters</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../multiobjective_metrics.html">Multi-Objective Metrics</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../references.html">References</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Development</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../surrogate_roadmap.html">Expanding the Surrogate Offerings</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui_ux_roadmap.html">Improving the GUI</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../docs_roadmap.html">Improving the Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../report_redesign/implementation_plan.html">Plan: ship the redesigned report as a downloadable file</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../active_learning.html">Active Learning Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../parallel_computing.html">Parallelization and Distributed Computing Plan</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../pair_plot_report.html">Pair Plots in Reports</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../AUDIT_CHECKLIST.html">Statistical / Logic Audit Checklist</a></li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="https://github.com/takotime808/multioutreg/blob/main/docs/tutorials/cost_savings.ipynb?plain=true" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div><div class="edit-this-page">
+  <a class="muted-link" href="https://github.com/takotime808/multioutreg/edit/main/docs/tutorials/cost_savings.ipynb" rel="edit" title="Edit this page">
+    <svg><use href="#svg-pencil"></use></svg>
+    <span class="visually-hidden">Edit this page</span>
+  </a>
+</div><div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle" aria-label="Toggle Light / Dark / Auto color theme">
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <span class="icon"><svg><use href="#svg-toc"></use></svg></span>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <div class="admonition note tutorial-meta">
+  <p class="admonition-title">About this tutorial</p>
+  <p>
+  <b>Needs:</b> core install &nbsp;·&nbsp; <b>Runs in:</b> about 10 minutes &nbsp;·&nbsp;
+  <a href="https://colab.research.google.com/github/takotime808/multioutreg/blob/main/docs/tutorials/cost_savings.ipynb">Open in Colab</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/takotime808/multioutreg/blob/main/docs/tutorials/cost_savings.ipynb">View on GitHub</a>
+  </p>
+</div><!-- # Copyright (c) 2026 takotime808 --><section id="Cost-Savings:-What-multioutreg-Saves-in-an-Existing-Workflow">
+<h1>Cost Savings: What <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> Saves in an Existing Workflow<a class="headerlink" href="#Cost-Savings:-What-multioutreg-Saves-in-an-Existing-Workflow" title="Link to this heading">¶</a></h1>
+<p>Most engineering and science teams already have a workflow for expensive models: a simulator (CFD, FEA, a process model) or a physical experiment, a design of experiments chosen up front (often a full-factorial grid or a hand-picked set of cases), and a fixed run budget. This notebook measures what changes when <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> is inserted into that workflow, in the currency the workflow pays: <strong>simulator runs</strong>, converted to <strong>money, wall-clock time and core-hours</strong> through a cost model you can
+edit.</p>
+<p>Every number below is <em>measured</em>, not assumed: each scenario runs the existing-workflow baseline and the <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> alternative on an analytic benchmark whose true answer is known, and counts how many runs each needs to reach the same accuracy. The benchmarks stand in for the expensive model; the analytic functions cost nothing to evaluate, so the comparison is exact. A summary of the results is on the <a class="reference internal" href="../cost_savings.html"><span class="doc">Cost Savings and ROI</span></a> page.</p>
+<p><strong>Scenarios</strong></p>
+<ol class="arabic simple">
+<li><p>The cost model: turn runs into dollars, hours and core-hours</p></li>
+<li><p>Many-query analysis: Monte Carlo uncertainty propagation on a surrogate instead of the simulator</p></li>
+<li><p>Building a surrogate: grids, random, Sobol and active-learning designs, and when to stop</p></li>
+<li><p>Design optimization: Bayesian optimization against random search and grids</p></li>
+<li><p>Multi-fidelity: spending most of the budget on a cheap model</p></li>
+<li><p>Model-selection compute: statistical pre-screening before the model search</p></li>
+<li><p>The ledger: all savings in one table</p></li>
+<li><p>Plugging into your pipeline: the <code class="docutils literal notranslate"><span class="pre">ask</span></code> / <code class="docutils literal notranslate"><span class="pre">tell</span></code> loop for jobs that run outside Python</p></li>
+<li><p>When the savings disappear</p></li>
+</ol>
+<p>Medians over seeds are reported throughout; the number of seeds is kept small so the notebook runs in about ten minutes on a laptop.</p>
+<section id="Results-at-a-glance">
+<h2>Results at a glance<a class="headerlink" href="#Results-at-a-glance" title="Link to this heading">¶</a></h2>
+<p>Runs of the expensive model needed for the same result, with and without <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code>, priced with the default cost model of section 1 (2 h on 32 cores at $0.05 per core-hour, plus $5 per run, 8 jobs at a time: <strong>$8.20 and 64 core-hours per run</strong>). These are the numbers produced by the run saved in this notebook; section 7 recomputes them.</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Task</p></th>
+<th class="head"><p>Existing workflow</p></th>
+<th class="head"><p>Runs: existing → <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code></p></th>
+<th class="head"><p>Fewer runs</p></th>
+<th class="head"><p>Money saved</p></th>
+<th class="head"><p>Core-hours saved</p></th>
+<th class="head"><p>Wall-clock saved</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Monte Carlo uncertainty propagation (borehole, 8
+inputs)</p></td>
+<td><p>Direct Monte Carlo, 10,000 samples</p></td>
+<td><p>10,000 → 320</p></td>
+<td><p><strong>31×</strong></p></td>
+<td><p>$79,376</p></td>
+<td><p>619,520</p></td>
+<td><p>101 days</p></td>
+</tr>
+<tr class="row-odd"><td><p>Surrogate training design (Hartmann-3)</p></td>
+<td><p>Full-factorial grid</p></td>
+<td><p>125 → 50</p></td>
+<td><p><strong>2.5×</strong></p></td>
+<td><p>$615</p></td>
+<td><p>4,800</p></td>
+<td><p>18 h</p></td>
+</tr>
+<tr class="row-even"><td><p>Design optimization (Branin)</p></td>
+<td><p>Random search</p></td>
+<td><p>829 → 24</p></td>
+<td><p><strong>35×</strong></p></td>
+<td><p>$6,601</p></td>
+<td><p>51,520</p></td>
+<td><p>8.4 days</p></td>
+</tr>
+<tr class="row-odd"><td><p>Design optimization (Hartmann-3)</p></td>
+<td><p>Random search</p></td>
+<td><p>914 → 28</p></td>
+<td><p><strong>33×</strong></p></td>
+<td><p>$7,265</p></td>
+<td><p>56,704</p></td>
+<td><p>9.3 days</p></td>
+</tr>
+<tr class="row-even"><td><p>Multi-fidelity surrogate (Currin)</p></td>
+<td><p>Active learning on the expensive model only</p></td>
+<td><p>36 → 10</p></td>
+<td><p><strong>3.6×</strong></p></td>
+<td><p>$213</p></td>
+<td><p>1,664</p></td>
+<td><p>6 h</p></td>
+</tr>
+<tr class="row-odd"><td><p>Multi-fidelity surrogate (Park)</p></td>
+<td><p>Active learning on the expensive model only</p></td>
+<td><p>51 → 33</p></td>
+<td><p><strong>1.5×</strong></p></td>
+<td><p>$148</p></td>
+<td><p>1,152</p></td>
+<td><p>4 h</p></td>
+</tr>
+<tr class="row-even"><td><p><strong>Total</strong></p></td>
+<td></td>
+<td><p><strong>11,955 → 465</strong></p></td>
+<td><p><strong>26×</strong></p></td>
+<td><p><strong>$94,218</strong></p></td>
+<td><p><strong>735,360</strong></p></td>
+<td><p><strong>120 days</strong></p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><code class="docutils literal notranslate"><span class="pre">multioutreg</span></code>’s own compute (surrogate fits, candidate scoring) is already subtracted; it took 5 to 41 seconds per scenario. Run counts are medians over 3 seeds. For multi-fidelity, runs are counted in expensive-model-equivalent cost units (one expensive run costs 10 cheap ones).</p>
+<p><strong>The same savings for a cheaper or a costlier simulator</strong> (section 7, re-priced without re-running anything):</p>
+<div class="table-wrapper docutils container">
+<table class="docutils align-default">
+<thead>
+<tr class="row-odd"><th class="head"><p>Simulator</p></th>
+<th class="head"><p>Cost per run</p></th>
+<th class="head"><p>Money saved</p></th>
+<th class="head"><p>Core-hours saved</p></th>
+<th class="head"><p>Wall-clock saved</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Cheap: 10 min on 4 cores, no fixed cost, 32 at a time</p></td>
+<td><p>$0.03</p></td>
+<td><p>$383</p></td>
+<td><p>7,660</p></td>
+<td><p>2.5 days</p></td>
+</tr>
+<tr class="row-odd"><td><p>Default: 2 h on 32 cores, $5 fixed, 8 at a time</p></td>
+<td><p>$8.20</p></td>
+<td><p>$94,218</p></td>
+<td><p>735,360</p></td>
+<td><p>120 days</p></td>
+</tr>
+<tr class="row-even"><td><p>Expensive: 24 h on 128 cores, $50 fixed, 4 at a time</p></td>
+<td><p>$203.60</p></td>
+<td><p>$2,339,364</p></td>
+<td><p>35,297,280</p></td>
+<td><p>7.9 years</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<p><strong>Analyst compute.</strong> Statistical pre-screening before the model search (section 6) cut the search from 61.3 s to 4.0 s on linear outputs (15× faster) and from 65.5 s to 25.1 s on mixed outputs (2.6×), with the same held-out R². It is not in the tables above because it saves compute rather than simulator runs.</p>
+<p><strong>Where the savings are smaller:</strong> a cheap simulator (minutes per run), a low-dimensional problem where a grid is already competitive, or a cheap model that correlates poorly with the expensive one. Section 9 lists these cases.</p>
+<div class="nbinput nblast docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[1]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>import time
+import warnings
+
+warnings.filterwarnings("ignore")  # GP optimizer convergence chatter and dependency deprecations
+
+from dataclasses import dataclass
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.gaussian_process.kernels import ConstantKernel, Matern, WhiteKernel
+from sklearn.model_selection import KFold
+
+from multioutreg.active import (
+    ActiveLearner,
+    MultiFidelityActiveLearner,
+    get_benchmark,
+    heldout_metrics,
+)
+from multioutreg.surrogates import AdditiveCorrectionVFM, GaussianProcessSurrogate
+
+# Colors by role: multioutreg (blue), multi-fidelity (violet), random (orange),
+# Sobol (aqua) and the existing-workflow grid / brute-force baseline (gray).
+BLUE, ORANGE, AQUA, VIOLET = "#2a78d6", "#eb6834", "#1baf7a", "#6250d6"
+INK, MUTED, GRID = "#0b0b0b", "#52514e", "#e4e3df"
+plt.rcParams.update({
+    "figure.dpi": 110, "axes.edgecolor": MUTED, "axes.labelcolor": INK, "axes.titlesize": 11,
+    "axes.titleweight": "bold", "axes.spines.top": False, "axes.spines.right": False,
+    "axes.grid": True, "grid.color": GRID, "grid.linewidth": 0.8, "xtick.color": MUTED,
+    "ytick.color": MUTED, "lines.linewidth": 2, "legend.frameon": False, "font.size": 9,
+    "axes.labelsize": 9, "xtick.labelsize": 8, "ytick.labelsize": 8, "legend.fontsize": 7,
+    "figure.titlesize": 11, "axes.axisbelow": True,
+})
+SEEDS = range(3)
+
+
+def gp():
+    # Matern-5/2 GP with a length-scale floor and a few optimizer restarts (same as the
+    # active-learning tutorial).
+    kernel = (ConstantKernel(1.0) * Matern(1.0, length_scale_bounds=(0.1, 100.0), nu=2.5)
+              + WhiteKernel(1e-6, (1e-10, 1e-2)))
+    return GaussianProcessSurrogate(kernel=kernel, n_restarts_optimizer=2, random_state=0)
+
+
+def band(ax, x, runs, color, label, **kw):
+    # Median line plus min-max band over seeds; runs has shape (n_seeds, len(x)).
+    runs = np.asarray(runs, dtype=float)
+    ax.fill_between(x, np.nanmin(runs, 0), np.nanmax(runs, 0), color=color, alpha=0.15, lw=0)
+    ax.plot(x, np.nanmedian(runs, 0), color=color, label=label, **kw)
+
+
+def first_reaching(x, y, target):
+    # Smallest x whose y is at or below target, or None.
+    x, y = np.asarray(x), np.asarray(y)
+    hit = np.flatnonzero(y &lt;= target)
+    return None if hit.size == 0 else x[hit[0]]
+
+
+def grid_design(bench, k):
+    # Full-factorial grid with k levels per input: the classic "existing workflow" DOE.
+    d = bench.n_features
+    g = np.linspace(0, 1, k)
+    U = np.stack(np.meshgrid(*[g] * d, indexing="ij"), -1).reshape(-1, d)
+    return bench.bounds[:, 0] + U * (bench.bounds[:, 1] - bench.bounds[:, 0])
+</pre></div>
+</div>
+</div>
+<p>## 1. The cost model</p>
+<p>Savings are counted in runs of the expensive model. <code class="docutils literal notranslate"><span class="pre">SimulationCost</span></code> turns runs into the three things a budget is written in:</p>
+<ul class="simple">
+<li><p><strong>money</strong>: core-hours times a price per core-hour (cloud or internal chargeback), plus any fixed cost per run (licenses, lab consumables, analyst set-up time);</p></li>
+<li><p><strong>wall-clock time</strong>: runs are executed in batches of <code class="docutils literal notranslate"><span class="pre">parallel_jobs</span></code>, so <code class="docutils literal notranslate"><span class="pre">n</span></code> runs take <code class="docutils literal notranslate"><span class="pre">ceil(n</span> <span class="pre">/</span> <span class="pre">parallel_jobs)</span></code> rounds of <code class="docutils literal notranslate"><span class="pre">hours_per_run</span></code>;</p></li>
+<li><p><strong>compute</strong>: core-hours.</p></li>
+</ul>
+<p><strong>Edit the cell below with your own numbers.</strong> The defaults describe a mid-size CFD or FEA job: 2 hours on 32 cores at $0.05 per core-hour, plus $5 of license and set-up cost per run, with 8 jobs running at once. That is about $8 and 64 core-hours per run. Every table in the notebook is recomputed from this one object.</p>
+<p><code class="docutils literal notranslate"><span class="pre">multioutreg</span></code>’s own compute (fitting surrogates, scoring candidates) is measured on this machine and charged too, at one core.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[2]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>@dataclass
+class SimulationCost:
+    hours_per_run: float = 2.0         # wall-clock hours for one run
+    cores_per_run: int = 32            # cores one run occupies
+    usd_per_core_hour: float = 0.05    # compute price
+    usd_fixed_per_run: float = 5.0     # licenses, consumables, set-up time per run
+    parallel_jobs: int = 8             # runs that can execute at the same time
+
+    def core_hours(self, n_runs):
+        return n_runs * self.hours_per_run * self.cores_per_run
+
+    def usd(self, n_runs):
+        return self.core_hours(n_runs) * self.usd_per_core_hour + n_runs * self.usd_fixed_per_run
+
+    def wall_hours(self, n_runs):
+        return np.ceil(n_runs / self.parallel_jobs) * self.hours_per_run
+
+
+COST = SimulationCost()
+print(f"one run: ${COST.usd(1):,.2f}, {COST.core_hours(1):,.0f} core-hours, {COST.hours_per_run} h wall-clock")
+
+LEDGER = []  # one row per scenario, filled in as the notebook runs
+
+
+def record(scenario, baseline, n_baseline, n_mor, overhead_s, note=""):
+    # Add a scenario to the ledger. overhead_s: measured multioutreg compute, in seconds.
+    LEDGER.append(dict(scenario=scenario, baseline=baseline, runs_baseline=n_baseline,
+                       runs_multioutreg=n_mor, overhead_s=overhead_s, note=note))
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+one run: $8.20, 64 core-hours, 2.0 h wall-clock
+</pre></div></div>
+</div>
+<p>## 2. Many-query analysis: Monte Carlo on a surrogate</p>
+<p><strong>Existing workflow.</strong> To propagate input uncertainty (manufacturing tolerances, uncertain material properties, operating conditions), sample the inputs and run the simulator on every sample. A 10,000-sample Monte Carlo study is a common minimum for a 99th-percentile estimate.</p>
+<p><strong>With ``multioutreg``.</strong> Run the simulator on a small space-filling design, fit a surrogate, and run the 10,000 (or 100,000) samples through the surrogate, which takes well under a second.</p>
+<p>The test case is the 8-input <strong>borehole</strong> model (water flow through a borehole, a standard engineering benchmark). The reference answer comes from 1,000,000 evaluations of the true function. The question is: how many simulator runs does the surrogate need to be <em>as accurate as the 10,000-run Monte Carlo study it replaces</em>? A 10,000-sample estimate is itself noisy; its error is measured by repeating it on 20 independent samples.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[3]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>b = get_benchmark("borehole")
+Y_ref = b(b.sample(1_000_000, method="random", seed=0)).ravel()
+STATS = {
+    "mean": np.mean,
+    "std": np.std,
+    "P99": lambda y: np.quantile(y, 0.99),
+}
+truth = {k: f(Y_ref) for k, f in STATS.items()}
+
+
+def rel_err(y):
+    return {k: abs(f(y) - truth[k]) / abs(truth[k]) for k, f in STATS.items()}
+
+
+# Error of the existing workflow: 10,000 direct simulator runs, repeated on 20 samples.
+N_MC = 10_000
+mc_err = pd.DataFrame([rel_err(b(b.sample(N_MC, method="random", seed=100 + r)).ravel())
+                       for r in range(20)])
+
+# multioutreg: n simulator runs (Sobol), a GP, and 100,000 surrogate evaluations.
+X_mc = b.sample(100_000, method="random", seed=7)
+sizes = [20, 40, 80, 120, 160, 240, 320]
+rows = []
+for n in sizes:
+    for s in SEEDS:
+        X = b.sample(n, seed=s)
+        t0 = time.perf_counter()
+        model = gp().fit(X, b(X))
+        y_hat = model.predict(X_mc).ravel()
+        rows.append(dict(n=n, seed=s, seconds=time.perf_counter() - t0, **rel_err(y_hat)))
+sur_err = pd.DataFrame(rows)
+
+summary = sur_err.groupby("n")[list(STATS)].median().map(lambda v: f"{100 * v:.2f}%")
+summary.loc[f"direct MC, {N_MC:,} runs"] = mc_err.median().map(lambda v: f"{100 * v:.2f}%")
+print("median relative error of each statistic")
+print(summary.to_string())
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+median relative error of each statistic
+                         mean     std     P99
+n
+20                      4.22%  10.25%  20.54%
+40                      0.36%   0.98%   7.34%
+80                      0.06%   0.68%   2.55%
+120                     0.02%   0.20%   1.53%
+160                     0.04%   0.14%   1.01%
+240                     0.02%   0.20%   0.62%
+320                     0.03%   0.25%   0.34%
+direct MC, 10,000 runs  0.51%   0.68%   0.48%
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[4]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = plt.subplots(1, 3, figsize=(12, 3.2), sharex=True)
+for ax, stat in zip(axes, STATS):
+    runs = sur_err.pivot(index="seed", columns="n", values=stat).to_numpy() * 100
+    band(ax, sizes, runs, BLUE, "surrogate + 100k samples", marker="o", ms=4)
+    q = np.quantile(mc_err[stat] * 100, [0.1, 0.5, 0.9])
+    ax.axhspan(q[0], q[2], color=MUTED, alpha=0.12, lw=0)
+    ax.axhline(q[1], color=MUTED, ls="--", lw=1.5, label=f"direct MC, {N_MC:,} runs (median, 10–90%)")
+    ax.set(yscale="log", title=f"{stat} of flow rate", xlabel="simulator runs (surrogate training)")
+axes[0].set_ylabel("relative error (%)")
+axes[0].legend(loc="upper right")
+fig.tight_layout()
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_cost_savings_7_0.png" src="../_images/tutorials_cost_savings_7_0.png" />
+</div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[5]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span># Smallest design whose median error beats direct MC on every statistic.
+med = sur_err.groupby("n")[list(STATS)].median()
+ok = (med &lt;= mc_err.median()).all(axis=1)
+n_needed = int(ok[ok].index.min()) if ok.any() else None
+overhead = sur_err.query("n == @n_needed")["seconds"].median() if n_needed else np.nan
+print(f"surrogate matches a {N_MC:,}-run Monte Carlo study with {n_needed} runs "
+      f"({N_MC / n_needed:.0f}x fewer); fit + 100k predictions took {overhead:.1f} s")
+record("Monte Carlo UQ (borehole, 8 inputs)", f"direct MC, {N_MC:,} samples", N_MC, n_needed, overhead,
+       "same or lower error on mean, std and P99")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+surrogate matches a 10,000-run Monte Carlo study with 320 runs (31x fewer); fit + 100k predictions took 4.5 s
+</pre></div></div>
+</div>
+<p><strong>Reading the result.</strong> The surrogate’s error falls quickly with training size. The direct study’s error does not move, because it is set by its 10,000 samples. For the mean and the standard deviation, about 80 runs already beat the brute-force study. The 99th percentile is the hardest statistic, because it depends on how well the surrogate captures the tail of the response, and it sets the run count recorded in the ledger. If only means and spreads are needed, the saving is several times
+larger. The same fitted surrogate can then be reused for sensitivity analysis, what-if sweeps and dashboards at no further simulator cost.</p>
+<p>## 3. Building a surrogate: which design, and when to stop</p>
+<p><strong>Existing workflow.</strong> Fix a design up front, usually a full-factorial grid (<code class="docutils literal notranslate"><span class="pre">k</span></code> levels per input, <code class="docutils literal notranslate"><span class="pre">k^d</span></code> runs) or a random set, run all of it, then fit.</p>
+<p><strong>With ``multioutreg``.</strong> Either use a space-filling Sobol design, or run <code class="docutils literal notranslate"><span class="pre">ActiveLearner</span></code>, which adds one run at a time where the surrogate is least certain and can stop as soon as the surrogate is good enough.</p>
+<p>The metric is held-out NRMSE (RMSE over the test targets’ standard deviation, averaged over outputs) on 1,000 points. The question is how many runs each design needs to reach a target NRMSE.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[6]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>AL_PROBLEMS = {"branin_currin": (60, 0.05), "hartmann3": (80, 0.30)}  # budget, target NRMSE
+al_results, al_overhead = {}, {}
+for name, (budget, target) in AL_PROBLEMS.items():
+    b = get_benchmark(name)
+    Xt = b.sample(1000, method="random", seed=123)
+    Yt = b(Xt)
+    n_init = 2 * b.n_features + 2
+    n = np.arange(n_init, budget + 1)
+    curves = {}
+    for acq in ("max_variance", "random"):
+        runs = []
+        for s in SEEDS:
+            al = ActiveLearner(gp, b.bounds, acquisition=acq, n_candidates=512, random_state=s)
+            t0 = time.perf_counter()
+            hist = al.run(b, n_init=n_init, n_iter=budget - n_init, X_test=Xt, Y_test=Yt)
+            if acq == "max_variance":
+                al_overhead.setdefault(name, []).append(time.perf_counter() - t0)
+            runs.append([h["nrmse"] for h in hist])
+        curves[acq] = (n, np.array(runs))
+    passive_n = np.arange(10, budget + 1, 5)
+    curves["sobol"] = (passive_n, np.array([
+        [heldout_metrics(gp().fit(X := b.sample(k, seed=s), b(X)), Xt, Yt)["nrmse"] for k in passive_n]
+        for s in SEEDS]))
+    ks = [k for k in range(3, 20) if k ** b.n_features &lt;= 2.2 * budget]
+    curves["grid"] = (np.array([k ** b.n_features for k in ks]), np.array([[
+        heldout_metrics(gp().fit(X := grid_design(b, k), b(X)), Xt, Yt)["nrmse"] for k in ks]]))
+    al_results[name] = curves
+
+rows = []
+for name, curves in al_results.items():
+    target = AL_PROBLEMS[name][1]
+    row = {"problem": name, "target NRMSE": target}
+    for key, label in [("grid", "full-factorial grid"), ("random", "random"),
+                       ("sobol", "Sobol"), ("max_variance", "active learning")]:
+        x, runs = curves[key]
+        hit = first_reaching(x, np.median(runs, 0), target)
+        row[label] = "not reached" if hit is None else int(hit)
+    rows.append(row)
+runs_to_target = pd.DataFrame(rows).set_index("problem")
+print("simulator runs needed to reach the target (median over seeds)")
+print(runs_to_target.to_string())
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+simulator runs needed to reach the target (median over seeds)
+               target NRMSE  full-factorial grid  random  Sobol  active learning
+problem
+branin_currin          0.05                   49      51     50               45
+hartmann3              0.30                  125      68     50               57
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[7]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = plt.subplots(1, 2, figsize=(10, 3.4))
+for ax, (name, curves) in zip(axes, al_results.items()):
+    x, r = curves["grid"]
+    ax.plot(x, r[0], color=MUTED, ls="--", marker="s", ms=5, label="full-factorial grid")
+    band(ax, *curves["random"], ORANGE, "random")
+    band(ax, *curves["sobol"], AQUA, "Sobol (one-shot)")
+    band(ax, *curves["max_variance"], BLUE, "active learning (max variance)")
+    ax.axhline(AL_PROBLEMS[name][1], color=INK, lw=1, ls=":")
+    ax.set(yscale="log", title=f"{name}: target NRMSE {AL_PROBLEMS[name][1]}", xlabel="simulator runs")
+axes[0].set_ylabel("held-out NRMSE")
+axes[0].legend(loc="upper right")
+fig.tight_layout()
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_cost_savings_12_0.png" src="../_images/tutorials_cost_savings_12_0.png" />
+</div>
+</div>
+<p><strong>Reading the result.</strong> The large and reliable saving is <strong>leaving the grid</strong>. A full-factorial grid spends its runs on repeated values of each input, and its size jumps in steps of <code class="docutils literal notranslate"><span class="pre">k^d</span></code>. In three inputs the next grid after 64 runs has 125. Sobol and active designs reach the same error with far fewer runs, and the gap widens with every added input.</p>
+<p>Active learning against a good Sobol design is a closer race. On smooth, stationary problems like these, max-variance sampling with a GP is itself a space-filling design, so it does about as well as Sobol, ahead on Branin–Currin and behind on Hartmann-3 (see the <a class="reference internal" href="active_learning_benchmarks.html"><span class="doc">active-learning tutorial</span></a> for more problems). What the sequential loop adds is the option to <strong>stop early</strong>, which a one-shot design does not have. Stopping needs an estimate of the surrogate’s error
+<em>without</em> a hold-out set, since a hold-out set costs simulator runs too. Two estimates are free:</p>
+<ul class="simple">
+<li><p>the GP’s own predictive standard deviation averaged over the domain, standardized like NRMSE;</p></li>
+<li><p>5-fold cross-validation on the runs collected so far (compute only, no new runs).</p></li>
+</ul>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[8]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def gp_self_estimate(model, X_pool, Y_train):
+    _, sd = model.predict(X_pool, return_std=True)
+    return float(np.mean(np.sqrt((sd ** 2).mean(0)) / Y_train.std(0)))
+
+
+def cv_nrmse(X, Y):
+    P = np.zeros_like(Y)
+    for tr, te in KFold(5, shuffle=True, random_state=0).split(X):
+        P[te] = gp().fit(X[tr], Y[tr]).predict(X[te])
+    return float(np.mean(np.sqrt(((P - Y) ** 2).mean(0)) / Y.std(0)))
+
+
+b = get_benchmark("borehole")
+Xt = b.sample(1000, method="random", seed=123)
+Yt = b(Xt)
+X_pool = b.sample(2048, seed=99)
+al = ActiveLearner(gp, b.bounds, n_candidates=512, random_state=0)
+hist = al.run(b, n_init=18, n_iter=62, X_test=Xt, Y_test=Yt)
+check = []
+for h in hist[::4]:
+    k = h["n_evals"]
+    model = gp().fit(al.X_[:k], al.Y_[:k])
+    check.append(dict(runs=k, true=h["nrmse"], gp_estimate=gp_self_estimate(model, X_pool, al.Y_[:k]),
+                      cv_estimate=cv_nrmse(al.X_[:k], al.Y_[:k])))
+check = pd.DataFrame(check)
+
+fig, ax = plt.subplots(figsize=(6, 3.2))
+ax.plot(check.runs, check.true, color=INK, label="true held-out NRMSE")
+ax.plot(check.runs, check.cv_estimate, color=BLUE, marker="o", ms=4, label="5-fold CV estimate (no extra runs)")
+ax.plot(check.runs, check.gp_estimate, color=ORANGE, marker="o", ms=4, ls="--", label="GP self-estimate")
+ax.set(yscale="log", xlabel="simulator runs", ylabel="NRMSE", title="borehole: estimating error without a hold-out set")
+ax.legend()
+fig.tight_layout()
+plt.show()
+print(check.round(3).to_string(index=False))
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_cost_savings_14_0.png" src="../_images/tutorials_cost_savings_14_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+ runs  true  gp_estimate  cv_estimate
+   18 0.319        0.222        0.318
+   22 0.244        0.158        0.265
+   26 0.211        0.145        0.278
+   30 0.196        0.131        0.247
+   34 0.192        0.120        0.253
+   38 0.161        0.116        0.252
+   42 0.149        0.104        0.254
+   46 0.144        0.085        0.197
+   50 0.133        0.075        0.174
+   54 0.098        0.073        0.179
+   58 0.088        0.067        0.152
+   62 0.080        0.063        0.145
+   66 0.073        0.055        0.134
+   70 0.065        0.049        0.155
+   74 0.056        0.045        0.104
+   78 0.054        0.040        0.091
+</pre></div></div>
+</div>
+<p><strong>Use cross-validation as the stopping rule.</strong> The GP’s self-estimate is optimistic: the model is more confident than it should be, so stopping on it would stop too early. CV on the actively chosen points is pessimistic, because those points sit where the function is hardest, so when “CV NRMSE ≤ target” fires, the true error is at or below the target. That makes it a safe rule: it never stops too early, at the price of a few extra runs.</p>
+<p>For the ledger, this scenario is the move from a full-factorial grid to a sequential design at equal accuracy, on the 3-input Hartmann problem (the 2-input problem’s grid happens to be competitive). For the overhead, the measured time of the full active-learning run (all GP refits) is charged.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[9]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>row = runs_to_target.loc["hartmann3"]
+n_grid = int(row["full-factorial grid"])
+best_seq = min(v for k, v in row.items() if k in ("Sobol", "active learning") and v != "not reached")
+print(f"hartmann3: grid {n_grid} runs vs {best_seq:.0f} runs for the best sequential/space-filling design")
+record("Surrogate training design (Hartmann-3)", f"full-factorial grid ({n_grid} runs)", n_grid, int(best_seq),
+       float(np.median(al_overhead["hartmann3"])), f"target NRMSE {AL_PROBLEMS['hartmann3'][1]}")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+hartmann3: grid 125 runs vs 50 runs for the best sequential/space-filling design
+</pre></div></div>
+</div>
+<p>## 4. Design optimization</p>
+<p><strong>Existing workflow.</strong> Find the inputs that minimize an output (drag, stress, cost) by sweeping a grid, or by random / hand-picked trial runs.</p>
+<p><strong>With ``multioutreg``.</strong> <code class="docutils literal notranslate"><span class="pre">ActiveLearner(acquisition=&quot;ei&quot;)</span></code> runs Bayesian optimization: each run goes where the expected improvement over the best value so far is largest.</p>
+<p>The metric is the number of runs until the best value found is within 0.05 of the known global minimum. Random search is simulated on 50 independent streams of up to 20,000 runs; the grid is the smallest <code class="docutils literal notranslate"><span class="pre">k^d</span></code> grid whose best point is within the tolerance.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[10]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>OPT = {"branin": 60, "hartmann3": 80}
+TOL = 0.05
+opt_rows, opt_overhead = [], {}
+for name, budget in OPT.items():
+    b = get_benchmark(name)
+    n_init = 2 * b.n_features + 2
+    ei_hits = []
+    for s in range(5):
+        al = ActiveLearner(gp, b.bounds, acquisition="ei", n_candidates=1024, random_state=s)
+        t0 = time.perf_counter()
+        hist = al.run(b, n_init=n_init, n_iter=budget - n_init)
+        opt_overhead.setdefault(name, []).append(time.perf_counter() - t0)
+        gap = np.array([h["best"] for h in hist]) - b.minimum
+        hit = first_reaching([h["n_evals"] for h in hist], gap, TOL)
+        ei_hits.append(np.inf if hit is None else hit)
+    rs_hits = []
+    for s in range(50):
+        gap = np.minimum.accumulate(b(b.sample(20_000, method="random", seed=1000 + s)).ravel()) - b.minimum
+        hit = first_reaching(np.arange(1, gap.size + 1), gap, TOL)
+        rs_hits.append(np.inf if hit is None else hit)
+    grid_hit = next((k ** b.n_features for k in range(3, 200)
+                     if b(grid_design(b, k)).min() - b.minimum &lt;= TOL), None)
+    opt_rows.append({"problem": name, "Bayesian optimization (EI)": np.median(ei_hits),
+                     "EI worst seed": np.max(ei_hits), "random search": np.median(rs_hits),
+                     "full-factorial grid": grid_hit})
+opt_table = pd.DataFrame(opt_rows).set_index("problem")
+print(f"simulator runs until within {TOL} of the global minimum (median over seeds)")
+print(opt_table.to_string())
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+simulator runs until within 0.05 of the global minimum (median over seeds)
+           Bayesian optimization (EI)  EI worst seed  random search  full-factorial grid
+problem
+branin                           24.0             30          828.5                  196
+hartmann3                        28.0             52          913.5                  512
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[11]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, ax = plt.subplots(figsize=(6.5, 3.2))
+labels = list(opt_table.index)
+cols = [("full-factorial grid", MUTED), ("random search", ORANGE), ("Bayesian optimization (EI)", BLUE)]
+w = 0.26
+for i, (col, color) in enumerate(cols):
+    vals = opt_table[col].astype(float).to_numpy()
+    xs = np.arange(len(labels)) + (i - 1) * w
+    ax.bar(xs, vals, w * 0.92, color=color, label=col)
+    for x, v in zip(xs, vals):
+        ax.text(x, v * 1.08, f"{v:,.0f}", ha="center", va="bottom", fontsize=7, color=INK)
+ax.set(yscale="log", xticks=range(len(labels)), xticklabels=labels, ylabel="simulator runs (log)",
+       title=f"Runs to get within {TOL} of the optimum")
+ax.set_ylim(top=ax.get_ylim()[1] * 3)
+ax.legend(loc="upper left")
+fig.tight_layout()
+plt.show()
+
+for name in OPT:
+    r = opt_table.loc[name]
+    record(f"Design optimization ({name})", "random search", float(r["random search"]),
+           float(r["Bayesian optimization (EI)"]), float(np.median(opt_overhead[name])),
+           f"within {TOL} of the global minimum")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_cost_savings_19_0.png" src="../_images/tutorials_cost_savings_19_0.png" />
+</div>
+</div>
+<p><strong>Reading the result.</strong> This is where the savings are largest. Random search and grids pay for every run whether or not it is near the optimum. Expected improvement concentrates runs near the optimum once the surrogate knows roughly where it is. The best point found is always a real, evaluated run, so no separate confirmation run is needed.</p>
+<p>## 5. Multi-fidelity: let a cheap model carry most of the load</p>
+<p><strong>Existing workflow.</strong> Many teams have a cheap model (coarse mesh, empirical correlation, reduced physics) next to the expensive one, but use the cheap model only for exploration by hand and train any surrogate on the expensive model alone.</p>
+<p><strong>With ``multioutreg``.</strong> <code class="docutils literal notranslate"><span class="pre">MultiFidelityActiveLearner</span></code> with the AR1 surrogate <code class="docutils literal notranslate"><span class="pre">AdditiveCorrectionVFM</span></code> picks both <em>where</em> to run and <em>which fidelity</em>, per unit cost.</p>
+<p>Costs: low fidelity 1, high fidelity 10 (so one cost unit is a tenth of a high-fidelity run). The baseline is the existing workflow’s best option, active learning on the high fidelity only. The metric is held-out NRMSE against the high fidelity.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[12]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def ar1():
+    return AdditiveCorrectionVFM(lo_surrogate_cls=gp, hi_surrogate_cls=gp, oof_cv=None)
+
+
+def at_costs(cost, err, grid):
+    # Error of the latest model fitted within each cost on the grid (step function).
+    cost, err = np.asarray(cost), np.asarray(err)
+    return np.array([err[cost &lt;= c][-1] if np.any(cost &lt;= c) else np.nan for c in grid])
+
+
+MF = {"currin": (250, 600, 0.10), "park": (400, 600, 0.01)}  # MF budget, hi-only budget, target
+mf_results, mf_overhead = {}, {}
+for name, (budget_mf, budget_hi, target) in MF.items():
+    b = get_benchmark(name)
+    Xt = b.sample(1000, method="random", seed=123)
+    Yt = b(Xt)
+    sims = {lvl: (lambda X, lvl=lvl: b(X, lvl)) for lvl in b.levels}
+    c_hi = b.costs["hi"]
+    n_hi0 = b.n_features + 2
+    grid = np.arange(10, budget_hi + 1, 10)
+    curves = {"mf": [], "hi": []}
+    for s in SEEDS:
+        mf = MultiFidelityActiveLearner(ar1, b.bounds, b.levels, b.costs, n_candidates=256, random_state=s)
+        t0 = time.perf_counter()
+        hist = mf.run(sims, budget=budget_mf, n_init={"lo": 3 * n_hi0, "hi": n_hi0}, X_test=Xt, Y_test=Yt)
+        mf_overhead.setdefault(name, []).append(time.perf_counter() - t0)
+        mf_curve = at_costs([h["cost"] for h in hist], [h["nrmse"] for h in hist], grid)
+        curves["mf"].append(np.where(grid &lt;= budget_mf, mf_curve, np.nan))  # nothing beyond its budget
+        al = ActiveLearner(gp, b.bounds, n_candidates=256, random_state=s)
+        hist = al.run(lambda X: b(X, "hi"), n_init=n_hi0, n_iter=int(budget_hi / c_hi) - n_hi0, X_test=Xt, Y_test=Yt)
+        curves["hi"].append(at_costs([h["n_evals"] * c_hi for h in hist], [h["nrmse"] for h in hist], grid))
+    mf_results[name] = (grid, {k: np.array(v) for k, v in curves.items()})
+
+rows = []
+for name, (grid, curves) in mf_results.items():
+    target = MF[name][2]
+    c_mf = first_reaching(grid, np.nanmedian(curves["mf"], 0), target)
+    c_hi = first_reaching(grid, np.nanmedian(curves["hi"], 0), target)
+    rows.append({"problem": name, "target NRMSE": target, "high-fidelity only": c_hi, "multi-fidelity": c_mf})
+mf_table = pd.DataFrame(rows).set_index("problem")
+print("cost (low = 1, high = 10) to reach the target, median over seeds")
+print(mf_table.to_string())
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+cost (low = 1, high = 10) to reach the target, median over seeds
+         target NRMSE  high-fidelity only  multi-fidelity
+problem
+currin           0.10                 360             100
+park             0.01                 510             330
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[13]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, axes = plt.subplots(1, 2, figsize=(10, 3.3))
+for ax, (name, (grid, curves)) in zip(axes, mf_results.items()):
+    band(ax, grid, curves["hi"], BLUE, "high-fidelity only, active")
+    band(ax, grid, curves["mf"], VIOLET, "multi-fidelity active (AR1)")
+    ax.axhline(MF[name][2], color=INK, lw=1, ls=":")
+    ax.set(yscale="log", title=f"{name}: target NRMSE {MF[name][2]}", xlabel="cumulative cost (high-fidelity run = 10)")
+axes[0].set_ylabel("NRMSE (high fidelity)")
+axes[0].legend()
+fig.tight_layout()
+plt.show()
+
+for name, r in mf_table.iterrows():
+    if pd.notna(r["high-fidelity only"]) and pd.notna(r["multi-fidelity"]):
+        # Express both in high-fidelity-run equivalents (cost / 10).
+        record(f"Multi-fidelity ({name})", "active learning on high fidelity only",
+               r["high-fidelity only"] / 10, r["multi-fidelity"] / 10,
+               float(np.median(mf_overhead[name])), "cost in high-fidelity-run equivalents")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_cost_savings_23_0.png" src="../_images/tutorials_cost_savings_23_0.png" />
+</div>
+</div>
+<p><strong>Reading the result.</strong> On Currin the cheap model is informative and the multi-fidelity learner reaches the target at a fraction of the high-fidelity-only cost. Its error then levels off near 0.06, though: the fused model is limited by how well the AR1 correction captures the gap between levels, and with enough budget the high-fidelity-only learner goes lower. Multi-fidelity buys a good-enough surrogate early. It does not replace high-fidelity data for very tight targets. On Park the gain is
+smaller (1.5x), and the multi-fidelity learner keeps improving. The saving depends on how well the cheap model correlates with the expensive one, and on the cost ratio. The learner checks that correlation on the high-fidelity data (<code class="docutils literal notranslate"><span class="pre">level_trust</span></code>), and keeps at least 25% of spending on the high fidelity, so a useless cheap model wastes little (see the <a class="reference internal" href="active_learning_benchmarks.html"><span class="doc">active-learning tutorial</span></a>, section 8).</p>
+<p>## 6. Model-selection compute: pre-screening</p>
+<p>The previous scenarios save simulator runs. This one saves the analyst’s compute. Picking a surrogate means a cross-validated grid search over many model families, repeated every time the data changes. <code class="docutils literal notranslate"><span class="pre">AutoDetectMultiOutputRegressor(pre_screen=True)</span></code> first runs cheap statistical tests (linearity, normality, heteroscedasticity, sample size), then skips families the data does not justify. For example, it drops tree ensembles and MLPs when a linear model is adequate, and it drops exact GPs above
+300 rows.</p>
+<p>Ten candidate families, 5-fold CV, three outputs; held-out R² on 1,000 test rows.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[14]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>from sklearn.ensemble import (ExtraTreesRegressor, GradientBoostingRegressor,
+                              HistGradientBoostingRegressor, RandomForestRegressor)
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.linear_model import LinearRegression
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.neural_network import MLPRegressor
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVR
+from sklearn.tree import DecisionTreeRegressor
+
+from multioutreg.model_selection import AutoDetectMultiOutputRegressor
+
+
+def candidates():
+    sc = lambda est: make_pipeline(StandardScaler(), est)
+    return [
+        (LinearRegression(), {}),
+        (DecisionTreeRegressor(random_state=0), {"max_depth": [4, 8, None]}),
+        (sc(KNeighborsRegressor()), {"kneighborsregressor__n_neighbors": [3, 5, 9]}),
+        (sc(SVR()), {"svr__C": [1.0, 10.0, 100.0], "svr__gamma": ["scale", 0.1]}),
+        (sc(GaussianProcessRegressor(normalize_y=True)), {}),
+        (RandomForestRegressor(random_state=0), {"n_estimators": [100, 300], "max_depth": [None, 8]}),
+        (ExtraTreesRegressor(random_state=0), {"n_estimators": [100, 300], "max_depth": [None, 8]}),
+        (GradientBoostingRegressor(random_state=0), {"n_estimators": [100, 300], "max_depth": [2, 4]}),
+        (HistGradientBoostingRegressor(random_state=0), {"learning_rate": [0.05, 0.1], "max_iter": [100, 300]}),
+        (sc(MLPRegressor(max_iter=1000, random_state=0)),
+         {"mlpregressor__hidden_layer_sizes": [(64,), (64, 64)], "mlpregressor__alpha": [1e-4, 1e-2]}),
+    ]
+
+
+rng = np.random.default_rng(0)
+n_train, n_test = 200, 1000
+X = rng.uniform(-1, 1, size=(n_train + n_test, 6))
+Y_lin = X @ rng.normal(size=(6, 3)) + 0.2 * rng.normal(size=(n_train + n_test, 3))
+Y_mix = Y_lin.copy()
+Y_mix[:, 0] = np.sin(3 * X[:, 0]) + X[:, 1] ** 2 + 0.1 * rng.normal(size=n_train + n_test)
+DATASETS = {"linear (3 linear outputs)": Y_lin, "mixed (1 nonlinear + 2 linear outputs)": Y_mix}
+
+rows = []
+for label, Y in DATASETS.items():
+    for pre_screen in (False, True):
+        est, grids = zip(*candidates())
+        model = AutoDetectMultiOutputRegressor(list(est), list(grids), cv=5, pre_screen=pre_screen)
+        t0 = time.perf_counter()
+        model.fit(X[:n_train], Y[:n_train])
+        seconds = time.perf_counter() - t0
+        P, Yte = model.predict(X[n_train:]), Y[n_train:]
+        r2 = 1 - ((P - Yte) ** 2).sum(0) / ((Yte - Yte.mean(0)) ** 2).sum(0)
+        rows.append({"data": label, "pre_screen": pre_screen, "fit seconds": round(seconds, 1),
+                     "families searched / output": [len(s) for s in model.selection_scores_],
+                     "test R² / output": np.round(r2, 3).tolist()})
+screen_table = pd.DataFrame(rows)
+print(screen_table.to_string(index=False))
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+                                  data  pre_screen  fit seconds families searched / output     test R² / output
+             linear (3 linear outputs)       False         61.3               [10, 10, 10] [0.968, 0.986, 0.96]
+             linear (3 linear outputs)        True          4.0                  [5, 5, 5] [0.968, 0.986, 0.96]
+mixed (1 nonlinear + 2 linear outputs)       False         65.5               [10, 10, 10] [0.962, 0.986, 0.96]
+mixed (1 nonlinear + 2 linear outputs)        True         25.1                 [10, 5, 5] [0.962, 0.986, 0.96]
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[15]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, ax = plt.subplots(figsize=(6.5, 2.6))
+labels = list(DATASETS)
+for i, (ps, color, name) in enumerate([(False, MUTED, "full search"), (True, BLUE, "pre-screened")]):
+    vals = screen_table[screen_table.pre_screen == ps]["fit seconds"].to_numpy()
+    ys = np.arange(len(labels)) + (0.2 if not ps else -0.2)
+    ax.barh(ys, vals, 0.36, color=color, label=name)
+    for y, v in zip(ys, vals):
+        ax.text(v, y, f"  {v:.0f} s", va="center", fontsize=7, color=INK)
+ax.set(yticks=range(len(labels)), yticklabels=labels, xlabel="model-selection wall time (s)",
+       title="Same chosen models, less search")
+ax.invert_yaxis()
+ax.set_xlim(right=ax.get_xlim()[1] * 1.15)
+ax.legend(loc="upper right")
+fig.tight_layout()
+plt.show()
+
+full = screen_table[~screen_table.pre_screen]["fit seconds"].sum()
+fast = screen_table[screen_table.pre_screen]["fit seconds"].sum()
+print(f"pre-screening cut model-selection time by {100 * (1 - fast / full):.0f}% "
+      f"({full:.0f} s -&gt; {fast:.0f} s) on these two datasets")
+</pre></div>
+</div>
+</div>
+<div class="nboutput docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_cost_savings_27_0.png" src="../_images/tutorials_cost_savings_27_0.png" />
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+pre-screening cut model-selection time by 77% (127 s -&gt; 29 s) on these two datasets
+</pre></div></div>
+</div>
+<p><strong>Reading the result.</strong> On the linear outputs pre-screening skips the nonlinear families, and the search picks the same linear model as the full search with the same held-out R² in a fraction of the time. On the nonlinear output the tree ensembles stay in, so the saving there comes only from the linear outputs. The saving grows with the size of the candidate list: <code class="docutils literal notranslate"><span class="pre">AutoDetectMultiOutputRegressor.with_vendored_surrogates()</span></code> searches 18 or more families.</p>
+<p>Pre-screening is not free of risk. When a heavy model would have scored slightly better on a nonlinear output, skipping it can cost a little accuracy. Compare against the full search once on a representative dataset before switching it on everywhere.</p>
+<p>This scenario is not in the ledger below, because it saves analyst compute rather than simulator runs.</p>
+<p>## 7. The ledger</p>
+<p>Each scenario above recorded the runs its existing-workflow baseline needed and the runs <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> needed for the same result. Here they are priced with the cost model from section 1. <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code>’s own compute is the measured wall time of its surrogate fitting and candidate scoring, charged as single-core hours at the same price.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[16]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>def price(ledger, cost):
+    df = pd.DataFrame(ledger)
+    for col in ("runs_baseline", "runs_multioutreg"):
+        df[col] = np.ceil(df[col].astype(float)).astype(int)
+    df["runs_saved"] = df.runs_baseline - df.runs_multioutreg
+    df["fewer_runs"] = df.runs_baseline / df.runs_multioutreg
+    df["overhead_core_h"] = df.overhead_s / 3600
+    df["usd_saved"] = cost.usd(df.runs_saved) - df.overhead_core_h * cost.usd_per_core_hour
+    df["core_hours_saved"] = cost.core_hours(df.runs_saved) - df.overhead_core_h
+    df["wall_hours_saved"] = cost.wall_hours(df.runs_baseline) - cost.wall_hours(df.runs_multioutreg) - df.overhead_s / 3600
+    return df
+
+
+ledger = price(LEDGER, COST)
+show = ledger[["scenario", "baseline", "runs_baseline", "runs_multioutreg", "fewer_runs",
+               "usd_saved", "core_hours_saved", "wall_hours_saved", "overhead_s"]]
+print(show.to_string(index=False, formatters={
+    "fewer_runs": "{:.1f}x".format, "usd_saved": "${:,.0f}".format,
+    "core_hours_saved": "{:,.0f}".format, "wall_hours_saved": "{:,.0f}".format,
+    "overhead_s": "{:.0f}".format}))
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+                              scenario                              baseline  runs_baseline  runs_multioutreg fewer_runs usd_saved core_hours_saved wall_hours_saved overhead_s
+   Monte Carlo UQ (borehole, 8 inputs)             direct MC, 10,000 samples          10000               320      31.2x   $79,376          619,520            2,420          5
+Surrogate training design (Hartmann-3)        full-factorial grid (125 runs)            125                50       2.5x      $615            4,800               18          8
+          Design optimization (branin)                         random search            829                24      34.5x    $6,601           51,520              202          9
+       Design optimization (hartmann3)                         random search            914                28      32.6x    $7,265           56,704              222         12
+               Multi-fidelity (currin) active learning on high fidelity only             36                10       3.6x      $213            1,664                6         34
+                 Multi-fidelity (park) active learning on high fidelity only             51                33       1.5x      $148            1,152                4         41
+</pre></div></div>
+</div>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[17]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>fig, ax = plt.subplots(figsize=(8, 3.2))
+names = ledger.scenario.tolist()
+ys = np.arange(len(names))
+ax.barh(ys + 0.2, ledger.runs_baseline, 0.36, color=MUTED, label="existing workflow")
+ax.barh(ys - 0.2, ledger.runs_multioutreg, 0.36, color=BLUE, label="with multioutreg")
+for y, (nb, nm, f) in enumerate(zip(ledger.runs_baseline, ledger.runs_multioutreg, ledger.fewer_runs)):
+    ax.text(nb, y + 0.2, f"  {nb:,}", va="center", fontsize=7, color=INK)
+    ax.text(nm, y - 0.2, f"  {nm:,}  ({f:.1f}x fewer)", va="center", fontsize=7, color=INK)
+ax.set(xscale="log", yticks=ys, yticklabels=names, xlabel="expensive-model runs (log)",
+       title="Runs needed for the same result")
+ax.set_xlim(right=ax.get_xlim()[1] * 8)
+ax.invert_yaxis()
+ax.legend(loc="lower right")
+fig.tight_layout()
+plt.show()
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<img alt="../_images/tutorials_cost_savings_31_0.png" src="../_images/tutorials_cost_savings_31_0.png" />
+</div>
+</div>
+<p><strong>Your numbers.</strong> The run counts are properties of the problems. The money and time are properties of your simulator. Re-price the same ledger for a cheap and an expensive model without re-running anything:</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[18]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>PROFILES = {
+    "cheap: 10 min, 4 cores, no fixed cost": SimulationCost(1 / 6, 4, 0.05, 0.0, 32),
+    "default: 2 h, 32 cores, $5 fixed": COST,
+    "expensive: 24 h, 128 cores, $50 fixed": SimulationCost(24, 128, 0.05, 50.0, 4),
+}
+rows = []
+for label, cost in PROFILES.items():
+    df = price(LEDGER, cost)
+    rows.append({"cost profile": label, "per run": f"${cost.usd(1):,.2f}",
+                 "total $ saved": f"${df.usd_saved.sum():,.0f}",
+                 "core-hours saved": f"{df.core_hours_saved.sum():,.0f}",
+                 "wall-clock days saved": f"{df.wall_hours_saved.sum() / 24:,.1f}"})
+print(pd.DataFrame(rows).to_string(index=False))
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+                         cost profile per run total $ saved core-hours saved wall-clock days saved
+cheap: 10 min, 4 cores, no fixed cost   $0.03          $383            7,660                   2.5
+     default: 2 h, 32 cores, $5 fixed   $8.20       $94,218          735,360                 119.7
+expensive: 24 h, 128 cores, $50 fixed $203.60    $2,339,364       35,297,280               2,873.0
+</pre></div></div>
+</div>
+<p>The cheap profile is the honest boundary case. When a run takes minutes, the money saved is small and most of the value is calendar time. The Monte Carlo study is the exception, because 10,000 runs are costly even at a few cents each. When a run takes a day on a cluster, each run saved is worth more than all of <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code>’s compute in this notebook combined.</p>
+<p>## 8. Plugging into your pipeline</p>
+<p>None of this requires the simulator to be a Python function. Real simulators run on a cluster queue or in a lab, and <code class="docutils literal notranslate"><span class="pre">ActiveLearner</span></code> exposes the same loop as <code class="docutils literal notranslate"><span class="pre">ask</span></code> / <code class="docutils literal notranslate"><span class="pre">tell</span></code>: ask for the next batch of inputs, run them however you run them today, tell the results back. Only the DOE step of the existing pipeline changes; the job scripts, the queue and the post-processing stay as they are.</p>
+<p>The cell below uses a stand-in <code class="docutils literal notranslate"><span class="pre">submit_and_wait</span></code> with the borehole function. In practice it would write input decks, submit them with <code class="docutils literal notranslate"><span class="pre">sbatch</span></code> / <code class="docutils literal notranslate"><span class="pre">qsub</span></code> or your workflow manager, wait, and parse the outputs. Batches of <code class="docutils literal notranslate"><span class="pre">parallel_jobs</span></code> keep every queue slot busy, and the cross-validation stopping rule from section 3 ends the loop.</p>
+<div class="nbinput docutils container">
+<div class="prompt highlight-none notranslate"><div class="highlight"><pre><span></span>[19]:
+</pre></div>
+</div>
+<div class="input_area highlight-ipython3 notranslate"><div class="highlight"><pre><span></span>b = get_benchmark("borehole")
+
+
+def submit_and_wait(X):
+    # Stand-in for: write input decks, submit to the scheduler, wait, parse results.
+    return b(X)
+
+
+TARGET = 0.10  # stop when cross-validated NRMSE is at or below this
+learner = ActiveLearner(gp, b.bounds, batch_size=COST.parallel_jobs, random_state=0)
+
+X0 = learner.initial_design(16)            # round 0: a small space-filling design
+learner.tell(X0, submit_and_wait(X0))
+for round_ in range(1, 20):
+    err = cv_nrmse(learner.X_, learner.Y_)
+    print(f"round {round_:&gt;2}: {len(learner.X_):&gt;3} runs, CV NRMSE {err:.3f}")
+    if err &lt;= TARGET:
+        break
+    X_next = learner.ask()                  # the next batch of 8 inputs to run
+    learner.tell(X_next, submit_and_wait(X_next))
+
+surrogate = learner.fit()                   # a fitted multioutreg surrogate
+Xt = b.sample(1000, method="random", seed=123)
+print(f"stopped after {len(learner.X_)} runs; true held-out NRMSE {heldout_metrics(surrogate, Xt, b(Xt))['nrmse']:.3f}")
+</pre></div>
+</div>
+</div>
+<div class="nboutput nblast docutils container">
+<div class="prompt empty docutils container">
+</div>
+<div class="output_area docutils container">
+<div class="highlight"><pre>
+round  1:  16 runs, CV NRMSE 0.180
+round  2:  24 runs, CV NRMSE 0.400
+round  3:  32 runs, CV NRMSE 0.242
+round  4:  40 runs, CV NRMSE 0.224
+round  5:  48 runs, CV NRMSE 0.167
+round  6:  56 runs, CV NRMSE 0.163
+round  7:  64 runs, CV NRMSE 0.153
+round  8:  72 runs, CV NRMSE 0.138
+round  9:  80 runs, CV NRMSE 0.094
+stopped after 80 runs; true held-out NRMSE 0.052
+</pre></div></div>
+</div>
+<p>The stop is conservative, as section 3 predicted: the loop stops when the cross-validated estimate reaches the target, and by then the true error is usually well below it. Raise <code class="docutils literal notranslate"><span class="pre">TARGET</span></code> to stop sooner. The rule errs towards spending a few extra runs, not towards handing over a surrogate that is worse than you asked for.</p>
+<p>The fitted surrogate is a normal <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> estimator. It can be scored with the performance metrics, wrapped with conformal prediction intervals, written to an HTML report, or saved with <code class="docutils literal notranslate"><span class="pre">joblib</span></code> and loaded in downstream tools.</p>
+<p>## 9. When the savings disappear</p>
+<p>These results are on analytic benchmarks chosen to be representative, not best cases. The savings shrink or vanish when:</p>
+<ul class="simple">
+<li><p><strong>The simulator is cheap.</strong> If a run takes seconds, run it directly. A surrogate earns its keep when runs are expensive or the analysis needs many of them.</p></li>
+<li><p><strong>The response is rough or high-dimensional.</strong> A GP with 8 inputs (borehole) works well; with 50 inputs, or discontinuities and regime changes, many more training runs are needed. Use the hold-out or CV check before trusting a surrogate for a decision.</p></li>
+<li><p><strong>A good space-filling design is already in place.</strong> Against Sobol, max-variance active learning is roughly break-even on smooth problems (section 3). The remaining gain is the stopping rule.</p></li>
+<li><p><strong>The cheap fidelity is weakly correlated.</strong> Multi-fidelity savings depend on it. The learner’s safeguards limit the waste, but do not create savings that are not there.</p></li>
+<li><p><strong>Final decisions still need the real model.</strong> A design picked on a surrogate should be confirmed with a real run. Bayesian optimization already evaluates its best point. For surrogate-only analyses, budget a handful of confirmation runs.</p></li>
+</ul>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+<div class="related-pages">
+  <a class="next-page" href="imputation_methods.html">
+      <div class="page-info">
+        <div class="context">
+          <span>Next</span>
+        </div>
+        <div class="title">Imputing Missing Inputs: KNN vs. Other Methods</div>
+      </div>
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+    </a>
+  <a class="prev-page" href="active_learning_benchmarks.html">
+      <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+      <div class="page-info">
+        <div class="context">
+          <span>Previous</span>
+        </div>
+        
+        <div class="title">Active Learning on Benchmark Functions</div>
+        
+      </div>
+    </a>
+</div>
+<div class="bottom-of-page">
+  <div class="left-details">
+    <div class="copyright">
+        Copyright &#169; 2025, takotime808
+    </div>
+  </div>
+  <div class="right-details">
+    <div class="icons">
+      <a class="muted-link " href="https://github.com/takotime808/multioutreg" aria-label="GitHub"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"></path></svg></a>
+      
+    </div>
+  </div>
+</div>
+
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">Cost Savings: What <code class="docutils literal notranslate"><span class="pre">multioutreg</span></code> Saves in an Existing Workflow</a><ul>
+<li><a class="reference internal" href="#Results-at-a-glance">Results at a glance</a></li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script src="../_static/documentation_options.js?v=5929fcd5"></script>
+    <script src="../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/scripts/furo.js?v=46bd48cc"></script>
+    <script src="../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../_static/copybutton.js?v=f281be69"></script>
+    <script src="../_static/design-tabs.js?v=f930bc37"></script>
+    <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+    <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    </body>
+</html>
