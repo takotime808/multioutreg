@@ -20,25 +20,29 @@ def _run_ts_pipeline(
     datetime_col: "str | None",
     freq: str,
     verbose: bool,
+    horizon: "int | None" = None,
+    folds: "int | None" = None,
+    lstm_epochs: int = 100,
+    on_step=None,
 ) -> dict:
-    """Run ARIMA / SARIMA / LSTM pipeline on df.
+    """Rank ARIMA / SARIMA / LSTM / naive out-of-sample on df (same code as the CLI).
 
     Returns
     -------
     dict with keys:
-        "perf_df"    : pd.DataFrame of per-model performance metrics
-        "best_model" : str name of the best model
-        "results"    : list of (metadata_dict, data_series, model_obj)
+        "perf_df"    : pd.DataFrame of per-model rolling-origin metrics, best first
+        "best_model" : str name of the best model (lowest mean MASE)
+        "ranking"    : RankingResult (plan, scores, Diebold-Mariano, forecast)
+        "series"     : the resampled target series
         "validation" : dict returned by DataProcessor.validate_data
         "failures"   : dict mapping model label -> error message
         "error"      : str (only present if a fatal error occurred)
     """
-    from multioutreg.time_series.ts_dynamic_fit import (
-        ARIMA, SARIMA, LSTM, DataProcessor, Ranker,
-    )
+    from multioutreg.time_series.ts_dynamic_fit import DataProcessor
+    from multioutreg.time_series.ts_dynamic_fit.src.evaluate import rank_forecasters
 
     processor = DataProcessor(verbose=verbose)
-    _, future_pred = processor.load_data(df)
+    processor.load_data(df)
     validation = processor.validate_data(
         datetime_col=datetime_col or df.columns[0],
         target_col=target_col,
@@ -48,46 +52,26 @@ def _run_ts_pipeline(
         target_col=target_col,
         freq=freq,
     )
+    series = processed_data[target_col]
 
-    results = []
-    failures = {}
-    for ModelClass, label, extra in [
-        (ARIMA,  "ARIMA",  {"verbose": verbose}),
-        (SARIMA, "SARIMA", {"verbose": verbose}),
-        (LSTM,   "LSTM",   {"fut_pred": future_pred, "train_window": 10, "verbose": verbose}),
-    ]:
-        try:
-            if label == "LSTM":
-                m = ModelClass(processed_data, feature_column=target_col, **extra)
-            else:
-                m = ModelClass(processed_data, target_col, **extra)
-            perf, data_obj, model_obj = m.run()
-            results.append((perf, data_obj, model_obj))
-        except Exception as exc:
-            failures[label] = str(exc)
+    try:
+        ranking = rank_forecasters(
+            series.to_numpy(dtype=float), horizon=horizon, folds=folds,
+            lstm_epochs=lstm_epochs, on_step=on_step)
+    except (ValueError, RuntimeError) as exc:
+        return {"error": str(exc), "results": [], "validation": validation, "failures": {}}
 
-    if not results:
-        return {
-            "error": "All models failed. Check the data and column selection.",
-            "results": [],
-            "validation": validation,
-            "failures": failures,
-        }
-
-    perf_rows = [r[0]["performance"] for r in results]
-    perf_df = pd.DataFrame(perf_rows)
-
-    best_model = Ranker(
-        df=pd.DataFrame([r[0] for r in results]),
-        verbose=False,
-    ).get_best()
-
+    perf_df = pd.DataFrame([
+        {k: v for k, v in score.as_dict().items() if k not in ("per_origin_MASE", "error")}
+        for score in ranking.scores
+    ])
     return {
         "perf_df": perf_df,
-        "best_model": best_model,
-        "results": results,
+        "best_model": ranking.best_model,
+        "ranking": ranking,
+        "series": series,
         "validation": validation,
-        "failures": failures,
+        "failures": ranking.failures,
     }
 
 
@@ -398,8 +382,9 @@ with tab1:
 # ──────────────────────────────────────────────────────────────────
 with tab2:
     st.caption(
-        "Train and compare ARIMA, SARIMA, and LSTM models on your data. "
-        "The pipeline auto-selects the best model by RMSE / MAE / MAPE ranking."
+        "Compare ARIMA, SARIMA, LSTM and a naive baseline on your data. Every model is "
+        "refitted at several rolling forecast origins and scored on the following, unseen "
+        "points on the original scale; the best has the lowest mean MASE."
     )
 
     uploaded2 = st.file_uploader("Upload a CSV", type=["csv"], key="ts_pipeline_upload")
@@ -434,15 +419,34 @@ with tab2:
         with col_d:
             verbose = st.checkbox("Verbose logging", key="ts_verb2")
 
+        col_e, col_f, col_g = st.columns(3)
+        with col_e:
+            horizon2 = st.number_input(
+                "Forecast horizon (0 = auto)", min_value=0, value=0, step=1, key="ts_h2",
+                help="Steps ahead to score. Auto: the seasonal period if one is detected, else 1.")
+        with col_f:
+            folds2 = st.number_input(
+                "Rolling origins (0 = auto)", min_value=0, value=0, step=1, key="ts_folds2",
+                help="Auto: every origin in the last 20% of the series, at most 10.")
+        with col_g:
+            epochs2 = st.number_input(
+                "LSTM epochs", min_value=1, value=100, step=10, key="ts_epochs2",
+                help="The LSTM is refitted at every origin, so this sets most of the run time.")
+
         run_btn = st.button("Run Pipeline", key="run_ts_pipeline", type="primary")
 
         if run_btn:
             datetime_col_arg = None if dt_col == "<use index>" else dt_col
-            with st.spinner("Running ARIMA / SARIMA / LSTM pipeline…"):
+            with st.status("Ranking models out-of-sample…", expanded=False) as _ts_status:
                 try:
-                    out = _run_ts_pipeline(df2, tgt_col, datetime_col_arg, freq, verbose)
+                    out = _run_ts_pipeline(
+                        df2, tgt_col, datetime_col_arg, freq, verbose,
+                        horizon=int(horizon2) or None, folds=int(folds2) or None,
+                        lstm_epochs=int(epochs2),
+                        on_step=lambda label: _ts_status.write(label + "…"))
                 except Exception as exc:
                     out = {"error": str(exc), "results": []}
+                _ts_status.update(label="Done", state="complete")
 
             if out.get("validation"):
                 with st.expander("Validation report"):
@@ -453,25 +457,37 @@ with tab2:
             if "error" in out:
                 st.error(out["error"])
             else:
-                st.write("### Model comparison")
+                ranking = out["ranking"]
+                st.write("### Model comparison (out-of-sample)")
+                st.caption(f"Evaluation: {ranking.plan.describe()}. Ranked by mean MASE "
+                           "(below 1 beats a naive forecast's in-sample error).")
                 st.dataframe(out["perf_df"])
                 st.success(f"Best model: **{out['best_model']}**")
+                dm = ranking.diebold_mariano
+                if dm and dm.get("reason"):
+                    st.caption(f"Diebold–Mariano ({dm['model_a']} vs {dm['model_b']}): "
+                               f"not computed, {dm['reason']}.")
+                elif dm and dm.get("n", 0) >= 2:
+                    st.caption(
+                        f"Diebold–Mariano ({dm['model_a']} vs {dm['model_b']}, HLN-corrected): "
+                        f"statistic {dm['statistic']:.3f}, p = {dm['p_value']:.3f}. "
+                        "Reported only; with few origins it has little power.")
 
-                # Visualize best model (ARIMA/SARIMA only — LSTM plots aren't concise)
-                best_idx = [r[0]["performance"]["Model"] for r in out["results"]].index(
-                    out["best_model"]
-                )
-                _, best_data, best_model_obj = out["results"][best_idx]
-                if out["best_model"] in ("ARIMA", "SARIMA"):
+                # History and the winner's next-H forecast (refitted on the full series).
+                series = out["series"]
+                if ranking.forecast is not None:
                     try:
-                        from multioutreg.time_series.ts_dynamic_fit.src.visualize import visualize_model
-                        plt.close("all")
-                        visualize_model(best_model_obj, best_data, target_col=tgt_col)
-                        for fig_num in plt.get_fignums():
-                            st.pyplot(plt.figure(fig_num))
-                        plt.close("all")
-                    except Exception as exc:
-                        st.info(f"Visualization skipped: {exc}")
+                        future_index = pd.date_range(
+                            series.index[-1], periods=len(ranking.forecast) + 1,
+                            freq=pd.infer_freq(series.index) or freq)[1:]
+                    except Exception:
+                        future_index = range(len(series), len(series) + len(ranking.forecast))
+                    chart = pd.concat([
+                        series.rename("history").to_frame(),
+                        pd.Series(ranking.forecast, index=future_index,
+                                  name=f"{out['best_model']} forecast").to_frame(),
+                    ], axis=1)
+                    st.line_chart(chart)
 
 # ──────────────────────────────────────────────────────────────────
 # Tab 3: Surrogate Forecasters (LagFeatureForecaster + WalkForwardCV)

@@ -9,6 +9,8 @@ import warnings
 import logging
 from typing import Optional, Tuple, Any, Dict, Sequence, Union
 
+from multioutreg.time_series.ts_dynamic_fit.src.forecasters import MAX_D
+
 from multioutreg.time_series.seasonality import detect_seasonal_period
 
 warnings.filterwarnings("ignore")
@@ -59,9 +61,11 @@ class SARIMA:
         adf = adfuller(df)
         if self.verbose: 
             self.log_to_file(f"Diff {self.diff_count}...")
-        self.diff_count += 1
 
         if adf[1] > 0.05:
+            # Count only differences actually applied (it used to count every
+            # test, so a stationary series reported diff_count = 1).
+            self.diff_count += 1
             if self.verbose: 
                 self.log_to_file(f"The p-value: {adf[1]} implies the series is non-stationary and requires differencing.")
             return adf
@@ -158,9 +162,14 @@ class SARIMA:
 
         #Iterativly perform ADF until stationary
 
+        # At most MAX_D differences (audit item 24): an ADF test that never
+        # rejects (e.g. a near-constant or explosive series) must not loop forever.
         while not self.stationary:
             self.make_stationary(self.data)
             if not self.stationary:
+                if self.diff_count > MAX_D:
+                    self.diff_count = MAX_D
+                    break
                 self.data = self.data.diff().dropna()
 
             # Record the initial values at each differenceing step. We need this in the 
@@ -194,7 +203,7 @@ class SARIMA:
 
         rmse = np.sqrt(np.mean((df['forecast']-df[self.feature_column]) ** 2))
         mask = df[self.feature_column] != 0
-        mape = abs(((df['forecast'][mask] - df[self.feature_column][mask]) / df[self.feature_column][mask]).mean())
+        mape = ((df['forecast'][mask] - df[self.feature_column][mask]) / df[self.feature_column][mask]).abs().mean()
         mae_val = mae(df[self.feature_column], df['forecast'])
 
 
