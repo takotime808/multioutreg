@@ -17,6 +17,7 @@ from multioutreg.gui.grid_search_core import (
     generate_html_report,
 )
 from multioutreg.model_selection.evaluation import plan_evaluation, run_evaluation
+from multioutreg.utils.metric_utils import gaussian_uncertainty_metrics
 
 app = typer.Typer(help="Grid search surrogate models and generate a report")
 
@@ -39,6 +40,9 @@ def grid_search(
         help="Skip slow candidates (Gaussian processes, NGBoost, ...), as the hosted app does"),
     description: str = typer.Option("", help="Project description"),
     out_html: str = typer.Option("model_report.html", help="Output HTML file"),
+    report_style: Optional[str] = typer.Option(
+        None, help="Report layout: v2 (redesigned, default) or classic. "
+                   "Defaults to the MOR_REPORT_STYLE environment variable"),
 ) -> None:
     """Run the grid search and output an HTML report."""
     df = pd.read_csv(data_path)
@@ -152,7 +156,7 @@ def grid_search(
         output_names=out_cols,
         description=description,
         metrics=metrics,
-        uncertainty_metrics={"dummy_metric": 0.0},
+        uncertainty_metrics=gaussian_uncertainty_metrics(y_test, best_pred, best_std),
         y_test=y_test,
         best_pred=best_pred,
         best_std=best_std,
@@ -175,6 +179,8 @@ def grid_search(
         pca_n_components=pca_n_components,
         kaiser_rule_suggestion=kaiser_rule_suggestion,
         imputation_summary=_imputation_summary,
+        grid_search_results=search.cv_table,
+        report_style=report_style,
     )
 
     with open(out_html, "w", encoding="utf-8") as fh:
