@@ -90,6 +90,13 @@ SPECS = {
         "requires": ("multioutreg.surrogates.sparse_gp_gpytorch", "_GPYTORCH_AVAILABLE"),
     },
     "QuantileRegressionSurrogate": _plain(alpha=0.01),
+    "PCAOutputSurrogate": _plain(n_components=2),
+    "MultiTaskGPSurrogate": {
+        **_plain(max_iter=50, random_state=0),
+        "requires": ("multioutreg.surrogates.multitask_gp_gpytorch", "_GPYTORCH_AVAILABLE"),
+    },
+    "GaussianCopulaSurrogate": _plain(cv=3, random_state=0),
+    "StdRecalibratedSurrogate": _plain(criterion="nll", cv=3, random_state=0),
 }
 
 SURROGATE_NAMES = sorted(SPECS)
