@@ -23,6 +23,7 @@ for the Streamlit app. The PyPI release decision is at the end.
 | 11 | `sphinx_design` and `intersphinx` | Open |
 | 12 | Repo-relative `autoapi_dirs` | Done |
 | 13 | Clean up `conf.py` | Open |
+| 14 | Choose a format for the architecture diagram | Open |
 
 ## High Impact
 
@@ -97,6 +98,18 @@ for the Streamlit app. The PyPI release decision is at the end.
   code (LaTeX, EPUB, nbsphinx prolog, alternative themes). The CI step also
   installs packages the build does not use (`sphinx_rtd_theme`,
   `sphinx-gallery`, `sphinxcontrib-bibtex`, `jupyter-black`).
+- [ ] **14. Choose a format for the architecture diagram.** The end-to-end
+  flowchart is Mermaid, duplicated in the README and `how_it_works.md`.
+  Mermaid's layout gets cramped at this size, and PyPI shows it as raw code.
+  The `mermaid-alts` branch shows it three ways, each under its own heading:
+  Mermaid (current), Graphviz (`docs/diagrams/architecture.dot`) and D2
+  (`docs/diagrams/architecture.d2`), with the SVGs in
+  `docs/_static/diagrams/`. Compare them, keep one, and reference it from
+  both pages so there is one source. Graphviz is the more compact and
+  readable; D2 looks more polished but is taller with smaller text. The small
+  sequence diagram in the README can stay Mermaid. If the choice is an SVG,
+  add a `make diagrams` target (or a CI step) so it is re-rendered when the
+  source changes.
 
 ## Release Decision: Publish to PyPI?
 
@@ -133,7 +146,8 @@ Blockers, in order:
   a clean env, run the tests, publish to TestPyPI and then PyPI with trusted
   publishing.
 - [ ] Update `install.md` and the README (uncomment the PyPI and license
-  badges).
+  badges). The README becomes the PyPI page, which does not render Mermaid,
+  so settle item 14 first.
 
 Optional now: reserve the name with a `0.0.0.dev0` placeholder that points to
 the GitHub repo. Only do this once the license is chosen, because the
