@@ -68,7 +68,8 @@ from multioutreg.metrics import hypervolume_regret, scalarized_regret, epsilon_r
 
 
 from multioutreg.report.auto_detect_report import generate_html_report
-from multioutreg.gui.report_controls import report_downloads, report_format_control
+from multioutreg.report.render import render_styles
+from multioutreg.gui.report_controls import report_downloads_all, report_format_control
 
 
 # ----- Regret / download helpers -----
@@ -344,7 +345,7 @@ if uploaded_file:
         output_cols = st.multiselect("Select output targets", options=df.columns)
 
         description = st.text_area("Optional: Project description")
-        report_style = report_format_control()
+        report_styles = report_format_control()
         submitted = st.form_submit_button("Run Grid Search")
 
     if submitted and input_cols and output_cols:
@@ -627,7 +628,9 @@ if uploaded_file:
             width="stretch",
         )
 
-        html = generate_html_report(
+        html = render_styles(
+            generate_html_report,
+            report_styles,
             model_type="AutoDetectMultiOutputRegressor",
             fidelity_levels=[],
             output_names=output_cols,
@@ -661,7 +664,6 @@ if uploaded_file:
             regret_bounds=regret_bounds,
             regret_settings=regret_settings,
             selection_scores=getattr(best_model, "selection_scores_", None),
-            report_style=report_style,
         )
 
         # Stash results so the regret summary and downloads survive the rerun a download click triggers
@@ -693,7 +695,7 @@ if uploaded_file:
         with st.expander("Regret settings summary", expanded=False):
             st.json(_arts["regret_settings"])
 
-        report_downloads(_arts["html_report"], "model_report_auto.html", "download_report")
+        report_downloads_all(_arts["html_report"], "model_report_auto.html", "download_report")
         st.download_button(
             "Download Trained Model (.joblib)",
             _arts["model_bytes"],
