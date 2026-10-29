@@ -13,7 +13,7 @@ multi-output capabilities of `multioutreg`. See
 | Active learning | Acquisitions, query-by-committee, batch selection, the loop, cost-aware multi-fidelity acquisition (`multioutreg.active`, prototype) | Max-value entropy search, CLI and GUI, NaN std in Auto-Detect |
 | Benchmarks | 18 problems in `multioutreg.active.benchmarks.BENCHMARKS`, including DTLZ2; AL, cost-savings, multi-output and hypervolume notebooks | The rest of the port list; the multi-fidelity and Himmelblau notebooks |
 | Multi-objective metrics | Exact N-D `hypervolume()` (#36); decision regret as the default, front comparison as `front_*`; joint `energy_score` and `variogram_score` | Multivariate CRPS variants, joint coverage of prediction regions |
-| Multi-fidelity surrogates | — | All six candidates; the `rho` and Stacked VFM interval follow-ups |
+| Multi-fidelity surrogates | `MFKSurrogate` (candidate 1: SMT co-kriging, maximum-likelihood `rho`) | The other five candidates; the Stacked VFM interval follow-up |
 | Multi-output surrogates | Multi-task GP (1), PCA output reduction (2), Gaussian copula (5); energy and variogram scores | `RegressorChain` (3), natively joint models (4); joint conformal regions |
 | Cross-cutting | Benchmark suite (1), std recalibration (2), model persistence (5), extrapolation flag (6) | Items 3, 4, 7–12; wiring 2, 5 and 6 into the GUI, CLI and report |
 
@@ -237,7 +237,9 @@ Open unless marked done:
   f4 → f1 it fits 0.44 where 2 makes the correction linear, and `rho=1` beats
   it up to 18 high-fidelity points. Estimate `rho` jointly with `delta`
   (regress on `[f_lo(X), X]`, or maximise the correction GP's marginal
-  likelihood over `rho`, as in Kennedy–O'Hagan).
+  likelihood over `rho`, as in Kennedy–O'Hagan). `MFKSurrogate` now does the
+  latter and fits `rho` = 2.00 on Forrester, so users needing AR1 have an
+  unbiased option; `AdditiveCorrectionVFM` itself is unchanged.
 - **Stacked VFM intervals:** the same notebook shows the 4-level GP stack is
   the most accurate model but only about half the test grid falls inside its
   nominal 95% band, because the top-level `std` treats lower-level
@@ -289,9 +291,12 @@ see:
 
 **Then the original first batch, minus the benchmark suite:**
 
-5. `MFKSurrogate` (SMT co-kriging). This also replaces the biased least-squares
-   `rho` for users who need AR1. *Open:* `smt` is not installed in the dev
-   environment, so this waits on installing the `smt` extra.
+5. ~~`MFKSurrogate` (SMT co-kriging). This also replaces the biased least-squares
+   `rho` for users who need AR1.~~ Done: `MFKSurrogate` (`surrogates/mfk_smt.py`)
+   wraps `MFK` (or `MFKPLS` with `n_comp`) per output, for any number of levels
+   and non-nested designs. On Forrester with 20 low- and 5 high-fidelity points
+   it fits `rho` = 2.00 (the true value) and an RMSE of 0.002, against 0.44 for
+   the least-squares `rho`; `rho_` exposes the fitted factors.
 6. ~~The PCA output-reduction wrapper.~~ Done: `PCAOutputSurrogate`
    (`surrogates/pca_output.py`). Fits any surrogate on the top-k components of
    standardized `Y` (`n_components` is a count or a variance fraction); the std
