@@ -6,7 +6,7 @@ with, easier to read, and more worth coming back to. The grid search page,
 begin there. See [Multi-Fidelity GUI](multi_fidelity_gui.md) for the
 multi-fidelity page.
 
-*Last reviewed 2026-10-26, against `main` at #45 plus the `fix-wheel-packages` branch.*
+*Last reviewed 2026-10-29: items 3b and 4 done in the working tree, not yet committed.*
 
 ## Status at a Glance
 
@@ -15,8 +15,8 @@ multi-fidelity page.
 | 0 | Remove the duplicate pipeline run on the grid search page | Done (#43) |
 | 1 | Keep results on screen across reruns | Done (#43) |
 | 2 | Show progress during a run | Done (#43) |
-| 3 | Let people try the app without their own data | Sample data done (#45), walkthrough and background pair plot done; input checks open |
-| 4 | Show results in the app, not only in the downloaded report | Open |
+| 3 | Let people try the app without their own data | Done: sample data (#45), walkthrough and background pair plot, input checks (uncommitted) |
+| 4 | Show results in the app, not only in the downloaded report | Done (uncommitted); manual browser check to do |
 | 5 | Navigation and page structure | Open |
 | 6 | Engagement features | Open; hosted demo already exists |
 | 7 | Packaging: stray top-level folders in the wheel | Fixed (`fix-wheel-packages`) |
@@ -94,6 +94,41 @@ is why each pool has a single worker. Set `MOR_BACKGROUND_JOBS=0` to run
 everything inline, e.g. on a host with very little memory; the test suite does
 this in `tests/conftest.py`.
 
+### 3c. Check inputs before a run
+
+`multioutreg/gui/input_checks.py` (`check_run_inputs`) runs inside the form when
+**Run Grid Search** is clicked, and the grid search does not start if it finds
+a problem. It:
+
+- blocks a column chosen as both an input and an output;
+- names each non-numeric input or output column, with an example value;
+- warns when fewer than 10 usable rows remain, counted after dropping rows
+  with missing targets. This is a fixed minimum, not the per-split count
+  (train/test, validation, conformal calibration) the plan described;
+- warns when the conformal intervals would be unbounded because the
+  calibration split is too small for the chosen alpha, and suggests a larger
+  alpha.
+
+Each case has an `AppTest` in `tests/unit/gui/test_Grid_Search_app.py`.
+
+### 4. Results in the app
+
+`multioutreg/gui/results_tabs.py` shows results in **Summary / Predictions /
+Uncertainty / Explainability / Report** tabs:
+
+- **Summary:** the verdict, an `st.metric` card per output, a model table in
+  place of `st.json`, and the CV plot.
+- **Predictions and Uncertainty:** interactive Plotly parity, residual,
+  histogram, calibration and ordered-interval charts, built from the same
+  numbers as the report.
+- **Explainability:** SHAP and PDP, computed once in a background job and
+  cached in `gs_results`.
+- **Report:** an inline preview (`st.components.v1.html`) next to the downloads.
+
+An `AppTest` checks that a rerun does not call `run_evaluation` again.
+`tests/unit/gui` and `tests/unit/report` pass (197 tests, 2026-10-29). The
+manual browser check from [Testing](#testing) is still to do.
+
 ### 7. Stray top-level packages in the wheel (`fix-wheel-packages`)
 
 `where = [".", "mor_cli", "multioutreg"]` in
@@ -119,44 +154,6 @@ reinstalled (`uv sync`, or `uv pip install --no-deps -e .`).
 
 Effort: **Low** is under a day, **Medium** is one to three days, **High** is
 more than that.
-
-### 3b. Check inputs before a run (Low)
-
-**Problem:** bad column choices only show up as a stack trace or as fits that
-fail silently. Clicking **Run Grid Search** with no columns chosen now gives a
-warning, but nothing else is checked.
-
-**Plan:**
-1. Block a column chosen as both an input and an output.
-2. Flag non-numeric columns among the inputs and outputs, and say which ones.
-3. Warn when there are too few rows for the train/test split, the 20%
-   validation split and the optional conformal calibration split.
-4. Show the problems inside the form, before any fitting starts.
-
-**Done when:** each case has an `AppTest` test in
-`tests/unit/gui/test_Grid_Search_app.py` that shows the message and does not
-run the grid search.
-
-### 4. Results in the app (Medium)
-
-**Problem:** the page shows the best configuration as raw JSON and the metrics
-as plain tables. The prediction, uncertainty, SHAP, PDP and UMAP plots exist
-only inside the downloaded HTML report, as static images.
-
-**Plan:**
-1. Put results in tabs: **Summary / Predictions / Uncertainty / Explainability /
-   Report**.
-2. Summary: an `st.metric` card per output (R², RMSE) and a readable table of
-   the chosen model per output, in place of `st.json`.
-3. Predictions and Uncertainty: interactive Plotly parity plots and ordered
-   interval plots, drawn from the arrays already saved in `gs_results`.
-4. Explainability: the existing SHAP and PDP figures, generated once and saved
-   in `gs_results` so reruns stay fast.
-5. Report: an inline preview with `st.components.v1.html`, next to the
-   download button.
-
-**Done when:** every figure in the report also appears in a tab, switching tabs
-does not refit anything, and the existing app tests still pass.
 
 ### 5. Navigation and page structure (Medium)
 
@@ -207,11 +204,9 @@ from `main`.
 
 ## Suggested Order
 
-1. **3b**: small, and it makes the first run fail safely.
-2. **4**: the largest gain for users, since the most useful output is currently
-   hidden in the download.
-3. **5**: after the legacy-page question is answered.
-4. **6**: builds on the shared navigation from item 5.
+1. ~~**3b**~~ (input checks, now 3c under Done) and ~~**4**~~: done.
+2. **5**: after the legacy-page question is answered.
+3. **6**: builds on the shared navigation from item 5.
 
 ## Testing
 
