@@ -143,6 +143,7 @@ namespaces = false
 
 [project.scripts]
 multioutreg = "mor_cli:main"
+mor = "mor_cli:main"
 
 [build-system]
 requires = ["setuptools>=43.0.0", "wheel"]
