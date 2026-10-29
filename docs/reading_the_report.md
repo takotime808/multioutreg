@@ -67,7 +67,9 @@ while the new one is reviewed:
 ::::{tab-set}
 
 :::{tab-item} GUI
-Pick **Report format: Redesigned / Classic** next to **Run Grid Search**.
+Pick **Report format: Redesigned / Classic / Both** next to **Run Grid Search**.
+**Both** builds the two reports from the same run (no retraining) and offers a download
+for each (`model_report_redesigned.html`, `model_report_classic.html`), so you can compare them.
 :::
 
 :::{tab-item} CLI
