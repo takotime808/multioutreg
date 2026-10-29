@@ -10,6 +10,8 @@ from contextlib import redirect_stdout
 import sys
 from typing import Optional, Tuple, Any, Dict, Sequence, Union
 
+from multioutreg.time_series.ts_dynamic_fit.src.forecasters import MAX_D
+
 warnings.filterwarnings("ignore")
 _logger = logging.getLogger(__name__)
 
@@ -128,9 +130,14 @@ class ARIMA:
         
         #Iterativly perform ADF until stationary
 
+        # At most MAX_D differences (audit item 24): an ADF test that never
+        # rejects (e.g. a near-constant or explosive series) must not loop forever.
         while not self.stationary:
             self.make_stationary(self.data)
             if not self.stationary:
+                if self.diff_count > MAX_D:
+                    self.diff_count = MAX_D
+                    break
                 self.data = self.data.diff().dropna()
 
             # Record the initial values at each differenceing step. We need this in the 
@@ -161,7 +168,7 @@ class ARIMA:
 
         rmse = np.sqrt(np.mean((df['forecast']-df[self.feature_column]) ** 2))
         mask = df[self.feature_column] != 0
-        mape = abs(((df['forecast'][mask] - df[self.feature_column][mask]) / df[self.feature_column][mask]).mean())
+        mape = ((df['forecast'][mask] - df[self.feature_column][mask]) / df[self.feature_column][mask]).abs().mean()
         mae_val = mae(df[self.feature_column], df['forecast'])
 
         # Create metadata json for model

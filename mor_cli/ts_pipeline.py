@@ -1,5 +1,9 @@
 # Copyright (c) 2026 takotime808
-"""CLI for training ARIMA / SARIMA / LSTM time series models via the ts_dynamic_fit pipeline."""
+"""CLI for ranking ARIMA / SARIMA / LSTM time series models via the ts_dynamic_fit pipeline.
+
+Models are scored out-of-sample, on the original scale, at rolling forecast
+origins and ranked by MASE (audit item 6; see ``src/evaluate.py``).
+"""
 
 from __future__ import annotations
 
@@ -62,12 +66,31 @@ def ts_pipeline(
             "(e.g. order-level data). Choices: sum, mean, median, last, first."
         ),
     ),
+    horizon: Optional[int] = typer.Option(
+        None,
+        "--horizon",
+        min=1,
+        help="Forecast horizon H to score. Default: the seasonal period if one is detected, else 1.",
+    ),
+    folds: Optional[int] = typer.Option(
+        None,
+        "--folds",
+        min=1,
+        help="Number of rolling forecast origins. Default: all origins up to 10, else 10 evenly spaced.",
+    ),
+    lstm_epochs: int = typer.Option(
+        100,
+        "--lstm-epochs",
+        min=1,
+        help="LSTM training epochs per fit (the LSTM is refitted at every origin).",
+    ),
 ) -> None:
-    """Train and compare ARIMA, SARIMA, and LSTM on a CSV file; save the best model."""
+    """Rank ARIMA, SARIMA, LSTM and a naive baseline out-of-sample; forecast with the best."""
 
     # Deferred imports — same pattern as ts_forecast.py
     try:
-        from multioutreg.time_series.ts_dynamic_fit import ARIMA, LSTM, SARIMA, DataProcessor, Ranker
+        from multioutreg.time_series.ts_dynamic_fit import DataProcessor
+        from multioutreg.time_series.ts_dynamic_fit.src.evaluate import rank_forecasters
     except Exception as exc:
         typer.echo(
             f"Error: could not import ts_dynamic_fit modules. "
@@ -116,7 +139,7 @@ def ts_pipeline(
 
     # ── DataProcessor ─────────────────────────────────────────
     processor = DataProcessor(verbose=verbose)
-    _, future_pred = processor.load_data(df)
+    processor.load_data(df)
 
     processor.validate_data(datetime_col=dt_arg, target_col=target_col)
     processed_data = processor.preprocess_data(
@@ -125,57 +148,47 @@ def ts_pipeline(
         freq=freq,
     )
 
-    # ── Train models ──────────────────────────────────────────
-    results: list[tuple] = []
-
-    for ModelClass, label, kwargs in [
-        (ARIMA, "ARIMA", {"verbose": verbose}),
-        (SARIMA, "SARIMA", {"verbose": verbose}),
-        (LSTM, "LSTM", {"fut_pred": future_pred, "train_window": 10, "verbose": verbose}),
-    ]:
-        typer.echo(f"Training {label}...")
-        try:
-            if label == "LSTM":
-                m = ModelClass(processed_data, feature_column=target_col, **kwargs)
-            else:
-                m = ModelClass(processed_data, target_col, **kwargs)
-            perf, data_obj, model_obj = m.run()
-            results.append((perf, data_obj, model_obj))
-        except Exception as exc:
-            typer.echo(f"Warning: {label} failed — {exc}", err=True)
-
-    if not results:
-        typer.echo("Error: all models failed. Check data and column selection.", err=True)
+    # ── Rank models out-of-sample ─────────────────────────────
+    series = processed_data[target_col]
+    try:
+        ranking = rank_forecasters(
+            series.to_numpy(dtype=float),
+            horizon=horizon,
+            folds=folds,
+            lstm_epochs=lstm_epochs,
+            on_step=typer.echo,
+        )
+    except (ValueError, RuntimeError) as exc:
+        typer.echo(f"Error: {exc}", err=True)
         raise typer.Exit(code=1)
 
-    # ── Rank and select best ───────────────────────────────────
-    perf_dicts = [r[0] for r in results]
-    best_model_name = Ranker(df=pd.DataFrame(perf_dicts), verbose=verbose).get_best()
+    for label, msg in ranking.failures.items():
+        typer.echo(f"Warning: {label} failed — {msg}", err=True)
+    typer.echo(f"Evaluation: {ranking.plan.describe()}")
+    for score in ranking.scores:
+        typer.echo(f"  {score.name:7s} MASE={score.mase:.4f}  RMSE={score.rmse:.4g}  "
+                   f"MAE={score.mae:.4g}  sMAPE={score.smape:.2f}")
+    dm = ranking.diebold_mariano
+    if dm and dm.get("reason"):
+        typer.echo(f"Diebold-Mariano ({dm['model_a']} vs {dm['model_b']}): not computed, "
+                   f"{dm['reason']}")
+    elif dm and dm.get("n", 0) >= 2:
+        typer.echo(f"Diebold-Mariano ({dm['model_a']} vs {dm['model_b']}): "
+                   f"stat={dm['statistic']:.3f}, p={dm['p_value']:.3f} (reported only)")
 
     # ── Write results ─────────────────────────────────────────
-    def _make_json_safe(obj):
-        """Recursively convert non-JSON-serializable keys/values to strings."""
-        if isinstance(obj, dict):
-            return {str(k): _make_json_safe(v) for k, v in obj.items()}
-        if isinstance(obj, (list, tuple)):
-            return [_make_json_safe(i) for i in obj]
-        try:
-            json.dumps(obj)
-            return obj
-        except (TypeError, ValueError):
-            return str(obj)
+    report = ranking.as_dict()
+    index = series.index
+    report["evaluation"]["origin_dates"] = [str(index[t]) for t in ranking.plan.origins]
+    report["evaluation"]["train_start"] = str(index[0])
+    report["evaluation"]["last_observation"] = str(index[-1])
 
     results_path = out_dir / "results.json"
-    results_path.write_text(
-        json.dumps(
-            _make_json_safe({"best_model": best_model_name, "models": [r[0] for r in results]}),
-            indent=2,
-        )
-    )
+    results_path.write_text(json.dumps(report, indent=2))
 
     typer.echo(
         json.dumps(
-            {"best_model": best_model_name, "out_dir": str(out_dir.resolve())},
+            {"best_model": ranking.best_model, "out_dir": str(out_dir.resolve())},
         )
     )
 

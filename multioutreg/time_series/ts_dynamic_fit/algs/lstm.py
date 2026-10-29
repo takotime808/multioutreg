@@ -27,11 +27,16 @@ class LSTMModel(nn.Module):
         Forward pass to produce a multi-step forecast.
 
         Args:
-            input_seq (torch.FloatTensor): Sequence data for prediction.
+            input_seq (torch.FloatTensor): One sequence of shape (window,), or a
+                batch of shape (batch, window).
 
         Returns:
-            torch.FloatTensor: Model outputs for multi-step forecast.
+            torch.FloatTensor: Model outputs for multi-step forecast, shape
+            (1, output_size) for one sequence or (batch, output_size).
         """
+        if input_seq.dim() == 2:
+            lstm_out, _ = self.lstm(input_seq.T.unsqueeze(-1))   # (window, batch, 1)
+            return self.linear(lstm_out[-1])
         lstm_out, _ = self.lstm(input_seq.view(len(input_seq), 1, -1))
         predictions = self.linear(lstm_out[-1])
         return predictions

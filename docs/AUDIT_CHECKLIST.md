@@ -26,13 +26,21 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
 - [x] **5. Joint multi-output candidates (MoE) scored on training data vs CV for everything else.**
   `multioutreg/model_selection/auto_detect.py` compared in-sample MSE to `GridSearchCV.best_score_`.
   *Fix:* score with out-of-fold predictions on the same CV splitter.
-- [ ] **6. Time-series ranking compares different scales, all in-sample.**
+- [x] **6. Time-series ranking compares different scales, all in-sample.**
   ARIMA/SARIMA metrics are on the *differenced* series (in-sample one-step); LSTM on original
   scale (in-sample); `Ranker` averages ranks across these.
   *Fix:* hold out last H points, forecast every model on the original scale, then rank
   (optionally Diebold–Mariano). **Decided:** sample-size-dependent rolling-origin evaluation
   (all origins for small n, 10 for large n). Full writeup:
   [Appendix A](#appendix-a--item-6-time-series-model-ranking).
+  *Done (2026-10-28):* `ts_dynamic_fit/src/forecasters.py` gives ARIMA, SARIMA, LSTM and a naive
+  baseline one `fit(y)` / `forecast(H)` interface on the original scale;
+  `src/evaluate.py` plans the origins (A.4), scores every model against the same values with
+  one metric function, ranks on mean MASE and reports an HLN-corrected Diebold–Mariano test.
+  `ts-pipeline` and the UI tab both call `rank_forecasters`. Reproduction (A.6 step 0, random
+  walk with drift around 1000): before, ARIMA "won" with in-sample RMSE 4.8 on differences
+  vs LSTM 11.5 on levels; after, all models are within MASE 1.37–1.47 of each other on the
+  same targets and DM p = 0.52. See A.7 for deviations.
 
 ## High (wrong statistics / assumptions)
 
@@ -183,9 +191,13 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   *Done:* delegates to the shared detector above (returns 0 when there is no season, as before).
   When s < 2 the grid only tries P = Q = 0: seasonal terms with s < 2 always failed in statsmodels,
   so 12 of the 16 fits were wasted.
-- [ ] **23. ARIMA/SARIMA "MAPE" is |mean signed % error|** — use `mean(abs(...))`.
-- [ ] **24. ARIMA differencing loop** has no max d; forecasts/intervals on differenced scale.
+- [x] **23. ARIMA/SARIMA "MAPE" is |mean signed % error|** — use `mean(abs(...))`.
+  *Done* in the legacy `run()` (still in-sample, on the differenced series; the ranking no
+  longer uses it and reports sMAPE on the original scale).
+- [x] **24. ARIMA differencing loop** has no max d; forecasts/intervals on differenced scale.
   Fit `ARIMA(p,d,q)` directly.
+  *Done:* the new forecasters choose d <= 2 with the ADF test and fit `ARIMA(p,d,q)` /
+  `SARIMAX` on the undifferenced series; the legacy `run()` loops are capped at d = 2 too.
 - [ ] **25. `ForecastAutoIntervals`**: quantile branch changes `quantile` without refitting
   (lower = mean = upper); bootstrap branch uses in-sample residuals and ignores horizon growth.
 - [x] **26. `time_series/metrics.py`**: `mase` denominator should use the training series;
@@ -307,8 +319,14 @@ Audit date: 2026-10-21. Items tagged **[verified]** were reproduced empirically
   default via `guess_input_columns`. `detect_sampling` has `--columns` / `--exclude`. The app uses
   the shared detector: LHS p = 0.50, Random / Sobol p = 0.005. Also fixed a crash in the
   single-column histogram.
-- [ ] **E10.** The ts pipeline picked SARIMA from the CLI and LSTM from the UI on the same data
+- [x] **E10.** The ts pipeline picked SARIMA from the CLI and LSTM from the UI on the same data
   (unseeded LSTM + item 6 ranking).
+  *Done* by construction: both call `rank_forecasters` with the same defaults, and the LSTM
+  is seeded.
+- [ ] **E14.** `DataProcessor.preprocess_data` fills resampling gaps with 0
+  (`df.asfreq(freq, fill_value=0)`), so a missing day becomes a real zero observation, and its
+  outlier capping clips the lower bound at 0, so a series with negative values is distorted.
+  Interpolate (or leave NaN and fail) instead, and clip at the IQR bound only.
 - [x] **E13.** CI's "Generate badge" step failed on Python 3.12: `uv sync` resolved setuptools 82,
   which no longer ships `pkg_resources`, and coverage-badge 1.1.2 imports it. The `test` extra now pins
   `setuptools<81`; relocked.
@@ -475,7 +493,7 @@ Tests cover the boundaries (n = 20/21, 100/101; n_cal just below and at ⌈1/α�
 
 ## Appendix A — Item 6: time-series model ranking
 
-Status: **not started.** The evaluation scheme is decided (A.4).
+Status: **done (2026-10-28)**; see A.7 for what differs from the plan below.
 Everything below comes from reading the code. `ts-pipeline` has not been run on real data yet
 (see `TODO.md`), so the first step is to reproduce the problem (A.6, step 0).
 
@@ -673,12 +691,28 @@ refits at each origin used, so a long series costs at most k = 10 fits.
 ### A.7 Done when
 
 - [x] Evaluation scheme decided (A.4, 2026-10-28).
-- [ ] `--horizon` and `--folds` exposed in the CLI and as UI inputs; the sample-size constructor
-  on `WalkForwardCV` unit-tested on the boundaries (m ≤ 10 vs m > 10, series too short, s = 0).
-- [ ] All models are scored out-of-sample on the original scale by one shared metric function.
-- [ ] `Ranker` uses those metrics; `results.json` records H and the metrics.
-- [ ] A.3 SARIMA bugs fixed (or logged as their own items); item 26 `mase` fixed.
-- [ ] A.6 tests pass, and the CLI and UI pick the same model on the same data (closes E10).
+- [x] `--horizon` and `--folds` exposed in the CLI and as UI inputs (plus `--lstm-epochs`).
+  *Deviation:* the origin rule lives in `src/evaluate.py::plan_origins` / `OriginPlan`, not
+  in a `WalkForwardCV` constructor: `WalkForwardCV.evaluate` expects quantile forecasters
+  returning `ForecastResult`, a different interface. Boundaries are unit-tested
+  (`tests/unit/time_series/test_ts_ranking.py`). Minimum training length is
+  `max(2s, train_window + H, 16)`, 16 being the largest ARIMA grid's parameter count + 1.
+- [x] All models are scored out-of-sample on the original scale by one shared metric function.
+  ARIMA / SARIMA search their order once, on the first training window, then only re-estimate
+  at later origins; they fit on the standardised series (statsmodels' optimiser was not
+  scale-invariant: x1000 moved ARIMA's MASE by ~10%). The LSTM is seeded, scales on training
+  data only, forecasts H steps directly, and trains on mini-batches (one fit: 123 s -> ~24 s at
+  n = 150; default 100 epochs). A naive (seasonal-naive) baseline is ranked too, and can win.
+- [x] Ranking on mean MASE (ties: RMSE) in `evaluate_forecasters`; `results.json` records
+  H, s, the origins and their dates, per-model and per-origin metrics, DM and the winner's
+  forecast. *Deviation:* the legacy `Ranker` (average rank of RMSE / MAE / MAPE) is kept for
+  old callers but no longer used by the pipeline.
+- [x] A.3 SARIMA bugs fixed: `diff_count` counts only applied differences; seasonal period
+  detection was item 22. Still open: the legacy `LSTM.run()` hard-codes 10 steps and daily
+  dates (the pipeline no longer uses it), and `ts-pipeline` still saves no model file.
+- [x] A.6 tests pass, and the CLI and UI share one code path (closes E10).
+  - [ ] Follow-up: the LSTM cannot forecast outside its training range (MinMax scaling), so it
+    loses on trending series by construction; consider differencing its input.
 - [x] **E11.** Streamlit pages never set a matplotlib backend, so on an interactive default (TkAgg)
   the plotting helpers' `plt.show()` opened a desktop "Figure 1" window, blocked the run until it was
   closed, and then `safe_plot_b64` saved a blank figure into the report. All GUI scripts and the
