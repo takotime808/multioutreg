@@ -77,3 +77,30 @@ def test_cli_auto_detect_small_n_uses_cv_plus(csv_with_gaps, tmp_path):
     assert result.exit_code == 0, result.output
     assert "CV+ is used instead" in result.output
     assert "CV+ conformal intervals" in out_html.read_text(encoding="utf-8")
+
+
+def test_cli_auto_detect_use_joint_registers_joint_candidates(csv_with_gaps, tmp_path, monkeypatch):
+    import mor_cli.grid_search_auto_detect as auto_detect_cli
+    from multioutreg.model_selection import AutoDetectMultiOutputRegressor as ADR
+    from multioutreg.surrogates import PLSSurrogate, ReducedRankRegressionSurrogate
+
+    # The closed-form joint candidates only, so nested CV stays fast.
+    monkeypatch.setattr(auto_detect_cli, "joint_candidates",
+                        lambda: [PLSSurrogate(), ReducedRankRegressionSurrogate()])
+    registered = []
+    real_register = ADR.register_multi_output_candidates
+
+    def spy(self, surrogates):
+        registered.append([type(s) for s in surrogates])
+        return real_register(self, surrogates)
+
+    monkeypatch.setattr(ADR, "register_multi_output_candidates", spy)
+    out_html = tmp_path / "report.html"
+    result = CliRunner().invoke(
+        auto_detect_app,
+        [str(csv_with_gaps), INPUTS, OUTPUTS, "--use-imputation", "--use-joint",
+         "--out-html", str(out_html)],
+    )
+    assert result.exit_code == 0, result.output
+    assert registered and all(r == [PLSSurrogate, ReducedRankRegressionSurrogate] for r in registered)
+    assert out_html.exists()
