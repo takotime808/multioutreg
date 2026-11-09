@@ -55,6 +55,10 @@ from multioutreg.surrogates import (
     LassoSurrogate,
     SparseGPSurrogate,
     QuantileRegressionSurrogate,
+    PLSSurrogate,
+    JointRandomForestSurrogate,
+    ReducedRankRegressionSurrogate,
+    RegressorChainSurrogate,
 )
 from multioutreg.surrogates.rfgp_sklearn import _RFFEstimator
 from multioutreg.surrogates.polynomial_bayesian_ridge_sklearn import _PBREstimator
@@ -189,6 +193,26 @@ def drop_candidates(model: "AutoDetectMultiOutputRegressor", names) -> list[str]
     model._surrogate_constructors = [model._surrogate_constructors[i] for i in keep]
     model._model_names = [model._model_names[i] for i in keep]
     return dropped
+
+
+def joint_candidates(random_state: int | None = 0) -> list:
+    """Cheap joint multi-output surrogates for ``register_multi_output_candidates``.
+
+    PLS, a joint-tree random forest, reduced-rank regression and a random-forest
+    regressor chain. Each fits all outputs at once, so it can share structure
+    across outputs that the per-output grid search cannot; each output still
+    keeps whichever candidate scores best on it.
+    """
+    return [
+        PLSSurrogate(),
+        JointRandomForestSurrogate(n_estimators=100, random_state=random_state),
+        ReducedRankRegressionSurrogate(random_state=random_state),
+        RegressorChainSurrogate(
+            RandomForestSurrogate,
+            {"n_estimators": 100, "random_state": random_state},
+            random_state=random_state,
+        ),
+    ]
 
 
 def _clone_surrogate(surrogate):

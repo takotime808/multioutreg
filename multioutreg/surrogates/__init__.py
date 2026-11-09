@@ -38,6 +38,10 @@ from multioutreg.surrogates.multitask_gp_gpytorch import MultiTaskGPSurrogate
 from multioutreg.surrogates.gaussian_copula import GaussianCopulaSurrogate
 from multioutreg.surrogates.std_recalibration import StdRecalibratedSurrogate
 from multioutreg.surrogates.mfk_smt import MFKSurrogate
+from multioutreg.surrogates.pls_sklearn import PLSSurrogate
+from multioutreg.surrogates.joint_forest_sklearn import JointRandomForestSurrogate
+from multioutreg.surrogates.reduced_rank_sklearn import ReducedRankRegressionSurrogate
+from multioutreg.surrogates.regressor_chain import RegressorChainSurrogate
 
 __all__ = [
     "ConformalMixin",
@@ -78,5 +82,9 @@ __all__ = [
     "GaussianCopulaSurrogate",
     "StdRecalibratedSurrogate",
     "MFKSurrogate",
+    "PLSSurrogate",
+    "JointRandomForestSurrogate",
+    "ReducedRankRegressionSurrogate",
+    "RegressorChainSurrogate",
 ]
 

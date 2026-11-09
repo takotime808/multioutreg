@@ -54,7 +54,7 @@ from multioutreg.figures.conformal_plots import (
     plot_conformal_vs_gaussian,
 )
 from multioutreg.model_selection import AutoDetectMultiOutputRegressor
-from multioutreg.model_selection.auto_detect import EXPENSIVE_MODEL_NAMES, drop_candidates
+from multioutreg.model_selection.auto_detect import EXPENSIVE_MODEL_NAMES, drop_candidates, joint_candidates
 from multioutreg.model_selection.evaluation import plan_evaluation, run_evaluation
 from multioutreg.utils.imputation import detect_missing, drop_unusable_rows, impute_train_test
 from multioutreg.utils.metric_utils import gaussian_uncertainty_metrics
@@ -273,6 +273,13 @@ if uploaded_file:
             help="Trains K expert regressors specialised to different input regions via a learned gating network.",
             key="use_moe",
         )
+        use_joint = st.checkbox(
+            "Include joint multi-output models (PLS, joint random forest, reduced-rank regression, regressor chain)",
+            value=False,
+            help="Cheap models that fit all outputs at once and can share structure across them. "
+                 "Each output keeps whichever candidate scores best on it.",
+            key="use_joint",
+        )
         moe_n_experts = 4
         moe_gating_type = "linear"
         if use_moe:
@@ -357,6 +364,7 @@ if uploaded_file:
         conformal_alpha_sel = st.session_state.conformal_alpha
         use_bnn = st.session_state.use_bnn
         use_moe = st.session_state.use_moe
+        use_joint = st.session_state.use_joint
         moe_n_experts = st.session_state.get("moe_n_experts", 4)
         moe_gating_type = st.session_state.get("moe_gating_type", "linear")
         skip_expensive = st.session_state.skip_expensive
@@ -433,7 +441,7 @@ if uploaded_file:
 
         def _make_model():
             model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
-            mo_candidates = []
+            mo_candidates = joint_candidates() if use_joint else []
             if use_bnn and _torch_available:
                 from multioutreg.surrogates.bnn_pytorch import BNNSurrogate
                 mo_candidates.append(

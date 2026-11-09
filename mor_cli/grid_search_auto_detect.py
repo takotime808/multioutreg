@@ -10,7 +10,7 @@ from typing import Optional
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, root_mean_squared_error
 
 from multioutreg.model_selection import AutoDetectMultiOutputRegressor
-from multioutreg.model_selection.auto_detect import EXPENSIVE_MODEL_NAMES, drop_candidates
+from multioutreg.model_selection.auto_detect import EXPENSIVE_MODEL_NAMES, drop_candidates, joint_candidates
 from multioutreg.model_selection.evaluation import plan_evaluation, run_evaluation
 from multioutreg.utils.metric_utils import gaussian_uncertainty_metrics
 from multioutreg.figures.pca_plots import generate_pca_variance_plot
@@ -36,6 +36,9 @@ def grid_search_auto_detect(
     use_moe: bool = typer.Option(False, help="Include MoE (Mixture of Experts) as a joint multi-output candidate"),
     moe_n_experts: int = typer.Option(4, help="Number of MoE experts"),
     moe_gating_type: str = typer.Option("linear", help="MoE gating type: linear or mlp"),
+    use_joint: bool = typer.Option(
+        False, help="Include joint multi-output candidates (PLS, joint random forest, "
+                    "reduced-rank regression, regressor chain)"),
     use_imputation: bool = typer.Option(False, help="Apply KNN imputation to fill missing values in selected columns before training"),
     skip_expensive: bool = typer.Option(
         True, "--skip-expensive/--all-models",
@@ -101,15 +104,18 @@ def grid_search_auto_detect(
         model = AutoDetectMultiOutputRegressor.with_vendored_surrogates()
         if skip_expensive:
             drop_candidates(model, EXPENSIVE_MODEL_NAMES)
+        mo_candidates = joint_candidates() if use_joint else []
         if use_moe:
             from multioutreg.surrogates.moe_surrogate import MixtureOfExpertsSurrogate
-            model.register_multi_output_candidates([
+            mo_candidates.append(
                 MixtureOfExpertsSurrogate(
                     n_experts=moe_n_experts,
                     gating_type=moe_gating_type,
                     random_state=0,
                 )
-            ])
+            )
+        if mo_candidates:
+            model.register_multi_output_candidates(mo_candidates)
         return model
 
     result = run_evaluation(make_model, X, y, plan, preprocess, on_step=typer.echo)
