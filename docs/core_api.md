@@ -39,7 +39,9 @@ The full list, with when to use each, is on {doc}`integrated_surrogates`.
 |---|---|
 | {py:class}`~multioutreg.conformal.split_conformal.SplitConformalPredictor` | Distribution-free intervals from a held-out calibration set |
 | {py:class}`~multioutreg.conformal.cv_plus.CVPlusConformalPredictor` | CV+ intervals, for data too small to hold out a calibration set |
+| {py:class}`~multioutreg.conformal.joint.JointConformalPredictor` | Regions that cover all outputs together (max-norm box, Mahalanobis ellipsoid or Bonferroni) |
 | {py:func}`~multioutreg.conformal.metrics.conformal_summary` | Coverage and width per output |
+| {py:func}`~multioutreg.conformal.metrics.joint_coverage` | Fraction of rows with every output inside its interval |
 
 ## Active learning
 

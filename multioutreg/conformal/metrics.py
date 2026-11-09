@@ -49,6 +49,31 @@ def conformal_coverage(
     return pd.DataFrame(rows)
 
 
+def joint_coverage(
+    y_true: np.ndarray,
+    y_lower: np.ndarray,
+    y_upper: np.ndarray,
+) -> float:
+    """Fraction of rows whose outputs are *all* inside their intervals.
+
+    Per-output coverage from :func:`conformal_coverage` can meet its target
+    on every output while the outputs are covered together far less often.
+    Compare this against ``1 - alpha`` for intervals meant to hold jointly,
+    such as those from ``JointConformalPredictor``.
+
+    Parameters
+    ----------
+    y_true : (n_samples,) or (n_samples, n_outputs)
+    y_lower : same shape as y_true
+    y_upper : same shape as y_true
+    """
+    y_true = np.asarray(y_true)
+    covered = (y_true >= np.asarray(y_lower)) & (y_true <= np.asarray(y_upper))
+    if covered.ndim == 1:
+        return float(np.mean(covered))
+    return float(np.mean(np.all(covered, axis=1)))
+
+
 def conformal_interval_width(
     y_lower: np.ndarray,
     y_upper: np.ndarray,
