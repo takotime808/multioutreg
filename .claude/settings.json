@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git push*)",
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR/.claude/hooks/check_local_leaks.py\"",
+            "timeout": 60,
+            "onFailure": "block",
+            "statusMessage": "Scanning for local-machine strings before push..."
+          },
+          {
+            "type": "agent",
+            "if": "Bash(git push*)",
+            "timeout": 120,
+            "statusMessage": "Agent reviewing push for machine-specific content...",
+            "prompt": "A Bash command is about to run: $ARGUMENTS\n\nFIRST: look at tool_input.command. If it does not actually invoke `git push` (e.g. it only mentions other git subcommands), respond ok=true immediately without running anything.\n\nOtherwise, you are a pre-push privacy reviewer. Verify that nothing being pushed contains information specific to the developer's local machine. A deterministic scanner already checks usernames, $HOME, hostname and /Users|/home|C:\\Users paths; your job is to catch what regexes miss.\n\nSteps:\n1. Run `whoami`, `hostname`, `echo $HOME` to learn the local identifiers.\n2. Determine the commits being pushed: `git merge-base HEAD @{upstream} 2>/dev/null || git merge-base HEAD origin/main`, then `git diff --stat <base>..HEAD` and `git log -p <base>..HEAD`. Focus on ADDED lines.\n3. Pay special attention to .ipynb files: outputs often embed env PATHs, sys.path / site-packages locations, conda/venv env names under absolute paths, kernel temp dirs (/var/folders, ipykernel_*), tracebacks with absolute paths, pip/conda environment dumps, and metadata like kernelspec display names that reveal local setup.\n4. Also flag: absolute local filesystem paths of any kind, the local username or hostname in any casing, private IPs/ports of local services, API keys/tokens, personal emails other than GitHub noreply addresses.\n\nDo NOT flag: generic placeholders (/Users/you, /home/runner), relative paths, the noreply address in commit metadata, or the file .claude/hooks/check_local_leaks.py.\n\nIf you find anything, respond ok=false with a reason listing each file:line (or commit+file) and the offending snippet with the sensitive part partially masked. Otherwise respond ok=true."
+          }
+        ]
+      }
+    ]
+  }
+}
