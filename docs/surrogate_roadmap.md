@@ -12,7 +12,7 @@ multi-output capabilities of `multioutreg`. See
 |---|---|---|
 | Active learning | Acquisitions, query-by-committee, batch selection, the loop, cost-aware multi-fidelity acquisition (`multioutreg.active`, prototype) | Max-value entropy search, CLI and GUI, NaN std in Auto-Detect |
 | Benchmarks | 18 problems in `multioutreg.active.benchmarks.BENCHMARKS`, including DTLZ2; AL, cost-savings, multi-output and hypervolume notebooks | The rest of the port list; the multi-fidelity and Himmelblau notebooks |
-| Multi-objective metrics | Exact N-D `hypervolume()` (#36); decision regret as the default, front comparison as `front_*`; joint `energy_score` and `variogram_score` | Multivariate CRPS variants, joint coverage of prediction regions |
+| Multi-objective metrics | Exact N-D `hypervolume()` (#36); decision regret as the default, front comparison as `front_*`; joint `energy_score` and `variogram_score`; `joint_coverage` of prediction regions | Multivariate CRPS variants |
 | Multi-fidelity surrogates | `MFKSurrogate` (candidate 1: SMT co-kriging, maximum-likelihood `rho`); Stacked VFM intervals; joint `rho` in `AdditiveCorrectionVFM` | The other five candidates |
 | Multi-output surrogates | Multi-task GP (1), PCA output reduction (2), Gaussian copula (5); energy and variogram scores | `RegressorChain` (3), natively joint models (4); joint conformal regions |
 | Cross-cutting | Benchmark suite (1), std recalibration (2), model persistence (5), extrapolation flag (6) | Items 3, 4, 7–12; wiring 2, 5 and 6 into the GUI, CLI and report |
@@ -74,9 +74,12 @@ Ordered by value relative to implementation effort.
 - **Joint metrics:** energy score, variogram score, multivariate CRPS, and
   joint coverage of the prediction region. These test whether output
   correlations are captured, which per-output metrics cannot.
-- **Joint conformal regions:** the `multioutreg.conformal` module is per-output.
-  Max-norm or Mahalanobis nonconformity scores would give simultaneous coverage
-  across all outputs.
+- **Joint conformal regions** (**done**: `JointConformalPredictor`, with
+  max-norm, Mahalanobis and Bonferroni scores, and the `joint_coverage`
+  metric). Gives simultaneous coverage across all outputs, where the other
+  `multioutreg.conformal` predictors only cover each output on its own. Still
+  open: a CV+ variant for small data, and exposing it in the GUI, CLI and
+  report.
 
 ## Combined Multi-Output and Multi-Fidelity
 
