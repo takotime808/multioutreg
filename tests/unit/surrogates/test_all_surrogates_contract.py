@@ -101,6 +101,10 @@ SPECS = {
         "kind": "mfk",
         "requires": ("multioutreg.surrogates.mfk_smt", "_MFK_AVAILABLE"),
     },
+    "PLSSurrogate": _plain(n_components=2),
+    "JointRandomForestSurrogate": _plain(n_estimators=20, random_state=0),
+    "ReducedRankRegressionSurrogate": _plain(cv=3),
+    "RegressorChainSurrogate": _plain(n_samples=20, random_state=0),
 }
 
 SURROGATE_NAMES = sorted(SPECS)
