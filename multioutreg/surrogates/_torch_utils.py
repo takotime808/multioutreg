@@ -18,7 +18,7 @@ def require_torch():
     if not _TORCH_AVAILABLE:
         raise ImportError(
             "PyTorch is required for this surrogate. "
-            "Install it with: pip install torch"
+            "Install it with: pip install \"multioutreg[torch]\""
         )
 
 

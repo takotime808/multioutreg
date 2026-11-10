@@ -8,6 +8,15 @@ git clone https://github.com/takotime808/multioutreg.git && cd multioutreg
 pip install .
 ```
 
+The core install covers the surrogates built on scikit-learn, model selection,
+conformal prediction, active learning, the HTML report and the `multioutreg`
+CLI. It does not install PyTorch or Streamlit; add the extras below for those.
+
+```bash
+pip install ".[gui]"        # the Streamlit app
+pip install ".[gui,ts]"     # ...with its time-series page
+```
+
 ## Optional extras ##
 
 Some surrogates and features depend on packages that are not installed by
@@ -16,7 +25,9 @@ default. Install them by naming the extra in brackets (quote the argument in
 
 | Extra | Installs | Enables |
 |-------|----------|---------|
-| `ts` | `chronos-forecasting`, `torch`, `boto3`, `python-dotenv` | Chronos zero-shot forecasting (`ts-forecast`) |
+| `gui` | `streamlit`, `plotly`, `pyarrow<26` | The Streamlit app in `multioutreg/gui` |
+| `torch` | `torch` | `BNNSurrogate`, `DeepEnsembleSurrogate` |
+| `ts` | `chronos-forecasting`, `torch`, `boto3`, `python-dotenv` | Time-series commands: Chronos zero-shot forecasting (`ts-forecast`) and `ts-pipeline` |
 | `ngboost` | `ngboost`, `scikit-learn>=1.6` | `NGBoostSurrogate` |
 | `xgboost` | `xgboost` | `XGBoostSurrogate` |
 | `lightgbm` | `lightgbm` | `LightGBMSurrogate` |
@@ -25,7 +36,7 @@ default. Install them by naming the extra in brackets (quote the argument in
 | `smt` | `smt[gpx]` | `KPLSSurrogate`, `GPXSurrogate` |
 | `lstm` | `keras` | LSTM model in `ts-pipeline` |
 | `test` | `pytest`, `pytest-cov`, `pytest-sugar`, `coverage-badge` | Running the test suite |
-| `examples` | `ray`, `hyperopt`, `plotly` | Running the example notebooks in `examples/` |
+| `examples` | `ray`, `hyperopt`, `plotly`, `nbformat`, `ipykernel` | Running the example notebooks in `examples/` |
 | `all` | every extra above **except** `examples` | Every library feature plus the test suite |
 
 ```bash

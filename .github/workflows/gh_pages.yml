@@ -54,7 +54,7 @@ jobs:
       - name: Install project and doc dependencies
         run: |
           pip install --upgrade pip
-          pip install .[test]  # sphinx-click imports the CLI, which needs the package
+          pip install ".[gui,torch,ts,test]"  # sphinx-click imports the CLI; autodoc imports the GUI, torch and ts modules
           pip install sphinx \
             "sphinx-autoapi>=2.1.1" \
             sphinx-click \
