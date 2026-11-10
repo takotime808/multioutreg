@@ -95,6 +95,7 @@ Where to go next
    tutorials/joint_scores
    tutorials/multi_fidelity_surrogates
    tutorials/active_learning_benchmarks
+   tutorials/benchmark_problems
    tutorials/cost_savings
    tutorials/imputation_methods
    tutorials/active_learning_missing_inputs
