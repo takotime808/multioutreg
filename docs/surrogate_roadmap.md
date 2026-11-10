@@ -11,7 +11,7 @@ multi-output capabilities of `multioutreg`. See
 | Area | Done | Open |
 |---|---|---|
 | Active learning | Acquisitions, query-by-committee, batch selection, the loop, cost-aware multi-fidelity acquisition (`multioutreg.active`, prototype) | Max-value entropy search, CLI and GUI, NaN std in Auto-Detect |
-| Benchmarks | 18 problems in `multioutreg.active.benchmarks.BENCHMARKS`, including DTLZ2; AL, cost-savings, multi-output and hypervolume notebooks | The rest of the port list; the multi-fidelity and Himmelblau notebooks |
+| Benchmarks | 18 problems in `multioutreg.active.benchmarks.BENCHMARKS`, including DTLZ2; the 14-problem AVT-331 L1 multi-fidelity suite in `L1_BENCHMARKS` with Mainini et al.'s optimization errors in `multioutreg.metrics`; AL, cost-savings, multi-output, hypervolume and L1 replication notebooks | The rest of the port list; the multi-fidelity and Himmelblau notebooks |
 | Multi-objective metrics | Exact N-D `hypervolume()` (#36); decision regret as the default, front comparison as `front_*`; joint `energy_score` and `variogram_score`; `joint_coverage` of prediction regions | Multivariate CRPS variants |
 | Multi-fidelity surrogates | `MFKSurrogate` (candidate 1: SMT co-kriging, maximum-likelihood `rho`); Stacked VFM intervals; joint `rho` in `AdditiveCorrectionVFM` | The other five candidates |
 | Multi-output surrogates | Multi-task GP (1), PCA output reduction (2), `RegressorChainSurrogate` (3), natively joint PLS, joint-tree random forest and reduced-rank regression (4), Gaussian copula (5); energy and variogram scores | CatBoost `MultiRMSE` (4); joint conformal regions |

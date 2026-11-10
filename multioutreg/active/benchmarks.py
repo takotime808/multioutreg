@@ -14,6 +14,13 @@ cheapest and the last is the high fidelity, as in Kennedy & O'Hagan (2000),
 SMT's ``MFK`` and Emukit. Mainini et al. (2022) and BenchmarkFcns number the
 other way (``f_1`` / column 0 is the highest fidelity), so reverse their
 levels when porting.
+
+:data:`L1_BENCHMARKS` (``"mf1.1"`` ... ``"mf6"``) is the AVT-331 L1
+multi-fidelity suite of Mainini et al. (2022, arXiv:2204.07867), written from
+the paper and checked against the authors' reference optima
+(https://gitlab.com/qudo046/avt-331-l1-benchmarks). Its raw functions keep
+the paper's ``level`` numbering (1 is the highest fidelity); the
+:class:`Benchmark` objects follow this module's lowest-first order.
 """
 
 from __future__ import annotations
@@ -283,6 +290,166 @@ def viennet2(X):
 
 
 # ---------------------------------------------------------------------------
+# AVT-331 L1 multi-fidelity suite (Mainini et al. 2022)
+# ---------------------------------------------------------------------------
+# ``level`` uses the paper's numbering: 1 is the highest fidelity. Where the
+# paper's text and the authors' code (gitlab.com/qudo046/avt-331-l1-benchmarks)
+# disagree, these follow the code, which produced the published optima.
+
+
+def forrester_mf(X, level: int = 1):
+    """Four-level Forrester on [0, 1] (MF1.1); ``f_3``, ``f_4`` are affine in ``f_1``."""
+    x = np.asarray(X, dtype=np.float64)[:, 0]
+    f1 = (6 * x - 2) ** 2 * np.sin(12 * x - 4)
+    if level == 1:
+        return _col(f1)
+    if level == 2:
+        return _col((5.5 * x - 2.5) ** 2 * np.sin(12 * x - 4))
+    if level == 3:
+        return _col(0.75 * f1 + 5 * (x - 0.5) - 2)
+    return _col(0.5 * f1 + 10 * (x - 0.5) - 5)
+
+
+def jump_forrester(X, level: int = 1):
+    """Forrester with a +10 jump at x = 0.5 (MF1.2), two levels.
+
+    The low level's offset right of the jump is -7, as in the authors' code;
+    the paper's text gives -2.
+    """
+    x = np.asarray(X, dtype=np.float64)[:, 0]
+    right = x > 0.5
+    f1 = (6 * x - 2) ** 2 * np.sin(12 * x - 4) + 10 * right
+    if level == 1:
+        return _col(f1)
+    return _col(0.5 * f1 + 10 * (x - 0.5) - np.where(right, 7.0, 5.0))
+
+
+def rosenbrock_mf(X, level: int = 1):
+    """Three-level Rosenbrock on [-2, 2]^D (MF2). ``f_2`` moves the valley; ``f_3`` rescales ``f_1``."""
+    X = np.asarray(X, dtype=np.float64)
+    a, b = X[:, :-1], X[:, 1:]
+    if level == 2:
+        return _col((50 * (b - a ** 2) ** 2 + (-2 - a) ** 2).sum(1) - 0.5 * X.sum(1))
+    f1 = (100 * (b - a ** 2) ** 2 + (1 - a) ** 2).sum(1)
+    if level == 1:
+        return _col(f1)
+    # The paper's denominator reads 0.25 x_1; the code (used here) sums 0.25 x_i.
+    return _col((f1 - 4 - 0.5 * X.sum(1)) / (10 + 0.25 * X.sum(1)))
+
+
+_RASTRIGIN_PHI = {1: 10000.0, 2: 5000.0, 3: 2500.0}
+
+
+def rastrigin_mf(X, level: int = 1, theta: float = 0.2):
+    """Three-level shifted-rotated Rastrigin on [-0.1, 0.2]^D (MF3); minimum 0 at x = 0.1.
+
+    Only the last two coordinates are rotated, as in the authors' code. Lower
+    levels add a resolution error ``a cos^2(w z + b + pi)`` that grows as
+    ``phi`` falls.
+    """
+    X = np.asarray(X, dtype=np.float64)
+    D = X.shape[1]
+    R = np.eye(D)
+    c, s = np.cos(theta), np.sin(theta)
+    R[D - 2:, D - 2:] = [[c, -s], [s, c]]
+    z = (X - 0.1) @ R.T
+    th = 1 - 1e-4 * _RASTRIGIN_PHI[level]
+    f = (z ** 2 + 1 - np.cos(10 * np.pi * z)).sum(1)
+    return _col(f + (th * np.cos(10 * np.pi * th * z + 0.5 * np.pi * th + np.pi) ** 2).sum(1))
+
+
+def heterogeneous_mf(X, level: int = 1):
+    """Heterogeneous function on [0, 1]^D (MF4), D = 1, 2 or 3, two levels.
+
+    For D = 1 the high level equals :func:`heterogeneous`. For D >= 2 the
+    minimum, -0.562712, is the whole face ``x_1 = 0``.
+    """
+    X = np.asarray(X, dtype=np.float64)
+    D, x1 = X.shape[1], X[:, 0]
+    if D == 1:
+        f1 = np.sin(30 * (x1 - 0.9) ** 4) * np.cos(2 * (x1 - 0.9)) + (x1 - 0.9) / 2
+        return _col(f1 if level == 1 else (f1 - 1 + x1) / (1 + 0.25 * x1))
+    f1 = np.sin(21 * (x1 - 0.9) ** 4) * np.cos(2 * (x1 - 0.9)) + (x1 - 0.7) / 2
+    prod = x1.copy()
+    for i in range(2, D + 1):
+        prod = prod * X[:, i - 1]
+        f1 = f1 + i * X[:, i - 1] ** i * np.sin(prod)
+    if level == 1:
+        return _col(f1)
+    w = np.array([0.25 * i * (1 if i <= 2 else -1) for i in range(1, D + 1)])
+    return _col((f1 - 2 + X.sum(1)) / (5 + X @ w))
+
+
+_SPRING_DT = {1: 0.01, 2: 0.6}
+
+
+def _spring_x1(m1, m2, k1, k2, dt, tf: float = 6.0):
+    """RK4 position of mass 1 at ``tf`` for two masses, three springs (k3 = k1), from x = (1, 0) at rest."""
+    y = np.zeros((m1.shape[0], 4))
+    y[:, 0] = 1.0
+
+    def rhs(y):
+        return np.column_stack([
+            y[:, 2], y[:, 3],
+            (-(k1 + k2) * y[:, 0] + k2 * y[:, 1]) / m1,
+            (k2 * y[:, 0] - (k1 + k2) * y[:, 1]) / m2,
+        ])
+
+    for _ in range(int(tf / dt)):
+        a = dt * rhs(y)
+        b = dt * rhs(y + a / 2)
+        c = dt * rhs(y + b / 2)
+        d = dt * rhs(y + c)
+        y = y + (a + 2 * b + 2 * c + d) / 6
+    return _col(y[:, 0])
+
+
+def springs(X, level: int = 1):
+    """Spring stiffnesses ``(k1, k2)`` in [1, 4]^2 with unit masses (MF5.1); RK4 step 0.01 / 0.6."""
+    X = np.asarray(X, dtype=np.float64)
+    one = np.ones(len(X))
+    return _spring_x1(one, one, X[:, 0], X[:, 1], _SPRING_DT[level])
+
+
+def spring_masses(X, level: int = 1):
+    """``(k1, k2, m1, m2)`` in [1, 4]^4 (MF5.2). The minimum -1 is reached at more than one design."""
+    X = np.asarray(X, dtype=np.float64)
+    return _spring_x1(X[:, 2], X[:, 3], X[:, 0], X[:, 1], _SPRING_DT[level])
+
+
+def paciorek(X, level: int = 1, rng=None):
+    """Paciorek ``sin(1 / (x1 x2))`` on [0.3, 1]^2 (MF6) with Gaussian noise.
+
+    ``level=0`` is the noise-free truth; level 1 adds N(0, 0.0125^2) and level
+    2 (the low fidelity, ``- 9 A^2 cos(1 / (x1 x2))`` with A = 0.5) adds
+    N(0, 0.075^2).
+    """
+    X = np.asarray(X, dtype=np.float64)
+    p = 1.0 / (X[:, 0] * X[:, 1])
+    if level == 0:
+        return _col(np.sin(p))
+    rng = np.random.default_rng() if rng is None else rng
+    if level == 1:
+        return _col(np.sin(p) + rng.normal(0, 0.0125, len(p)))
+    return _col(np.sin(p) - 2.25 * np.cos(p) + rng.normal(0, 0.075, len(p)))
+
+
+def _paciorek_minima(n: int = 4001) -> np.ndarray:
+    """Points on the curves ``x1 x2 = 2 / ((3 + 4j) pi)``, j = 0, 1, inside [0.3, 1]^2."""
+    x1 = np.linspace(0.3, 1.0, n)
+    pts = []
+    for p in (2 / (3 * np.pi), 2 / (7 * np.pi)):
+        x2 = p / x1
+        ok = (x2 >= 0.3) & (x2 <= 1.0)
+        pts.append(np.column_stack([x1[ok], x2[ok]]))
+    return np.vstack(pts)
+
+
+def _x1_face_distance(U):
+    return np.abs(np.atleast_2d(U)[:, 0])
+
+
+# ---------------------------------------------------------------------------
 # Benchmark container
 # ---------------------------------------------------------------------------
 
@@ -293,6 +460,14 @@ class Benchmark:
 
     ``functions`` and ``costs`` are keyed by level, ordered cheapest first
     (index 0 is the lowest fidelity); the last level is the high fidelity.
+
+    The optional fields describe the answer, for scoring an optimizer with
+    :meth:`optimum_errors`: ``maximum`` (the largest value of the high level),
+    ``argmin`` (known minimizers, one per row, in the problem's coordinates)
+    or ``argmin_distance`` (unit-cube distance to an optimal set that is not
+    a finite list of points), ``truth`` (the noise-free high level, for noisy
+    problems) and ``budget`` (the evaluation budget, in high-fidelity
+    equivalents, that the problem's source prescribes).
     """
 
     name: str
@@ -300,11 +475,18 @@ class Benchmark:
     functions: Dict[str, Callable[[np.ndarray], np.ndarray]]
     costs: Dict[str, float] = field(default_factory=dict)
     minimum: Optional[float] = None
+    maximum: Optional[float] = None
+    argmin: Optional[np.ndarray] = None
+    argmin_distance: Optional[Callable[[np.ndarray], np.ndarray]] = None
+    truth: Optional[Callable[[np.ndarray], np.ndarray]] = None
+    budget: Optional[float] = None
 
     def __post_init__(self):
         self.bounds = np.asarray(self.bounds, dtype=np.float64)
         if not self.costs:
             self.costs = {lvl: 1.0 for lvl in self.functions}
+        if self.argmin is not None:
+            self.argmin = np.atleast_2d(np.asarray(self.argmin, dtype=np.float64))
 
     @property
     def levels(self):
@@ -334,6 +516,73 @@ class Benchmark:
             raise ValueError(f"Unknown sampling method {method!r}.")
         return qmc.scale(U, self.bounds[:, 0], self.bounds[:, 1])
 
+    def true_value(self, X) -> np.ndarray:
+        """Noise-free high-fidelity value: ``truth`` if set, else the high level."""
+        fn = self.truth or self.functions[self.high]
+        return fn(np.asarray(X, dtype=np.float64))
+
+    def optimum_errors(self, x_hat) -> Dict[str, float]:
+        """Mainini et al. (2022) errors ``{"Ex", "Ef", "Et"}`` of an estimated minimizer ``x_hat``.
+
+        Needs ``minimum``, ``maximum`` and ``argmin`` or ``argmin_distance``.
+        ``Ef`` uses the noise-free high level at ``x_hat``.
+        """
+        from multioutreg.metrics.optimization_errors import optimum_errors
+
+        if self.minimum is None or self.maximum is None or (self.argmin is None and self.argmin_distance is None):
+            raise ValueError(f"Benchmark {self.name!r} does not define its optimum and range.")
+        x_hat = np.atleast_2d(np.asarray(x_hat, dtype=np.float64))
+        return optimum_errors(
+            x_hat, float(self.true_value(x_hat)[0, 0]), self.minimum, self.maximum,
+            x_star=self.argmin, bounds=self.bounds, distance=self.argmin_distance,
+        )
+
+
+_LEVEL_NAMES = {2: ["lo", "hi"], 3: ["lo", "mid", "hi"], 4: ["lo", "mid_lo", "mid_hi", "hi"]}
+
+# id: (function, bounds per input, D, budget, costs from f_1 down, f_min, f_max, argmin)
+# Values from Tables 2 and 4 of Mainini et al. (2022), at the precision of the
+# authors' AVT331_L1Problem_MinMaxValues.csv where it gives one.
+_L1_TABLE = {
+    "mf1.1": (forrester_mf, (0, 1), 1, 100, [1, 0.5, 0.1, 0.05], -6.020740056, 15.82973195, [[0.757248751]]),
+    "mf1.2": (jump_forrester, (0, 1), 1, 100, [1, 0.2], -0.986325406, 25.82973195, [[0.142589189]]),
+    "mf2.1": (rosenbrock_mf, (-2, 2), 2, 200, [1, 0.5, 0.1], 0.0, 3609.0, [[1, 1]]),
+    "mf2.2": (rosenbrock_mf, (-2, 2), 5, 500, [1, 0.5, 0.1], 0.0, 14436.0, [[1] * 5]),
+    "mf2.3": (rosenbrock_mf, (-2, 2), 10, 1000, [1, 0.5, 0.1], 0.0, 32481.0, [[1] * 10]),
+    "mf3.1": (rastrigin_mf, (-0.1, 0.2), 2, 200, [1, 6.25e-2, 3.91e-3], 0.0, 4.020040611, [[0.1] * 2]),
+    "mf3.2": (rastrigin_mf, (-0.1, 0.2), 5, 500, [1, 6.25e-2, 3.91e-3], 0.0, 10.05010153, [[0.1] * 5]),
+    "mf3.3": (rastrigin_mf, (-0.1, 0.2), 10, 1000, [1, 6.25e-2, 3.91e-3], 0.0, 20.10020305, [[0.1] * 10]),
+    "mf4.1": (heterogeneous_mf, (0, 1), 1, 100, [1, 0.2], -0.624998901, 0.361513623, [[0.275501812]]),
+    "mf4.2": (heterogeneous_mf, (0, 1), 2, 200, [1, 0.2], -0.562712306, 1.835000108, None),
+    "mf4.3": (heterogeneous_mf, (0, 1), 3, 300, [1, 0.2], -0.562712306, 4.359413062, None),
+    "mf5.1": (springs, (1, 4), 2, 200, [1, 1.67e-2], -1.0, 1.0, [[2.46740108, 2.19324544]]),
+    "mf5.2": (spring_masses, (1, 4), 4, 400, [1, 1.67e-2], -1.0, 1.0, [[1, 3.946018148, 4, 3.28627657]]),
+    "mf6": (paciorek, (0.3, 1.0), 2, 200, [1, 0.2], -1.0, 1.0, None),
+}
+
+L1_BENCHMARKS = tuple(_L1_TABLE)
+
+
+def _l1_benchmark(name: str, seed=None) -> Benchmark:
+    fn, (lo, hi), D, budget, costs, f_min, f_max, argmin = _L1_TABLE[name]
+    names = _LEVEL_NAMES[len(costs)]
+    # Paper level l (1 = highest) is names[-l]; costs are fractions of one f_1 run.
+    if fn is paciorek:
+        rng = np.random.default_rng(seed)
+        functions = {names[-l]: (lambda X, l=l: paciorek(X, l, rng=rng)) for l in range(len(costs), 0, -1)}
+        truth = lambda X: paciorek(X, 0)
+        argmin = _paciorek_minima()
+    else:
+        functions = {names[-l]: (lambda X, l=l: fn(X, l)) for l in range(len(costs), 0, -1)}
+        truth = None
+    return Benchmark(
+        name, [[lo, hi]] * D, functions,
+        costs={names[-l]: float(costs[l - 1]) for l in range(len(costs), 0, -1)},
+        minimum=f_min, maximum=f_max, argmin=argmin,
+        argmin_distance=_x1_face_distance if name in ("mf4.2", "mf4.3") else None,
+        truth=truth, budget=float(budget),
+    )
+
 
 _BOREHOLE_BOUNDS = [
     [0.05, 0.15], [100, 50000], [63070, 115600], [990, 1110],
@@ -341,16 +590,29 @@ _BOREHOLE_BOUNDS = [
 ]
 
 
-def get_benchmark(name: str, cost_ratio: float = 10.0, n_features: Optional[int] = None) -> Benchmark:
+def get_benchmark(
+    name: str, cost_ratio: Optional[float] = None, n_features: Optional[int] = None, seed=None
+) -> Benchmark:
     """Return a :class:`Benchmark` by name.
 
     Multi-fidelity benchmarks have levels ``"lo"`` and ``"hi"`` with costs
-    ``1`` and ``cost_ratio``. ``n_features`` sets the input dimension of the
-    scalable ZDT problems (default 6; the literature uses 30, which needs far
-    more training points) and of DTLZ2 (default 7, three objectives); the
-    other benchmarks have a fixed dimension.
+    ``1`` and ``cost_ratio`` (default 10). ``n_features`` sets the input
+    dimension of the scalable ZDT problems (default 6; the literature uses
+    30, which needs far more training points) and of DTLZ2 (default 7, three
+    objectives); the other benchmarks have a fixed dimension.
+
+    The names in :data:`L1_BENCHMARKS` (``"mf1.1"`` ... ``"mf6"``) are the
+    AVT-331 L1 suite of Mainini et al. (2022), with the paper's own costs (a
+    fraction of one high-fidelity run), budget, range and optimum, so
+    ``cost_ratio`` does not apply. They have two to four levels, named
+    ``"lo"``, (``"mid"`` or ``"mid_lo"``, ``"mid_hi"``) and ``"hi"``; the
+    paper's ``f_1`` is ``"hi"``. ``seed`` seeds the noise of ``"mf6"``.
     """
-    mf = {"lo": 1.0, "hi": float(cost_ratio)}
+    if name in _L1_TABLE:
+        if cost_ratio is not None or n_features is not None:
+            raise ValueError(f"Benchmark {name!r} fixes its costs and dimension; cost_ratio and n_features do not apply.")
+        return _l1_benchmark(name, seed)
+    mf = {"lo": 1.0, "hi": float(10.0 if cost_ratio is None else cost_ratio)}
     scalable = name.startswith(("zdt", "dtlz"))
     if n_features is not None and not scalable:
         raise ValueError(f"Benchmark {name!r} has a fixed input dimension; n_features applies to ZDT and DTLZ only.")
@@ -383,7 +645,7 @@ def get_benchmark(name: str, cost_ratio: float = 10.0, n_features: Optional[int]
         "dtlz2": lambda: Benchmark("dtlz2", [[0, 1]] * d, {"hi": dtlz2}),
     }
     if name not in table:
-        raise ValueError(f"Unknown benchmark {name!r}. Available: {sorted(table)}.")
+        raise ValueError(f"Unknown benchmark {name!r}. Available: {sorted(table) + list(L1_BENCHMARKS)}.")
     return table[name]()
 
 

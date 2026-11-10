@@ -12,6 +12,13 @@ from .multiobjective_regret import (
     RegretTracker,
 )
 from .joint_scores import energy_score, variogram_score, gaussian_samples
+from .optimization_errors import (
+    design_error,
+    goal_error,
+    total_error,
+    normalized_rmse,
+    optimum_errors,
+)
 
 __all__ = [
     "pareto_mask",
@@ -26,4 +33,9 @@ __all__ = [
     "energy_score",
     "variogram_score",
     "gaussian_samples",
+    "design_error",
+    "goal_error",
+    "total_error",
+    "normalized_rmse",
+    "optimum_errors",
 ]
