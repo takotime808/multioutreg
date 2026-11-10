@@ -30,6 +30,21 @@ dependencies = [
   # "textual",
   "pandas>=2.0,<2.2", #==2.1.4
   "numpy>=1.26,<2.0", # ==1.26.4
+  # ----- Hosted Streamlit app (multioutreg.streamlit.app) -----
+  # Streamlit Community Cloud installs only these core dependencies, never
+  # extras, so everything the app imports has to be listed here. Removing any
+  # of them breaks the deployment (ModuleNotFoundError at startup). They are
+  # repeated in the gui / torch / ts extras below; do not drop them from core
+  # until the deployment installs those extras and that has been checked on a
+  # branch deployment.
+  "streamlit>=1.50",  # width="stretch" replaces deprecated use_column_width
+  "plotly",  # imported at module level by multioutreg/gui/results_tabs.py
+  # pyarrow (pulled in by streamlit) requires NumPy 2 from 26.0; its metadata doesn't say so.
+  "pyarrow<26",
+  "nbformat>=4.2.0",
+  "chronos-forecasting>=1.5.0",
+  "torch>=2.1",
+  # ----- end hosted-app dependencies -----
   "statsmodels",
   "joblib",
   # "typing-extensions", # sub-dep of other package
@@ -39,7 +54,7 @@ dependencies = [
 
 [project.optional-dependencies]
 gui = [
-  # The Streamlit app in multioutreg/gui. Not needed for the library or the CLI.
+  # The Streamlit app in multioutreg/gui. Also in core for now (see the note there).
   "streamlit>=1.50",  # width="stretch" replaces deprecated use_column_width
   "plotly",  # imported at module level by multioutreg/gui/results_tabs.py
   # pyarrow (pulled in by streamlit) requires NumPy 2 from 26.0; its metadata doesn't say so.

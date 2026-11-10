@@ -8,14 +8,9 @@ git clone https://github.com/takotime808/multioutreg.git && cd multioutreg
 pip install .
 ```
 
-The core install covers the surrogates built on scikit-learn, model selection,
-conformal prediction, active learning, the HTML report and the `multioutreg`
-CLI. It does not install PyTorch or Streamlit; add the extras below for those.
-
-```bash
-pip install ".[gui]"        # the Streamlit app
-pip install ".[gui,ts]"     # ...with its time-series page
-```
+The core install includes Streamlit, Plotly, PyTorch and Chronos, because the
+hosted Streamlit app installs core dependencies only. The `gui`, `torch` and
+`ts` extras below list the same packages, ready for when they leave core.
 
 ## Optional extras ##
 
