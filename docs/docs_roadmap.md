@@ -150,9 +150,12 @@ Blockers, in order:
 - [ ] Settle the patent question and pick an open-source license
   (MIT / BSD-3 / Apache-2.0). Apache-2.0 includes a patent grant, which
   matters if the patent goes ahead.
-- [ ] Move `torch`, `chronos-forecasting`, `streamlit`, `shap` and
-  `umap-learn` out of core into extras (`[ts]`, `[gui]`, `[explain]`), and
-  check that `import multioutreg` works without them.
+- [x] Move `torch`, `chronos-forecasting` and `streamlit` out of core into
+  extras (`[torch]`, `[ts]`, `[gui]`);
+  `tests/unit/test_optional_dependencies.py` checks the library and CLI
+  import without them.
+- [ ] Move `shap` and `umap-learn` into an `[explain]` extra. The report has
+  to degrade cleanly without SHAP first.
 - [ ] Loosen the `numpy`, `pandas` and `pyarrow` pins, or document why each
   stays.
 - [ ] Fill in `authors`, `urls` and `classifiers` in `pyproject.toml`, and

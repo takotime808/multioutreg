@@ -49,7 +49,7 @@ The full list, with when to use each, is on {doc}`integrated_surrogates`.
 |---|---|
 | {py:class}`~multioutreg.active.loop.ActiveLearner` | Pool-based loop: fit, score candidates with an acquisition, label the best, repeat |
 | {py:class}`~multioutreg.active.multi_fidelity.MultiFidelityActiveLearner` | Chooses the point **and** the fidelity level under a cost budget |
-| {py:func}`~multioutreg.active.benchmarks.get_benchmark` | Analytic test problems with a known answer, including multi-fidelity pairs |
+| {py:func}`~multioutreg.active.benchmarks.get_benchmark` | Analytic test problems with a known answer, including multi-fidelity pairs and the 14-problem AVT-331 L1 suite (`L1_BENCHMARKS`, Mainini et al. 2022) |
 
 ## Multi-objective metrics
 
@@ -58,6 +58,17 @@ The full list, with when to use each, is on {doc}`integrated_surrogates`.
 {py:func}`~multioutreg.metrics.multiobjective_regret.epsilon_regret` and
 {py:class}`~multioutreg.metrics.multiobjective_regret.RegretTracker`; see
 {doc}`multiobjective_metrics`.
+
+## Optimization errors
+
+{py:func}`~multioutreg.metrics.optimization_errors.optimum_errors` (with
+{py:func}`~multioutreg.metrics.optimization_errors.design_error`,
+{py:func}`~multioutreg.metrics.optimization_errors.goal_error`,
+{py:func}`~multioutreg.metrics.optimization_errors.total_error`) and
+{py:func}`~multioutreg.metrics.optimization_errors.normalized_rmse`: the
+normalized design, goal, total and global-accuracy errors of Mainini et al.
+(2022). A benchmark that defines its optimum scores an estimate directly with
+`Benchmark.optimum_errors(x_hat)`.
 
 ## Reports
 

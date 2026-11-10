@@ -11,7 +11,7 @@ try:
     import torch
     from chronos import BaseChronosPipeline, ChronosPipeline
 except Exception as e:  # pragma: no cover - makes import optional
-    BaseChronosPipeline = ChronosPipeline = None
+    torch = BaseChronosPipeline = ChronosPipeline = None
     _import_err = e
 else:
     _import_err = None
@@ -55,7 +55,7 @@ class ChronosForecaster:
     ):
         if BaseChronosPipeline is None:
             raise ImportError(
-                "chronos-forecasting not available. Install with `pip install .[ts]`.\n"
+                "chronos-forecasting and torch are required. Install with `pip install \"multioutreg[ts]\"`.\n"
                 f"Original import error: {_import_err}"
             )
         self.model_name = model_name
@@ -100,7 +100,6 @@ class ChronosForecaster:
         self._contexts = [torch.tensor(v, dtype=torch.float32) for v in series.values()]
         return self
 
-    @torch.no_grad()
     def predict(
         self,
         prediction_length: int,
@@ -110,6 +109,17 @@ class ChronosForecaster:
         """
         Returns quantile forecasts with shape [n_series, n_quantiles, horizon].
         """
+        # A context manager, not a @torch.no_grad() decorator: the decorator is
+        # evaluated at import, which fails when torch (an optional extra) is missing.
+        with torch.no_grad():
+            return self._predict(prediction_length, quantiles, num_samples)
+
+    def _predict(
+        self,
+        prediction_length: int,
+        quantiles: Optional[Sequence[float]],
+        num_samples: int,
+    ) -> ForecastResult:
         if not self._contexts:
             raise RuntimeError("Call fit(...) with your historical series first.")
 

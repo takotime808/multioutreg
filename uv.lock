@@ -3011,15 +3011,11 @@ name = "multioutreg"
 version = "0.0.1"
 source = { editable = "." }
 dependencies = [
-    { name = "chronos-forecasting" },
     { name = "jinja2" },
     { name = "joblib" },
     { name = "matplotlib" },
-    { name = "nbformat" },
     { name = "numpy" },
     { name = "pandas" },
-    { name = "plotly" },
-    { name = "pyarrow" },
     { name = "pyfiglet" },
     { name = "pyyaml" },
     { name = "scikit-learn", version = "1.7.2", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
@@ -3029,11 +3025,8 @@ dependencies = [
     { name = "seaborn" },
     { name = "shap" },
     { name = "statsmodels" },
-    { name = "streamlit" },
     { name = "termcolor" },
     { name = "terminology" },
-    { name = "torch", version = "2.2.2", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'darwin'" },
-    { name = "torch", version = "2.10.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'x86_64' or sys_platform != 'darwin'" },
     { name = "typer-cli" },
     { name = "umap-learn" },
     { name = "uncertainty-toolbox" },
@@ -3053,9 +3046,9 @@ all = [
     { name = "neuralforecast", version = "3.0.2", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'darwin'" },
     { name = "neuralforecast", version = "3.3.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'x86_64' or sys_platform != 'darwin'" },
     { name = "ngboost" },
-    { name = "numpy" },
-    { name = "pandas" },
+    { name = "plotly" },
     { name = "prophet" },
+    { name = "pyarrow" },
     { name = "pymoo" },
     { name = "pytest" },
     { name = "pytest-cov" },
@@ -3065,6 +3058,7 @@ all = [
     { name = "scikit-learn", version = "1.9.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "setuptools" },
     { name = "smt", extra = ["gpx"] },
+    { name = "streamlit" },
     { name = "torch", version = "2.2.2", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'darwin'" },
     { name = "torch", version = "2.10.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'x86_64' or sys_platform != 'darwin'" },
     { name = "xgboost", version = "3.2.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
@@ -3077,12 +3071,18 @@ examples = [
     { name = "hyperopt" },
     { name = "ipykernel", version = "7.3.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "ipykernel", version = "7.4.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "nbformat" },
     { name = "plotly" },
     { name = "ray", version = "2.49.2", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'darwin'" },
     { name = "ray", version = "2.59.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'x86_64' or sys_platform != 'darwin'" },
 ]
 gpytorch = [
     { name = "gpytorch" },
+]
+gui = [
+    { name = "plotly" },
+    { name = "pyarrow" },
+    { name = "streamlit" },
 ]
 lightgbm = [
     { name = "lightgbm" },
@@ -3116,11 +3116,13 @@ test = [
     { name = "pytest-sugar" },
     { name = "setuptools" },
 ]
+torch = [
+    { name = "torch", version = "2.2.2", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'darwin'" },
+    { name = "torch", version = "2.10.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'x86_64' or sys_platform != 'darwin'" },
+]
 ts = [
     { name = "boto3" },
     { name = "chronos-forecasting" },
-    { name = "numpy" },
-    { name = "pandas" },
     { name = "python-dotenv" },
     { name = "torch", version = "2.2.2", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'x86_64' and sys_platform == 'darwin'" },
     { name = "torch", version = "2.10.0", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'x86_64' or sys_platform != 'darwin'" },
@@ -3134,7 +3136,6 @@ xgboost = [
 requires-dist = [
     { name = "boto3", marker = "extra == 'ts'" },
     { name = "catboost", marker = "extra == 'catboost'" },
-    { name = "chronos-forecasting", specifier = ">=1.5.0" },
     { name = "chronos-forecasting", marker = "extra == 'ts'", specifier = ">=1.5.0" },
     { name = "coverage-badge", marker = "extra == 'test'" },
     { name = "gpytorch", marker = "extra == 'gpytorch'" },
@@ -3145,18 +3146,16 @@ requires-dist = [
     { name = "keras", marker = "extra == 'lstm'" },
     { name = "lightgbm", marker = "extra == 'lightgbm'" },
     { name = "matplotlib", specifier = ">=3.5,<4.0" },
-    { name = "multioutreg", extras = ["ts", "ngboost", "xgboost", "lightgbm", "catboost", "gpytorch", "smt", "lstm", "prophet", "neuralforecast", "moo", "test"], marker = "extra == 'all'" },
-    { name = "nbformat", specifier = ">=4.2.0" },
+    { name = "multioutreg", extras = ["gui", "torch", "ts", "ngboost", "xgboost", "lightgbm", "catboost", "gpytorch", "smt", "lstm", "prophet", "neuralforecast", "moo", "test"], marker = "extra == 'all'" },
+    { name = "nbformat", marker = "extra == 'examples'", specifier = ">=4.2.0" },
     { name = "neuralforecast", marker = "extra == 'neuralforecast'", specifier = ">=1.7" },
     { name = "ngboost", marker = "extra == 'ngboost'" },
     { name = "numpy", specifier = ">=1.26,<2.0" },
-    { name = "numpy", marker = "extra == 'ts'", specifier = ">=1.26,<2.0" },
     { name = "pandas", specifier = ">=2.0,<2.2" },
-    { name = "pandas", marker = "extra == 'ts'", specifier = ">=2.0,<2.2" },
-    { name = "plotly" },
     { name = "plotly", marker = "extra == 'examples'" },
+    { name = "plotly", marker = "extra == 'gui'" },
     { name = "prophet", marker = "extra == 'prophet'", specifier = ">=1.1" },
-    { name = "pyarrow", specifier = "<26" },
+    { name = "pyarrow", marker = "extra == 'gui'", specifier = "<26" },
     { name = "pyfiglet" },
     { name = "pymoo", marker = "extra == 'moo'", specifier = ">=0.6.1" },
     { name = "pytest", marker = "extra == 'test'" },
@@ -3173,10 +3172,10 @@ requires-dist = [
     { name = "shap", specifier = ">=0.48.0" },
     { name = "smt", extras = ["gpx"], marker = "extra == 'smt'" },
     { name = "statsmodels" },
-    { name = "streamlit", specifier = ">=1.50" },
+    { name = "streamlit", marker = "extra == 'gui'", specifier = ">=1.50" },
     { name = "termcolor" },
     { name = "terminology" },
-    { name = "torch", specifier = ">=2.1" },
+    { name = "torch", marker = "extra == 'torch'", specifier = ">=2.1" },
     { name = "torch", marker = "extra == 'ts'", specifier = ">=2.1" },
     { name = "typer-cli" },
     { name = "umap-learn", specifier = ">=0.5.8" },
@@ -3184,7 +3183,7 @@ requires-dist = [
     { name = "wasabi" },
     { name = "xgboost", marker = "extra == 'xgboost'" },
 ]
-provides-extras = ["ts", "ngboost", "xgboost", "lightgbm", "catboost", "gpytorch", "smt", "lstm", "prophet", "neuralforecast", "moo", "test", "all", "examples"]
+provides-extras = ["gui", "torch", "ts", "ngboost", "xgboost", "lightgbm", "catboost", "gpytorch", "smt", "lstm", "prophet", "neuralforecast", "moo", "test", "all", "examples"]
 
 [[package]]
 name = "namex"

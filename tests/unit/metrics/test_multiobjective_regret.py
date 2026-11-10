@@ -211,7 +211,7 @@ from multioutreg.metrics import multiobjective_regret as mor  # noqa: E402
 
 def test_package_exports_match_module():
     import multioutreg.metrics as pkg
-    from multioutreg.metrics import joint_scores
+    from multioutreg.metrics import joint_scores, optimization_errors
 
     regret_names = {
         "pareto_mask", "hypervolume", "hypervolume_regret",
@@ -219,11 +219,14 @@ def test_package_exports_match_module():
         "front_scalarized_regret", "front_epsilon_regret", "RegretTracker",
     }
     joint_names = {"energy_score", "variogram_score", "gaussian_samples"}
-    assert set(pkg.__all__) == regret_names | joint_names
+    optimization_names = {"design_error", "goal_error", "total_error", "normalized_rmse", "optimum_errors"}
+    assert set(pkg.__all__) == regret_names | joint_names | optimization_names
     for name in regret_names:
         assert getattr(pkg, name) is getattr(mor, name)
     for name in joint_names:
         assert getattr(pkg, name) is getattr(joint_scores, name)
+    for name in optimization_names:
+        assert getattr(pkg, name) is getattr(optimization_errors, name)
 
 
 def test_ensure_2d_reshapes_1d_and_rejects_3d():

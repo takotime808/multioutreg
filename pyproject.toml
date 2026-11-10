@@ -25,19 +25,11 @@ dependencies = [
   "jinja2>=3.0",
   "umap-learn>=0.5.8",  # older releases break on scikit-learn>=1.8 (force_all_finite) # no version previously specified
   # "kaleido",
-  "nbformat>=4.2.0",
   # "ray[tune]>=2.30",
   # "hyperopt>=0.2",
   # "textual",
-  "streamlit>=1.50",  # width="stretch" replaces deprecated use_column_width
-  "plotly",  # imported at module level by multioutreg/gui/results_tabs.py
-  # ----- Below this line are duplicates from [ts] below...this is necessary for the
-  "chronos-forecasting>=1.5.0",
-  "torch>=2.1",
   "pandas>=2.0,<2.2", #==2.1.4
   "numpy>=1.26,<2.0", # ==1.26.4
-  # pyarrow (pulled in by streamlit) requires NumPy 2 from 26.0; its metadata doesn't say so.
-  "pyarrow<26",
   "statsmodels",
   "joblib",
   # "typing-extensions", # sub-dep of other package
@@ -46,13 +38,22 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+gui = [
+  # The Streamlit app in multioutreg/gui. Not needed for the library or the CLI.
+  "streamlit>=1.50",  # width="stretch" replaces deprecated use_column_width
+  "plotly",  # imported at module level by multioutreg/gui/results_tabs.py
+  # pyarrow (pulled in by streamlit) requires NumPy 2 from 26.0; its metadata doesn't say so.
+  "pyarrow<26",
+]
+torch = [
+  # Used by surrogate(s): BNNSurrogate, DeepEnsembleSurrogate
+  "torch>=2.1",
+]
 ts = [
+  # Time-series commands: ts-forecast (Chronos) and ts-pipeline (ARIMA / SARIMA / LSTM).
   # provides BaseChronosPipeline / ChronosPipeline
   "chronos-forecasting>=1.5.0",
   "torch>=2.1",
-  # These may clash with normal dependencies.
-  "pandas>=2.0,<2.2",
-  "numpy>=1.26,<2.0",
   "boto3",
   "python-dotenv",
 ]
@@ -110,12 +111,13 @@ all = [
   # Every optional *library* feature plus the test tooling. `examples` is
   # deliberately excluded: ray/hyperopt/plotly are only used by the example
   # notebooks, never by the package. Use `multioutreg[all,examples]` for those.
-  "multioutreg[ts,ngboost,xgboost,lightgbm,catboost,gpytorch,smt,lstm,prophet,neuralforecast,moo,test]",
+  "multioutreg[gui,torch,ts,ngboost,xgboost,lightgbm,catboost,gpytorch,smt,lstm,prophet,neuralforecast,moo,test]",
 ]
 examples = [
   "ray",
   "hyperopt",
   "plotly",
+  "nbformat>=4.2.0",  # plotly needs it to render figures in notebooks
   "ipykernel",
 ]
 

@@ -13,7 +13,7 @@ from multioutreg.active.acquisition import (
     upper_confidence_bound,
 )
 from multioutreg.active.batch import select_batch
-from multioutreg.active.benchmarks import BENCHMARKS, Benchmark, get_benchmark
+from multioutreg.active.benchmarks import BENCHMARKS, L1_BENCHMARKS, Benchmark, get_benchmark
 from multioutreg.active.loop import ActiveLearner, heldout_metrics, space_filling
 from multioutreg.active.multi_fidelity import (
     FidelityInfo,
@@ -37,6 +37,7 @@ __all__ = [
     "upper_confidence_bound",
     "select_batch",
     "BENCHMARKS",
+    "L1_BENCHMARKS",
     "Benchmark",
     "get_benchmark",
     "ActiveLearner",
