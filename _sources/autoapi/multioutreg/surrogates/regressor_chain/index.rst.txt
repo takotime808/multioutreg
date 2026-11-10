@@ -1,0 +1,119 @@
+multioutreg.surrogates.regressor_chain
+======================================
+
+.. py:module:: multioutreg.surrogates.regressor_chain
+
+.. autoapi-nested-parse::
+
+   Regressor chain with Monte Carlo propagation of upstream uncertainty.
+
+   A regressor chain fits the outputs in sequence: output ``order[k]`` is modelled
+   from the inputs plus outputs ``order[:k]``, so later outputs can depend on
+   earlier ones (a stress that follows from a computed displacement, say). Like
+   :class:`sklearn.multioutput.RegressorChain`, each link is trained on the true
+   upstream outputs.
+
+   At prediction time the upstream outputs are unknown. Feeding their predicted
+   means forward (the plug-in chain) gives the mean but drops their uncertainty.
+   Here the std and covariance come from sampling instead: draw each upstream
+   output from ``N(mean, std^2)`` of its link, feed the draws forward, and combine
+   the downstream link's own variance with the spread of its means across draws
+   (law of total variance)::
+
+       var_j(x) = E_s[std_j(x, y_s)^2] + Var_s[mean_j(x, y_s)]
+
+   The first link has no upstream outputs, so its std is exact. The returned mean
+   is the plug-in chain, so ``predict(X)`` and ``predict(X, return_std=True)``
+   agree; for linear links it equals the propagated mean.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.regressor_chain.RegressorChainSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: RegressorChainSurrogate(surrogate_cls=None, surrogate_kwargs=None, order=None, n_samples=100, random_state=0)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Chain of one-output surrogates with sampled uncertainty propagation.
+
+   :param surrogate_cls: Surrogate used for every link; it must accept ``fit(X, y)`` and
+                         ``predict(X, return_std=True)``. Defaults to
+                         ``GaussianProcessSurrogate``.
+   :type surrogate_cls: type | None
+   :param surrogate_kwargs: Passed to ``surrogate_cls``.
+   :type surrogate_kwargs: dict | None
+   :param order: Order in which outputs are chained (a permutation of the output
+                 indices). Defaults to the column order.
+   :type order: sequence of int | None
+   :param n_samples: Monte Carlo draws used for the std and covariance.
+   :type n_samples: int
+   :param random_state: Seed for the draws, so repeated calls give the same std.
+   :type random_state: int | None
+
+   .. attribute:: order_
+
+
+
+      :type: np.ndarray
+
+   .. attribute:: links_
+
+      Fitted surrogate per position in the chain.
+
+      :type: list
+
+
+   .. py:attribute:: surrogate_cls
+      :value: None
+
+
+
+   .. py:attribute:: surrogate_kwargs
+      :value: None
+
+
+
+   .. py:attribute:: order
+      :value: None
+
+
+
+   .. py:attribute:: n_samples
+      :value: 100
+
+
+
+   .. py:attribute:: random_state
+      :value: 0
+
+
+
+   .. py:method:: fit(X, Y)
+
+
+   .. py:method:: sample(X, n_samples=None, random_state=None)
+
+      Joint draws of the outputs, shape ``(n_samples, n, n_outputs)``.
+
+
+
+   .. py:method:: predict(X, return_std=False, return_cov=False)
+
+      Predict outputs, optionally with per-output std or the full covariance.
+
+      ``return_cov=True`` returns ``(mean, cov)`` with ``cov`` of shape
+      ``(n_samples, n_outputs, n_outputs)``, estimated from the joint draws,
+      and takes precedence over ``return_std``.
+
+
+

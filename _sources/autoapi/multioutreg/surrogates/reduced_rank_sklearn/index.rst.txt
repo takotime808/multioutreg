@@ -1,0 +1,111 @@
+multioutreg.surrogates.reduced_rank_sklearn
+===========================================
+
+.. py:module:: multioutreg.surrogates.reduced_rank_sklearn
+
+.. autoapi-nested-parse::
+
+   Reduced-rank regression: a linear model whose coefficient matrix has rank r.
+
+   Independent per-output linear models estimate a ``p x m`` coefficient matrix
+   with no shared structure. When the outputs are driven by a few common linear
+   combinations of the inputs, constraining the matrix to rank ``r < min(p, m)``
+   removes most of the estimation noise (Izenman 1975). The fit is closed form:
+   fit ridge regression on standardized inputs and outputs, take the top ``r``
+   right singular vectors ``V_r`` of the fitted values, and project the
+   coefficients onto them, ``B_r = B V_r V_r^T``.
+
+   ``rank="auto"`` picks ``r`` by K-fold cross-validated mean squared error
+   (smallest rank among ties).
+
+   The predictive std is the ordinary-least-squares prediction interval with the
+   residual variance of each output on ``n - p - 1`` degrees of freedom::
+
+       var_j(x) = s_j^2 * (1 + 1/n + x^T (X^T X + alpha I)^-1 x)
+
+   on centred, standardized inputs.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.reduced_rank_sklearn.ReducedRankRegressionSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: ReducedRankRegressionSurrogate(rank='auto', alpha=1e-06, cv=5, random_state=0)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Joint multi-output linear surrogate with a rank-constrained coefficient matrix.
+
+   :param rank: Rank of the coefficient matrix, clamped to ``min(n_features, n_outputs)``.
+                ``"auto"`` chooses it by K-fold cross-validation.
+   :type rank: int | "auto"
+   :param alpha: Ridge penalty on the standardized inputs; the small default only keeps
+                 the solve well conditioned.
+   :type alpha: float
+   :param cv: Folds used when ``rank="auto"``.
+   :type cv: int
+   :param random_state: Seed for the shuffled folds.
+   :type random_state: int | None
+
+   .. attribute:: rank_
+
+
+
+      :type: int
+
+   .. attribute:: coef_
+
+      ``(n_features, n_outputs)`` coefficients on the standardized inputs, in
+      output units.
+
+      :type: np.ndarray
+
+   .. attribute:: cv_mse_
+
+      Cross-validated MSE (standardized outputs) for ranks ``1..len(cv_mse_)``
+      when ``rank="auto"``.
+
+      :type: np.ndarray | None
+
+   .. attribute:: residual_var_
+
+      Per-output residual variance.
+
+      :type: np.ndarray
+
+
+   .. py:attribute:: rank
+      :value: 'auto'
+
+
+
+   .. py:attribute:: alpha
+      :value: 1e-06
+
+
+
+   .. py:attribute:: cv
+      :value: 5
+
+
+
+   .. py:attribute:: random_state
+      :value: 0
+
+
+
+   .. py:method:: fit(X, Y)
+
+
+   .. py:method:: predict(X, return_std=False)
+
+

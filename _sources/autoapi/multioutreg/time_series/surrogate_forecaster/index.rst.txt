@@ -1,0 +1,102 @@
+multioutreg.time_series.surrogate_forecaster
+============================================
+
+.. py:module:: multioutreg.time_series.surrogate_forecaster
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.time_series.surrogate_forecaster.AutoSurrogateForecaster
+
+
+Module Contents
+---------------
+
+.. py:class:: AutoSurrogateForecaster(n_lags: int = 12, horizon: int = 1, cv: int = 3, uncertainty: str = 'conformal', cal_frac: float = 0.2)
+
+   Auto-select the best surrogate for time series via lag features.
+
+   Uses ``AutoDetectMultiOutputRegressor.with_vendored_surrogates()`` to run
+   a grid search on the lag feature matrix and automatically select the best
+   surrogate, then wraps it in a ``LagFeatureForecaster`` for forecasting.
+
+   :param n_lags: Number of lagged features per sample.
+   :type n_lags: int, default 12
+   :param horizon: Forecast horizon.
+   :type horizon: int, default 1
+   :param cv: Cross-validation folds for AutoDetect grid search.
+   :type cv: int, default 3
+   :param uncertainty: Uncertainty strategy passed to ``LagFeatureForecaster``:
+                       ``"conformal"``, ``"return_std"``, or ``"none"``.
+   :type uncertainty: str, default "conformal"
+   :param cal_frac: Fraction of data held out for conformal calibration.
+   :type cal_frac: float, default 0.2
+
+   .. admonition:: Examples
+
+      >>> forecaster = AutoSurrogateForecaster(n_lags=12, horizon=5)
+      >>> forecaster.fit(y_train)
+      >>> result = forecaster.predict(horizon=5)
+
+
+   .. py:attribute:: n_lags
+      :value: 12
+
+
+
+   .. py:attribute:: horizon
+      :value: 1
+
+
+
+   .. py:attribute:: cv
+      :value: 3
+
+
+
+   .. py:attribute:: uncertainty
+      :value: 'conformal'
+
+
+
+   .. py:attribute:: cal_frac
+      :value: 0.2
+
+
+
+   .. py:method:: fit(series: numpy.ndarray | pandas.Series) -> AutoSurrogateForecaster
+
+      Build lag features, run AutoDetect, wrap best surrogate, calibrate.
+
+      :param series:
+      :type series: 1D time series array or pd.Series
+
+      :rtype: self
+
+
+
+   .. py:method:: predict(horizon: Optional[int] = None, quantiles: Sequence[float] = (0.1, 0.5, 0.9), alpha: float = 0.1) -> multioutreg.time_series.chronos_adapter.ForecastResult
+
+      Recursive multi-step forecast with uncertainty intervals.
+
+      :param horizon: Steps to forecast.  Defaults to ``self.horizon``.
+      :type horizon: int | None
+      :param quantiles:
+      :type quantiles: sequence of float
+      :param alpha: Coverage level for conformal prediction (1 - alpha).
+      :type alpha: float
+
+      :rtype: ForecastResult
+
+
+
+   .. py:property:: best_model_name
+      :type: Optional[str]
+
+
+      Name of the surrogate selected by AutoDetect.
+
+

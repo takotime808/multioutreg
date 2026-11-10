@@ -1,0 +1,220 @@
+multioutreg.time_series.ts_dynamic_fit.src.forecasters
+======================================================
+
+.. py:module:: multioutreg.time_series.ts_dynamic_fit.src.forecasters
+
+.. autoapi-nested-parse::
+
+   ARIMA / SARIMA / LSTM / naive forecasters with one interface (audit item 6).
+
+   Every forecaster has ``fit(y_train)`` and ``forecast(horizon) -> np.ndarray``,
+   and the forecast is always on the **original scale** of ``y_train``, so all
+   models can be scored against the same held-out values by one metric function
+   (:mod:`multioutreg.time_series.ts_dynamic_fit.src.evaluate`).
+
+   ARIMA / SARIMA choose ``d`` with the ADF test (at most :data:`MAX_D`
+   differences) and pass it to statsmodels, which integrates the forecast back to
+   levels. ``fit(y, order=...)`` skips the order search and only re-estimates the
+   parameters; rolling-origin evaluation uses that to search the order once, on
+   the first (smallest) training window.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.src.forecasters.MAX_D
+   multioutreg.time_series.ts_dynamic_fit.src.forecasters.ARIMA_MAX_ORDER
+   multioutreg.time_series.ts_dynamic_fit.src.forecasters.SARIMA_MAX_SEASON
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.src.forecasters.NaiveForecaster
+   multioutreg.time_series.ts_dynamic_fit.src.forecasters.ZeroForecaster
+   multioutreg.time_series.ts_dynamic_fit.src.forecasters.ArimaForecaster
+   multioutreg.time_series.ts_dynamic_fit.src.forecasters.SarimaForecaster
+   multioutreg.time_series.ts_dynamic_fit.src.forecasters.LstmForecaster
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.src.forecasters.choose_d
+
+
+Module Contents
+---------------
+
+.. py:data:: MAX_D
+   :value: 2
+
+
+.. py:data:: ARIMA_MAX_ORDER
+   :value: 7
+
+
+.. py:data:: SARIMA_MAX_SEASON
+   :value: 52
+
+
+.. py:function:: choose_d(y, alpha: float = 0.05, max_d: int = MAX_D) -> int
+
+   Number of differences until the ADF test rejects a unit root (at most ``max_d``).
+
+
+.. py:class:: NaiveForecaster(seasonality: int = 1)
+
+   Last value, or the value one season back when ``seasonality >= 2``.
+
+
+   .. py:attribute:: name
+      :value: 'Naive'
+
+
+
+   .. py:attribute:: seasonality
+      :value: 1
+
+
+
+   .. py:method:: fit(y_train, order=None) -> NaiveForecaster
+
+
+   .. py:method:: forecast(horizon: int) -> numpy.ndarray
+
+
+.. py:class:: ZeroForecaster
+
+   Always 0: the baseline for a series of changes (differences, returns).
+
+   A forecast of no change is the random walk in levels -- the benchmark a
+   price model has to beat. ``Naive`` on changes ("the last return repeats")
+   is a much weaker one: its error variance is about twice that of 0.
+
+
+   .. py:attribute:: name
+      :value: 'Zero'
+
+
+
+   .. py:method:: fit(y_train, order=None) -> ZeroForecaster
+
+
+   .. py:method:: forecast(horizon: int) -> numpy.ndarray
+
+
+.. py:class:: ArimaForecaster(max_order: int = ARIMA_MAX_ORDER, n_jobs: int = 1)
+
+   ARIMA(p, d, q): ``d`` from the ADF test, (p, q) by AIC over 0..7.
+
+
+   .. py:attribute:: name
+      :value: 'ARIMA'
+
+
+
+   .. py:attribute:: max_order
+      :value: 7
+
+
+
+   .. py:attribute:: n_jobs
+      :value: 1
+
+
+
+   .. py:method:: fit(y_train, order=None) -> ArimaForecaster
+
+
+   .. py:method:: forecast(horizon: int) -> numpy.ndarray
+
+
+.. py:class:: SarimaForecaster(seasonality: Optional[int] = None, n_jobs: int = 1)
+
+   SARIMA(p, d, q)(P, 0, Q, s) over p, q, P, Q in {0, 1}.
+
+   ``d`` comes from the ADF test and ``s`` from the ACF of the differenced
+   series (or ``seasonality``). Without a season (s < 2, s above
+   :data:`SARIMA_MAX_SEASON`, or fewer than two seasons plus two points of
+   data) it reduces to ARIMA(p, d, q), p, q <= 1.
+
+
+   .. py:attribute:: name
+      :value: 'SARIMA'
+
+
+
+   .. py:attribute:: seasonality
+      :value: None
+
+
+
+   .. py:attribute:: n_jobs
+      :value: 1
+
+
+
+   .. py:method:: fit(y_train, order=None) -> SarimaForecaster
+
+
+   .. py:method:: forecast(horizon: int) -> numpy.ndarray
+
+
+.. py:class:: LstmForecaster(horizon: int = 1, train_window: int = 10, epochs: int = 200, batch_size: int = 16, lr: float = 0.005, random_state: int = 0)
+
+   Direct multi-step LSTM: ``train_window`` past values -> next ``horizon`` values.
+
+   The scaler is fitted on the training series only, torch and numpy are
+   seeded, and training uses shuffled mini-batches (the old per-sample loop
+   took ~2 minutes for 150 points).
+
+
+   .. py:attribute:: name
+      :value: 'LSTM'
+
+
+
+   .. py:attribute:: horizon
+      :value: 1
+
+
+
+   .. py:attribute:: train_window
+      :value: 10
+
+
+
+   .. py:attribute:: epochs
+      :value: 200
+
+
+
+   .. py:attribute:: batch_size
+      :value: 16
+
+
+
+   .. py:attribute:: lr
+      :value: 0.005
+
+
+
+   .. py:attribute:: random_state
+      :value: 0
+
+
+
+   .. py:method:: fit(y_train, order=None) -> LstmForecaster
+
+
+   .. py:method:: forecast(horizon: int) -> numpy.ndarray
+
+

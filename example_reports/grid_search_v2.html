@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="multioutreg 0.0.1">
+<title>Surrogate Modeling Report</title>
+<style>/* Copyright (c) 2026 takotime808
+   Styles for the v2 report (templates/report_v2.html.j2). Inlined into the
+   report by multioutreg.report.render, so the downloaded file needs nothing else. */
+:root {
+  --bg: #f4f6f8; --surface: #fcfcfb; --fg: #12161c; --fg2: #4c5561; --muted: #6f7883;
+  --grid: #e3e6ea; --axis: #c3c8cf; --line: rgba(18,22,28,0.10);
+  --accent: #2b5d8c; --accent-soft: #e2ebf4;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #8a5cd6; --s5: #d1477a; --s6: #1a97ad; --s7: #a3742c; --s8: #6b7a1f;
+  --good: #0ca30c; --warn: #fab219; --crit: #d03b3b;
+  --good-ink: #006300; --warn-ink: #7a5300; --crit-ink: #a12424;
+  --good-bg: #e6f4e6; --warn-bg: #fdf1d6; --crit-bg: #fae5e5;
+  --band: rgba(43,93,140,0.10);
+  --seq-0: #cde2fb; --seq-1: #9ec5f4; --seq-2: #6da7ec; --seq-3: #3987e5; --seq-4: #256abf; --seq-5: #184f95; --seq-6: #0d366b;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1116; --surface: #171b21; --fg: #eef0f2; --fg2: #b9c0c9; --muted: #8b939e;
+    --grid: #262b33; --axis: #3a414b; --line: rgba(255,255,255,0.10);
+    --accent: #7fb0e0; --accent-soft: #1d2a38;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #9d7ae6; --s5: #e0608f; --s6: #2bb0c6; --s7: #c08f45; --s8: #93a537;
+    --good-ink: #3fc23f; --warn-ink: #f2c04d; --crit-ink: #f07c7c;
+    --good-bg: #13291a; --warn-bg: #2e2510; --crit-bg: #331718;
+    --band: rgba(127,176,224,0.12);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1116; --surface: #171b21; --fg: #eef0f2; --fg2: #b9c0c9; --muted: #8b939e;
+  --grid: #262b33; --axis: #3a414b; --line: rgba(255,255,255,0.10);
+  --accent: #7fb0e0; --accent-soft: #1d2a38;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #9d7ae6; --s5: #e0608f; --s6: #2bb0c6; --s7: #c08f45; --s8: #93a537;
+  --good-ink: #3fc23f; --warn-ink: #f2c04d; --crit-ink: #f07c7c;
+  --good-bg: #13291a; --warn-bg: #2e2510; --crit-bg: #331718;
+  --band: rgba(127,176,224,0.12);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-padding-top: 64px; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 15px; line-height: 1.55; }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: 1.7rem; font-weight: 600; }
+h2 { font-size: 1.28rem; font-weight: 600; }
+h3 { font-size: 1.02rem; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+code, .mono { font-family: var(--font-mono); font-size: 0.86em; }
+.num { font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.no-js .js-only { display: none !important; }
+
+.topbar { position: sticky; top: 0; z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+.topbar-inner { max-width: 1240px; margin: 0 auto; padding: 8px 16px; display: flex; gap: 16px; align-items: center; justify-content: space-between; flex-wrap: wrap; min-height: 50px; }
+.brand { font-weight: 600; font-size: 0.95rem; min-width: 0; }
+.brand span { color: var(--muted); font-weight: 400; }
+.tools { display: flex; gap: 8px; }
+.btn { font: inherit; font-size: 0.84rem; border: 1px solid var(--line); background: var(--surface); color: var(--fg2); padding: 5px 11px; border-radius: 6px; cursor: pointer; }
+.btn:hover { border-color: var(--accent); color: var(--fg); }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 24px 16px 64px; }
+.report { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 32px; align-items: start; }
+@media (max-width: 960px) { .report { grid-template-columns: 1fr; } .rail { display: none !important; } }
+.rail { position: sticky; top: 70px; display: grid; gap: 3px; font-size: 0.86rem; }
+.rail .eyebrow { margin-bottom: 6px; }
+.rail a { text-decoration: none; color: var(--fg2); padding: 5px 10px; border-radius: 5px; display: grid; grid-template-columns: 18px 1fr; gap: 4px; }
+.rail a:hover { background: var(--accent-soft); color: var(--fg); }
+.rail a.on { background: var(--surface); color: var(--fg); font-weight: 600; box-shadow: inset 2px 0 0 var(--accent); border-radius: 0 5px 5px 0; }
+.rail a i { font-style: normal; font-family: var(--font-mono); color: var(--muted); font-size: 0.8rem; }
+.rail .meta { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.78rem; display: grid; gap: 2px; overflow-wrap: anywhere; }
+.content { display: grid; gap: 24px; min-width: 0; }
+section.sec { display: grid; gap: 16px; min-width: 0; }
+.rhead { display: grid; gap: 8px; }
+.rhead .desc { color: var(--fg2); max-width: 75ch; }
+.runmeta { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 0.82rem; color: var(--fg2); }
+.runmeta b { color: var(--fg); font-weight: 500; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 14px; min-width: 0; }
+.panel-head { display: grid; gap: 4px; }
+.panel-head p, .lead { color: var(--fg2); font-size: 0.92rem; max-width: 78ch; }
+.qnum { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 500; }
+@media (max-width: 600px) { .panel { padding: 14px; } }
+
+.verdict { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start; padding: 20px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); box-shadow: inset 4px 0 0 var(--warn); }
+.verdict.good { box-shadow: inset 4px 0 0 var(--good); }
+.verdict.crit { box-shadow: inset 4px 0 0 var(--crit); }
+.vicon { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 1.2rem; background: var(--warn-bg); color: var(--warn-ink); }
+.verdict.good .vicon { background: var(--good-bg); color: var(--good-ink); }
+.verdict.crit .vicon { background: var(--crit-bg); color: var(--crit-ink); }
+.verdict h2 { font-size: 1.32rem; }
+.verdict p { color: var(--fg2); margin-top: 6px; max-width: 78ch; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; padding: 3px 9px 3px 7px; border-radius: 999px; white-space: nowrap; }
+.chip::before { font-size: 0.75rem; font-weight: 700; }
+.chip.good { background: var(--good-bg); color: var(--good-ink); } .chip.good::before { content: "\2713"; }
+.chip.warn { background: var(--warn-bg); color: var(--warn-ink); } .chip.warn::before { content: "!"; }
+.chip.crit { background: var(--crit-bg); color: var(--crit-ink); } .chip.crit::before { content: "\2715"; }
+.chip.neutral { background: var(--accent-soft); color: var(--fg2); } .chip.neutral::before { content: "\2013"; }
+.chip.skip { background: transparent; color: var(--muted); border: 1px dashed var(--axis); } .chip.skip::before { content: "\2192"; }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: baseline; }
+
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th { text-align: left; font-weight: 600; font-size: 0.74rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); padding: 8px 12px; border-bottom: 1px solid var(--axis); white-space: nowrap; }
+td { padding: 10px 12px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+td.num, th.num { text-align: right; }
+td .sub { display: block; color: var(--fg2); font-size: 0.8rem; margin-top: 4px; }
+td .val { font-variant-numeric: tabular-nums; font-weight: 500; }
+tr:last-child td { border-bottom: none; }
+tr.best td { background: var(--accent-soft); }
+.errtxt { color: var(--crit-ink); font-size: 0.85rem; }
+
+.findings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 760px) { .findings { grid-template-columns: 1fr; } }
+.finding { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; grid-template-rows: auto auto 1fr auto; min-width: 0; }
+.finding h3 { font-size: 1rem; }
+.finding p { color: var(--fg2); font-size: 0.88rem; margin-top: 4px; }
+.finding .go { font-size: 0.84rem; text-decoration: none; font-weight: 500; }
+
+.todo { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.todo li { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: baseline; padding-bottom: 10px; border-bottom: 1px solid var(--grid); }
+.todo li:last-child { border-bottom: none; padding-bottom: 0; }
+.todo li::before { content: "\25A1"; color: var(--accent); }
+.todo li div { min-width: 0; color: var(--fg2); font-size: 0.92rem; }
+.todo li b { color: var(--fg); font-weight: 600; }
+.todo li span { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+@media (max-width: 600px) { .todo li { grid-template-columns: 22px 1fr; } .todo li span { grid-column: 2; } }
+
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 820px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+.fig { display: grid; gap: 6px; min-width: 0; align-content: start; }
+.fig h4 { font-size: 0.9rem; font-weight: 600; }
+.fig .look { font-size: 0.82rem; color: var(--fg2); }
+.fig .look b { color: var(--fg); font-weight: 600; }
+.chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+.chart:empty { display: none; }
+svg text { font-family: var(--font-sans); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.8rem; color: var(--fg2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.lg-line { width: 18px; height: 0; border-top: 2px solid; display: inline-block; }
+.lg-dash { border-top-style: dashed; }
+.lg-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.lg-band { width: 16px; height: 10px; background: var(--band); display: inline-block; border-radius: 2px; }
+.pngfig img { width: 100%; max-width: 820px; height: auto; display: block; border-radius: 6px; background: #fff; }
+.pngfig .cap { font-size: 0.82rem; color: var(--fg2); }
+
+.outtabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.outtabs button { font: inherit; font-size: 0.86rem; border: 1px solid var(--line); background: var(--surface); color: var(--fg2); padding: 5px 11px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; }
+.outtabs button[aria-pressed="true"] { border-color: var(--accent); color: var(--fg); font-weight: 600; background: var(--accent-soft); }
+.outblock { display: grid; gap: 14px; padding-top: 6px; }
+.outblock + .outblock { border-top: 1px solid var(--line); padding-top: 18px; }
+.js .outblocks.single .outblock:not(.on) { display: none; }
+.js .outblocks.single .outblock + .outblock { border-top: none; padding-top: 6px; }
+.outhead { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stat { padding: 12px 14px; display: grid; gap: 4px; border-right: 1px solid var(--grid); align-content: start; }
+.stat:last-child { border-right: none; }
+.stat .v { font-size: 1.22rem; font-weight: 600; }
+.stat .ref { font-size: 0.76rem; color: var(--muted); }
+
+.heat { display: grid; gap: 2px; font-size: 0.84rem; min-width: max-content; }
+.heat .cell { padding: 8px; text-align: center; border-radius: 3px; font-variant-numeric: tabular-nums; font-weight: 500; }
+.heat .rowlab { padding: 8px 10px 8px 0; color: var(--fg); white-space: nowrap; }
+.heat .collab { padding: 4px 8px; text-align: center; font-weight: 600; font-size: 0.8rem; white-space: nowrap; }
+.heat .ink-l { color: #0b0b0b; } .heat .ink-d { color: #fff; }
+
+.skipped { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; font-size: 0.86rem; color: var(--fg2); padding: 10px 12px; border: 1px dashed var(--axis); border-radius: 8px; }
+details.appendix > summary { cursor: pointer; font-weight: 600; font-size: 1.05rem; }
+details.appendix[open] > summary { margin-bottom: 6px; }
+details.appendix h3 { margin-top: 8px; }
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; font-size: 0.9rem; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; overflow-wrap: anywhere; }
+.plain { margin: 0; padding-left: 1.2em; color: var(--fg2); display: grid; gap: 4px; }
+
+#tip { position: fixed; z-index: 20; pointer-events: none; background: var(--fg); color: var(--bg); font-size: 0.78rem; padding: 6px 9px; border-radius: 5px; max-width: 280px; line-height: 1.4; white-space: pre-line; }
+
+@media print {
+  :root, :root[data-theme="dark"], :root:not([data-theme="light"]) {
+    --bg: #fff; --surface: #fff; --fg: #12161c; --fg2: #4c5561; --muted: #6f7883;
+    --grid: #e3e6ea; --axis: #c3c8cf; --line: rgba(18,22,28,0.14);
+    --accent: #2b5d8c; --accent-soft: #e2ebf4;
+    --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #8a5cd6; --s5: #d1477a; --s6: #1a97ad; --s7: #a3742c; --s8: #6b7a1f;
+    --good-ink: #006300; --warn-ink: #7a5300; --crit-ink: #a12424;
+    --good-bg: #e6f4e6; --warn-bg: #fdf1d6; --crit-bg: #fae5e5;
+    --band: rgba(43,93,140,0.10);
+    color-scheme: light;
+  }
+  body { font-size: 12px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .topbar, .rail, .tools, .outtabs, #tip, noscript { display: none !important; }
+  .report { display: block; }
+  .wrap { padding: 0; max-width: none; }
+  .content { gap: 14px; }
+  .js .outblocks.single .outblock:not(.on) { display: grid !important; }
+  .js .outblocks.single .outblock + .outblock { border-top: 1px solid var(--line); padding-top: 14px; }
+  .grid2, .findings { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .grid3 { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+  .panel, .finding, .fig, .verdict, .stats, tr, .pngfig { break-inside: avoid; }
+  .outblock { break-before: auto; }
+  .panel { border-color: #d0d4da; }
+}
+</style>
+</head>
+<body class="no-js">
+<script>document.body.className = "js";</script>
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">multioutreg <span>· Surrogate Modeling Report</span></div>
+    <div class="tools js-only">
+      <button type="button" class="btn" id="btn-theme" title="Switch between system, light and dark">Theme: system</button>
+      <button type="button" class="btn" id="btn-print">Print / Save as PDF</button>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+<div class="report">
+  <nav class="rail" aria-label="Report sections">
+    <div class="eyebrow">Report sections</div>
+    <a href="#sec-1"><i>1</i>Can I use it?</a>
+    <a href="#sec-2"><i>2</i>Accuracy per output</a>
+    <a href="#sec-3"><i>3</i>Error bars</a>
+    <a href="#sec-4"><i>4</i>Low-fidelity data</a>
+    <a href="#sec-5"><i>5</i>What drives outputs</a>
+    <a href="#sec-6"><i>6</i>Data adequacy</a>
+    <a href="#sec-7"><i>7</i>Model selection</a>
+    <a href="#appendix"><i>A</i>Appendix</a>
+    <div class="meta">
+      <span>PerTargetRegressorWithStd</span>
+      <span>data a2f46ae</span>
+      <span>seed 0 · v0.0.1</span>
+      <span>2026-10-28</span>
+    </div>
+  </nav>
+
+  <div class="content">
+    <header class="rhead" id="top">
+      <div class="eyebrow">Surrogate Modeling Report</div>
+      <h1>output_pressure, output_temperature, output_velocity</h1>
+<p class="desc">Example: the bundled 3-output dataset (300 rows, 5 inputs).</p>      <div class="runmeta">
+        <span><b>Model</b> PerTargetRegressorWithStd</span>
+        <span><b>Train</b> 225</span>
+        <span><b>Test</b> 75</span>
+        <span><b>Run</b> 2026-10-28 · data a2f46ae</span>
+      </div>
+    </header>
+    <noscript><div class="skipped"><span class="chip skip">Charts off</span> Charts need JavaScript. The verdict, scorecard, findings and every table work without it.</div></noscript>
+
+    <!-- 1 · Can I use it? -->
+    <section class="sec" id="sec-1">
+      <div class="verdict good">
+        <div class="vicon" aria-hidden="true">✓</div>
+        <div>
+          <div class="eyebrow">Verdict</div>
+          <h2>Ready for all 3 outputs.</h2>
+          <div class="chips">
+<span><span class="chip good">output_pressure: Ready</span></span><span><span class="chip good">output_temperature: Ready</span></span><span><span class="chip good">output_velocity: Ready</span></span>          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="qnum">1 · Can I use it?</div><h2>Scorecard</h2>
+          <p>Each criterion is judged against a target or a baseline, shown under the value. Thresholds are in the appendix.</p></div>
+        <div class="tablewrap"><table id="scorecard">
+          <thead><tr><th>Output</th><th>Accuracy</th><th>Error bars</th><th>Overall</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><i class="swatch" style="background:var(--s1)"></i><b>output_pressure</b><span class="sub">n = 75 test points</span></td>
+              <td><span class="chip good">Pass</span> <span class="val">R² 0.967</span><span class="sub">target ≥ 0.90</span></td>
+              <td>
+<span class="chip good">Gaussian</span> <span class="val">95%</span>                <span class="sub">95% target: expected 90%–100% at n = 75</span>
+              </td>
+              <td><span class="chip good">Ready</span></td>
+            </tr>
+            <tr>
+              <td><i class="swatch" style="background:var(--s2)"></i><b>output_temperature</b><span class="sub">n = 75 test points</span></td>
+              <td><span class="chip good">Pass</span> <span class="val">R² 0.999</span><span class="sub">target ≥ 0.90</span></td>
+              <td>
+<span class="chip good">Gaussian</span> <span class="val">95%</span>                <span class="sub">95% target: expected 90%–100% at n = 75</span>
+              </td>
+              <td><span class="chip good">Ready</span></td>
+            </tr>
+            <tr>
+              <td><i class="swatch" style="background:var(--s3)"></i><b>output_velocity</b><span class="sub">n = 75 test points</span></td>
+              <td><span class="chip good">Pass</span> <span class="val">R² 1.000</span><span class="sub">target ≥ 0.90</span></td>
+              <td>
+<span class="chip good">Gaussian</span> <span class="val">96%</span>                <span class="sub">95% target: expected 90%–100% at n = 75</span>
+              </td>
+              <td><span class="chip good">Ready</span></td>
+            </tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Key findings</h2><p>Each finding comes with the chart that supports it. Follow the link for the full section.</p></div>
+        <div class="findings">
+          <div class="finding">
+            <div><span class="chip warn">Caution</span></div>
+            <div><h3>output_velocity has a systematic bias</h3><p>Residuals change with the prediction (slope 0.01, p = 0.00428): the model underpredicts high values of output_velocity.</p></div>
+<div class="chart" data-chart="resid:2" data-mini="1"></div>            <a class="go" href="#out-2">See the evidence →</a>
+          </div>
+          <div class="finding">
+            <div><span class="chip good">Finding</span></div>
+            <div><h3>The error bars hold for every output</h3><p>Gaussian 95% intervals cover at least 90% of test points, the lower end of the range expected for n = 75.</p></div>
+<div class="chart" data-chart="cov95" data-mini="1"></div>            <a class="go" href="#sec-3">See the evidence →</a>
+          </div>
+          <div class="finding">
+            <div><span class="chip good">Finding</span></div>
+            <div><h3>Every output reaches R² ≥ 0.90</h3><p>The lowest test R² is 0.967 (output_pressure).</p></div>
+<div class="chart" data-chart="parity:0" data-mini="1"></div>            <a class="go" href="#out-0">See the evidence →</a>
+          </div>
+          <div class="finding">
+            <div><span class="chip neutral">Note</span></div>
+            <div><h3>The top 10 candidate models are statistically tied</h3><p>Their CV scores overlap within one fold standard deviation. et {&#39;max_depth&#39;: None, &#39;n_estimators&#39;: 50} scored best; a simpler tied model would also be a reasonable choice.</p></div>
+<div class="chart" data-chart="cv" data-mini="1"></div>            <a class="go" href="#sec-7">See the evidence →</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>What to do next</h2></div>
+        <ul class="todo">
+<li><div><b>Check output_velocity for systematic bias.</b> The residuals trend with the prediction; a missing input or a transform of the output may fix it.</div><span>Section 2</span></li>        </ul>
+      </div>
+    </section>
+
+    <!-- 2 · Accuracy -->
+    <section class="sec panel" id="sec-2">
+      <div class="panel-head"><div class="qnum">2 · How accurate is each output?</div><h2>Every output reaches the accuracy target</h2>
+        <p>Every output on its 75 held-out test points. Each output keeps its color in every chart.</p></div>
+      <div class="outtabs js-only" role="group" aria-label="Output">
+<button type="button" data-out="0" aria-pressed="true"><i class="swatch" style="background:var(--s1)"></i>output_pressure</button><button type="button" data-out="1" aria-pressed="false"><i class="swatch" style="background:var(--s2)"></i>output_temperature</button><button type="button" data-out="2" aria-pressed="false"><i class="swatch" style="background:var(--s3)"></i>output_velocity</button>        <button type="button" data-out="all" aria-pressed="false">Show all</button>
+      </div>
+      <div class="outblocks single">
+        <div class="outblock on" id="out-0" data-out="0">
+          <div class="outhead"><h3><i class="swatch" style="background:var(--s1)"></i>output_pressure</h3><span class="chip good">Ready</span></div>
+          <div class="stats">
+            <div class="stat"><div class="eyebrow">Test R²</div><div class="v num">0.967</div><span class="chip good">Pass</span><div class="ref">target ≥ 0.90</div></div>
+            <div class="stat"><div class="eyebrow">RMSE</div><div class="v num">0.1319</div><div class="ref">5.4% of test range</div></div>
+            <div class="stat"><div class="eyebrow">MAE</div><div class="v num">0.1005</div><div class="ref">4.1% of test range</div></div>
+            <div class="stat"><div class="eyebrow">Gaussian 95%</div><div class="v num">95%</div><span class="chip good">Pass</span><div class="ref">expected 90%–100%</div></div>
+          </div>
+          <div class="grid2">
+            <div class="fig"><h4>Predicted vs observed</h4><div class="look"><b>Look for:</b> points on the diagonal; error bars that cross it.</div><div class="chart" data-chart="parity:0"></div></div>
+            <div class="fig"><h4>Residuals vs predicted</h4><div class="look">
+<b>Look for:</b> a flat cloud around zero. No significant trend here (p = 0.91).</div>
+              <div class="chart" data-chart="resid:0"></div></div>
+            <div class="fig"><h4>Residual distribution</h4><div class="look"><b>Look for:</b> centred on zero, no long tail on one side.</div><div class="chart" data-chart="hist:0"></div></div>
+            <div class="fig"><h4>95% intervals, ordered by observed value</h4><div class="look">
+<b>Look for:</b> about 1 in 20 points outside its bar. Here: 4 of 75.
+</div>
+              <div class="chart" data-chart="ordered:0"></div></div>
+          </div>
+        </div>
+        <div class="outblock" id="out-1" data-out="1">
+          <div class="outhead"><h3><i class="swatch" style="background:var(--s2)"></i>output_temperature</h3><span class="chip good">Ready</span></div>
+          <div class="stats">
+            <div class="stat"><div class="eyebrow">Test R²</div><div class="v num">0.999</div><span class="chip good">Pass</span><div class="ref">target ≥ 0.90</div></div>
+            <div class="stat"><div class="eyebrow">RMSE</div><div class="v num">0.1071</div><div class="ref">1.0% of test range</div></div>
+            <div class="stat"><div class="eyebrow">MAE</div><div class="v num">0.08679</div><div class="ref">0.8% of test range</div></div>
+            <div class="stat"><div class="eyebrow">Gaussian 95%</div><div class="v num">95%</div><span class="chip good">Pass</span><div class="ref">expected 90%–100%</div></div>
+          </div>
+          <div class="grid2">
+            <div class="fig"><h4>Predicted vs observed</h4><div class="look"><b>Look for:</b> points on the diagonal; error bars that cross it.</div><div class="chart" data-chart="parity:1"></div></div>
+            <div class="fig"><h4>Residuals vs predicted</h4><div class="look">
+<b>Look for:</b> a flat cloud around zero. No significant trend here (p = 0.5).</div>
+              <div class="chart" data-chart="resid:1"></div></div>
+            <div class="fig"><h4>Residual distribution</h4><div class="look"><b>Look for:</b> centred on zero, no long tail on one side.</div><div class="chart" data-chart="hist:1"></div></div>
+            <div class="fig"><h4>95% intervals, ordered by observed value</h4><div class="look">
+<b>Look for:</b> about 1 in 20 points outside its bar. Here: 4 of 75.
+</div>
+              <div class="chart" data-chart="ordered:1"></div></div>
+          </div>
+        </div>
+        <div class="outblock" id="out-2" data-out="2">
+          <div class="outhead"><h3><i class="swatch" style="background:var(--s3)"></i>output_velocity</h3><span class="chip good">Ready</span></div>
+          <div class="stats">
+            <div class="stat"><div class="eyebrow">Test R²</div><div class="v num">1.000</div><span class="chip good">Pass</span><div class="ref">target ≥ 0.90</div></div>
+            <div class="stat"><div class="eyebrow">RMSE</div><div class="v num">0.09721</div><div class="ref">0.5% of test range</div></div>
+            <div class="stat"><div class="eyebrow">MAE</div><div class="v num">0.06148</div><div class="ref">0.3% of test range</div></div>
+            <div class="stat"><div class="eyebrow">Gaussian 95%</div><div class="v num">96%</div><span class="chip good">Pass</span><div class="ref">expected 90%–100%</div></div>
+          </div>
+          <div class="grid2">
+            <div class="fig"><h4>Predicted vs observed</h4><div class="look"><b>Look for:</b> points on the diagonal; error bars that cross it.</div><div class="chart" data-chart="parity:2"></div></div>
+            <div class="fig"><h4>Residuals vs predicted</h4><div class="look">
+<b>Finding:</b> residuals trend with the prediction (slope 0.01, p = 0.0043): a systematic bias.
+</div>
+              <div class="chart" data-chart="resid:2"></div></div>
+            <div class="fig"><h4>Residual distribution</h4><div class="look"><b>Look for:</b> centred on zero, no long tail on one side.</div><div class="chart" data-chart="hist:2"></div></div>
+            <div class="fig"><h4>95% intervals, ordered by observed value</h4><div class="look">
+<b>Look for:</b> about 1 in 20 points outside its bar. Here: 3 of 75.
+</div>
+              <div class="chart" data-chart="ordered:2"></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 · Error bars -->
+    <section class="sec panel" id="sec-3">
+      <div class="panel-head"><div class="qnum">3 · Can I trust the error bars?</div><h2>Gaussian error bars hold for every output</h2>
+        <p>Observed against nominal coverage. A curve inside the shaded band is consistent with good calibration for 75 test points; below it the bars are too narrow (overconfident), above it they are conservative.</p></div>
+      <div class="legend js-only"><span><i class="lg-line lg-dash" style="border-color:var(--fg2)"></i>Gaussian (prediction ± z·std)</span><span><i class="lg-band"></i>Expected from test-set noise</span></div>
+      <div class="grid3"><div class="fig"><div class="chart" data-chart="calib:0"></div></div><div class="fig"><div class="chart" data-chart="calib:1"></div></div><div class="fig"><div class="chart" data-chart="calib:2"></div></div></div>
+      <div class="grid2">
+        <div class="fig"><h4>Coverage at 95%</h4><div class="look">Share of test points inside the 95% interval. The band is the range expected from noise for n = 75.</div><div class="chart" data-chart="cov95"></div></div>
+        <div class="fig"><h4>What the coverage costs</h4><div class="look">Mean interval width as a % of each output's test-set range. Wider is safer but less useful.</div><div class="chart" data-chart="width"></div></div>
+      </div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Output</th><th class="num">Gaussian 95%</th><th class="num">Width</th><th>Expected</th></tr></thead>
+        <tbody><tr>
+          <td><i class="swatch" style="background:var(--s1)"></i>output_pressure</td>
+          <td class="num">95%</td>
+          <td class="num">26%</td>
+          <td>≥ 90% for 95%</td></tr><tr>
+          <td><i class="swatch" style="background:var(--s2)"></i>output_temperature</td>
+          <td class="num">95%</td>
+          <td class="num">4%</td>
+          <td>≥ 90% for 95%</td></tr><tr>
+          <td><i class="swatch" style="background:var(--s3)"></i>output_velocity</td>
+          <td class="num">96%</td>
+          <td class="num">5%</td>
+          <td>≥ 90% for 95%</td></tr></tbody>
+      </table></div>
+      <details><summary>Average uncertainty metrics</summary>
+        <dl class="kv"><dt>Sharpness (mean predicted std)</dt><dd class="num">0.1736</dd><dt>Empirical coverage of 95% Gaussian interval</dt><dd class="num">0.9511</dd><dt>Miscoverage at 95% (|nominal − empirical|)</dt><dd class="num">0.001111</dd><dt>Gaussian NLL (mean per point)</dt><dd class="num">-0.6956</dd></dl>
+      </details>
+      <div class="skipped"><span class="chip skip">Skipped</span> Conformal intervals were not requested for this run, so only the model's own (Gaussian) error bars are checked.</div>      
+    </section>
+
+    <!-- 4 · Low-fidelity data -->
+    <section class="sec panel" id="sec-4">
+      <div class="panel-head"><div class="qnum">4 · Did the low-fidelity data help?</div>
+        <h3>Single-fidelity run</h3></div>
+        <div class="skipped"><span class="chip skip">Not applicable</span> This model was trained on one fidelity level, so there is no lower-fidelity data to assess. Use the Multi-Fidelity page to combine cheap and expensive data.</div>
+      
+    </section>
+
+    <!-- 5 · Drivers -->
+    <section class="sec panel" id="sec-5">
+      <div class="panel-head"><div class="qnum">5 · What drives the outputs?</div><h2>Feature_0 matters most for output_pressure; feature_2 matters most for output_temperature; feature_4 matters most for output_velocity</h2>
+<p>Share of mean |SHAP| per output (each column sums to 100%).</p></div>
+      <div class="tablewrap"><div class="heat" style="grid-template-columns: minmax(120px, max-content) repeat(3, minmax(76px, 1fr))">
+        <div></div><div class="collab"><i class="swatch" style="background:var(--s1)"></i>output_pressure</div><div class="collab"><i class="swatch" style="background:var(--s2)"></i>output_temperature</div><div class="collab"><i class="swatch" style="background:var(--s3)"></i>output_velocity</div><div class="rowlab">feature_4</div><div class="cell ink-l" style="background:var(--seq-0)" data-tip="output_pressure: feature_4 accounts for 1% of mean |SHAP|">1%</div><div class="cell ink-l" style="background:var(--seq-0)" data-tip="output_temperature: feature_4 accounts for 0% of mean |SHAP|">0%</div><div class="cell ink-d" style="background:var(--seq-6)" data-tip="output_velocity: feature_4 accounts for 99% of mean |SHAP|">99%</div><div class="rowlab">feature_0</div><div class="cell ink-d" style="background:var(--seq-5)" data-tip="output_pressure: feature_0 accounts for 78% of mean |SHAP|">78%</div><div class="cell ink-l" style="background:var(--seq-0)" data-tip="output_temperature: feature_0 accounts for 0% of mean |SHAP|">0%</div><div class="cell ink-l" style="background:var(--seq-0)" data-tip="output_velocity: feature_0 accounts for 0% of mean |SHAP|">0%</div><div class="rowlab">feature_2</div><div class="cell ink-l" style="background:var(--seq-0)" data-tip="output_pressure: feature_2 accounts for 1% of mean |SHAP|">1%</div><div class="cell ink-d" style="background:var(--seq-5)" data-tip="output_temperature: feature_2 accounts for 73% of mean |SHAP|">73%</div><div class="cell ink-l" style="background:var(--seq-0)" data-tip="output_velocity: feature_2 accounts for 0% of mean |SHAP|">0%</div><div class="rowlab">feature_3</div><div class="cell ink-l" style="background:var(--seq-0)" data-tip="output_pressure: feature_3 accounts for 1% of mean |SHAP|">1%</div><div class="cell ink-l" style="background:var(--seq-1)" data-tip="output_temperature: feature_3 accounts for 26% of mean |SHAP|">26%</div><div class="cell ink-l" style="background:var(--seq-0)" data-tip="output_velocity: feature_3 accounts for 0% of mean |SHAP|">0%</div><div class="rowlab">feature_1</div><div class="cell ink-l" style="background:var(--seq-1)" data-tip="output_pressure: feature_1 accounts for 18% of mean |SHAP|">18%</div><div class="cell ink-l" style="background:var(--seq-0)" data-tip="output_temperature: feature_1 accounts for 0% of mean |SHAP|">0%</div><div class="cell ink-l" style="background:var(--seq-0)" data-tip="output_velocity: feature_1 accounts for 0% of mean |SHAP|">0%</div>      </div></div>
+      <h3 style="margin-top:6px">How the top 3 inputs move each output</h3>
+      <p class="lead">Partial dependence (line) with the 10th–90th percentile of individual curves (band). Columns share an x axis, rows share a y axis.</p>
+      <div class="chart" data-chart="pdp"></div>
+      <noscript><p class="lead">Inputs shown: feature_4, feature_0, feature_2.</p></noscript>
+      
+      
+    </section>
+
+    <!-- 6 · Data -->
+    <section class="sec panel" id="sec-6">
+      <div class="panel-head"><div class="qnum">6 · Is the data adequate?</div><h2>Sampling, imputation and test size</h2></div>
+      <div class="skipped"><span class="chip good">Test set</span> 75 test points: coverage is resolved to about ±5 percentage points.</div>
+      <div class="fig"><h4>Input design</h4>
+<div class="pngfig"><img src="data:image/png;base64,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r3bho6UEBrk9OqLbbEW31yiQitmo+zD76n+k/AERRNoToj1aPPJIsO6nDid4KYG6nU5oCFqzla0zq002Z4emUfeZ3dLI7KvPMUMFRAxpT4iqbEaLGQkOZkogM1MIYrMVzayecegsty+zr8FWkIBqw4YNFo/HbeLEiVn/TEdHhz388MPu/9/ylrcU4mEAyAJpT4j6aDF1OOFMCfQT6lMxfGbVW2NqpIWns9kHIQyoVq9ebd/85jftD3/4gyWTSXfb9ttvb//93/9tX/3qV23q1Kmj/vyLL75ob3vb26yiosL6+vryfRgAilAkSwEsojpaTB0Oxov6VOQzs8rsawRrqJ588knbf//97aqrrrLNmze7HE99rVmzxn784x/b7rvvbtdcc01Wv2t4viiA0qU9ZULaE8KMOhwUE/WpGGtmdbSFp7PZByGZoerq6rL3ve99tnbtWvf9DjvsYIceeqh1d3fbv/71L1u/fr1t2bLFzjzzTPv3v//tAiwA/kHaE6KOkWAUA/WpQHTlPEOlmaelS5e6FrNnn322LV++3H7729/aH//4R5cGqAAqkUi4macrrrjCTjvtNOvvzzwSDqB8aU9Kb1LaU3t3n/UPpNxW35P2hChgJBjlrE8FEPGASjVT8q53vcsuueQSq6p6bVXyyspK+5//+R9btGiRvf71r3dB1fz58+344493M1gA/IG0JwAoLNryA9GVc8rf448/7kZaPvaxj424zy677OLS/5QaePvtt9tf/vIXO/roo+3WW2+1hoaG8T5mABFIe/K6ZG1q77HNnb3WXFdtExv89RgBwENbfiC6KvNpkS6ve93rRt2vrq7O/vSnP9kZZ5xh119/vd177732jne8wwVYubRXBxC99sNel6wnVm52HQd7+1NWFa+w7Rqr7fXTJ7qURdrIAvAT6lOB6Mo55a+6utpt1XhiLFqb6tprr7VPfvKTLv1PTSre/va3u8YVADBal6yHl290wVT/gFl1vML6BwZs3Zbuwfu1BQC/oD4ViK6cA6qddtrJbZ955pmsf0bNKb70pS+5oOqJJ55wC/muWrUq1z8NICJdspTmp0YZAymz+qoKq6mssPrqStMiC739Ay5Fcd6CFW5/APAL6lOBaMo55W/fffd1wdQdd9wxah3VcN/73vdswoQJbjHgZ5991k455ZRc/zSAkPHqpLwaroFUynXJ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KgAAAADIEwEVQq+mpsa+9a1vuS38hdfGv3ht/I3Xx794bfyL18bfagJ8vRZLpVKpcj8IAAAAAAgiZqgAAAAAIE8EVAAAAACQJwIqAAAAAMgTARUAAAAA5ImACqHS29trd911l33pS1+ygw46yCZOnGhVVVU2depUO/bYY+22224r90OMvOuuu87mzp1rb3jDG6ylpcW9PolEwt74xjfaxRdfbG1tbZF/jvziy1/+ssViMfd1wQUXlPvhRNqZZ545+FqM9NXV1VXuhxlpPT099qMf/cgOO+wwmzRpktXW1tr06dPt6KOPtvnz55f74UXS8uXLx/zceF/33XdfuR9uJL300kv2mc98xnbffXerq6tzn5udd97ZzjjjDHv88cctKCrL/QCAQrr33nvtne98p/t/BVE6sTU0NNjTTz9tt956q/v6+Mc/bldeeaU7gKL0fvazn9mCBQtszz33tP33399deLz66qv2r3/9yx566CH79a9/7V7HadOm8fKUkV6jSy+91H1OaAbrH4ceeqjtuuuuGe+Lx+MlfzzYauXKlfbud7/bnWu222479zrp3PPyyy+7C3X9/ymnnMLTVWKNjY3uwnwker103pkwYYIdcMABJX1sMFu4cKG7ZtuyZYvtuOOO9q53vcsdxx577DGbN2+eXX/99e7r5JNP9v/TpbbpQFjcddddqZNOOil13333bXPfjTfemIrH41omIHX11VeX5fEhlXrwwQdTGzZs2OapWL9+feqwww5zr8+pp57KU1VG7e3tqdmzZ6d23HHH1PHHH+9ek+985zu8JmV0xhlnuNfhqquu4nXwmY6OjtQee+zhXp9vf/vbqZ6enm0+T48++mjZHh9GdvTRR7vX7WMf+xhPUxm8/vWvd8//xz/+8SGfm/7+/tR5553n7ps4cWKqs7PT968PKX8IlSOOOMJ+97vf2eGHH77NfRodVNqMaOQD5XHwwQe7WanhJk+ebBdddJH7/zvuuKMMjwyer33ta7Z06VL7xS9+4dIxAYxMqcpLlixx2Q9alFRpzOnq6+tt33335Sn0mVWrVtnf/vY39/8f+chHyv1wImfDhg32xBNPuP9XSnn656aiosK+/e1vuxTAzZs32zPPPGN+R0CFSNlvv/3cVmkY8J/Kyq1ZyEFcJT0s7rnnHvvxj3/s6tze8573lPvhAL6v21Uas6h2F8Hxm9/8xgYGBmzOnDluoA+lVZPDeV5ptH5HDRUiRaPussMOO5T7oWAY5VBrRErUQASlp4YgH/7wh2377be3yy+/nJfAh+6++2578skn3edFs7pq5qLAl0GI8njkkUds/fr1ruZTtW16bf7whz/Y6tWrrbm52WVLqCmFRtzhv4BKmJ0qX33b4Ycfbvfff7+dd9559pOf/GRwlkqBrq4HOjs73ednxowZ5ncEVIiMNWvWDB5ATzrppHI/nMhTWp+KTXXg9JpS6CLxqKOOsu9973uRf37K4Ytf/KK9+OKLdvPNN7uLQfhPpnRlDRCpmYs+OygtL2VJ3fy++tWv2ve///0hTVx0LFNmxC233GI77bQTL49PqPHR888/b9XV1fbBD36w3A8nsv7f//t/bkBI6eXqwnzggQe6phSPPvqoS8nUa6NAKwgYMkEk9PX12emnn27JZNL22Wcf+8QnPlHuhxR56q509dVX2zXXXOOCKwVTp512mgt6qdspPb0GP//5z+3UU0+1448/PvLvT7/RMgP/93//Z4sXL7bW1lY3CKHX7JBDDrFXXnnFzeoqXROlrwMRXQAqePr0pz9tzz77rDvX3Hnnnbbbbru5+4455hiXHgh/0ACE6HMThHSysNp9993dYKq6+ymA+uMf/+hmeDWwpxnft73tbdbU1GSBUO6uGEApfOQjH3HdYiZPnpx69tlnedJ9RJ19nn/++dSll16aam5uTk2aNCl17733lvthRcrmzZtT06dPT02ZMiW1bt26jN3l6PLnTwMDA6njjjvOvUZveMMbyv1wIueiiy5yz72+3v/+929z/4oVK1K1tbXu/nnz5pXlMWKoZDKZqq+vd6/JX/7yF56eMnrggQdSLS0tqWnTpqWuv/761Jo1a1IbN25M3Xrrra7TrF6jD3/4w4F4jZihQuh9/vOft1/96lcuhckbMYR/KGf6da97nZ199tl2++2326ZNm9xsonKnURpnnXWWW0dHqRWM1gaL1gk7//zz3f9rEUwa7pSW1i/yZMp8UJqfZqfk73//e0kfGzK78cYbraOjw6Vpau0wlMfmzZvthBNOsHXr1rlZqfe///2uflfXav/1X/9lf/3rX12HTM0mqnbU7wioEGrnnHOOW7l+4sSJLj3G6/IHf1Knpb322stdFD788MPlfjiRoZopdVi84oorXIpF+pdOaqJBCX2vlED4ixbJ9igwRunssssuGf8/0z5KzYR/0v20jArNQsrntttuc8GUPh+Zuiym3x6EwQiaUiC0vvzlL9tll13m6nEUTKnYEf7X0NDgtmvXri33Q4lcnaEKtUeyfPly9zVz5sySPi5kX8czfMYExbf//vu7WUI1olC3v0zdyHS719UM5a/dXbhwoXvNPvShD/FylNFLL73ktqPVSHn11Bs3bjS/Y4YKoaRuSz/4wQ/ch1FpfgcddFC5HxKyoAsPpS0JqZmlTb3QBWGmrzPOOMPt853vfMd9r6AK/kth8i5MVOSN0pk6daoddthhI46iqxGFN1ChFvcoL820y9vf/vYRZxRRGjvuuKPbalFsNXHJ9NnRsgSy8847+/5lIaBC6Gg9A3VbUpofwZT/Rgevu+466+rq2ua+5557zk4++WTr7u62N73pTa4bIwCzxx57zP70pz+5WcR0WnJAF4hf//rX3fef+9znBtdxQel861vfctuLL77YHnzwwcHb9Xop7XzZsmVu5pAZkfLSBfq1117r/p+1p8rv6KOPdhkpqpf+2Mc+5tZB9PT09NgXvvAFN4ulY9r73vc+8ztS/hAquui48MIL3f+r5eZPf/rTjPup8P6SSy4p8aOD0vjUcELF26pnU1GwDpw6aGokSheIqgeZP38+TxbwH5oVVPG2irWVYqbCbc0qqoW6lzajgm7vwh6ldeSRR7oZ3G984xtuoVLNRGnmSsc0vXZ1dXV2ww03uNcN5fPnP//ZnYM02HriiSfyUpTZlClT7Morr3QDDTfddJNb9kHZRAqgVEOtNuqqcVMdfBBmEwmoECrpebb6QI7U2EB1IARUpTdnzhwX8GpldE3za30WjRpOmjTJXZToJKeDa01NTRkeHeDfNajUiVHHM31u/vnPf7r0S12ga+RWnxktjonyZkYokLr88stdjc5DDz3kgio1PvjKV75ie+yxBy+PT5pRaL3D2tracj8cmLkBVmWj6HNz33332V133eWObVqs/AMf+ICbdQ9KqmxMvdPL/SAAAAAAIIiooQIAAACAPBFQAQAAAECeCKgAAAAAIE8EVAAAAACQJwIqAAAAAMgTARUAAAAA5ImACgAAAADyREAFAAAAAHkioAIAAACAPBFQAQAAAECeCKgAAGVx5plnWiwWc1/Lly/P6mdmzZrl9td2OO93eV/33XdfVr/zne9855Cf+/a3v53Vz7W3t9uECRMGf+6iiy7K6ucyPVbvq7q62rbffns78sgj7ZJLLrFNmzbZeHR3d9uDDz5oP/7xj+2DH/yg7b777lZRUTH49wAA40dABQAIpWuvvXbMfVatWmX/+Mc/8vr9v//9762trW3w+2uuucbGq7e319auXese05e+9CXba6+97IEHHsj7933yk5+0N7/5zfa5z33OPR/PPfecpVKpcT9OAMBrCKgAAKFSW1vrtjfddJOboRnN9ddfbwMDA4M/k4t58+a5bWNjo9suWbLE/v3vf+f0Ow488EB78sknB78WLVpkN9xwgx1++OHu/jVr1th73/teF/jlIz140mzaW9/6Vps6dWpevwsAkBkBFQAgVN797ndbTU2Nbd682W699dZR9/VmlY477ric/sbKlSvt7rvvdv+vFMHm5uYhQVa2GhoabO+99x782n///e3UU0+1e+65x04++WS3j/4dl112meXj6KOPtquuusoWL17sfo9+r9L+AACFQ0AFAAiViRMnulmdsdLwHn/8cTcrJHPnzs3pbyh9TjNblZWV7me94OfGG290aXvjpTqn7373u4Pf//Wvf83r95xyyimuVm3OnDnudwIACo+jKwAgdNSAQW6//XbbsGFDxn282STNCqlWKRdeoPaud73LpkyZMvj39Lduu+02K4RddtnFJk+e7P5/xYoVBfmdAIDCI6ACAISOUt0UjGi2SLNGw/X397v6KfGCoWw9/PDD9vTTT7v/P/3009320EMPtZ133jmvtL/RVFVVDT5eAIA/EVABAEJHgYhqkUZK+/v73//uGj4oZe/9739/Tr/bC5jU5MGrvVIL8tNOO839v2aoNm7cOO5/w7p16+zVV191/z9t2rRx/z4AQHEQUAEAQsmri1q4cKEtXbp0xJQ9rfuUrfQZrxNOOMHq6+sH7/Nmq3p6ejLOiuXq+9///mCXvre97W3j/n0AgOIgoAIAhNIb3/hG22233bZZk0prR9188815pfupJkszR+kBlGePPfZwbdDHk/anYEwd+bR+lBb2Fc2ifeELX8jr9wEAio+ACgAQWl7AlB5Q/eEPf7COjg5ramrKuV26FyjtsMMOduSRR25zvxdkZZoVy+Tee+916YLel9q977PPPvbzn/98MHXxl7/8pWupDgDwJwIqAECoAyoFKsuWLbN//vOfQ4Ki973vfVZXV5f179q0adPgulaqu8rUhly3x+PxIX8nH9ttt50LztQA44wzzhi8vb293c1gjfQFACi9yjL8TQAAXKDj8WqFxuLtl/6zo5k5c6Ydfvjhdt9997m6qVmzZg0uyJtrup/qopSSlyndz9PS0uLqspQaqFmx//3f/x31sSpFUAvvejQjpUWC9Xsyeeihh+ztb3/7iL8v2+cRAFA4BFQAgLJInx3q7OzM6mc0QyMNDQ1Z/x0FTgqofvvb39qOO+7oFuTdaaed7K1vfWtOjzd9xklrV41l+fLl7u+O9nf07yCdDwCCjZQ/AEBZTJo0afD/1cJ8LN3d3bZ58+ZtfnYsJ598stXW1rqUvYsuumhwhinbWS5RPdSDDz5ouSrkmlRetz/NQo30BQAoPWaoAABl8frXv37w/xctWmRHHHHEqPs//vjjgwvcpv/sWBKJhB177LFuhqqrqyuvdL/0wOhnP/uZTZw4cdT9lcZ3xx132O9+9zv7yU9+klOtFgAgWAioAABloVQ4tQTv6+tz9Ulf/OIXR501Su/Ul6nD3lhrUv3xj38cTNdTi/NsaebH+9tKz1NL87FoRkwBVWtrq91yyy05Lx4MAAgOUv4AAGWhBXWVjiePPPKIffe73x1x33/84x925ZVXuv9XYwnNOOXimGOOcbNT+lqwYEFOP6s6KNVDeZ0Bs3HUUUdZY2NjUdL+AAD+wgwVAKBsLr30Urvrrrts7dq19vWvf93uueceV9+kBXk1e7Vy5UrXqvzqq692M1lqVf7rX/96sDV5KaQHRCeddFJWP6MZqve85z0uzfDOO+90NWJTp061UtPf/etf/7rNbZ7f/OY3Q+477LDDbNdddy3Z4wOAMCCgAgCUjRbI1QzQCSecYM8884xLk9NXJqpbUurdaG3DC03dB1UHJbvvvntOHfk0m6WASnVf1113nZ1zzjlWakuWLLEPfehDI94//D7VfhFQAUBuSPkDAJSVApUnnnjCBUsKQrR2VH19vVVXV7tZHdVL/eAHP3Bpd0rdKyXVP6kOKpfZKY9mqLxmFKT9AUB4xVL0WQUAAACAvDBDBQAAAAB5IqACAAAAgDwRUAEAAABAngioAAAAACBPBFQAAAAAkCcCKgAAAADIEwEVAAAAAOSJgAoAAAAA8kRABQAAAAB5IqACAAAAgDwRUAEAAABAngioAAAAACBPBFQAAAAAkCcCKgAAAACw/Px/9h5btEgdPboAAAAASUVORK5CYII=" alt="Input design and sampling inference"></div><div class="look">Monte Carlo test vs 199 simulated designs (Random p=0.560, LHS p=0.005, Sobol p=0.005; strata filled 0.63, centered discrepancy 4.93e-03) -&gt; Random</div>      </div>
+      <div class="skipped"><span class="chip skip">Skipped</span> No imputation ran (no missing values were handled for this run).</div>
+
+      
+    </section>
+
+    <!-- 7 · Model selection -->
+    <section class="sec panel" id="sec-7">
+      <div class="panel-head"><div class="qnum">7 · How was the model chosen?</div><h2>et {&#39;max_depth&#39;: None, &#39;n_estimators&#39;: 50} scored best, but the top 10 are within fold noise</h2>
+        <p>Model selected per output by 10-Fold CV (shuffled) on the training data. Performance estimate: 25% held-out test set Whiskers span ±1 std across folds; the test set was not used for selection.</p></div>
+      <div class="chart" data-chart="cv"></div>
+      <details><summary>All candidates (81)</summary>
+      <div class="tablewrap"><table>
+        <thead><tr><th>#</th><th>Model</th><th class="num">CV RMSE</th><th class="num">Spread</th><th>Status</th></tr></thead>
+        <tbody><tr class="best">
+          <td class="num">1</td><td>et {&#39;max_depth&#39;: None, &#39;n_estimators&#39;: 50}<span class="sub">selected for output_pressure, output_velocity</span></td>
+          <td class="num">0.2163</td><td class="num">± 0.0555</td>
+          <td><span class="chip good">Best score</span></td>
+        </tr><tr>
+          <td class="num">2</td><td>gb {&#39;alpha&#39;: 0.95, &#39;n_estimators&#39;: 50}</td>
+          <td class="num">0.2554</td><td class="num">± 0.02751</td>
+          <td><span class="chip neutral">Tied</span></td>
+        </tr><tr>
+          <td class="num">3</td><td>xgb {&#39;learning_rate&#39;: 0.05, &#39;max_depth&#39;: 4, &#39;n_estimators&#39;: 200}</td>
+          <td class="num">0.274</td><td class="num">± 0.04456</td>
+          <td><span class="chip neutral">Tied</span></td>
+        </tr><tr>
+          <td class="num">4</td><td>xgb {&#39;learning_rate&#39;: 0.05, &#39;max_depth&#39;: 4, &#39;n_estimators&#39;: 100}</td>
+          <td class="num">0.2827</td><td class="num">± 0.04716</td>
+          <td><span class="chip neutral">Tied</span></td>
+        </tr><tr>
+          <td class="num">5</td><td>xgb {&#39;learning_rate&#39;: 0.05, &#39;max_depth&#39;: 6, &#39;n_estimators&#39;: 200}</td>
+          <td class="num">0.2936</td><td class="num">± 0.04723</td>
+          <td><span class="chip neutral">Tied</span></td>
+        </tr><tr>
+          <td class="num">6</td><td>xgb {&#39;learning_rate&#39;: 0.05, &#39;max_depth&#39;: 6, &#39;n_estimators&#39;: 100}</td>
+          <td class="num">0.3002</td><td class="num">± 0.05006</td>
+          <td><span class="chip neutral">Tied</span></td>
+        </tr><tr>
+          <td class="num">7</td><td>pbr {&#39;degree&#39;: 3, &#39;interaction_only&#39;: False}</td>
+          <td class="num">0.3007</td><td class="num">± 0.04544</td>
+          <td><span class="chip neutral">Tied</span></td>
+        </tr><tr>
+          <td class="num">8</td><td>rf {&#39;max_depth&#39;: None, &#39;n_estimators&#39;: 50}</td>
+          <td class="num">0.3142</td><td class="num">± 0.04483</td>
+          <td><span class="chip neutral">Tied</span></td>
+        </tr><tr>
+          <td class="num">9</td><td>catboost {&#39;depth&#39;: 4, &#39;learning_rate&#39;: 0.05, &#39;n_estimators&#39;: 200, &#39;verbose&#39;: False}</td>
+          <td class="num">0.3181</td><td class="num">± 0.1425</td>
+          <td><span class="chip neutral">Tied</span></td>
+        </tr><tr>
+          <td class="num">10</td><td>rfgp {&#39;kernel&#39;: &#39;rbf&#39;, &#39;length_scale&#39;: 10.0, &#39;n_components&#39;: 500}</td>
+          <td class="num">0.3789</td><td class="num">± 0.03644</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">11</td><td>rfgp {&#39;kernel&#39;: &#39;matern52&#39;, &#39;length_scale&#39;: 10.0, &#39;n_components&#39;: 500}</td>
+          <td class="num">0.406</td><td class="num">± 0.08733</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">12</td><td>catboost {&#39;depth&#39;: 4, &#39;learning_rate&#39;: 0.05, &#39;n_estimators&#39;: 100, &#39;verbose&#39;: False}</td>
+          <td class="num">0.4202</td><td class="num">± 0.166</td>
+          <td><span class="chip neutral">Tied</span></td>
+        </tr><tr>
+          <td class="num">13</td><td>dt {&#39;max_depth&#39;: None}</td>
+          <td class="num">0.4505</td><td class="num">± 0.09382</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">14</td><td>catboost {&#39;depth&#39;: 6, &#39;learning_rate&#39;: 0.05, &#39;n_estimators&#39;: 200, &#39;verbose&#39;: False}</td>
+          <td class="num">0.4842</td><td class="num">± 0.1969</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">15</td><td>hgb {&#39;learning_rate&#39;: 0.05, &#39;max_iter&#39;: 200}</td>
+          <td class="num">0.5328</td><td class="num">± 0.1557</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">16</td><td>hgb {&#39;learning_rate&#39;: 0.1, &#39;max_iter&#39;: 100}</td>
+          <td class="num">0.5386</td><td class="num">± 0.1582</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">17</td><td>hgb {&#39;learning_rate&#39;: 0.1, &#39;max_iter&#39;: 200}</td>
+          <td class="num">0.5415</td><td class="num">± 0.1514</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">18</td><td>hgb {&#39;learning_rate&#39;: 0.05, &#39;max_iter&#39;: 100}</td>
+          <td class="num">0.5426</td><td class="num">± 0.1654</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">19</td><td>lgbm {&#39;learning_rate&#39;: 0.05, &#39;n_estimators&#39;: 200, &#39;num_leaves&#39;: 31}</td>
+          <td class="num">0.574</td><td class="num">± 0.1501</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">20</td><td>lgbm {&#39;learning_rate&#39;: 0.05, &#39;n_estimators&#39;: 200, &#39;num_leaves&#39;: 63}</td>
+          <td class="num">0.574</td><td class="num">± 0.1501</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">21</td><td>lgbm {&#39;learning_rate&#39;: 0.05, &#39;n_estimators&#39;: 100, &#39;num_leaves&#39;: 31}</td>
+          <td class="num">0.5818</td><td class="num">± 0.1639</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">22</td><td>lgbm {&#39;learning_rate&#39;: 0.05, &#39;n_estimators&#39;: 100, &#39;num_leaves&#39;: 63}</td>
+          <td class="num">0.5818</td><td class="num">± 0.1639</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">23</td><td>catboost {&#39;depth&#39;: 6, &#39;learning_rate&#39;: 0.05, &#39;n_estimators&#39;: 100, &#39;verbose&#39;: False}</td>
+          <td class="num">0.5929</td><td class="num">± 0.2086</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">24</td><td>xgb {&#39;learning_rate&#39;: 0.01, &#39;max_depth&#39;: 6, &#39;n_estimators&#39;: 200}</td>
+          <td class="num">0.6058</td><td class="num">± 0.1201</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">25</td><td>rfgp {&#39;kernel&#39;: &#39;matern52&#39;, &#39;length_scale&#39;: 10.0, &#39;n_components&#39;: 100}</td>
+          <td class="num">0.6149</td><td class="num">± 0.2002</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">26</td><td>xgb {&#39;learning_rate&#39;: 0.01, &#39;max_depth&#39;: 4, &#39;n_estimators&#39;: 200}</td>
+          <td class="num">0.6211</td><td class="num">± 0.1252</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">27</td><td>rfgp {&#39;kernel&#39;: &#39;rbf&#39;, &#39;length_scale&#39;: 10.0, &#39;n_components&#39;: 100}</td>
+          <td class="num">0.6231</td><td class="num">± 0.2126</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">28</td><td>rf {&#39;max_depth&#39;: 3, &#39;n_estimators&#39;: 50}</td>
+          <td class="num">0.6318</td><td class="num">± 0.06741</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">29</td><td>lgbm {&#39;learning_rate&#39;: 0.01, &#39;n_estimators&#39;: 200, &#39;num_leaves&#39;: 31}</td>
+          <td class="num">0.7767</td><td class="num">± 0.2135</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">30</td><td>lgbm {&#39;learning_rate&#39;: 0.01, &#39;n_estimators&#39;: 200, &#39;num_leaves&#39;: 63}</td>
+          <td class="num">0.7767</td><td class="num">± 0.2135</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">31</td><td>pbr {&#39;degree&#39;: 2, &#39;interaction_only&#39;: False}<span class="sub">selected for output_temperature</span></td>
+          <td class="num">0.7781</td><td class="num">± 0.05777</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">32</td><td>sgp {&#39;gamma&#39;: 0.1, &#39;n_components&#39;: 200}</td>
+          <td class="num">0.8254</td><td class="num">± 0.2625</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">33</td><td>svr {&#39;C&#39;: 10.0, &#39;gamma&#39;: &#39;scale&#39;}</td>
+          <td class="num">0.8574</td><td class="num">± 0.2362</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">34</td><td>svr {&#39;C&#39;: 10.0, &#39;gamma&#39;: &#39;auto&#39;}</td>
+          <td class="num">0.8574</td><td class="num">± 0.2362</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">35</td><td>et {&#39;max_depth&#39;: 3, &#39;n_estimators&#39;: 50}</td>
+          <td class="num">0.9084</td><td class="num">± 0.1388</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">36</td><td>catboost {&#39;depth&#39;: 4, &#39;learning_rate&#39;: 0.01, &#39;n_estimators&#39;: 200, &#39;verbose&#39;: False}</td>
+          <td class="num">0.9919</td><td class="num">± 0.2282</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">37</td><td>catboost {&#39;depth&#39;: 6, &#39;learning_rate&#39;: 0.01, &#39;n_estimators&#39;: 200, &#39;verbose&#39;: False}</td>
+          <td class="num">1.185</td><td class="num">± 0.2637</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">38</td><td>sgp {&#39;gamma&#39;: None, &#39;n_components&#39;: 200}</td>
+          <td class="num">1.237</td><td class="num">± 0.3311</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">39</td><td>xgb {&#39;learning_rate&#39;: 0.01, &#39;max_depth&#39;: 6, &#39;n_estimators&#39;: 100}</td>
+          <td class="num">1.307</td><td class="num">± 0.197</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">40</td><td>xgb {&#39;learning_rate&#39;: 0.01, &#39;max_depth&#39;: 4, &#39;n_estimators&#39;: 100}</td>
+          <td class="num">1.326</td><td class="num">± 0.202</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">41</td><td>lgbm {&#39;learning_rate&#39;: 0.01, &#39;n_estimators&#39;: 100, &#39;num_leaves&#39;: 31}</td>
+          <td class="num">1.37</td><td class="num">± 0.264</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">42</td><td>lgbm {&#39;learning_rate&#39;: 0.01, &#39;n_estimators&#39;: 100, &#39;num_leaves&#39;: 63}</td>
+          <td class="num">1.37</td><td class="num">± 0.264</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">43</td><td>sgp {&#39;gamma&#39;: 0.1, &#39;n_components&#39;: 50}</td>
+          <td class="num">1.564</td><td class="num">± 0.2623</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">44</td><td>catboost {&#39;depth&#39;: 4, &#39;learning_rate&#39;: 0.01, &#39;n_estimators&#39;: 100, &#39;verbose&#39;: False}</td>
+          <td class="num">1.692</td><td class="num">± 0.268</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">45</td><td>knn {&#39;n_neighbors&#39;: 5}</td>
+          <td class="num">1.762</td><td class="num">± 0.3298</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">46</td><td>knn {&#39;n_neighbors&#39;: 3}</td>
+          <td class="num">1.783</td><td class="num">± 0.2727</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">47</td><td>svr {&#39;C&#39;: 1.0, &#39;gamma&#39;: &#39;scale&#39;}</td>
+          <td class="num">1.802</td><td class="num">± 0.338</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">48</td><td>svr {&#39;C&#39;: 1.0, &#39;gamma&#39;: &#39;auto&#39;}</td>
+          <td class="num">1.802</td><td class="num">± 0.338</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">49</td><td>knn {&#39;n_neighbors&#39;: 7}</td>
+          <td class="num">1.857</td><td class="num">± 0.3377</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">50</td><td>catboost {&#39;depth&#39;: 6, &#39;learning_rate&#39;: 0.01, &#39;n_estimators&#39;: 100, &#39;verbose&#39;: False}</td>
+          <td class="num">1.859</td><td class="num">± 0.2915</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">51</td><td>dt {&#39;max_depth&#39;: 1}</td>
+          <td class="num">1.911</td><td class="num">± 0.2213</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">52</td><td>sgp {&#39;gamma&#39;: None, &#39;n_components&#39;: 50}</td>
+          <td class="num">2.02</td><td class="num">± 0.346</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">53</td><td>lasso {&#39;alpha&#39;: 0.01}</td>
+          <td class="num">2.189</td><td class="num">± 0.2351</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">54</td><td>elastic_net {&#39;alpha&#39;: 0.01, &#39;l1_ratio&#39;: 0.75}</td>
+          <td class="num">2.189</td><td class="num">± 0.2354</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">55</td><td>elastic_net {&#39;alpha&#39;: 0.01, &#39;l1_ratio&#39;: 0.5}</td>
+          <td class="num">2.189</td><td class="num">± 0.2357</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">56</td><td>elastic_net {&#39;alpha&#39;: 0.01, &#39;l1_ratio&#39;: 0.25}</td>
+          <td class="num">2.189</td><td class="num">± 0.236</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">57</td><td>lasso {&#39;alpha&#39;: 0.1}</td>
+          <td class="num">2.189</td><td class="num">± 0.2439</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">58</td><td>elastic_net {&#39;alpha&#39;: 0.1, &#39;l1_ratio&#39;: 0.75}</td>
+          <td class="num">2.189</td><td class="num">± 0.2467</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">59</td><td>linear</td>
+          <td class="num">2.19</td><td class="num">± 0.2341</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">60</td><td>elastic_net {&#39;alpha&#39;: 0.1, &#39;l1_ratio&#39;: 0.5}</td>
+          <td class="num">2.191</td><td class="num">± 0.2495</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">61</td><td>elastic_net {&#39;alpha&#39;: 0.1, &#39;l1_ratio&#39;: 0.25}</td>
+          <td class="num">2.193</td><td class="num">± 0.2521</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">62</td><td>bayesian_ridge</td>
+          <td class="num">2.193</td><td class="num">± 0.244</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">63</td><td>blr {&#39;n_bootstraps&#39;: 20}</td>
+          <td class="num">2.196</td><td class="num">± 0.236</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">64</td><td>pbr {&#39;degree&#39;: 2, &#39;interaction_only&#39;: True}</td>
+          <td class="num">2.302</td><td class="num">± 0.2538</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">65</td><td>lasso {&#39;alpha&#39;: 1.0}</td>
+          <td class="num">2.305</td><td class="num">± 0.2917</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">66</td><td>elastic_net {&#39;alpha&#39;: 1.0, &#39;l1_ratio&#39;: 0.75}</td>
+          <td class="num">2.371</td><td class="num">± 0.3033</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">67</td><td>pbr {&#39;degree&#39;: 3, &#39;interaction_only&#39;: True}</td>
+          <td class="num">2.372</td><td class="num">± 0.326</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">68</td><td>elastic_net {&#39;alpha&#39;: 1.0, &#39;l1_ratio&#39;: 0.5}</td>
+          <td class="num">2.421</td><td class="num">± 0.312</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">69</td><td>elastic_net {&#39;alpha&#39;: 1.0, &#39;l1_ratio&#39;: 0.25}</td>
+          <td class="num">2.448</td><td class="num">± 0.3144</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">70</td><td>rfgp {&#39;kernel&#39;: &#39;matern52&#39;, &#39;length_scale&#39;: 1.0, &#39;n_components&#39;: 500}</td>
+          <td class="num">2.501</td><td class="num">± 0.2628</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">71</td><td>quantile {&#39;alpha&#39;: 0.1}</td>
+          <td class="num">2.523</td><td class="num">± 0.3277</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">72</td><td>rfgp {&#39;kernel&#39;: &#39;rbf&#39;, &#39;length_scale&#39;: 1.0, &#39;n_components&#39;: 500}</td>
+          <td class="num">2.664</td><td class="num">± 0.3967</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">73</td><td>sgp {&#39;gamma&#39;: 1.0, &#39;n_components&#39;: 200}</td>
+          <td class="num">2.825</td><td class="num">± 0.3208</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">74</td><td>rfgp {&#39;kernel&#39;: &#39;rbf&#39;, &#39;length_scale&#39;: 1.0, &#39;n_components&#39;: 100}</td>
+          <td class="num">2.946</td><td class="num">± 0.4333</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">75</td><td>rfgp {&#39;kernel&#39;: &#39;matern52&#39;, &#39;length_scale&#39;: 1.0, &#39;n_components&#39;: 100}</td>
+          <td class="num">2.952</td><td class="num">± 0.5262</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">76</td><td>sgp {&#39;gamma&#39;: 1.0, &#39;n_components&#39;: 50}</td>
+          <td class="num">3.161</td><td class="num">± 0.312</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">77</td><td>rfgp {&#39;kernel&#39;: &#39;matern52&#39;, &#39;length_scale&#39;: 0.1, &#39;n_components&#39;: 500}</td>
+          <td class="num">3.198</td><td class="num">± 0.3255</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">78</td><td>rfgp {&#39;kernel&#39;: &#39;rbf&#39;, &#39;length_scale&#39;: 0.1, &#39;n_components&#39;: 100}</td>
+          <td class="num">3.198</td><td class="num">± 0.3236</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">79</td><td>rfgp {&#39;kernel&#39;: &#39;matern52&#39;, &#39;length_scale&#39;: 0.1, &#39;n_components&#39;: 100}</td>
+          <td class="num">3.21</td><td class="num">± 0.3368</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">80</td><td>rfgp {&#39;kernel&#39;: &#39;rbf&#39;, &#39;length_scale&#39;: 0.1, &#39;n_components&#39;: 500}</td>
+          <td class="num">3.225</td><td class="num">± 0.3347</td>
+          <td>OK</td>
+        </tr><tr>
+          <td class="num">81</td><td>quantile {&#39;alpha&#39;: 1.0}</td>
+          <td class="num">3.511</td><td class="num">± 0.4125</td>
+          <td>OK</td>
+        </tr></tbody>
+      </table></div>
+      </details>
+      
+    </section>
+
+    <!-- Appendix -->
+    <details class="appendix panel" id="appendix">
+      <summary>Appendix: thresholds, raw tables, run settings</summary>
+      <h3>Verdict thresholds</h3>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Rule</th><th>Pass</th><th>Caution</th><th>Fail</th></tr></thead>
+        <tbody>
+          <tr><td>Accuracy (test R²)</td><td>≥ 0.9</td><td>0.8–0.9</td><td>&lt; 0.8</td></tr>
+          <tr><td>Error bars (coverage)</td><td>≥ nominal − 1.96·SE (95% at n = 75: ≥ 90.1%)</td><td>Gaussian fails but conformal passes, or within 2× the band</td><td>below 2× the band, or no std</td></tr>
+          <tr><td>Weak fidelity level</td><td colspan="3">|r| &lt; 0.5 with the high-fidelity truth</td></tr>
+          <tr><td>Overall</td><td colspan="3">the worst of the criteria; "no gain" does not lower the overall status</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Regression metrics</h3>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Output</th><th class="num">r2</th><th class="num">rmse</th><th class="num">mae</th><th class="num">mean_predicted_std</th></tr></thead>
+        <tbody><tr><td>output_pressure</td><td class="num">0.9671</td><td class="num">0.1319</td><td class="num">0.1005</td><td class="num">0.16</td></tr><tr><td>output_temperature</td><td class="num">0.9985</td><td class="num">0.1071</td><td class="num">0.08679</td><td class="num">0.1041</td></tr><tr><td>output_velocity</td><td class="num">0.9997</td><td class="num">0.09721</td><td class="num">0.06148</td><td class="num">0.2566</td></tr></tbody>
+      </table></div>
+      <h3>Run settings</h3>
+      <dl class="kv">
+        <dt>Model</dt><dd>PerTargetRegressorWithStd</dd>
+        <dt>Outputs</dt><dd>output_pressure, output_temperature, output_velocity</dd>
+<dt>Inputs</dt><dd>feature_0, feature_1, feature_2, feature_3, feature_4</dd>        <dt>Training data</dt><dd>225</dd>
+        <dt>Test data</dt><dd>75</dd>
+        <dt>Cross-validation</dt><dd>Model selected per output by 10-Fold CV (shuffled) on the training data. Performance estimate: 25% held-out test set</dd>
+        <dt>Random seed</dt><dd>0</dd>
+        <dt>Data hash</dt><dd><code>a2f46ae</code> (SHA-1 of the training inputs and test outputs)</dd>
+        <dt>Package</dt><dd>multioutreg 0.0.1</dd>
+        <dt>Generated</dt><dd>2026-10-28</dd>
+<dt>Notes</dt><dd>Generated report.</dd>      </dl>
+      
+      
+    </details>
+  </div>
+</div>
+</main>
+<div id="tip" hidden></div>
+<script type="application/json" id="report-data">{"run": {"title": "Surrogate Modeling Report", "model": "PerTargetRegressorWithStd", "description": "Example: the bundled 3-output dataset (300 rows, 5 inputs).", "notes": "Generated report.", "dataset": null, "data_hash": "a2f46ae", "seed": 0, "version": "0.0.1", "date": "2026-10-28", "cross_validation": "Model selected per output by 10-Fold CV (shuffled) on the training data. Performance estimate: 25% held-out test set", "n_train": 225, "n_test": 75, "n_test_points": 75, "fidelity_levels": [], "input_names": ["feature_0", "feature_1", "feature_2", "feature_3", "feature_4"], "output_names": ["output_pressure", "output_temperature", "output_velocity"], "highest_level": null}, "outputs": [{"idx": 0, "name": "output_pressure", "n": 75, "r2": 0.9671419820129834, "rmse": 0.13190458768636978, "mae": 0.10049213621059465, "metrics": {"r2": 0.9671419820129834, "rmse": 0.13190458768636978, "mae": 0.10049213621059465, "mean_predicted_std": 0.16001007190874986}, "range": 2.443639516525449, "has_std": true, "gauss95": 0.9466666666666667, "outside95": 4, "width_gauss_pct": 25.667777590266986, "levels": [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.99], "gauss_curve": [0.05333, 0.1467, 0.1867, 0.2533, 0.3333, 0.3733, 0.4667, 0.4933, 0.5467, 0.5867, 0.6, 0.6667, 0.72, 0.7867, 0.8267, 0.8533, 0.88, 0.9333, 0.9467, 0.9867], "conf_curve": null, "conformal": null, "width_conf_pct": null, "trend": {"slope": -0.0023223861267554335, "intercept": 0.008679209751331993, "t": -0.1081325145399076, "p": 0.9141872373293622, "significant": false}, "hf_rmse": null, "hf_r2": null, "mf_change_pct": null, "points": {"y": [0.3648, -1.081, -0.7461, -1.038, 1.009, 0.8922, 1.197, -0.3006, 0.8588, 0.3954, 0.08464, 1.115, 0.8895, 0.9352, -1.064, -1.048, 0.8852, 1.064, 0.8673, 0.679, 0.5492, -0.4615, -1.202, 0.5571, 0.9983, 0.2772, 1.036, -0.3117, 0.8976, 0.8531, -0.859, -0.6015, -0.7102, -0.1181, -0.9174, -0.4852, -0.9573, 0.4202, 0.9855, 1.054, 0.1566, 0.5783, 0.6082, 0.4256, 0.3128, 0.5214, 0.1261, 0.4013, 0.9003, -0.7115, -0.09674, 0.6714, 0.2925, 1.242, 0.5096, -0.3929, -0.2412, -0.7405, -0.8483, 0.6204, -0.6791, 0.5809, 0.9098, 0.1288, -0.01845, 1.071, -0.7589, -0.706, -0.2244, 0.9118, 0.8374, 0.8416, -0.731, -0.8839, 0.3519], "pred": [0.4494, -0.9867, -0.7188, -1.013, 0.9747, 0.7977, 1.06, -0.3881, 0.9421, 0.4984, 0.05804, 1.085, 0.7972, 0.9587, -1.1, -0.7509, 0.781, 0.993, 0.9203, 0.6848, 0.7484, -0.4909, -1.112, 0.7446, 0.7714, -0.1104, 1.047, -0.2218, 0.9429, 1.028, -0.6375, -0.6051, -0.6548, -0.2737, -1.087, -0.5146, -0.9822, 0.4231, 0.9757, 0.7504, 0.2686, 0.6168, 0.5586, 0.562, 0.2363, 0.5323, 0.2705, 0.4715, 0.8272, -0.6101, -0.5079, 0.738, 0.2663, 1.126, 0.3723, -0.5523, -0.2648, -0.5886, -0.9282, 0.5745, -0.5993, 0.7796, 0.8074, -0.1445, 0.1509, 0.9125, -0.7698, -0.6494, -0.3774, 1.004, 0.9609, 0.8736, -0.7703, -0.9076, 0.2872], "std": [0.08452, 0.1876, 0.152, 0.1397, 0.1529, 0.1154, 0.09312, 0.09821, 0.1876, 0.1846, 0.2404, 0.1077, 0.09437, 0.1084, 0.1191, 0.1827, 0.09556, 0.1162, 0.1562, 0.1916, 0.2307, 0.109, 0.1624, 0.1459, 0.1267, 0.2394, 0.1524, 0.1353, 0.1767, 0.08163, 0.1509, 0.1424, 0.2465, 0.2008, 0.1461, 0.1408, 0.1408, 0.2166, 0.1351, 0.1072, 0.2568, 0.1029, 0.1699, 0.1534, 0.2115, 0.1698, 0.1556, 0.1331, 0.0726, 0.2598, 0.202, 0.09403, 0.2555, 0.1897, 0.1736, 0.1382, 0.2589, 0.1618, 0.1844, 0.2232, 0.1988, 0.15, 0.1742, 0.1322, 0.1611, 0.1973, 0.2969, 0.1371, 0.1974, 0.09646, 0.1088, 0.1221, 0.1018, 0.2251, 0.1398], "lower": null, "upper": null, "downsampled": false}, "status": {"accuracy": "good", "gaussian": "good", "conformal": null, "bars": "good", "mf": null, "overall": "good"}}, {"idx": 1, "name": "output_temperature", "n": 75, "r2": 0.9985167493107371, "rmse": 0.10712401365686194, "mae": 0.08678969883737357, "metrics": {"r2": 0.9985167493107371, "rmse": 0.10712401365686194, "mae": 0.08678969883737357, "mean_predicted_std": 0.10409430074404281}, "range": 10.851888952099008, "has_std": true, "gauss95": 0.9466666666666667, "outside95": 4, "width_gauss_pct": 3.7601026209311232, "levels": [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.99], "gauss_curve": [0.04, 0.08, 0.12, 0.16, 0.2267, 0.28, 0.3467, 0.36, 0.4267, 0.4533, 0.5467, 0.56, 0.6, 0.7067, 0.76, 0.7733, 0.84, 0.9067, 0.9467, 0.9867], "conf_curve": null, "conformal": null, "width_conf_pct": null, "trend": {"slope": -0.0029473333399079146, "intercept": -0.01494706016313388, "t": -0.6746371926596283, "p": 0.5020373403444237, "significant": false}, "hf_rmse": null, "hf_r2": null, "mf_change_pct": null, "points": {"y": [0.889, -0.04507, 4.307, 1.81, 7.183, 3.455, 0.9221, 3.663, 4.537, 1.979, 4.417, 7.021, 4.598, 1.595, 5.895, 5.326, -0.5625, -1.022, -0.1738, 1.491, 2.609, 2.099, 0.6933, 0.2959, 2.545, 0.3542, 2.836, -0.3986, 1.359, 1.72, 1.841, 9.83, 6.457, 1.742, 2.658, 1.053, 9.397, 0.8187, 0.5401, -0.2111, 5.865, 2.805, 7.575, 0.98, 0.1915, 1.202, -0.7629, 1.547, 5.314, -0.8101, 6.813, 5.806, 2.66, 8.72, 2.724, -0.2008, 2.355, 5.547, 8.528, 5.576, 6.034, 3.938, 4.777, -0.9833, 6.955, 3.674, 1.212, 7.103, 1.287, 0.305, 2.711, 0.972, 6.954, 1.717, 5.994], "pred": [0.8018, -0.1045, 4.322, 1.854, 7.186, 3.382, 0.8876, 3.77, 4.594, 2.121, 4.694, 6.96, 4.738, 1.635, 5.792, 5.401, -0.5347, -0.9948, -0.1354, 1.328, 2.565, 2.111, 0.6735, 0.3072, 2.644, 0.5278, 2.773, -0.4709, 1.354, 1.625, 1.944, 9.666, 6.616, 1.831, 2.735, 1.09, 9.514, 0.8478, 0.4189, -0.2768, 5.809, 2.653, 7.374, 0.8614, 0.2297, 1.29, -0.6534, 1.593, 5.27, -0.7221, 6.795, 5.911, 2.549, 8.732, 2.556, -0.2539, 2.417, 5.705, 8.636, 5.595, 6.293, 4.009, 4.891, -0.7677, 6.978, 3.824, 1.448, 7.237, 1.211, 0.2321, 2.685, 0.9479, 6.956, 1.903, 6.025], "std": [0.1019, 0.1017, 0.1011, 0.1022, 0.1119, 0.1024, 0.1014, 0.1059, 0.1073, 0.1021, 0.103, 0.1058, 0.1029, 0.1032, 0.1038, 0.1111, 0.101, 0.1037, 0.1037, 0.1029, 0.102, 0.1111, 0.1014, 0.1016, 0.101, 0.1032, 0.1046, 0.1008, 0.1033, 0.1022, 0.1046, 0.1108, 0.1061, 0.1087, 0.1027, 0.1034, 0.1062, 0.1008, 0.1011, 0.1028, 0.1042, 0.1085, 0.1112, 0.1036, 0.1012, 0.1009, 0.1067, 0.1028, 0.1021, 0.1036, 0.1051, 0.1022, 0.1034, 0.1079, 0.1028, 0.1015, 0.1081, 0.1038, 0.1071, 0.1023, 0.1043, 0.1046, 0.1016, 0.1057, 0.1125, 0.1065, 0.1037, 0.103, 0.1052, 0.1009, 0.1012, 0.1009, 0.1036, 0.1028, 0.1039], "lower": null, "upper": null, "downsampled": false}, "status": {"accuracy": "good", "gaussian": "good", "conformal": null, "bars": "good", "mf": null, "overall": "good"}}, {"idx": 2, "name": "output_velocity", "n": 75, "r2": 0.9996529618430483, "rmse": 0.09721281914636185, "mae": 0.06147570621334393, "metrics": {"r2": 0.9996529618430483, "rmse": 0.09721281914636185, "mae": 0.06147570621334393, "mean_predicted_std": 0.2565662871249968}, "range": 18.691566911721623, "has_std": true, "gauss95": 0.96, "outside95": 3, "width_gauss_pct": 5.3806155983296255, "levels": [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.99], "gauss_curve": [0.1067, 0.2267, 0.4133, 0.48, 0.5333, 0.6, 0.6533, 0.68, 0.6933, 0.72, 0.7467, 0.7733, 0.8533, 0.88, 0.9067, 0.9067, 0.92, 0.9467, 0.96, 0.96], "conf_curve": null, "conformal": null, "width_conf_pct": null, "trend": {"slope": 0.006090217170266046, "intercept": -0.017453456767527138, "t": 2.9491500980666925, "p": 0.004278668295465815, "significant": true}, "hf_rmse": null, "hf_r2": null, "mf_change_pct": null, "points": {"y": [0.08894, 5.877, 3.691, 7.909, 9.165, 0.06312, 0.5308, 12.65, 0.1845, 0.4377, 16.78, 9.956, 1.597, 0.2418, 0.3739, 13.07, 1.124, 10.27, 0.132, 0.9027, 1.539, 8.058, 0.4906, 1.009, 0.5412, 0.421, 16.63, 8.689, 0.4651, 1.431, 0.00279, 15.19, 4.258, 0.04458, 2.478, 8.796, 0.1781, 0.7452, 0.1227, 15.16, 9.277, 12.19, 11.52, 0.4292, 0.125, 1.105, 10.86, 0.0737, 1.423, 0.3761, 13.26, 3.594, 0.06349, 0.2507, 11.99, 3.443, 8.287, 0.05467, 0.01282, 0.1705, 1.708, 7.546, 4.443, 0.1685, 0.166, 0.4416, 18.69, 0.4751, 0.01638, 6.238, 6.716, 4.014, 4.855, 0.02136, 0.6343], "pred": [0.07953, 5.806, 3.77, 7.999, 9.075, 0.07957, 0.5009, 12.54, 0.06196, 0.5197, 16.76, 10.01, 1.549, 0.2105, 0.422, 13.19, 1.069, 10.44, 0.09267, 0.8139, 1.62, 8.143, 0.4799, 0.9532, 0.649, 0.3947, 16.5, 8.756, 0.4058, 1.502, 0.04724, 15.08, 4.268, 0.03419, 2.462, 8.779, 0.1623, 0.7598, 0.119, 15.13, 9.245, 11.95, 11.47, 0.4055, 0.1905, 1.124, 10.98, 0.06144, 1.448, 0.4266, 13.16, 3.523, 0.1314, 0.1913, 11.95, 3.439, 8.214, 0.06895, 0.04253, 0.1706, 1.721, 7.574, 4.499, 0.2079, 0.09744, 0.3989, 18.09, 0.4805, 0.04554, 6.345, 6.747, 4.094, 4.821, 0.07059, 0.627], "std": [0.05299, 0.4665, 0.1061, 0.2353, 0.6873, 0.04532, 0.08864, 0.6214, 0.04725, 0.09124, 0.5763, 0.221, 0.122, 0.04109, 0.05163, 0.9775, 0.0771, 0.8807, 0.04421, 0.03425, 0.1039, 0.3276, 0.1024, 0.09193, 0.08062, 0.05437, 1.034, 0.3076, 0.05575, 0.07667, 0.07611, 0.7768, 0.2831, 0.06979, 0.0532, 0.4683, 0.09676, 0.09108, 0.07135, 1.224, 0.3183, 1.149, 1.023, 0.06991, 0.05929, 0.09172, 1.0, 0.03072, 0.1319, 0.0511, 0.2913, 0.3676, 0.03933, 0.03775, 0.5928, 0.0875, 0.4692, 0.05591, 0.03235, 0.04543, 0.08686, 0.2547, 0.1552, 0.05924, 0.04631, 0.04991, 0.1656, 0.08492, 0.0615, 0.5871, 0.2903, 0.2003, 0.2138, 0.04958, 0.08025], "lower": null, "upper": null, "downsampled": false}, "status": {"accuracy": "good", "gaussian": "good", "conformal": null, "bars": "good", "mf": null, "overall": "good"}}], "thresholds": {"r2_good": 0.9, "r2_warn": 0.8, "mf_gain": -5.0, "mf_hurt": 5.0, "coverage_target": 0.95, "z": 1.96, "weak_level_r": 0.5, "small_test": 30}, "verdict": {"headline": "Ready for all 3 outputs.", "why": "", "status": "good", "groups": {"good": ["output_pressure", "output_temperature", "output_velocity"], "warn": [], "crit": []}}, "findings": [{"claim": "output_velocity has a systematic bias", "detail": "Residuals change with the prediction (slope 0.01, p = 0.00428): the model underpredicts high values of output_velocity.", "status": "warn", "section": "out-2", "plot": "resid:2"}, {"claim": "The error bars hold for every output", "detail": "Gaussian 95% intervals cover at least 90% of test points, the lower end of the range expected for n = 75.", "status": "good", "section": "sec-3", "plot": "cov95"}, {"claim": "Every output reaches R² ≥ 0.90", "detail": "The lowest test R² is 0.967 (output_pressure).", "status": "good", "section": "out-0", "plot": "parity:0"}, {"claim": "The top 10 candidate models are statistically tied", "detail": "Their CV scores overlap within one fold standard deviation. et {'max_depth': None, 'n_estimators': 50} scored best; a simpler tied model would also be a reasonable choice.", "status": "neutral", "section": "sec-7", "plot": "cv"}], "next_steps": [{"html": "\u003cb\u003eCheck output_velocity for systematic bias.\u003c/b\u003e The residuals trend with the prediction; a missing input or a transform of the output may fix it.", "section": "Section 2"}], "uncertainty_metrics": {"Sharpness (mean predicted std)": 0.17355688659259647, "Empirical coverage of 95% Gaussian interval": 0.9511111111111111, "Miscoverage at 95% (|nominal − empirical|)": 0.0011111111111111738, "Gaussian NLL (mean per point)": -0.6955573879558885}, "conformal_alpha": null, "levels": [], "baseline_label": null, "cv": {"metric": "CV RMSE", "spread": "±1 std across folds", "rows": [{"name": "et {'max_depth': None, 'n_estimators': 50}", "mean": 0.216345, "sd": 0.055504, "r2": null, "status": "OK", "selected_for": ["output_pressure", "output_velocity"]}, {"name": "gb {'alpha': 0.95, 'n_estimators': 50}", "mean": 0.255389, "sd": 0.027505, "r2": null, "status": "OK", "selected_for": []}, {"name": "xgb {'learning_rate': 0.05, 'max_depth': 4, 'n_estimators': 200}", "mean": 0.274032, "sd": 0.044561, "r2": null, "status": "OK", "selected_for": []}, {"name": "xgb {'learning_rate': 0.05, 'max_depth': 4, 'n_estimators': 100}", "mean": 0.282676, "sd": 0.047161, "r2": null, "status": "OK", "selected_for": []}, {"name": "xgb {'learning_rate': 0.05, 'max_depth': 6, 'n_estimators': 200}", "mean": 0.293555, "sd": 0.047227, "r2": null, "status": "OK", "selected_for": []}, {"name": "xgb {'learning_rate': 0.05, 'max_depth': 6, 'n_estimators': 100}", "mean": 0.30016, "sd": 0.050056, "r2": null, "status": "OK", "selected_for": []}, {"name": "pbr {'degree': 3, 'interaction_only': False}", "mean": 0.300731, "sd": 0.045441, "r2": null, "status": "OK", "selected_for": []}, {"name": "rf {'max_depth': None, 'n_estimators': 50}", "mean": 0.314245, "sd": 0.044832, "r2": null, "status": "OK", "selected_for": []}, {"name": "catboost {'depth': 4, 'learning_rate': 0.05, 'n_estimators': 200, 'verbose': False}", "mean": 0.318058, "sd": 0.142478, "r2": null, "status": "OK", "selected_for": []}, {"name": "rfgp {'kernel': 'rbf', 'length_scale': 10.0, 'n_components': 500}", "mean": 0.378867, "sd": 0.036443, "r2": null, "status": "OK", "selected_for": []}, {"name": "rfgp {'kernel': 'matern52', 'length_scale': 10.0, 'n_components': 500}", "mean": 0.405959, "sd": 0.087332, "r2": null, "status": "OK", "selected_for": []}, {"name": "catboost {'depth': 4, 'learning_rate': 0.05, 'n_estimators': 100, 'verbose': False}", "mean": 0.420157, "sd": 0.165973, "r2": null, "status": "OK", "selected_for": []}, {"name": "dt {'max_depth': None}", "mean": 0.450466, "sd": 0.093819, "r2": null, "status": "OK", "selected_for": []}, {"name": "catboost {'depth': 6, 'learning_rate': 0.05, 'n_estimators': 200, 'verbose': False}", "mean": 0.484237, "sd": 0.196858, "r2": null, "status": "OK", "selected_for": []}, {"name": "hgb {'learning_rate': 0.05, 'max_iter': 200}", "mean": 0.532813, "sd": 0.155655, "r2": null, "status": "OK", "selected_for": []}, {"name": "hgb {'learning_rate': 0.1, 'max_iter': 100}", "mean": 0.538587, "sd": 0.158208, "r2": null, "status": "OK", "selected_for": []}, {"name": "hgb {'learning_rate': 0.1, 'max_iter': 200}", "mean": 0.5415, "sd": 0.151373, "r2": null, "status": "OK", "selected_for": []}, {"name": "hgb {'learning_rate': 0.05, 'max_iter': 100}", "mean": 0.542646, "sd": 0.165427, "r2": null, "status": "OK", "selected_for": []}, {"name": "lgbm {'learning_rate': 0.05, 'n_estimators': 200, 'num_leaves': 31}", "mean": 0.574043, "sd": 0.150113, "r2": null, "status": "OK", "selected_for": []}, {"name": "lgbm {'learning_rate': 0.05, 'n_estimators': 200, 'num_leaves': 63}", "mean": 0.574043, "sd": 0.150113, "r2": null, "status": "OK", "selected_for": []}, {"name": "lgbm {'learning_rate': 0.05, 'n_estimators': 100, 'num_leaves': 31}", "mean": 0.58185, "sd": 0.16386, "r2": null, "status": "OK", "selected_for": []}, {"name": "lgbm {'learning_rate': 0.05, 'n_estimators': 100, 'num_leaves': 63}", "mean": 0.58185, "sd": 0.16386, "r2": null, "status": "OK", "selected_for": []}, {"name": "catboost {'depth': 6, 'learning_rate': 0.05, 'n_estimators': 100, 'verbose': False}", "mean": 0.592855, "sd": 0.208556, "r2": null, "status": "OK", "selected_for": []}, {"name": "xgb {'learning_rate': 0.01, 'max_depth': 6, 'n_estimators': 200}", "mean": 0.605828, "sd": 0.120128, "r2": null, "status": "OK", "selected_for": []}, {"name": "rfgp {'kernel': 'matern52', 'length_scale': 10.0, 'n_components': 100}", "mean": 0.614917, "sd": 0.200205, "r2": null, "status": "OK", "selected_for": []}, {"name": "xgb {'learning_rate': 0.01, 'max_depth': 4, 'n_estimators': 200}", "mean": 0.621063, "sd": 0.125178, "r2": null, "status": "OK", "selected_for": []}, {"name": "rfgp {'kernel': 'rbf', 'length_scale': 10.0, 'n_components': 100}", "mean": 0.623133, "sd": 0.2126, "r2": null, "status": "OK", "selected_for": []}, {"name": "rf {'max_depth': 3, 'n_estimators': 50}", "mean": 0.631778, "sd": 0.067409, "r2": null, "status": "OK", "selected_for": []}, {"name": "lgbm {'learning_rate': 0.01, 'n_estimators': 200, 'num_leaves': 31}", "mean": 0.776702, "sd": 0.21355, "r2": null, "status": "OK", "selected_for": []}, {"name": "lgbm {'learning_rate': 0.01, 'n_estimators': 200, 'num_leaves': 63}", "mean": 0.776702, "sd": 0.21355, "r2": null, "status": "OK", "selected_for": []}, {"name": "pbr {'degree': 2, 'interaction_only': False}", "mean": 0.778068, "sd": 0.057772, "r2": null, "status": "OK", "selected_for": ["output_temperature"]}, {"name": "sgp {'gamma': 0.1, 'n_components': 200}", "mean": 0.825407, "sd": 0.262457, "r2": null, "status": "OK", "selected_for": []}, {"name": "svr {'C': 10.0, 'gamma': 'scale'}", "mean": 0.857406, "sd": 0.236249, "r2": null, "status": "OK", "selected_for": []}, {"name": "svr {'C': 10.0, 'gamma': 'auto'}", "mean": 0.857406, "sd": 0.236249, "r2": null, "status": "OK", "selected_for": []}, {"name": "et {'max_depth': 3, 'n_estimators': 50}", "mean": 0.908403, "sd": 0.138751, "r2": null, "status": "OK", "selected_for": []}, {"name": "catboost {'depth': 4, 'learning_rate': 0.01, 'n_estimators': 200, 'verbose': False}", "mean": 0.991903, "sd": 0.228177, "r2": null, "status": "OK", "selected_for": []}, {"name": "catboost {'depth': 6, 'learning_rate': 0.01, 'n_estimators': 200, 'verbose': False}", "mean": 1.185495, "sd": 0.263716, "r2": null, "status": "OK", "selected_for": []}, {"name": "sgp {'gamma': None, 'n_components': 200}", "mean": 1.236902, "sd": 0.331127, "r2": null, "status": "OK", "selected_for": []}, {"name": "xgb {'learning_rate': 0.01, 'max_depth': 6, 'n_estimators': 100}", "mean": 1.307062, "sd": 0.197032, "r2": null, "status": "OK", "selected_for": []}, {"name": "xgb {'learning_rate': 0.01, 'max_depth': 4, 'n_estimators': 100}", "mean": 1.32599, "sd": 0.201974, "r2": null, "status": "OK", "selected_for": []}, {"name": "lgbm {'learning_rate': 0.01, 'n_estimators': 100, 'num_leaves': 31}", "mean": 1.37047, "sd": 0.263998, "r2": null, "status": "OK", "selected_for": []}, {"name": "lgbm {'learning_rate': 0.01, 'n_estimators': 100, 'num_leaves': 63}", "mean": 1.37047, "sd": 0.263998, "r2": null, "status": "OK", "selected_for": []}, {"name": "sgp {'gamma': 0.1, 'n_components': 50}", "mean": 1.563936, "sd": 0.262321, "r2": null, "status": "OK", "selected_for": []}, {"name": "catboost {'depth': 4, 'learning_rate': 0.01, 'n_estimators': 100, 'verbose': False}", "mean": 1.692364, "sd": 0.267966, "r2": null, "status": "OK", "selected_for": []}, {"name": "knn {'n_neighbors': 5}", "mean": 1.762492, "sd": 0.329786, "r2": null, "status": "OK", "selected_for": []}, {"name": "knn {'n_neighbors': 3}", "mean": 1.782903, "sd": 0.272662, "r2": null, "status": "OK", "selected_for": []}, {"name": "svr {'C': 1.0, 'gamma': 'scale'}", "mean": 1.801728, "sd": 0.338001, "r2": null, "status": "OK", "selected_for": []}, {"name": "svr {'C': 1.0, 'gamma': 'auto'}", "mean": 1.801728, "sd": 0.338001, "r2": null, "status": "OK", "selected_for": []}, {"name": "knn {'n_neighbors': 7}", "mean": 1.857226, "sd": 0.337717, "r2": null, "status": "OK", "selected_for": []}, {"name": "catboost {'depth': 6, 'learning_rate': 0.01, 'n_estimators': 100, 'verbose': False}", "mean": 1.859492, "sd": 0.291519, "r2": null, "status": "OK", "selected_for": []}, {"name": "dt {'max_depth': 1}", "mean": 1.910525, "sd": 0.221291, "r2": null, "status": "OK", "selected_for": []}, {"name": "sgp {'gamma': None, 'n_components': 50}", "mean": 2.01958, "sd": 0.346023, "r2": null, "status": "OK", "selected_for": []}, {"name": "lasso {'alpha': 0.01}", "mean": 2.188737, "sd": 0.235076, "r2": null, "status": "OK", "selected_for": []}, {"name": "elastic_net {'alpha': 0.01, 'l1_ratio': 0.75}", "mean": 2.188851, "sd": 0.235394, "r2": null, "status": "OK", "selected_for": []}, {"name": "elastic_net {'alpha': 0.01, 'l1_ratio': 0.5}", "mean": 2.18898, "sd": 0.235714, "r2": null, "status": "OK", "selected_for": []}, {"name": "elastic_net {'alpha': 0.01, 'l1_ratio': 0.25}", "mean": 2.18913, "sd": 0.236023, "r2": null, "status": "OK", "selected_for": []}, {"name": "lasso {'alpha': 0.1}", "mean": 2.18914, "sd": 0.24386, "r2": null, "status": "OK", "selected_for": []}, {"name": "elastic_net {'alpha': 0.1, 'l1_ratio': 0.75}", "mean": 2.189358, "sd": 0.246717, "r2": null, "status": "OK", "selected_for": []}, {"name": "linear", "mean": 2.189794, "sd": 0.234079, "r2": null, "status": "OK", "selected_for": []}, {"name": "elastic_net {'alpha': 0.1, 'l1_ratio': 0.5}", "mean": 2.190746, "sd": 0.249536, "r2": null, "status": "OK", "selected_for": []}, {"name": "elastic_net {'alpha': 0.1, 'l1_ratio': 0.25}", "mean": 2.192708, "sd": 0.252086, "r2": null, "status": "OK", "selected_for": []}, {"name": "bayesian_ridge", "mean": 2.193333, "sd": 0.243977, "r2": null, "status": "OK", "selected_for": []}, {"name": "blr {'n_bootstraps': 20}", "mean": 2.196386, "sd": 0.23602, "r2": null, "status": "OK", "selected_for": []}, {"name": "pbr {'degree': 2, 'interaction_only': True}", "mean": 2.301786, "sd": 0.253837, "r2": null, "status": "OK", "selected_for": []}, {"name": "lasso {'alpha': 1.0}", "mean": 2.30478, "sd": 0.291661, "r2": null, "status": "OK", "selected_for": []}, {"name": "elastic_net {'alpha': 1.0, 'l1_ratio': 0.75}", "mean": 2.371248, "sd": 0.303335, "r2": null, "status": "OK", "selected_for": []}, {"name": "pbr {'degree': 3, 'interaction_only': True}", "mean": 2.371826, "sd": 0.325995, "r2": null, "status": "OK", "selected_for": []}, {"name": "elastic_net {'alpha': 1.0, 'l1_ratio': 0.5}", "mean": 2.421268, "sd": 0.312041, "r2": null, "status": "OK", "selected_for": []}, {"name": "elastic_net {'alpha': 1.0, 'l1_ratio': 0.25}", "mean": 2.448212, "sd": 0.314354, "r2": null, "status": "OK", "selected_for": []}, {"name": "rfgp {'kernel': 'matern52', 'length_scale': 1.0, 'n_components': 500}", "mean": 2.500881, "sd": 0.26277, "r2": null, "status": "OK", "selected_for": []}, {"name": "quantile {'alpha': 0.1}", "mean": 2.523169, "sd": 0.327661, "r2": null, "status": "OK", "selected_for": []}, {"name": "rfgp {'kernel': 'rbf', 'length_scale': 1.0, 'n_components': 500}", "mean": 2.663873, "sd": 0.396726, "r2": null, "status": "OK", "selected_for": []}, {"name": "sgp {'gamma': 1.0, 'n_components': 200}", "mean": 2.824752, "sd": 0.320774, "r2": null, "status": "OK", "selected_for": []}, {"name": "rfgp {'kernel': 'rbf', 'length_scale': 1.0, 'n_components': 100}", "mean": 2.94645, "sd": 0.433324, "r2": null, "status": "OK", "selected_for": []}, {"name": "rfgp {'kernel': 'matern52', 'length_scale': 1.0, 'n_components': 100}", "mean": 2.951961, "sd": 0.526205, "r2": null, "status": "OK", "selected_for": []}, {"name": "sgp {'gamma': 1.0, 'n_components': 50}", "mean": 3.161267, "sd": 0.312049, "r2": null, "status": "OK", "selected_for": []}, {"name": "rfgp {'kernel': 'matern52', 'length_scale': 0.1, 'n_components': 500}", "mean": 3.197564, "sd": 0.325513, "r2": null, "status": "OK", "selected_for": []}, {"name": "rfgp {'kernel': 'rbf', 'length_scale': 0.1, 'n_components': 100}", "mean": 3.198201, "sd": 0.323574, "r2": null, "status": "OK", "selected_for": []}, {"name": "rfgp {'kernel': 'matern52', 'length_scale': 0.1, 'n_components': 100}", "mean": 3.210284, "sd": 0.336828, "r2": null, "status": "OK", "selected_for": []}, {"name": "rfgp {'kernel': 'rbf', 'length_scale': 0.1, 'n_components': 500}", "mean": 3.22463, "sd": 0.334738, "r2": null, "status": "OK", "selected_for": []}, {"name": "quantile {'alpha': 1.0}", "mean": 3.51124, "sd": 0.412458, "r2": null, "status": "OK", "selected_for": []}], "best": "et {'max_depth': None, 'n_estimators': 50}", "per_output": true, "tied": ["et {'max_depth': None, 'n_estimators': 50}", "gb {'alpha': 0.95, 'n_estimators': 50}", "xgb {'learning_rate': 0.05, 'max_depth': 4, 'n_estimators': 200}", "xgb {'learning_rate': 0.05, 'max_depth': 4, 'n_estimators': 100}", "xgb {'learning_rate': 0.05, 'max_depth': 6, 'n_estimators': 200}", "xgb {'learning_rate': 0.05, 'max_depth': 6, 'n_estimators': 100}", "pbr {'degree': 3, 'interaction_only': False}", "rf {'max_depth': None, 'n_estimators': 50}", "catboost {'depth': 4, 'learning_rate': 0.05, 'n_estimators': 200, 'verbose': False}", "catboost {'depth': 4, 'learning_rate': 0.05, 'n_estimators': 100, 'verbose': False}"]}, "shap": {"features": ["feature_4", "feature_0", "feature_2", "feature_3", "feature_1"], "n_features": 5, "shares": {"output_pressure": {"feature_0": 0.7839701113610829, "feature_1": 0.18148795691104308, "feature_2": 0.009878866334731057, "feature_3": 0.014237752000868922, "feature_4": 0.010425313392274005}, "output_temperature": {"feature_0": 0.002256281534367796, "feature_1": 0.0009272425230306061, "feature_2": 0.7306970658493085, "feature_3": 0.26400070543475446, "feature_4": 0.0021187046585387104}, "output_velocity": {"feature_0": 0.003015429156110846, "feature_1": 0.0019604349235714707, "feature_2": 0.002558757780344564, "feature_3": 0.0021181662556730993, "feature_4": 0.9903472118843}}, "raw": {"output_pressure": {"feature_0": 0.6198645429016352, "feature_1": 0.14349775306803858, "feature_2": 0.0078109597243867564, "feature_3": 0.011257415950007559, "feature_4": 0.008243021037229068}, "output_temperature": {"feature_0": 0.007114132267003162, "feature_1": 0.002923627150225199, "feature_2": 2.303912652026221, "feature_3": 0.8324031857005081, "feature_4": 0.006680347707487444}, "output_velocity": {"feature_0": 0.012236716710190363, "feature_1": 0.007955513310565716, "feature_2": 0.010383528336130791, "feature_3": 0.008595592558767306, "feature_4": 4.018863534564025}}, "missing": []}, "pdp": {"features": ["feature_4", "feature_0", "feature_2"], "grid": {"feature_4": [-2.711, -2.423, -2.135, -1.847, -1.559, -1.271, -0.9825, -0.6943, -0.4062, -0.118, 0.1701, 0.4582, 0.7464, 1.035, 1.323, 1.611, 1.899, 2.187, 2.475, 2.763], "feature_0": [-2.742, -2.456, -2.17, -1.884, -1.599, -1.313, -1.027, -0.7405, -0.4545, -0.1685, 0.1175, 0.4035, 0.6895, 0.9754, 1.261, 1.547, 1.833, 2.119, 2.405, 2.691], "feature_2": [-2.713, -2.432, -2.151, -1.87, -1.589, -1.308, -1.027, -0.7456, -0.4646, -0.1835, 0.09749, 0.3785, 0.6596, 0.9406, 1.222, 1.503, 1.784, 2.065, 2.346, 2.627]}, "curves": {"output_pressure": {"feature_4": {"mean": [-0.05105, -0.04925, -0.04989, -0.04881, -0.05014, -0.05025, -0.04941, -0.04897, -0.04996, -0.04908, -0.04573, -0.04393, -0.04332, -0.04278, -0.04291, -0.04189, -0.04154, -0.03617, -0.0365, -0.03717], "p10": [-0.9862, -0.9918, -0.9976, -0.995, -0.9938, -0.9951, -0.9951, -0.9948, -1.002, -1.012, -1.005, -0.9984, -0.9974, -0.9972, -0.9966, -0.9939, -0.9928, -0.9928, -0.9997, -0.9997], "p90": [0.9295, 0.9426, 0.9421, 0.9482, 0.9412, 0.9403, 0.939, 0.9437, 0.9487, 0.9684, 0.9761, 0.9776, 0.9799, 0.9822, 0.9774, 0.9778, 0.9776, 0.981, 0.9808, 0.981]}, "feature_0": {"mean": [-0.4155, -0.5521, -0.7907, -0.932, -0.9619, -0.9473, -0.8378, -0.6917, -0.4033, -0.1618, 0.1708, 0.3984, 0.6895, 0.8221, 0.9029, 0.924, 0.9253, 0.852, 0.6689, 0.4326], "p10": [-0.5917, -0.7056, -0.9236, -1.14, -1.167, -1.116, -1.04, -0.836, -0.5712, -0.3248, -0.04152, 0.2273, 0.462, 0.5604, 0.6671, 0.6673, 0.7316, 0.6961, 0.4643, 0.2317], "p90": [-0.1886, -0.3772, -0.6393, -0.6467, -0.693, -0.6888, -0.5879, -0.4864, -0.2339, 0.008335, 0.3835, 0.5865, 0.9046, 1.029, 1.105, 1.143, 1.104, 1.035, 0.8709, 0.5986]}, "feature_2": {"mean": [-0.04535, -0.04799, -0.04962, -0.04796, -0.04832, -0.04678, -0.04613, -0.04439, -0.04402, -0.04442, -0.04479, -0.04596, -0.04853, -0.04909, -0.04971, -0.05169, -0.05163, -0.05213, -0.05, -0.05109], "p10": [-1.002, -1.002, -1.002, -0.9979, -0.9894, -0.9869, -0.9886, -0.9923, -0.9922, -0.993, -1.005, -1.008, -1.012, -1.009, -1.01, -1.021, -1.026, -1.034, -1.026, -1.022], "p90": [0.9525, 0.9525, 0.95, 0.9503, 0.9529, 0.9497, 0.9615, 0.9686, 0.9822, 0.9822, 0.9836, 0.9776, 0.9777, 0.9777, 0.9783, 0.9779, 0.9778, 0.9773, 0.9777, 0.9773]}}, "output_temperature": {"feature_4": {"mean": [3.055, 3.057, 3.06, 3.062, 3.064, 3.066, 3.067, 3.069, 3.07, 3.07, 3.071, 3.071, 3.07, 3.07, 3.069, 3.068, 3.067, 3.065, 3.064, 3.061], "p10": [-0.159, -0.1564, -0.1541, -0.152, -0.1502, -0.1487, -0.1475, -0.1465, -0.1458, -0.1454, -0.1452, -0.1454, -0.1458, -0.1464, -0.1474, -0.1486, -0.1501, -0.1518, -0.1539, -0.1562], "p90": [7.038, 7.039, 7.039, 7.039, 7.039, 7.038, 7.037, 7.036, 7.035, 7.033, 7.031, 7.029, 7.026, 7.024, 7.021, 7.017, 7.014, 7.01, 7.006, 7.001]}, "feature_0": {"mean": [3.069, 3.07, 3.07, 3.07, 3.07, 3.07, 3.07, 3.069, 3.069, 3.068, 3.067, 3.066, 3.064, 3.063, 3.061, 3.059, 3.057, 3.054, 3.052, 3.049], "p10": [-0.1502, -0.1505, -0.1511, -0.1519, -0.1528, -0.1539, -0.1553, -0.1568, -0.1584, -0.1603, -0.1624, -0.1646, -0.167, -0.1696, -0.1724, -0.1754, -0.1786, -0.182, -0.1855, -0.1892], "p90": [7.032, 7.032, 7.032, 7.032, 7.032, 7.031, 7.03, 7.029, 7.028, 7.026, 7.024, 7.022, 7.02, 7.017, 7.015, 7.012, 7.009, 7.006, 7.002, 6.999]}, "feature_2": {"mean": [7.44, 5.995, 4.708, 3.579, 2.608, 1.794, 1.139, 0.6409, 0.3012, 0.1194, 0.09542, 0.2294, 0.5212, 0.971, 1.579, 2.344, 3.268, 4.349, 5.588, 6.985], "p10": [6.131, 4.69, 3.407, 2.282, 1.314, 0.5048, -0.1468, -0.6405, -0.9763, -1.154, -1.174, -1.036, -0.7405, -0.2868, 0.3248, 1.094, 2.022, 3.107, 4.35, 5.751], "p90": [8.735, 7.288, 5.998, 4.867, 3.894, 3.078, 2.42, 1.921, 1.579, 1.395, 1.369, 1.501, 1.791, 2.238, 2.844, 3.607, 4.528, 5.607, 6.844, 8.239]}}, "output_velocity": {"feature_4": {"mean": [14.91, 11.21, 8.475, 6.445, 4.753, 3.544, 2.671, 2.025, 1.546, 1.128, 0.8509, 0.6231, 0.441, 0.3683, 0.2512, 0.2001, 0.1896, 0.08213, 0.06023, 0.06739], "p10": [14.75, 11.08, 8.402, 6.373, 4.719, 3.517, 2.646, 1.987, 1.529, 1.102, 0.8326, 0.5931, 0.4125, 0.3565, 0.225, 0.1792, 0.1553, 0.0457, 0.03674, 0.03021], "p90": [15.12, 11.33, 8.541, 6.526, 4.789, 3.564, 2.686, 2.057, 1.565, 1.152, 0.8708, 0.6471, 0.4681, 0.3818, 0.2783, 0.2261, 0.2306, 0.1107, 0.08523, 0.1037]}, "feature_0": {"mean": [3.701, 3.705, 3.703, 3.702, 3.702, 3.704, 3.705, 3.708, 3.708, 3.708, 3.709, 3.709, 3.709, 3.71, 3.711, 3.69, 3.689, 3.689, 3.685, 3.685], "p10": [0.1198, 0.1155, 0.1156, 0.1171, 0.1231, 0.1314, 0.1407, 0.1546, 0.1543, 0.1598, 0.1608, 0.1618, 0.1621, 0.1648, 0.1644, 0.1629, 0.1629, 0.1536, 0.1518, 0.1501], "p90": [12.21, 12.21, 12.21, 12.2, 12.21, 12.21, 12.19, 12.18, 12.18, 12.18, 12.18, 12.18, 12.18, 12.19, 12.18, 12.01, 12.01, 12.01, 11.95, 11.95]}, "feature_2": {"mean": [3.699, 3.696, 3.695, 3.694, 3.694, 3.693, 3.699, 3.702, 3.702, 3.703, 3.703, 3.707, 3.708, 3.708, 3.71, 3.711, 3.709, 3.711, 3.711, 3.713], "p10": [0.1314, 0.1311, 0.1332, 0.1442, 0.1453, 0.1438, 0.1441, 0.1456, 0.1451, 0.1437, 0.1397, 0.1349, 0.133, 0.1326, 0.1329, 0.1324, 0.1372, 0.1443, 0.1463, 0.1553], "p90": [12.16, 12.16, 12.16, 12.16, 12.1, 12.09, 12.18, 12.18, 12.18, 12.17, 12.17, 12.19, 12.21, 12.19, 12.19, 12.18, 12.18, 12.16, 12.15, 12.15]}}}}, "imputation": null, "regret": null, "pca": null, "sampling": {"explanation": "Monte Carlo test vs 199 simulated designs (Random p=0.560, LHS p=0.005, Sobol p=0.005; strata filled 0.63, centered discrepancy 4.93e-03) -\u003e Random"}, "figures": [], "skipped": [{"section": "sec-6", "reason": "No imputation ran (no missing values were handled for this run)."}], "summary_points": [], "schema_version": 1}</script>
+<script>/* Copyright (c) 2026 takotime808
+   Charts and controls for the v2 report. Plain ES2017, no dependencies; it is
+   inlined into the report, reads the #report-data JSON and draws inline SVG
+   into every [data-chart] element. Everything else on the page works without it. */
+(function () {
+  "use strict";
+  var el = document.getElementById("report-data");
+  if (!el) return;
+  var D;
+  try { D = JSON.parse(el.textContent); } catch (e) { return; }
+  var OUT = D.outputs || [], TH = D.thresholds || {}, N = (D.run || {}).n_test_points || 1;
+  var NS = "http://www.w3.org/2000/svg";
+
+  /* ---------- helpers ---------- */
+  function E(tag, attrs, parent, text) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) if (attrs[k] != null) e.setAttribute(k, attrs[k]);
+    if (text != null) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function lin(d0, d1, r0, r1) { var s = (d1 - d0) || 1; return function (v) { return r0 + (v - d0) / s * (r1 - r0); }; }
+  function ticks(a, b, n) {
+    n = n || 5; if (!(b > a)) return [a];
+    var st0 = (b - a) / n, p = Math.pow(10, Math.floor(Math.log10(st0))), m = st0 / p;
+    var st = (m < 1.5 ? 1 : m < 3 ? 2 : m < 7 ? 5 : 10) * p, t = [];
+    for (var v = Math.ceil(a / st - 1e-9) * st; v <= b + st * 1e-6; v += st) t.push(Math.abs(v) < st * 1e-6 ? 0 : +v.toPrecision(10));
+    return t;
+  }
+  function fmt(v) {
+    if (v == null || !isFinite(v)) return "—";
+    var a = Math.abs(v);
+    if (a === 0) return "0";
+    if (a >= 1e5 || a < 1e-3) return v.toExponential(1);
+    if (a >= 100) return v.toFixed(0);
+    if (a >= 10) return v.toFixed(1);
+    if (a >= 0.1) return v.toFixed(2);
+    if (a >= 0.01) return v.toFixed(3);
+    return v.toFixed(4);
+  }
+  function pct(v, d) { return (100 * v).toFixed(d || 0) + "%"; }
+  function sgnPct(v) { return (v > 0 ? "+" : v < 0 ? "−" : "") + Math.abs(v).toFixed(0) + "%"; }
+  function pad(lo, hi, f) { f = f == null ? 0.06 : f; var r = (hi - lo) || Math.abs(hi) || 1; return [lo - r * f, hi + r * f]; }
+  function mn(a) { var m = Infinity; for (var i = 0; i < a.length; i++) if (a[i] < m) m = a[i]; return m; }
+  function mx(a) { var m = -Infinity; for (var i = 0; i < a.length; i++) if (a[i] > m) m = a[i]; return m; }
+  function color(o) { return "var(--s" + ((o.idx % 8) + 1) + ")"; }
+  function band(p) { return (TH.z || 1.96) * Math.sqrt(p * (1 - p) / N); }
+  function trunc(s, n) { return s.length > n ? s.slice(0, n - 1) + "…" : s; }
+  function barPath(x, y, w, h, r) {
+    if (h <= 0 || w <= 0) return "";
+    r = Math.min(r || 3, w / 2, h);
+    return "M" + x + "," + (y + h) + "V" + (y + r) + "Q" + x + "," + y + " " + (x + r) + "," + y + "H" + (x + w - r) + "Q" + (x + w) + "," + y + " " + (x + w) + "," + (y + r) + "V" + (y + h) + "Z";
+  }
+
+  function frame(host, o) {
+    var W = o.w || 440, H = o.h || 300, m = Object.assign({ t: 14, r: 16, b: 42, l: 56 }, o.m || {});
+    var svg = E("svg", { viewBox: "0 0 " + W + " " + H, role: "img", "aria-label": o.label || "" }, null);
+    host.appendChild(svg);
+    var X = lin(o.x[0], o.x[1], m.l, W - m.r), Y = lin(o.y[0], o.y[1], H - m.b, m.t);
+    var g = E("g", {}, svg);
+    var yt = o.yticks || ticks(o.y[0], o.y[1], o.ny || 5), xt = o.xticks || ticks(o.x[0], o.x[1], o.nx || 5);
+    var yf = o.yfmt || fmt, xf = o.xfmt || fmt;
+    if (!o.noYgrid) yt.forEach(function (v) {
+      E("line", { x1: m.l, x2: W - m.r, y1: Y(v), y2: Y(v), stroke: "var(--grid)", "stroke-width": 1 }, g);
+      E("text", { x: m.l - 8, y: Y(v) + 4, "text-anchor": "end", "font-size": 11, fill: "var(--muted)" }, g, yf(v));
+    });
+    if (!o.noX) {
+      xt.forEach(function (v) { E("text", { x: X(v), y: H - m.b + 16, "text-anchor": "middle", "font-size": 11, fill: "var(--muted)" }, g, xf(v)); });
+      E("line", { x1: m.l, x2: W - m.r, y1: H - m.b, y2: H - m.b, stroke: "var(--axis)", "stroke-width": 1 }, g);
+    }
+    if (o.xlab) E("text", { x: (m.l + W - m.r) / 2, y: H - 6, "text-anchor": "middle", "font-size": 11.5, fill: "var(--fg2)" }, g, o.xlab);
+    if (o.ylab) E("text", { x: 12, y: (m.t + H - m.b) / 2, "text-anchor": "middle", "font-size": 11.5, fill: "var(--fg2)", transform: "rotate(-90 12 " + (m.t + H - m.b) / 2 + ")" }, g, o.ylab);
+    return { svg: svg, g: E("g", {}, svg), X: X, Y: Y, W: W, H: H, m: m };
+  }
+  function dot(g, x, y, r, fill, tip) {
+    return E("circle", { cx: x, cy: y, r: r, fill: fill, stroke: "var(--surface)", "stroke-width": 1.2, "data-tip": tip || null }, g);
+  }
+  function note(host, text) { var p = document.createElement("div"); p.className = "look"; p.textContent = text; host.appendChild(p); }
+
+  /* intervals for one output: Gaussian 95% if there is a std, else conformal */
+  function intervals(o) {
+    var P = o.points, z = 1.959964;
+    if (P.std) return { lo: P.pred.map(function (p, i) { return p - z * P.std[i]; }), hi: P.pred.map(function (p, i) { return p + z * P.std[i]; }), label: "95% Gaussian interval" };
+    if (P.lower && P.upper) return { lo: P.lower, hi: P.upper, label: "Conformal interval" };
+    return null;
+  }
+
+  /* ---------- per-output charts ---------- */
+  function parity(host, o, mini) {
+    var P = o.points, iv = intervals(o);
+    var all = P.y.concat(P.pred);
+    var d = pad(mn(all), mx(all));
+    var f = frame(host, { x: d, y: d, w: mini ? 460 : 440, h: mini ? 260 : 320, xlab: "Observed " + o.name, ylab: "Predicted " + o.name, label: "Predicted vs observed " + o.name });
+    E("line", { x1: f.X(d[0]), y1: f.Y(d[0]), x2: f.X(d[1]), y2: f.Y(d[1]), stroke: "var(--axis)", "stroke-width": 1.5, "stroke-dasharray": "4 4" }, f.g);
+    if (iv) P.y.forEach(function (v, i) {
+      E("line", { x1: f.X(v), x2: f.X(v), y1: f.Y(Math.max(d[0], iv.lo[i])), y2: f.Y(Math.min(d[1], iv.hi[i])), stroke: color(o), "stroke-width": 2, "stroke-opacity": 0.25, "stroke-linecap": "round" }, f.g);
+    });
+    var r = P.y.length > 400 ? 2.5 : 4;
+    P.y.forEach(function (v, i) {
+      dot(f.g, f.X(v), f.Y(P.pred[i]), r, color(o), "Observed " + fmt(v) + "\nPredicted " + fmt(P.pred[i]) + (iv ? "\nInterval " + fmt(iv.lo[i]) + " to " + fmt(iv.hi[i]) : ""));
+    });
+    E("text", { x: f.m.l + 8, y: f.m.t + 14, "font-size": 12, fill: "var(--fg)", "font-weight": 600 }, f.g, "R² " + (o.r2 == null ? "—" : o.r2.toFixed(3)));
+  }
+  function residuals(host, o, mini) {
+    var P = o.points, xs = P.pred, ys = P.y.map(function (v, i) { return v - P.pred[i]; });
+    var ym = (mx(ys.map(Math.abs)) || 1) * 1.15;
+    var f = frame(host, { x: pad(mn(xs), mx(xs)), y: [-ym, ym], w: mini ? 460 : 440, h: mini ? 240 : 300, xlab: "Predicted " + o.name, ylab: "Observed − predicted", label: "Residuals " + o.name });
+    E("line", { x1: f.m.l, x2: f.W - f.m.r, y1: f.Y(0), y2: f.Y(0), stroke: "var(--axis)", "stroke-width": 1.5 }, f.g);
+    var r = xs.length > 400 ? 2.5 : 4;
+    xs.forEach(function (x, i) { dot(f.g, f.X(x), f.Y(ys[i]), r, color(o), "Predicted " + fmt(x) + "\nResidual " + fmt(ys[i])); });
+    var t = o.trend;
+    if (t) {
+      var x0 = mn(xs), x1 = mx(xs), sig = t.significant;
+      E("line", { x1: f.X(x0), x2: f.X(x1), y1: f.Y(t.intercept + t.slope * x0), y2: f.Y(t.intercept + t.slope * x1), stroke: sig ? "var(--crit)" : "var(--fg2)", "stroke-width": 2, "stroke-dasharray": sig ? null : "5 4" }, f.g);
+      E("text", { x: f.W - f.m.r - 4, y: f.m.t + 14, "text-anchor": "end", "font-size": 11.5, fill: "var(--fg)", "font-weight": 600 }, f.g,
+        sig ? "Trend: slope " + t.slope.toFixed(2) + " (p = " + t.p.toPrecision(2) + ")" : "No significant trend (p = " + t.p.toPrecision(2) + ")");
+    }
+  }
+  function histogram(host, o) {
+    var P = o.points, res = P.y.map(function (v, i) { return v - P.pred[i]; });
+    var ym = (mx(res.map(Math.abs)) || 1) * 1.05, nb = Math.max(8, Math.min(30, Math.round(Math.sqrt(res.length) * 1.5))), w = 2 * ym / nb;
+    var counts = []; for (var i = 0; i < nb; i++) counts.push(0);
+    res.forEach(function (r) { counts[Math.min(nb - 1, Math.max(0, Math.floor((r + ym) / w)))]++; });
+    var f = frame(host, { x: [-ym, ym], y: [0, mx(counts) + 1], xlab: "Residual " + o.name, ylab: "Test points", ny: 4, label: "Residual histogram " + o.name });
+    counts.forEach(function (c, i) {
+      var x0 = f.X(-ym + i * w) + 1, x1 = f.X(-ym + (i + 1) * w) - 1;
+      E("path", { d: barPath(x0, f.Y(c), x1 - x0, f.Y(0) - f.Y(c)), fill: color(o), "data-tip": c + " points between " + fmt(-ym + i * w) + " and " + fmt(-ym + (i + 1) * w) }, f.g);
+    });
+    E("line", { x1: f.X(0), x2: f.X(0), y1: f.m.t, y2: f.H - f.m.b, stroke: "var(--fg2)", "stroke-width": 1, "stroke-dasharray": "3 3" }, f.g);
+  }
+  function ordered(host, o) {
+    var P = o.points, iv = intervals(o);
+    if (!iv) { note(host, "No intervals to show: the model gives no std and conformal intervals were not requested."); return; }
+    var idx = P.y.map(function (_, i) { return i; }).sort(function (a, b) { return P.y[a] - P.y[b]; });
+    var lo = mn(idx.map(function (i) { return Math.min(P.y[i], iv.lo[i]); })), hi = mx(idx.map(function (i) { return Math.max(P.y[i], iv.hi[i]); }));
+    if (!isFinite(lo) || !isFinite(hi)) { note(host, "Intervals are unbounded (too few calibration points)."); return; }
+    var f = frame(host, { x: [-1, idx.length], y: pad(lo, hi), xlab: "Test points, sorted by observed value", ylab: o.name, xticks: [], label: "Ordered intervals " + o.name });
+    var out = 0, sw = Math.max(1, Math.min(3, 300 / idx.length));
+    idx.forEach(function (i, k) {
+      var inside = P.y[i] >= iv.lo[i] && P.y[i] <= iv.hi[i]; if (!inside) out++;
+      E("line", { x1: f.X(k), x2: f.X(k), y1: f.Y(iv.lo[i]), y2: f.Y(iv.hi[i]), stroke: color(o), "stroke-width": sw, "stroke-opacity": 0.35, "stroke-linecap": "round" }, f.g);
+      dot(f.g, f.X(k), f.Y(P.y[i]), inside ? Math.min(3.5, sw + 1) : Math.min(4.5, sw + 2), inside ? "var(--fg2)" : "var(--crit)",
+        "Observed " + fmt(P.y[i]) + "\nInterval " + fmt(iv.lo[i]) + " to " + fmt(iv.hi[i]) + (inside ? "" : "\nOutside interval"));
+    });
+    E("text", { x: f.m.l + 8, y: f.m.t + 14, "font-size": 11.5, fill: "var(--fg)", "font-weight": 600 }, f.g, out + " of " + idx.length + " outside" + (P.std ? " (expected ≈ " + Math.round(0.05 * idx.length) + ")" : ""));
+    var lg = document.createElement("div"); lg.className = "legend";
+    lg.innerHTML = '<span><i class="lg-line" style="border-color:' + color(o) + ';opacity:.5;border-top-width:3px"></i>' + iv.label + '</span><span><i class="lg-dot" style="background:var(--fg2)"></i>Observed, inside</span><span><i class="lg-dot" style="background:var(--crit)"></i>Observed, outside</span>';
+    host.appendChild(lg);
+  }
+  function calib(host, o, mini) {
+    var f = frame(host, { x: [0, 1], y: [0, 1], w: mini ? 460 : 320, h: mini ? 240 : 300, m: { l: 46, b: 42 }, xlab: "Nominal coverage", ylab: "Observed coverage", xfmt: function (v) { return pct(v); }, yfmt: function (v) { return pct(v); }, nx: 4, ny: 4, label: "Calibration " + o.name });
+    var ps = []; for (var i = 0; i <= 40; i++) ps.push(i / 40);
+    var up = ps.map(function (p) { return f.X(p) + "," + f.Y(Math.min(1, p + band(p))); });
+    var dn = ps.map(function (p) { return f.X(p) + "," + f.Y(Math.max(0, p - band(p))); }).reverse();
+    E("path", { d: "M" + up.concat(dn).join("L") + "Z", fill: "var(--band)" }, f.g);
+    E("line", { x1: f.X(0), y1: f.Y(0), x2: f.X(1), y2: f.Y(1), stroke: "var(--axis)", "stroke-width": 1.5 }, f.g);
+    function path(arr) { return "M" + o.levels.map(function (p, i) { return f.X(p) + "," + f.Y(arr[i]); }).join("L"); }
+    var i95 = o.levels.indexOf(0.95);
+    if (o.gauss_curve) {
+      E("path", { d: path(o.gauss_curve), fill: "none", stroke: "var(--fg2)", "stroke-width": 2, "stroke-dasharray": "5 4" }, f.g);
+      dot(f.g, f.X(0.95), f.Y(o.gauss_curve[i95]), 4.5, "var(--fg2)", "Gaussian 95%: " + pct(o.gauss_curve[i95]));
+    }
+    if (o.conf_curve) {
+      E("path", { d: path(o.conf_curve), fill: "none", stroke: color(o), "stroke-width": 2 }, f.g);
+      dot(f.g, f.X(0.95), f.Y(o.conf_curve[i95]), 4.5, color(o), "Conformal 95%: " + pct(o.conf_curve[i95]));
+    } else if (o.conformal) {
+      dot(f.g, f.X(o.conformal.nominal), f.Y(o.conformal.coverage), 5, color(o), "Conformal " + pct(o.conformal.nominal) + ": " + pct(o.conformal.coverage));
+    }
+    o.levels.forEach(function (p, i) {
+      var t = o.name + " at " + pct(p) + " nominal" + (o.gauss_curve ? "\nGaussian " + pct(o.gauss_curve[i]) : "") + (o.conf_curve ? "\nConformal " + pct(o.conf_curve[i]) : "");
+      E("circle", { cx: f.X(p), cy: f.Y(o.gauss_curve ? o.gauss_curve[i] : o.conf_curve ? o.conf_curve[i] : p), r: 9, fill: "transparent", "data-tip": t }, f.g);
+    });
+    E("text", { x: f.m.l + 8, y: f.m.t + 14, "font-size": 13, "font-weight": 600, fill: "var(--fg)" }, f.g, o.name);
+    if (!o.gauss_curve && !o.conformal) note(host, "No intervals to check for " + o.name + ".");
+  }
+
+  /* ---------- cross-output charts ---------- */
+  function cov95(host, mini) {
+    var rows = OUT.filter(function (o) { return o.has_std || (o.conformal && o.conformal.nominal === 0.95); });
+    if (!rows.length) { note(host, "No 95% intervals to compare."); return; }
+    var vals = []; rows.forEach(function (o) { if (o.has_std) vals.push(o.gauss95); if (o.conf_curve) vals.push(o.conformal.coverage); });
+    var b = band(0.95), x0 = Math.max(0, Math.min(0.6, mn(vals) - 0.05, 0.95 - 2.5 * b));
+    var rh = 40, l = 12 + 7 * Math.min(18, mx(rows.map(function (o) { return o.name.length; })));
+    var f = frame(host, { x: [x0, 1], y: [0, rows.length], w: mini ? 460 : 440, h: 40 + rh * rows.length, m: { l: l, t: 6, b: 34, r: 16 }, noYgrid: true, xfmt: function (v) { return pct(v); }, xlab: "Observed coverage of the 95% interval", nx: 4, label: "Coverage at 95%" });
+    E("rect", { x: f.X(Math.max(x0, 0.95 - b)), y: f.m.t, width: f.X(1) - f.X(Math.max(x0, 0.95 - b)), height: f.H - f.m.b - f.m.t, fill: "var(--band)" }, f.g);
+    E("line", { x1: f.X(0.95), x2: f.X(0.95), y1: f.m.t, y2: f.H - f.m.b, stroke: "var(--fg2)", "stroke-dasharray": "3 3" }, f.g);
+    rows.forEach(function (o, i) {
+      var cy = f.m.t + rh * (i + 0.5);
+      E("text", { x: f.m.l - 10, y: cy + 4, "text-anchor": "end", "font-size": 12, "font-weight": 600, fill: "var(--fg)" }, f.g, trunc(o.name, 18));
+      var g = o.has_std ? Math.max(x0, o.gauss95) : null, c = o.conf_curve ? o.conformal.coverage : null;
+      if (g != null && c != null) E("line", { x1: f.X(g), x2: f.X(c), y1: cy, y2: cy, stroke: "var(--axis)", "stroke-width": 2 }, f.g);
+      if (g != null) E("rect", { x: f.X(g) - 5, y: cy - 5, width: 10, height: 10, rx: 2, fill: "var(--surface)", stroke: "var(--fg2)", "stroke-width": 2, "data-tip": o.name + " Gaussian: " + pct(o.gauss95) }, f.g);
+      if (c != null) dot(f.g, f.X(c), cy, 5.5, color(o), o.name + " conformal: " + pct(c));
+    });
+    if (!mini) {
+      var lg = document.createElement("div"); lg.className = "legend";
+      lg.innerHTML = '<span><i class="lg-dot" style="background:transparent;border:2px solid var(--fg2);border-radius:2px"></i>Gaussian</span><span><i class="lg-dot" style="background:var(--fg2)"></i>Conformal (output color)</span><span><i class="lg-band"></i>expected from noise</span>';
+      host.appendChild(lg);
+    }
+  }
+  function width(host) {
+    var rows = OUT.filter(function (o) { return o.width_gauss_pct != null || o.width_conf_pct != null; });
+    if (!rows.length) { note(host, "No interval widths to compare."); return; }
+    var wmax = mx(rows.map(function (o) { return Math.max(o.width_gauss_pct || 0, o.width_conf_pct || 0); })) * 1.18 || 1;
+    var rh = 40, l = 12 + 7 * Math.min(18, mx(rows.map(function (o) { return o.name.length; })));
+    var g = frame(host, { x: [0, wmax], y: [0, rows.length], w: 440, h: 40 + rh * rows.length, m: { l: l, t: 6, b: 34, r: 30 }, noYgrid: true, xfmt: function (v) { return v.toFixed(0) + "%"; }, xlab: "Mean interval width, % of test range", nx: 4, label: "Interval width" });
+    rows.forEach(function (o, i) {
+      var y0 = g.m.t + rh * i + 7;
+      E("text", { x: g.m.l - 10, y: y0 + 17, "text-anchor": "end", "font-size": 12, "font-weight": 600, fill: "var(--fg)" }, g.g, trunc(o.name, 18));
+      if (o.width_gauss_pct != null) {
+        E("rect", { x: g.X(0), y: y0, width: Math.max(0, g.X(o.width_gauss_pct) - g.X(0)), height: 11, rx: 2, fill: "var(--axis)", "data-tip": o.name + " Gaussian 95% width " + o.width_gauss_pct.toFixed(1) + "% of range" }, g.g);
+        E("text", { x: g.X(o.width_gauss_pct) + 5, y: y0 + 9, "font-size": 10.5, fill: "var(--fg2)" }, g.g, o.width_gauss_pct.toFixed(0) + "%");
+      }
+      if (o.width_conf_pct != null) {
+        E("rect", { x: g.X(0), y: y0 + 13, width: Math.max(0, g.X(o.width_conf_pct) - g.X(0)), height: 11, rx: 2, fill: color(o), "data-tip": o.name + " conformal width " + o.width_conf_pct.toFixed(1) + "% of range" }, g.g);
+        E("text", { x: g.X(o.width_conf_pct) + 5, y: y0 + 22, "font-size": 10.5, fill: "var(--fg2)" }, g.g, o.width_conf_pct.toFixed(0) + "%");
+      }
+    });
+    var lg = document.createElement("div"); lg.className = "legend";
+    lg.innerHTML = '<span><i class="lg-dot" style="background:var(--axis);border-radius:2px"></i>Gaussian 95%</span><span><i class="lg-dot" style="background:var(--fg2);border-radius:2px"></i>Conformal (output color)</span>';
+    host.appendChild(lg);
+  }
+  function dumbbell(host, mini) {
+    var rows = OUT.filter(function (o) { return o.mf_change_pct != null; });
+    if (!rows.length) return;
+    var vals = rows.map(function (o) { return 1 + o.mf_change_pct / 100; });
+    var x = [Math.min(0.5, mn(vals) - 0.05), Math.max(1.15, mx(vals) + 0.08)];
+    var rh = mini ? 32 : 44, l = 14 + 7 * Math.min(16, mx(rows.map(function (o) { return o.name.length; })));
+    var gain = 1 + (TH.mf_gain || -5) / 100, hurt = 1 + (TH.mf_hurt || 5) / 100;
+    var f = frame(host, { x: x, y: [0, rows.length], w: mini ? 460 : 860, h: 40 + rh * rows.length, m: { l: l, t: 8, b: 34, r: 34 }, noYgrid: true, xfmt: function (v) { return pct(v); }, xlab: "Test RMSE, % of HF-only model", nx: 6, label: "Multi-fidelity vs HF-only RMSE" });
+    E("rect", { x: f.X(gain), y: f.m.t, width: f.X(hurt) - f.X(gain), height: f.H - f.m.b - f.m.t, fill: "var(--band)" }, f.g);
+    E("line", { x1: f.X(1), x2: f.X(1), y1: f.m.t, y2: f.H - f.m.b, stroke: "var(--axis)", "stroke-width": 1 }, f.g);
+    rows.forEach(function (o, i) {
+      var cy = f.m.t + rh * (i + 0.5), v = 1 + o.mf_change_pct / 100;
+      E("text", { x: f.m.l - 12, y: cy + 4, "text-anchor": "end", "font-size": 12.5, "font-weight": 600, fill: "var(--fg)" }, f.g, trunc(o.name, 16));
+      E("line", { x1: f.X(1), x2: f.X(v), y1: cy, y2: cy, stroke: color(o), "stroke-width": 3, "stroke-linecap": "round", "stroke-opacity": 0.6 }, f.g);
+      dot(f.g, f.X(1), cy, 5, "var(--muted)", o.name + " HF-only RMSE " + fmt(o.hf_rmse));
+      dot(f.g, f.X(v), cy, 6, color(o), o.name + " MF RMSE " + fmt(o.rmse) + " (" + sgnPct(o.mf_change_pct) + " vs HF-only)");
+      var right = v > 1;
+      E("text", { x: f.X(v) + (right ? 12 : -12), y: cy + 4, "text-anchor": right ? "start" : "end", "font-size": 12, "font-weight": 600, fill: "var(--fg)" }, f.g, sgnPct(o.mf_change_pct));
+    });
+  }
+  var SHAPES = ["circle", "square", "diamond", "triangle"];
+  function marker(g, shape, cx, cy, r, fill, tip) {
+    var a = { fill: fill, stroke: "var(--surface)", "stroke-width": 1.2, "data-tip": tip };
+    if (shape === "square") return E("rect", Object.assign(a, { x: cx - r, y: cy - r, width: 2 * r, height: 2 * r, rx: 2 }), g);
+    if (shape === "diamond") return E("path", Object.assign(a, { d: "M" + cx + "," + (cy - r * 1.3) + "L" + (cx + r * 1.3) + "," + cy + "L" + cx + "," + (cy + r * 1.3) + "L" + (cx - r * 1.3) + "," + cy + "Z" }), g);
+    if (shape === "triangle") return E("path", Object.assign(a, { d: "M" + cx + "," + (cy - r * 1.3) + "L" + (cx + r * 1.2) + "," + (cy + r) + "L" + (cx - r * 1.2) + "," + (cy + r) + "Z" }), g);
+    return dot(g, cx, cy, r, fill, tip);
+  }
+  function quadrant(host, mini) {
+    var lower = (D.levels || []).filter(function (l) { return !l.is_highest; });
+    if (!lower.length) { note(host, "Only one fidelity level: nothing to compare."); return; }
+    var pts = [];
+    lower.forEach(function (lv, li) {
+      OUT.forEach(function (o) {
+        var v = lv.outputs[o.name];
+        if (v && v.r != null && v.r2 != null) pts.push({ lv: lv.level, li: li, o: o, r: v.r, r2: v.r2 });
+      });
+    });
+    var ylo = Math.max(-1.5, Math.min(-0.5, mn(pts.map(function (p) { return p.r2; })) - 0.1));
+    var xlo = Math.min(0, mn(pts.map(function (p) { return p.r; })) - 0.05);
+    var wr = TH.weak_level_r || 0.5;
+    var f = frame(host, { x: [xlo, 1], y: [ylo, 1], w: mini ? 460 : 440, h: mini ? 260 : 320, xlab: "Correlation r with HF truth", ylab: "R² against HF truth", nx: 5, ny: 5, label: "Fidelity level informativeness" });
+    E("rect", { x: f.X(xlo), y: f.Y(1), width: f.X(wr) - f.X(xlo), height: f.Y(ylo) - f.Y(1), fill: "var(--band)" }, f.g);
+    E("line", { x1: f.X(wr), x2: f.X(wr), y1: f.Y(1), y2: f.Y(ylo), stroke: "var(--axis)", "stroke-dasharray": "4 4" }, f.g);
+    E("line", { x1: f.X(wr), x2: f.X(1), y1: f.Y(TH.r2_warn || 0.8), y2: f.Y(TH.r2_warn || 0.8), stroke: "var(--axis)", "stroke-dasharray": "4 4" }, f.g);
+    if (!mini) [["Little usable information", (xlo + wr) / 2, ylo + 0.12 * (1 - ylo)], ["Informative, unbiased", (wr + 1) / 2, 0.93], ["Informative but biased:", (wr + 1) / 2, ylo + 0.42 * (1 - ylo)], ["MF can correct", (wr + 1) / 2, ylo + 0.42 * (1 - ylo) - 0.09]].forEach(function (t) {
+      E("text", { x: f.X(t[1]), y: f.Y(t[2]), "text-anchor": "middle", "font-size": 10.5, fill: "var(--muted)", "font-weight": 600 }, f.g, t[0]);
+    });
+    pts.forEach(function (p) {
+      var cy = f.Y(Math.max(ylo, p.r2));
+      marker(f.g, SHAPES[p.li % SHAPES.length], f.X(p.r), cy, 5, color(p.o), "Level " + p.lv + " for " + p.o.name + "\nr = " + p.r.toFixed(2) + ", R² = " + p.r2.toFixed(2) + (p.r2 < ylo ? " (below axis)" : ""));
+    });
+    var lg = host.parentNode && host.parentNode.querySelector('[data-legend="quadrant"]');
+    if (lg && !mini) {
+      lg.innerHTML = lower.map(function (lv, li) { var s = SHAPES[li % SHAPES.length]; return '<span><i class="lg-dot" style="background:var(--fg2);border-radius:' + (s === "circle" ? "50%" : "2px") + (s === "diamond" ? ";transform:rotate(45deg)" : "") + '"></i>level ' + lv.level + "</span>"; }).join("") +
+        OUT.map(function (o) { return '<span><i class="swatch" style="background:' + color(o) + '"></i>' + o.name + "</span>"; }).join("");
+    }
+  }
+  function pdp(host) {
+    var P = D.pdp; if (!P) return;
+    var feats = P.features, grid = document.createElement("div");
+    grid.className = feats.length >= 3 ? "grid3" : feats.length === 2 ? "grid2" : "";
+    host.appendChild(grid);
+    var share = D.shap ? D.shap.shares : null;
+    OUT.forEach(function (o, ri) {
+      var C = P.curves[o.name]; if (!C) return;
+      var all = []; feats.forEach(function (ft) { all = all.concat(C[ft].p10, C[ft].p90); });
+      var yd = pad(mn(all), mx(all), 0.05);
+      feats.forEach(function (ft, ci) {
+        var d = document.createElement("div"); d.className = "fig chart"; grid.appendChild(d);
+        var xs = P.grid[ft], c = C[ft], last = ri === OUT.length - 1;
+        var f = frame(d, { x: [xs[0], xs[xs.length - 1]], y: yd, w: 300, h: 200, m: { l: ci === 0 ? 56 : 44, b: last ? 40 : 24, t: 22, r: 10 }, ny: 4, nx: 4, xlab: last ? ft : "", ylab: ci === 0 ? trunc(o.name, 18) : "", label: "Partial dependence of " + o.name + " on " + ft });
+        var up = xs.map(function (x, i) { return f.X(x) + "," + f.Y(c.p90[i]); }), dn = xs.map(function (x, i) { return f.X(x) + "," + f.Y(c.p10[i]); }).reverse();
+        E("path", { d: "M" + up.concat(dn).join("L") + "Z", fill: color(o), "fill-opacity": 0.14 }, f.g);
+        E("path", { d: "M" + xs.map(function (x, i) { return f.X(x) + "," + f.Y(c.mean[i]); }).join("L"), fill: "none", stroke: color(o), "stroke-width": 2 }, f.g);
+        xs.forEach(function (x, i) { if (i % 2 === 0) E("circle", { cx: f.X(x), cy: f.Y(c.mean[i]), r: 7, fill: "transparent", "data-tip": o.name + " at " + ft + " = " + fmt(x) + ": " + fmt(c.mean[i]) + "\n10th–90th: " + fmt(c.p10[i]) + " to " + fmt(c.p90[i]) }, f.g); });
+        var s = share && share[o.name] && share[o.name][ft] != null ? pct(share[o.name][ft]) + " of " + trunc(o.name, 14) : trunc(o.name, 20);
+        E("text", { x: f.m.l, y: 13, "font-size": 11, "font-weight": ri === 0 ? 600 : 400, fill: ri === 0 ? "var(--fg)" : "var(--fg2)" }, f.g, ri === 0 ? trunc(ft, 22) + " · " + s : s);
+      });
+    });
+  }
+  function cvPlot(host, mini) {
+    var cv = D.cv; if (!cv || !cv.rows) return;
+    var ok = cv.rows.filter(function (r) { return r.mean != null; });
+    if (!ok.length) { note(host, "Every candidate failed to fit."); return; }
+    var best = ok.filter(function (r) { return r.name === cv.best; })[0] || ok[0];
+    var rows = mini ? ok.slice(0, 5) : cv.rows.slice(0, 25);
+    var lim = best.mean + (best.sd || 0), tied = cv.tied || [];
+    var hiv = mx(ok.map(function (r) { return r.mean + (r.sd || 0); })) * 1.05, lov = Math.max(0, mn(ok.map(function (r) { return r.mean - (r.sd || 0); })) * 0.9);
+    var rh = mini ? 26 : 32, nameMax = mini ? 22 : 34;
+    var l = 16 + 6.2 * Math.min(nameMax, mx(rows.map(function (r) { return r.name.length; })));
+    var f = frame(host, { x: [lov, hiv], y: [0, rows.length], w: mini ? 460 : 760, h: 40 + rh * rows.length, m: { l: l, t: 6, b: 34, r: mini ? 16 : 90 }, noYgrid: true, xlab: cv.metric + " (lower is better)", nx: 5, label: "Cross-validation scores" });
+    E("rect", { x: f.X(lov), y: f.m.t, width: Math.max(0, f.X(lim) - f.X(lov)), height: f.H - f.m.b - f.m.t, fill: "var(--band)" }, f.g);
+    rows.forEach(function (c, i) {
+      var cy = f.m.t + rh * (i + 0.5), isBest = c === best;
+      E("text", { x: f.m.l - 12, y: cy + 4, "text-anchor": "end", "font-size": mini ? 11 : 12, "font-weight": isBest ? 700 : 400, fill: "var(--fg)" }, f.g, trunc(c.name, nameMax));
+      if (c.mean == null) { E("text", { x: f.m.l + 4, y: cy + 4, "font-size": 11.5, fill: "var(--muted)" }, f.g, trunc("Failed: " + c.status, 70)); return; }
+      var sd = c.sd || 0;
+      E("line", { x1: f.X(Math.max(lov, c.mean - sd)), x2: f.X(c.mean + sd), y1: cy, y2: cy, stroke: isBest ? "var(--accent)" : "var(--fg2)", "stroke-width": 2, "stroke-linecap": "round" }, f.g);
+      dot(f.g, f.X(c.mean), cy, isBest ? 6 : 5, isBest ? "var(--accent)" : "var(--fg2)", c.name + "\n" + cv.metric + " " + fmt(c.mean) + (c.sd != null ? " ± " + fmt(c.sd) : "") + (c.selected_for && c.selected_for.length ? "\nSelected for " + c.selected_for.join(", ") : ""));
+      if (!mini) E("text", { x: f.W - f.m.r + 12, y: cy + 4, "font-size": 11.5, "font-weight": 600, fill: isBest ? "var(--accent)" : "var(--fg)" }, f.g, isBest ? (cv.per_output ? "Best" : "Selected") : tied.indexOf(c.name) >= 0 ? "Tied" : "");
+    });
+    if (!mini && cv.rows.length > rows.length) note(host, (cv.rows.length - rows.length) + " more candidates are in the table below.");
+  }
+
+  /* ---------- draw every slot ---------- */
+  var DRAW = {
+    parity: function (h, o, m) { parity(h, o, m); }, resid: function (h, o, m) { residuals(h, o, m); },
+    hist: function (h, o) { histogram(h, o); }, ordered: function (h, o) { ordered(h, o); },
+    calib: function (h, o, m) { calib(h, o, m); }, cov95: function (h, o, m) { cov95(h, m); },
+    width: function (h) { width(h); }, dumbbell: function (h, o, m) { dumbbell(h, m); },
+    quadrant: function (h, o, m) { quadrant(h, m); }, pdp: function (h) { pdp(h); }, cv: function (h, o, m) { cvPlot(h, m); }
+  };
+  document.querySelectorAll("[data-chart]").forEach(function (h) {
+    var spec = h.getAttribute("data-chart").split(":"), fn = DRAW[spec[0]];
+    if (!fn) return;
+    var o = spec.length > 1 ? OUT[+spec[1]] : null;
+    if (spec.length > 1 && !o) return;
+    try { fn(h, o, h.getAttribute("data-mini") === "1"); }
+    catch (e) { h.innerHTML = ""; note(h, "Chart could not be drawn: " + e.message); }
+  });
+
+  /* ---------- output switcher ---------- */
+  var tabs = document.querySelector(".outtabs"), blocks = document.querySelector(".outblocks");
+  if (tabs && blocks) tabs.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-out]"); if (!b) return;
+    var k = b.getAttribute("data-out");
+    tabs.querySelectorAll("button").forEach(function (x) { x.setAttribute("aria-pressed", x === b ? "true" : "false"); });
+    blocks.classList.toggle("single", k !== "all");
+    blocks.querySelectorAll(".outblock").forEach(function (x) { x.classList.toggle("on", x.getAttribute("data-out") === k); });
+  });
+  /* links to a hidden output block switch to it */
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest('a[href^="#out-"]'); if (!a || !tabs) return;
+    var k = a.getAttribute("href").slice(5), b = tabs.querySelector('button[data-out="' + k + '"]');
+    if (b) b.click();
+  });
+
+  /* ---------- section rail ---------- */
+  var links = Array.prototype.slice.call(document.querySelectorAll(".rail a[href^='#']"));
+  if ("IntersectionObserver" in window && links.length) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.classList.toggle("on", a.getAttribute("href") === "#" + en.target.id); });
+      });
+    }, { rootMargin: "-20% 0px -70% 0px" });
+    links.forEach(function (a) { var t = document.getElementById(a.getAttribute("href").slice(1)); if (t) io.observe(t); });
+  }
+
+  /* ---------- tooltip ---------- */
+  var tip = document.getElementById("tip");
+  if (tip) document.addEventListener("pointermove", function (e) {
+    var t = e.target.closest && e.target.closest("[data-tip]"), txt = t && t.getAttribute("data-tip");
+    if (!txt) { tip.hidden = true; return; }
+    tip.textContent = txt; tip.hidden = false;
+    var r = tip.getBoundingClientRect(), x = e.clientX + 14, y = e.clientY + 14;
+    if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+    if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  });
+
+  /* ---------- theme and print ---------- */
+  var root = document.documentElement, tb = document.getElementById("btn-theme"), MODES = ["system", "light", "dark"];
+  function applyTheme(m) {
+    if (m === "system") root.removeAttribute("data-theme"); else root.setAttribute("data-theme", m);
+    if (tb) tb.textContent = "Theme: " + m;
+  }
+  var mode = root.getAttribute("data-theme") || "system", saved = null;
+  try { saved = localStorage.getItem("mor-report-theme"); } catch (e) { }
+  if (MODES.indexOf(saved) >= 0) mode = saved;
+  if (MODES.indexOf(mode) < 0) mode = "system";
+  applyTheme(mode);
+  if (tb) tb.addEventListener("click", function () {
+    mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length]; applyTheme(mode);
+    try { localStorage.setItem("mor-report-theme", mode); } catch (e) { }
+  });
+  var pb = document.getElementById("btn-print");
+  if (pb) pb.addEventListener("click", function () { window.print(); });
+  var closed = [];
+  window.addEventListener("beforeprint", function () {
+    closed = Array.prototype.slice.call(document.querySelectorAll("details:not([open])"));
+    closed.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () { closed.forEach(function (d) { d.open = false; }); closed = []; });
+})();
+</script>
+</body>
+</html>

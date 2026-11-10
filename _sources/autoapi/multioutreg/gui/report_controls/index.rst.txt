@@ -1,0 +1,55 @@
+multioutreg.gui.report_controls
+===============================
+
+.. py:module:: multioutreg.gui.report_controls
+
+.. autoapi-nested-parse::
+
+   Streamlit controls shared by the pages that build an HTML report.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.report_controls.REPORT_FORMATS
+   multioutreg.gui.report_controls.STYLE_LABELS
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.report_controls.report_format_control
+   multioutreg.gui.report_controls.report_downloads
+   multioutreg.gui.report_controls.report_downloads_all
+
+
+Module Contents
+---------------
+
+.. py:data:: REPORT_FORMATS
+
+.. py:data:: STYLE_LABELS
+
+.. py:function:: report_format_control(key: str = 'report_format') -> Tuple[str, ...]
+
+   Radio for the report style; returns the styles to build, e.g. ``("v2",)``.
+
+
+.. py:function:: report_downloads(html: str, file_name: str, key: str, container: Any = None, label: str = 'Download HTML Report') -> None
+
+   The HTML report download, plus the report data (.json) for a redesigned report.
+
+
+.. py:function:: report_downloads_all(reports: Dict[str, str], file_name: str, key: str, container: Any = None) -> None
+
+   :func:`report_downloads` for each ``{style: html}``.
+
+   One report keeps the plain button and file name; with several, each gets
+   its style in the label and file name (``model_report_classic.html``).
+
+

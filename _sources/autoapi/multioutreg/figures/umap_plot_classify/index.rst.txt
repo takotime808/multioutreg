@@ -1,0 +1,44 @@
+multioutreg.figures.umap_plot_classify
+======================================
+
+.. py:module:: multioutreg.figures.umap_plot_classify
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.umap_plot_classify.generate_umap_plot
+
+
+Module Contents
+---------------
+
+.. py:function:: generate_umap_plot(X, random_state: int = 0, n_neighbors: int = 15, min_dist: float = 0.1, labels=None)
+
+   Plot a UMAP projection of the inputs and infer the sampling method.
+
+   The inferred method comes from :func:`multioutreg.sampling.detect.detect_sampling_method`
+   (Monte Carlo tests of stratification, discrepancy and nearest-neighbour
+   spacing against simulated designs). UMAP is only used for the picture: it
+   does not preserve distances, so its embedding cannot tell designs apart.
+   If ``umap-learn`` is not installed or UMAP fails, the plot falls back to a
+   PCA projection. ``umap`` is imported here, not at module level, so the
+   module imports without it and the fallback can run.
+
+   :param X: Input (design) matrix. Pass only input columns, not responses.
+   :type X: np.ndarray
+   :param random_state: Seed for UMAP and for the simulated reference designs.
+   :type random_state: int
+   :param n_neighbors: UMAP neighbourhood size (capped at ``n - 1``).
+   :type n_neighbors: int
+   :param min_dist: UMAP minimum distance between embedded points.
+   :type min_dist: float
+   :param labels: Optional per-point values to colour the points by.
+   :type labels: array-like or None
+
+   :returns: Base64-encoded plot and inferred sampling explanation (ends in ``-> <method>``).
+   :rtype: Tuple[str, str]
+
+

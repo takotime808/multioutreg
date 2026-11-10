@@ -1,0 +1,50 @@
+multioutreg.surrogates.gp_sklearn
+=================================
+
+.. py:module:: multioutreg.surrogates.gp_sklearn
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.gp_sklearn.GaussianProcessSurrogate
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.gp_sklearn.default_gp_kernel
+   multioutreg.surrogates.gp_sklearn.matern_gp_kernel
+
+
+Module Contents
+---------------
+
+.. py:function:: default_gp_kernel()
+
+   Amplitude * RBF + learned noise.
+
+   sklearn's default (fixed amplitude 1, no noise term, alpha=1e-10) has to
+   interpolate noisy data and collapses to a tiny length scale.
+
+
+.. py:function:: matern_gp_kernel()
+
+   Amplitude * Matern(nu=2.5) + learned noise.
+
+
+.. py:class:: GaussianProcessSurrogate(scale_inputs=True, **kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   Gaussian Process surrogate with uncertainty.
+
+   Defaults to :func:`default_gp_kernel`, ``normalize_y=True`` and standardised
+   inputs; any ``GaussianProcessRegressor`` keyword overrides them.
+
+

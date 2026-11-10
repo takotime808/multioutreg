@@ -1,0 +1,17 @@
+multioutreg.time_series.ts_dynamic_fit.algs
+===========================================
+
+.. py:module:: multioutreg.time_series.ts_dynamic_fit.algs
+
+
+Submodules
+----------
+
+.. toctree::
+   :maxdepth: 1
+
+   /autoapi/multioutreg/time_series/ts_dynamic_fit/algs/arima/index
+   /autoapi/multioutreg/time_series/ts_dynamic_fit/algs/lstm/index
+   /autoapi/multioutreg/time_series/ts_dynamic_fit/algs/sarima/index
+
+

@@ -1,0 +1,31 @@
+multioutreg.report.generate_report
+==================================
+
+.. py:module:: multioutreg.report.generate_report
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.report.generate_report.make_data
+   multioutreg.report.generate_report.train_model
+   multioutreg.report.generate_report.make_plots
+   multioutreg.report.generate_report.render_report
+   multioutreg.report.generate_report.main
+
+
+Module Contents
+---------------
+
+.. py:function:: make_data(random_state=42)
+
+.. py:function:: train_model(X_train, Y_train)
+
+.. py:function:: make_plots(model, X_test, Y_test, out_dir='.')
+
+.. py:function:: render_report(metrics_df, overall_metrics, paths, template_dir: str = '../templates', template_filename: str = 'report_template.html', output_path: str = 'report.html')
+
+.. py:function:: main(template_dir: str, template_filename: str, output_path: str)
+

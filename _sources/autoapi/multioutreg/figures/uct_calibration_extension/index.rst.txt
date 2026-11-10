@@ -1,0 +1,32 @@
+multioutreg.figures.uct_calibration_extension
+=============================================
+
+.. py:module:: multioutreg.figures.uct_calibration_extension
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.uct_calibration_extension.filter_subset
+   multioutreg.figures.uct_calibration_extension.get_proportion_lists_vectorized
+   multioutreg.figures.uct_calibration_extension.miscalibration_area_from_proportions
+   multioutreg.figures.uct_calibration_extension.plot_calibration
+
+
+Module Contents
+---------------
+
+.. py:function:: filter_subset(arrays, n_subset)
+
+.. py:function:: get_proportion_lists_vectorized(y_pred, y_std, y_true, prop_type='interval')
+
+.. py:function:: miscalibration_area_from_proportions(exp_proportions, obs_proportions)
+
+.. py:function:: plot_calibration(y_pred: numpy.ndarray, y_std: numpy.ndarray, y_true: numpy.ndarray, n_subset: Union[int, None] = None, curve_label: Union[str, None] = None, vectorized: bool = True, exp_props: Union[numpy.ndarray, None] = None, obs_props: Union[numpy.ndarray, None] = None, ax: Union[matplotlib.pyplot.Axes, None] = None, prop_type: str = 'interval') -> matplotlib.pyplot.Axes
+
+   Plot the observed proportion vs prediction proportion of outputs falling into a
+   range of intervals, and display miscalibration area.
+
+

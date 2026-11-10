@@ -1,0 +1,6 @@
+/* Copyright (c) 2026 takotime808
+   Site-wide tweaks: the tutorial info box and the example-report gallery. */
+.tutorial-meta p:last-child { margin-bottom: 0; }
+.report-shot img { border: 1px solid var(--color-background-border); border-radius: 6px; }
+.sd-card .sd-card-title { font-weight: 600; }
+.sd-card img.sd-card-img-top { border-bottom: 1px solid var(--color-background-border); }

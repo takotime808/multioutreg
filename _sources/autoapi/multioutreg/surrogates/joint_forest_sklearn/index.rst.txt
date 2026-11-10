@@ -1,0 +1,78 @@
+multioutreg.surrogates.joint_forest_sklearn
+===========================================
+
+.. py:module:: multioutreg.surrogates.joint_forest_sklearn
+
+.. autoapi-nested-parse::
+
+   Joint-tree random forest: one forest whose splits serve every output.
+
+   ``RandomForestSurrogate`` fits one forest per output column. scikit-learn's
+   ``RandomForestRegressor`` also accepts a 2-D target directly, choosing each
+   split to reduce the summed squared error across all outputs. The trees then
+   share their partition of the input space, which helps when the outputs respond
+   to the same features and thresholds, and costs one forest instead of ``m``.
+
+   The std is the same as ``RandomForestSurrogate``: per-output spread of the
+   tree predictions plus a held-out noise variance (see
+   :mod:`multioutreg.surrogates.forest_uncertainty`).
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.joint_forest_sklearn.JointRandomForestSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: JointRandomForestSurrogate(include_noise=True, noise_cv=5, **kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Random forest fitted on all outputs at once.
+
+   :param include_noise: Add the held-out noise variance to the tree variance. ``False`` gives
+                         the tree spread alone (epistemic only; under-covers on noisy data).
+   :type include_noise: bool, default True
+   :param noise_cv: Folds used to estimate the noise when the forest does not bootstrap.
+   :type noise_cv: int, default 5
+   :param \*\*kwargs: Passed to :class:`sklearn.ensemble.RandomForestRegressor`.
+
+   .. attribute:: forest_
+
+
+
+      :type: RandomForestRegressor
+
+   .. attribute:: noise_var_
+
+      Per-output noise variance added to the tree variance.
+
+      :type: np.ndarray
+
+
+   .. py:attribute:: include_noise
+      :value: True
+
+
+
+   .. py:attribute:: noise_cv
+      :value: 5
+
+
+
+   .. py:attribute:: forest_kwargs
+
+
+   .. py:method:: fit(X, Y)
+
+
+   .. py:method:: predict(X, return_std=False)
+
+

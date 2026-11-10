@@ -1,0 +1,19 @@
+multioutreg.time_series.ts_dynamic_fit.main
+===========================================
+
+.. py:module:: multioutreg.time_series.ts_dynamic_fit.main
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.main.main
+
+
+Module Contents
+---------------
+
+.. py:function:: main(args)
+

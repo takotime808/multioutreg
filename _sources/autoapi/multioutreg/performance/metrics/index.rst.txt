@@ -1,0 +1,31 @@
+multioutreg.performance.metrics
+===============================
+
+.. py:module:: multioutreg.performance.metrics
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.performance.metrics.get_uq_performance_metrics
+
+
+Module Contents
+---------------
+
+.. py:function:: get_uq_performance_metrics(model: Any, X_test: numpy.ndarray, y_test: numpy.ndarray, std_method: str = 'return_std')
+
+   Computes uncertainty-toolbox performance metrics for each output of a multioutput regressor.
+
+   :param model: MultiOutputRegressor or similar with predict(X, return_std=...) support
+   :param X_test: Test features, shape (n_samples, n_features)
+   :param y_test: Test targets, shape (n_samples, n_outputs)
+   :param std_method: Which kwarg to use for uncertainty (default 'return_std')
+
+   :returns: pd.DataFrame with metrics per output
+             metrics_overall: dict of metrics computed on all outputs at once (flattened)
+   :rtype: metrics_df
+
+

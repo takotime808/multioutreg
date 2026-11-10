@@ -1,0 +1,107 @@
+multioutreg.gui.results_tabs
+============================
+
+.. py:module:: multioutreg.gui.results_tabs
+
+.. autoapi-nested-parse::
+
+   Results of a grid-search run, shown in tabs on the main page.
+
+   Everything here draws from the ``gs_results`` dict the page keeps in
+   ``st.session_state``: the arrays saved after the run, the report data derived
+   from them (:func:`multioutreg.report.build.build_report_data`, the same numbers
+   the HTML report shows) and the SHAP / PDP data computed once in a background
+   job (:func:`compute_explanations`). Switching tabs or rerunning the page never
+   refits a model.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.gui.results_tabs.TABS
+   multioutreg.gui.results_tabs.COLORS
+   multioutreg.gui.results_tabs.STATUS_ICON
+   multioutreg.gui.results_tabs.MAX_COLS
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.results_tabs.compute_explanations
+   multioutreg.gui.results_tabs.model_table
+   multioutreg.gui.results_tabs.parity_figure
+   multioutreg.gui.results_tabs.residuals_figure
+   multioutreg.gui.results_tabs.histogram_figure
+   multioutreg.gui.results_tabs.ordered_intervals_figure
+   multioutreg.gui.results_tabs.calibration_figure
+   multioutreg.gui.results_tabs.shap_figure
+   multioutreg.gui.results_tabs.pdp_figure
+   multioutreg.gui.results_tabs.render_results
+   multioutreg.gui.results_tabs.show_report_pending
+   multioutreg.gui.results_tabs.fill_report_tab
+   multioutreg.gui.results_tabs.refresh_explain_tab
+
+
+Module Contents
+---------------
+
+.. py:data:: TABS
+   :value: ['Summary', 'Predictions', 'Uncertainty', 'Explainability', 'Report']
+
+
+.. py:data:: COLORS
+   :value: ['#2a78d6', '#eb6834', '#1baf7a', '#8a5cd6', '#d1477a', '#1a97ad', '#a3742c', '#6b7a1f']
+
+
+.. py:data:: STATUS_ICON
+
+.. py:data:: MAX_COLS
+   :value: 3
+
+
+.. py:function:: compute_explanations(model: Any, X: numpy.ndarray, output_names: List[str], feature_names: List[str]) -> Dict[str, Any]
+
+   SHAP shares and partial dependence of the top three inputs, for the
+   Explainability tab. Runs once per run (in a background worker); each part
+   that fails is replaced by its error message.
+
+
+.. py:function:: model_table(best_combo: List[dict], output_cols: List[str]) -> pandas.DataFrame
+
+   The chosen model per output as a readable table (one row per output).
+
+
+.. py:function:: parity_figure(outs: List[Dict[str, Any]]) -> plotly.graph_objects.Figure
+
+.. py:function:: residuals_figure(outs: List[Dict[str, Any]]) -> plotly.graph_objects.Figure
+
+.. py:function:: histogram_figure(outs: List[Dict[str, Any]]) -> plotly.graph_objects.Figure
+
+.. py:function:: ordered_intervals_figure(outs: List[Dict[str, Any]]) -> plotly.graph_objects.Figure
+
+.. py:function:: calibration_figure(outs: List[Dict[str, Any]], n_test: int, z: float = 1.96) -> plotly.graph_objects.Figure
+
+.. py:function:: shap_figure(shares: Dict[str, Dict[str, float]]) -> plotly.graph_objects.Figure
+
+.. py:function:: pdp_figure(pdp: Dict[str, Any], output_names: List[str]) -> plotly.graph_objects.Figure
+
+.. py:function:: render_results(res: Dict[str, Any])
+
+   Draw the result tabs; returns the Report tab's slot, filled later by
+   :func:`fill_report_tab` when the background report job finishes.
+
+
+.. py:function:: show_report_pending(slots: Dict[str, Any], secs: int) -> None
+
+   Say the report is still building, in the Report tab and the export section.
+
+
+.. py:function:: fill_report_tab(res: Dict[str, Any], slots: Dict[str, Any]) -> None
+
+.. py:function:: refresh_explain_tab(res: Dict[str, Any], slots: Dict[str, Any]) -> None
+

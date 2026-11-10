@@ -1,0 +1,71 @@
+multioutreg.time_series.ts_dynamic_fit.src.ForecastAutoIntervals
+================================================================
+
+.. py:module:: multioutreg.time_series.ts_dynamic_fit.src.ForecastAutoIntervals
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.src.ForecastAutoIntervals.ForecastAutoIntervals
+
+
+Module Contents
+---------------
+
+.. py:class:: ForecastAutoIntervals(model: Any)
+
+   .. py:attribute:: model
+
+
+   .. py:method:: forecast(steps: int = 1, alpha: float = 0.05, X: Optional[Any] = None, y_train: Optional[Union[pandas.Series, numpy.ndarray]] = None) -> pandas.DataFrame
+
+      Generates forecast with confidence intervals using the provided model.
+
+      Handles statsmodels-style, quantile regressors, and generic models with bootstrap intervals.
+
+      :param steps: Number of steps to forecast.
+      :type steps: int
+      :param alpha: Significance level for confidence intervals.
+      :type alpha: float
+      :param X: Exogenous variables for the forecast.
+      :type X: Any, optional
+      :param y_train: Training target values for fallback.
+      :type y_train: pd.Series or np.ndarray, optional
+
+      :returns: DataFrame containing columns 'mean', 'lower', 'upper'.
+      :rtype: pd.DataFrame
+
+      :raises NotImplementedError: If the model type is unsupported or insufficient data is provided.
+
+
+
+   .. py:method:: plot_forecast(forecast_df: pandas.DataFrame, history: Optional[Union[pandas.Series, pandas.DataFrame]] = None, history_label: str = 'History', forecast_label: str = 'Forecast') -> None
+
+      Plots the forecast and its confidence interval on an integer-based x-axis.
+
+      This method displays both historical values and forecasted values along
+      a continuous x-axis of sequential integers. Integer values are used for
+      the x-axis instead of datetime indices, ensuring proper alignment and
+      eliminating issues caused by irregular date indices or frequency mismatches.
+
+      The most recent historical value is placed at position 0. All preceding
+      historical values appear at negative integer steps (e.g., -n, ..., -2, -1).
+      Forecasted values start from 0 and increment positively (0, 1, ..., steps-1).
+
+      :param forecast_df: DataFrame containing forecasted results with columns ['mean', 'lower', 'upper'].
+      :type forecast_df: pd.DataFrame
+      :param history: Historical time series data preceding the forecast.
+                      If a DataFrame with one column, will be converted to a Series automatically.
+      :type history: pd.Series or pd.DataFrame, optional
+      :param history_label: Legend label for the plotted historical data.
+      :type history_label: str
+      :param forecast_label: Legend label for the plotted forecast.
+      :type forecast_label: str
+
+      :returns: None
+
+
+

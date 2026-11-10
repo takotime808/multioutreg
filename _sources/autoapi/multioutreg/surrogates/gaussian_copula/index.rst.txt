@@ -1,0 +1,110 @@
+multioutreg.surrogates.gaussian_copula
+======================================
+
+.. py:module:: multioutreg.surrogates.gaussian_copula
+
+.. autoapi-nested-parse::
+
+   Gaussian copula wrapper: add output correlation to any per-output surrogate.
+
+   Most surrogates in the package fit one model per output, so their predictive
+   distribution treats the outputs as independent even when the outputs move
+   together. This wrapper keeps the wrapped surrogate's marginals (mean and std
+   per output) and couples them with a correlation matrix ``R`` estimated from
+   its residuals::
+
+       Cov(Y | x) = diag(std(x)) R diag(std(x))
+
+   ``R`` is estimated from out-of-fold residuals, since in-sample residuals of
+   an interpolating model (a GP, a deep forest) are close to zero and say nothing
+   about its errors on new points. Each residual is standardized by the
+   predicted std and then rank-transformed to normal scores, so ``R`` is the
+   Gaussian-copula correlation and is not thrown off by heavy-tailed residuals.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.gaussian_copula.GaussianCopulaSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: GaussianCopulaSurrogate(surrogate_cls=None, cv=5, shrinkage=0.0, random_state=None, **surrogate_kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Couple a surrogate's per-output predictions with a residual correlation.
+
+   :param surrogate_cls: Surrogate supplying the marginals; must accept ``fit(X, Y)`` and
+                         ``predict(X, return_std=True)``. Defaults to
+                         ``GaussianProcessSurrogate``.
+   :type surrogate_cls: type | None
+   :param cv: Folds used to collect out-of-fold residuals for ``R`` (at least 2).
+   :type cv: int
+   :param shrinkage: Shrink ``R`` towards the identity: ``(1 - s) R + s I``. Useful when
+                     there are few rows per output. Default 0.
+   :type shrinkage: float in [0, 1]
+   :param random_state: Seed for the fold split.
+   :type random_state: int | None
+   :param \*\*surrogate_kwargs: Passed to ``surrogate_cls``.
+
+   .. attribute:: correlation_
+
+      Estimated copula correlation ``R``.
+
+      :type: np.ndarray, shape (n_outputs, n_outputs)
+
+   .. attribute:: surrogate_
+
+      The wrapped surrogate refitted on all rows.
+
+      :type: object
+
+
+   .. py:attribute:: surrogate_cls
+      :value: None
+
+
+
+   .. py:attribute:: cv
+      :value: 5
+
+
+
+   .. py:attribute:: shrinkage
+      :value: 0.0
+
+
+
+   .. py:attribute:: random_state
+      :value: None
+
+
+
+   .. py:attribute:: surrogate_kwargs
+
+
+   .. py:method:: fit(X, Y)
+
+
+   .. py:method:: predict(X, return_std=False, return_cov=False)
+
+      Predict outputs; ``return_cov=True`` adds the coupled covariance.
+
+      The mean and std are the wrapped surrogate's; only the covariance
+      (shape ``(n_samples, n_outputs, n_outputs)``) changes.
+
+
+
+   .. py:method:: sample(X, n_samples=500, seed=None)
+
+      Draws from the joint predictive distribution, shape ``(n, n_samples, n_outputs)``.
+
+
+

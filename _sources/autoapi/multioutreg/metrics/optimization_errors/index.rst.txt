@@ -1,0 +1,77 @@
+multioutreg.metrics.optimization_errors
+=======================================
+
+.. py:module:: multioutreg.metrics.optimization_errors
+
+.. autoapi-nested-parse::
+
+   Normalized optimization and global-accuracy errors (Mainini et al. 2022).
+
+   The AVT-331 L1 benchmark paper (arXiv:2204.07867, Sec. 5) scores a method by
+   how close its estimated optimum is to the true one and by how well its
+   surrogate matches the high-fidelity function everywhere. All four errors are
+   dimensionless, so they compare across problems:
+
+   - design_error(x_hat, x_star, bounds=None): ``||x_hat - x*|| / sqrt(D)`` on the unit cube
+   - goal_error(f_at_x_hat, f_min, f_max): ``(f(x_hat) - f_min) / (f_max - f_min)``
+   - total_error(e_x, e_f): ``sqrt((e_x^2 + e_f^2) / 2)``
+   - normalized_rmse(y_true, y_pred, f_min, f_max): RMSE over the range ``f_max - f_min``
+   - optimum_errors(...): ``{"Ex", "Ef", "Et"}`` in one call
+
+   .. admonition:: Notes
+
+      * ``f_at_x_hat`` must be the *true* (high-fidelity) value at the estimated
+        optimum, not the surrogate's prediction there.
+      * ``x_star`` may hold several minimizers (one per row); the nearest one counts.
+        For optimal sets that are not finite (a face, a curve), pass ``distance``
+        instead: a callable giving the unit-cube distance from each row of its
+        input to the set.
+      * ``f_min`` and ``f_max`` are the function's true extremes over the domain,
+        supplied with the benchmark, not the extremes of the training data.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.metrics.optimization_errors.design_error
+   multioutreg.metrics.optimization_errors.goal_error
+   multioutreg.metrics.optimization_errors.total_error
+   multioutreg.metrics.optimization_errors.normalized_rmse
+   multioutreg.metrics.optimization_errors.optimum_errors
+
+
+Module Contents
+---------------
+
+.. py:function:: design_error(x_hat, x_star=None, bounds=None, distance: Optional[Callable] = None) -> float
+
+   Distance from ``x_hat`` to the nearest true minimizer, scaled to the unit cube, over ``sqrt(D)``.
+
+   ``x_hat`` and ``x_star`` are in the problem's own coordinates when
+   ``bounds`` (shape ``(D, 2)``) is given, otherwise already in the unit cube.
+   ``distance``, if given, replaces ``x_star`` and receives the unit-cube point.
+
+
+.. py:function:: goal_error(f_at_x_hat: float, f_min: float, f_max: float) -> float
+
+   ``(f(x_hat) - f_min) / (f_max - f_min)``; 0 at the optimum, 1 at the worst point.
+
+
+.. py:function:: total_error(e_x: float, e_f: float) -> float
+
+   Aggregate of design and goal errors (Serani et al. 2016): ``sqrt((e_x^2 + e_f^2) / 2)``.
+
+
+.. py:function:: normalized_rmse(y_true, y_pred, f_min: float, f_max: float) -> float
+
+   RMSE between the true function and a surrogate, divided by ``f_max - f_min``.
+
+
+.. py:function:: optimum_errors(x_hat, f_at_x_hat: float, f_min: float, f_max: float, x_star=None, bounds=None, distance: Optional[Callable] = None) -> Dict[str, float]
+
+   ``{"Ex": design_error, "Ef": goal_error, "Et": total_error}`` for one estimated optimum.
+
+

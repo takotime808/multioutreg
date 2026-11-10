@@ -1,0 +1,48 @@
+multioutreg.utils.metric_utils
+==============================
+
+.. py:module:: multioutreg.utils.metric_utils
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.utils.metric_utils.flatten_metrics_df
+   multioutreg.utils.metric_utils.gaussian_uncertainty_metrics
+
+
+Module Contents
+---------------
+
+.. py:function:: flatten_metrics_df(df: pandas.DataFrame) -> pandas.DataFrame
+
+   Flattens a DataFrame with columns containing dictionaries (as returned by uncertainty_toolbox)
+   into a DataFrame with one column per metric.
+
+   For each column (except 'output') where each cell is a dict, this function extracts all key-value
+   pairs, creating a new column for each unique key. If a key is repeated in multiple columns, the new
+   column is prefixed with the original column name to avoid naming conflicts.
+
+   :param df: Input DataFrame with columns of dicts (and an 'output' column).
+   :type df: pd.DataFrame
+
+   :returns: A flattened DataFrame where each metric is a separate column, with 'output' preserved.
+   :rtype: pd.DataFrame
+
+   .. admonition:: Example
+
+      Input columns: ['accuracy', 'sharpness', 'output'], where 'accuracy' and 'sharpness' are dicts
+      Output columns: ['mae', 'rmse', ..., 'sharp', ..., 'output']
+
+
+.. py:function:: gaussian_uncertainty_metrics(y_test: numpy.ndarray, y_pred: numpy.ndarray, y_std: numpy.ndarray, nominal: float = 0.95) -> Dict[str, float]
+
+   Average (over outputs) calibration metrics of the Gaussian ``mean ± std``.
+
+   Returns sharpness (mean predicted std), empirical coverage of the central
+   ``nominal`` Gaussian interval, miscoverage ``|nominal - coverage|`` and,
+   when every std is positive, the mean Gaussian negative log-likelihood.
+
+

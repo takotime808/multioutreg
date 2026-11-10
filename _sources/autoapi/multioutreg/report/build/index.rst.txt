@@ -1,0 +1,53 @@
+multioutreg.report.build
+========================
+
+.. py:module:: multioutreg.report.build
+
+.. autoapi-nested-parse::
+
+   Turn model-evaluation results into :class:`~multioutreg.report.data.ReportData`.
+
+   :func:`build_report_data` takes the arguments the report callers already
+   have (test arrays, metrics, conformal intervals, level and baseline rows,
+   grid-search rows, ...), computes the derived series the v2 report shows and
+   runs the verdict rules in :mod:`multioutreg.report.verdict`.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.report.build.NOMINAL_LEVELS
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.report.build.data_hash
+   multioutreg.report.build.build_report_data
+
+
+Module Contents
+---------------
+
+.. py:data:: NOMINAL_LEVELS
+
+.. py:function:: data_hash(*arrays: Optional[numpy.ndarray]) -> str
+
+   First 7 hex characters of a SHA-1 over the arrays' bytes.
+
+
+.. py:function:: build_report_data(*, output_names: List[str], y_test: numpy.ndarray, best_pred: numpy.ndarray, best_std: Optional[numpy.ndarray], metrics: Dict[str, Dict[str, float]], title: str = 'Surrogate Model Report', model_type: str = '', description: str = '', notes: str = '', uncertainty_metrics: Optional[Dict[str, float]] = None, n_train: Any = None, n_test: Any = None, cross_validation: str = '', seed: Any = None, fidelity_levels: Optional[Sequence[str]] = None, input_names: Optional[List[str]] = None, X_train: Optional[numpy.ndarray] = None, best_model: Any = None, conformal_intervals: Optional[tuple] = None, conformal_alpha: Optional[float] = None, calibration_residuals: Optional[numpy.ndarray] = None, imputation_summary: Optional[dict] = None, level_summary: Optional[List[dict]] = None, baseline_comparison: Optional[List[dict]] = None, baseline_label: Optional[str] = None, grid_search_results: Optional[List[dict]] = None, best_candidate_name: Optional[str] = None, selection_scores: Optional[List[dict]] = None, regret_metrics: Optional[dict] = None, regret_bounds: Optional[dict] = None, regret_settings: Optional[dict] = None, pca_explained_variance: Optional[List[float]] = None, pca_variance_plot: Optional[str] = None, pca_method: Optional[str] = None, pca_threshold: Optional[float] = None, pca_n_components: Optional[int] = None, kaiser_rule_suggestion: Optional[str] = None, sampling_plot: Optional[str] = None, sampling_explanation: Optional[str] = None, figures: Optional[List[dict]] = None, summary_points: Optional[List[str]] = None, skipped: Optional[List[dict]] = None, dataset_name: Optional[str] = None, explain: bool = True, thresholds: Optional[multioutreg.report.verdict.Thresholds] = None, max_points: int = 2000) -> multioutreg.report.data.ReportData
+
+   Collect and derive everything the v2 report shows.
+
+   The arrays are ``(n_test, n_outputs)``. ``explain=False`` skips SHAP and
+   partial dependence (they need ``best_model`` and ``X_train``). ``figures``
+   are extra PNGs as ``{key, section, title, caption, img_b64}`` dicts, placed
+   in their section (``"sec-6"``) or the appendix (``"appendix"``).
+
+

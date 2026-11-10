@@ -1,0 +1,163 @@
+multioutreg.persistence
+=======================
+
+.. py:module:: multioutreg.persistence
+
+.. autoapi-nested-parse::
+
+   Save and load fitted surrogates together with what is needed to reuse them.
+
+   A fitted model on its own is not enough to reuse it later: you also need the
+   input columns it expects (in order), the names of its outputs, the fidelity
+   levels of a multi-fidelity model, and the package versions it was fitted
+   with (a pickle from one scikit-learn version may not load, or may predict
+   differently, under another). :func:`save_model` stores all of these in one
+   ``joblib`` file and :func:`load_model` returns them as a :class:`ModelBundle`.
+
+   The file layout uses the same keys as the Grid Search app's
+   "Download Trained Model" bundle (``input_columns``, ``output_columns``,
+   ``versions``), and :func:`load_model` also opens those files and plain
+   ``joblib.dump(model)`` files.
+
+   .. warning::
+      ``joblib`` files are pickles: loading one runs code from it. Only load
+      files you created or trust.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.persistence.FORMAT
+   multioutreg.persistence.FORMAT_VERSION
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.persistence.ModelBundle
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.persistence.package_versions
+   multioutreg.persistence.save_model
+   multioutreg.persistence.load_model
+
+
+Module Contents
+---------------
+
+.. py:data:: FORMAT
+   :value: 'multioutreg.model_bundle'
+
+
+.. py:data:: FORMAT_VERSION
+   :value: 1
+
+
+.. py:function:: package_versions() -> Dict[str, str]
+
+   Installed versions of Python and the packages a saved model depends on.
+
+
+.. py:class:: ModelBundle
+
+   A fitted model plus the information needed to use it.
+
+   ``predict`` accepts a DataFrame (columns are selected and ordered by
+   ``input_columns``) or an array (used as is), and passes keyword arguments
+   such as ``return_std=True`` through to the model.
+
+
+   .. py:attribute:: model
+      :type:  Any
+
+
+   .. py:attribute:: input_columns
+      :type:  Optional[List[str]]
+      :value: None
+
+
+
+   .. py:attribute:: output_columns
+      :type:  Optional[List[str]]
+      :value: None
+
+
+
+   .. py:attribute:: fidelity_levels
+      :type:  Optional[List[str]]
+      :value: None
+
+
+
+   .. py:attribute:: versions
+      :type:  Dict[str, str]
+
+
+   .. py:attribute:: metadata
+      :type:  Dict[str, Any]
+
+
+   .. py:attribute:: conformal
+      :type:  Optional[Dict[str, Any]]
+      :value: None
+
+
+
+   .. py:method:: predict(X, as_frame: bool = False, **kwargs)
+
+      Predict with the stored model.
+
+      With ``as_frame=True`` every returned array is a DataFrame with
+      ``output_columns`` as its columns (requires pandas and output names).
+
+
+
+.. py:function:: save_model(model: Any, path, input_columns: Optional[Sequence[str]] = None, output_columns: Optional[Sequence[str]] = None, fidelity_levels: Optional[Sequence[str]] = None, metadata: Optional[Dict[str, Any]] = None, compress: int = 3)
+
+   Save a fitted model with its column names, fidelity levels and versions.
+
+   :param model: Any fitted surrogate, pipeline or estimator.
+   :type model: object
+   :param path: Destination (``.joblib`` by convention).
+   :type path: str | os.PathLike | file-like
+   :param input_columns: Feature and output names. ``input_columns`` defaults to the model's
+                         ``feature_names_in_`` when it has one.
+   :type input_columns: sequence of str, optional
+   :param output_columns: Feature and output names. ``input_columns`` defaults to the model's
+                          ``feature_names_in_`` when it has one.
+   :type output_columns: sequence of str, optional
+   :param fidelity_levels: Defaults to the model's ``fidelity_levels`` attribute when it has one
+                           (``MultiFidelitySurrogate``, ``StackedVFMSurrogate``).
+   :type fidelity_levels: sequence of str, optional
+   :param metadata: Anything else to keep with the model (training data source, metrics,
+                    the configuration that produced it).
+   :type metadata: dict, optional
+   :param compress: ``joblib`` compression level, 0-9.
+   :type compress: int
+
+   :rtype: The list of file names written, as returned by ``joblib.dump``.
+
+
+.. py:function:: load_model(path, check_versions: bool = True) -> ModelBundle
+
+   Load a model saved by :func:`save_model`, the Grid Search app, or ``joblib.dump``.
+
+   Only load files you trust: ``joblib`` files are pickles.
+
+   :param path:
+   :type path: str | os.PathLike | file-like
+   :param check_versions: Warn if ``multioutreg``, scikit-learn or numpy differ from the
+                          versions the model was saved with.
+   :type check_versions: bool
+
+

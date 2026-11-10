@@ -1,0 +1,49 @@
+multioutreg.figures.model_comparison
+====================================
+
+.. py:module:: multioutreg.figures.model_comparison
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.model_comparison.plot_surrogate_model_summary
+
+
+Module Contents
+---------------
+
+.. py:function:: plot_surrogate_model_summary(X_train: numpy.ndarray, X_test: numpy.ndarray, Y_train: numpy.ndarray, Y_test: numpy.ndarray, model: Optional[sklearn.base.RegressorMixin] = None, compare: bool = True, rmse_plot_index: int = 1, savefig: Optional[str] = 'surrogate_model_summary.png', admin_mode: bool = True) -> Union[str, matplotlib.pyplot.Figure]
+
+   Generate a 3-row summary visualization of a multi-output regression surrogate model.
+
+   Rows:
+       1. Z-score histograms (uncertainty calibration)
+       2. Prediction vs. true values (accuracy)
+       3. RMSE bar chart comparing the given model and a noisy baseline (optional)
+
+   :param X_train: Training features of shape (n_samples, n_features)
+   :type X_train: np.ndarray
+   :param X_test: Test features of shape (n_samples, n_features)
+   :type X_test: np.ndarray
+   :param Y_train: Training targets of shape (n_samples, n_outputs)
+   :type Y_train: np.ndarray
+   :param Y_test: Test targets of shape (n_samples, n_outputs)
+   :type Y_test: np.ndarray
+   :param model: Fitted regression model; if None, a linear model is used.
+   :type model: RegressorMixin, optional
+   :param compare: If True, compares to a noisy model as a baseline in RMSE plot.
+   :type compare: bool
+   :param rmse_plot_index: Column index in grid to place the RMSE plot (default: 1)
+   :type rmse_plot_index: int
+   :param savefig: Path to save PNG output. If None, returns the matplotlib Figure.
+   :type savefig: str or None
+   :param admin_mode: If True, print status messages.
+   :type admin_mode: bool
+
+   :returns: Path to saved file if `savefig` is given, else the matplotlib Figure.
+   :rtype: Union[str, plt.Figure]
+
+

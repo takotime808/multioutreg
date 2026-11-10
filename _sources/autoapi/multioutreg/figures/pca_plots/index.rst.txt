@@ -1,0 +1,34 @@
+multioutreg.figures.pca_plots
+=============================
+
+.. py:module:: multioutreg.figures.pca_plots
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.pca_plots.generate_pca_variance_plot
+
+
+Module Contents
+---------------
+
+.. py:function:: generate_pca_variance_plot(pca: sklearn.decomposition.PCA, n_selected: int | None = None, threshold: float | None = None) -> str
+
+   Generate a base64-encoded bar plot showing the explained variance ratio of each principal component.
+
+   :param pca: Fitted PCA instance.
+   :type pca: PCA
+   :param n_selected: Number of components retained. If provided, a vertical dashed line is
+                      drawn on the scree plot.
+   :type n_selected: int | None, optional
+   :param threshold: Explained variance threshold. When given, a horizontal dashed line is
+                     drawn to illustrate the cutoff.
+   :type threshold: float | None, optional
+
+   :returns: Base64 encoded PNG image of the scree plot.
+   :rtype: str
+
+

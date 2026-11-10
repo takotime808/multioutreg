@@ -1,0 +1,913 @@
+<title>Surrogate Report Redesign</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky top nav of views; mockup views use a report frame (section index rail + content) on a slate-tinted page plane. */
+:root {
+  --bg: #f4f6f8;
+  --surface: #fcfcfb;
+  --fg: #12161c;
+  --fg2: #4c5561;
+  --muted: #7d8692;
+  --grid: #e3e6ea;
+  --axis: #c3c8cf;
+  --line: rgba(18,22,28,0.10);
+  --accent: #2b5d8c;
+  --accent-soft: #e2ebf4;
+  --note-bg: #fff8e6;
+  --note-fg: #5b4a14;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a;
+  --good: #0ca30c; --warn: #fab219; --crit: #d03b3b;
+  --good-ink: #006300; --warn-ink: #7a5300; --crit-ink: #a12424;
+  --good-bg: #e6f4e6; --warn-bg: #fdf1d6; --crit-bg: #fae5e5;
+  --band: rgba(43,93,140,0.10);
+  --seq-0: #cde2fb; --seq-1: #9ec5f4; --seq-2: #6da7ec; --seq-3: #3987e5; --seq-4: #256abf; --seq-5: #184f95; --seq-6: #0d366b;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1116; --surface: #171b21; --fg: #eef0f2; --fg2: #b9c0c9; --muted: #858d98;
+    --grid: #262b33; --axis: #3a414b; --line: rgba(255,255,255,0.10);
+    --accent: #7fb0e0; --accent-soft: #1d2a38; --note-bg: #2a2412; --note-fg: #ecd9a0;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+    --good-ink: #3fc23f; --warn-ink: #f2c04d; --crit-ink: #f07c7c;
+    --good-bg: #13291a; --warn-bg: #2e2510; --crit-bg: #331718;
+    --band: rgba(127,176,224,0.12);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1116; --surface: #171b21; --fg: #eef0f2; --fg2: #b9c0c9; --muted: #858d98;
+  --grid: #262b33; --axis: #3a414b; --line: rgba(255,255,255,0.10);
+  --accent: #7fb0e0; --accent-soft: #1d2a38; --note-bg: #2a2412; --note-fg: #ecd9a0;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70;
+  --good-ink: #3fc23f; --warn-ink: #f2c04d; --crit-ink: #f07c7c;
+  --good-bg: #13291a; --warn-bg: #2e2510; --crit-bg: #331718;
+  --band: rgba(127,176,224,0.12);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 15px; line-height: 1.55; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+h1, h2, h3, h4 { text-wrap: balance; line-height: 1.2; margin: 0; }
+h1 { font-size: 1.75rem; font-weight: 600; }
+h2 { font-size: 1.3rem; font-weight: 600; }
+h3 { font-size: 1.02rem; font-weight: 600; }
+p { margin: 0; }
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mono { font-family: var(--font-mono); font-size: 0.86em; }
+.num { font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+
+/* top nav */
+.topnav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--surface); border-bottom: 1px solid var(--line); }
+.topnav-inner { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; gap: 20px; align-items: center; min-height: 52px; flex-wrap: wrap; padding-block: 6px; }
+.brand { font-weight: 600; font-size: 0.95rem; white-space: nowrap; }
+.brand span { color: var(--muted); font-weight: 400; }
+.tabs { display: flex; gap: 2px; overflow-x: auto; flex: 1; min-width: 0; }
+.tabs a { text-decoration: none; color: var(--fg2); padding: 7px 12px; border-radius: 6px; font-size: 0.88rem; white-space: nowrap; }
+.tabs a:hover { background: var(--accent-soft); color: var(--fg); }
+.tabs a[aria-current="page"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.notes-toggle { display: flex; gap: 6px; align-items: center; font-size: 0.82rem; color: var(--fg2); white-space: nowrap; }
+
+.wrap { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 28px 64px; }
+
+/* pitch */
+.pitch { display: grid; gap: 40px; max-width: 980px; }
+.pitch-hero { display: grid; gap: 12px; }
+.pitch-hero p { color: var(--fg2); max-width: 68ch; font-size: 1.05rem; }
+.pitch-section { display: grid; gap: 16px; }
+.problems { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; }
+.problem { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 6px; align-content: start; }
+.problem p { color: var(--fg2); font-size: 0.92rem; }
+.problem .where { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); }
+.ideas { display: grid; gap: 0; border-top: 1px solid var(--line); }
+.idea { display: grid; grid-template-columns: 44px 1fr minmax(0, 220px); gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--line); align-items: start; }
+.idea .letter { font-family: var(--font-mono); font-weight: 500; color: var(--accent); font-size: 1.1rem; }
+.idea .body { display: grid; gap: 4px; min-width: 0; }
+.idea .body p { color: var(--fg2); font-size: 0.93rem; max-width: 70ch; }
+.idea .see { font-size: 0.85rem; }
+.idea .see a { display: inline-block; }
+@media (max-width: 700px) { .idea { grid-template-columns: 32px 1fr; } .idea .see { grid-column: 2; } }
+.mock-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; }
+.mock-link { display: grid; gap: 4px; text-decoration: none; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; }
+.mock-link:hover { border-color: var(--accent); }
+.mock-link span { color: var(--fg2); font-size: 0.88rem; }
+.steps { display: grid; gap: 10px; counter-reset: s; padding: 0; margin: 0; list-style: none; }
+.steps li { display: grid; grid-template-columns: 28px 1fr; gap: 10px; }
+.steps li::before { counter-increment: s; content: counter(s); font-family: var(--font-mono); color: var(--accent); font-weight: 500; }
+.steps li div { color: var(--fg2); font-size: 0.93rem; min-width: 0; }
+.steps li b { color: var(--fg); font-weight: 600; }
+.before-after { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 760px) { .before-after { grid-template-columns: 1fr; } }
+.outline { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.outline ol { margin: 0; padding-left: 1.3em; color: var(--fg2); font-size: 0.9rem; display: grid; gap: 2px; }
+.outline ol b { color: var(--fg); font-weight: 600; }
+
+/* report frame */
+.mock-banner { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: 0.84rem; color: var(--fg2); margin-bottom: 18px; }
+.tag { display: inline-flex; align-items: center; gap: 5px; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 3px 8px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); }
+.report { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 32px; align-items: start; }
+@media (max-width: 960px) { .report { grid-template-columns: 1fr; } .rail { display: none; } }
+.rail { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 72px); display: grid; gap: 4px; font-size: 0.86rem; }
+.rail .eyebrow { margin-bottom: 6px; }
+.rail a { text-decoration: none; color: var(--fg2); padding: 5px 10px; border-radius: 5px; display: grid; grid-template-columns: 18px 1fr; gap: 4px; }
+.rail a:hover { background: var(--accent-soft); color: var(--fg); }
+.rail a.on { background: var(--surface); color: var(--fg); font-weight: 600; box-shadow: inset 2px 0 0 var(--accent); border-radius: 0 5px 5px 0; }
+.rail a i { font-style: normal; font-family: var(--font-mono); color: var(--muted); font-size: 0.8rem; }
+.rail .meta { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.78rem; display: grid; gap: 2px; }
+.content { display: grid; gap: 28px; min-width: 0; }
+.rhead { display: grid; gap: 10px; }
+.runmeta { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 0.82rem; color: var(--fg2); }
+.runmeta b { color: var(--fg); font-weight: 500; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; display: grid; gap: 14px; min-width: 0; }
+.panel-head { display: grid; gap: 4px; }
+.panel-head p { color: var(--fg2); font-size: 0.92rem; max-width: 75ch; }
+.qnum { font-family: var(--font-mono); font-size: 0.78rem; color: var(--accent); font-weight: 500; }
+
+/* verdict */
+.verdict { display: grid; grid-template-columns: auto 1fr; gap: 16px; align-items: start; padding: 20px; border-radius: 10px; background: var(--surface); border: 1px solid var(--line); box-shadow: inset 4px 0 0 var(--warn); }
+.verdict.good { box-shadow: inset 4px 0 0 var(--good); }
+.verdict .vicon { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 1.2rem; background: var(--warn-bg); color: var(--warn-ink); }
+.verdict h2 { font-size: 1.35rem; }
+.verdict p { color: var(--fg2); margin-top: 6px; max-width: 75ch; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+
+.chip { display: inline-flex; align-items: center; gap: 6px; font-size: 0.8rem; font-weight: 600; padding: 3px 9px 3px 7px; border-radius: 999px; white-space: nowrap; }
+.chip::before { font-size: 0.75rem; font-weight: 700; }
+.chip.good { background: var(--good-bg); color: var(--good-ink); } .chip.good::before { content: "\2713"; }
+.chip.warn { background: var(--warn-bg); color: var(--warn-ink); } .chip.warn::before { content: "!"; }
+.chip.crit { background: var(--crit-bg); color: var(--crit-ink); } .chip.crit::before { content: "\2715"; }
+.chip.neutral { background: var(--accent-soft); color: var(--fg2); } .chip.neutral::before { content: "\2013"; }
+.chip.skip { background: transparent; color: var(--muted); border: 1px dashed var(--axis); } .chip.skip::before { content: "\2192"; }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: baseline; margin-right: 6px; }
+
+/* tables */
+.tablewrap { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+th { text-align: left; font-weight: 600; font-size: 0.76rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); padding: 8px 12px; border-bottom: 1px solid var(--axis); white-space: nowrap; }
+td { padding: 12px; border-bottom: 1px solid var(--grid); vertical-align: top; }
+td .sub { display: block; color: var(--fg2); font-size: 0.8rem; margin-top: 4px; }
+td .val { font-variant-numeric: tabular-nums; font-weight: 500; }
+tr:last-child td { border-bottom: none; }
+
+/* findings */
+.findings { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 760px) { .findings { grid-template-columns: 1fr; } }
+.finding { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: grid; gap: 10px; grid-template-rows: auto auto 1fr auto; min-width: 0; }
+.finding h3 { font-size: 1rem; }
+.finding p { color: var(--fg2); font-size: 0.88rem; }
+.finding .go { font-size: 0.84rem; text-decoration: none; font-weight: 500; }
+
+.todo { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.todo li { display: grid; grid-template-columns: 22px 1fr auto; gap: 10px; align-items: baseline; padding-bottom: 10px; border-bottom: 1px solid var(--grid); }
+.todo li:last-child { border-bottom: none; padding-bottom: 0; }
+.todo li::before { content: "\25A1"; color: var(--accent); }
+.todo li div { min-width: 0; color: var(--fg2); font-size: 0.92rem; }
+.todo li b { color: var(--fg); font-weight: 600; }
+.todo li span { font-size: 0.78rem; color: var(--muted); white-space: nowrap; }
+@media (max-width: 600px) { .todo li { grid-template-columns: 22px 1fr; } .todo li span { grid-column: 2; } }
+
+/* charts */
+.grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 820px) { .grid2, .grid3 { grid-template-columns: 1fr; } }
+.fig { display: grid; gap: 6px; min-width: 0; align-content: start; }
+.fig h4 { font-size: 0.9rem; font-weight: 600; }
+.fig .look { font-size: 0.82rem; color: var(--fg2); }
+.fig .look b { color: var(--fg); font-weight: 600; }
+.fig svg { width: 100%; height: auto; display: block; overflow: visible; }
+svg text { font-family: var(--font-sans); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.8rem; color: var(--fg2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.lg-line { width: 18px; height: 0; border-top: 2px solid; display: inline-block; }
+.lg-dash { border-top-style: dashed; }
+.lg-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.lg-band { width: 16px; height: 10px; background: var(--band); display: inline-block; border-radius: 2px; }
+
+.outtabs { display: flex; gap: 6px; flex-wrap: wrap; }
+.outtabs button { font: inherit; font-size: 0.88rem; border: 1px solid var(--line); background: var(--surface); color: var(--fg2); padding: 6px 12px; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+.outtabs button[aria-pressed="true"] { border-color: var(--accent); color: var(--fg); font-weight: 600; background: var(--accent-soft); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stat { padding: 12px 14px; display: grid; gap: 4px; border-right: 1px solid var(--grid); align-content: start; }
+.stat:last-child { border-right: none; }
+.stat .v { font-size: 1.25rem; font-weight: 600; }
+.stat .ref { font-size: 0.76rem; color: var(--muted); }
+
+.heat { display: grid; gap: 2px; font-size: 0.84rem; }
+.heat .cell { padding: 9px 8px; text-align: center; border-radius: 3px; font-variant-numeric: tabular-nums; font-weight: 500; }
+.heat .rowlab { padding: 9px 8px 9px 0; color: var(--fg); }
+.heat .collab { padding: 4px 8px; text-align: center; font-weight: 600; font-size: 0.8rem; }
+
+.skipped { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; font-size: 0.86rem; color: var(--fg2); padding: 10px 12px; border: 1px dashed var(--axis); border-radius: 8px; }
+
+.note { background: var(--note-bg); color: var(--note-fg); border-radius: 8px; padding: 10px 12px; font-size: 0.84rem; display: grid; grid-template-columns: auto 1fr; gap: 8px; }
+.note::before { content: "Design note"; font-weight: 700; font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; padding-top: 2px; }
+body.hide-notes .note { display: none; }
+details.appendix summary { cursor: pointer; font-weight: 600; }
+details.appendix[open] summary { margin-bottom: 12px; }
+
+#tip { position: fixed; z-index: 20; pointer-events: none; background: var(--fg); color: var(--bg); font-size: 0.78rem; padding: 6px 9px; border-radius: 5px; max-width: 260px; line-height: 1.4; white-space: pre-line; }
+@media (prefers-reduced-motion: no-preference) { .view { animation: fadein .18s ease-out; } @keyframes fadein { from { opacity: .6; } to { opacity: 1; } } }
+</style>
+
+<header class="topnav">
+  <div class="topnav-inner">
+    <div class="brand">multioutreg <span>report redesign</span></div>
+    <nav class="tabs" aria-label="Views">
+      <a href="#pitch">The pitch</a>
+      <a href="#front">A · Front page</a>
+      <a href="#output">B · Per-output</a>
+      <a href="#uncertainty">C · Error bars</a>
+      <a href="#drivers">D · Fidelity &amp; drivers</a>
+    </nav>
+    <label class="notes-toggle"><input type="checkbox" id="notes-toggle" checked> Design notes</label>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============ PITCH ============ -->
+<section class="view" id="v-pitch" data-view="pitch">
+  <div class="pitch">
+    <div class="pitch-hero">
+      <div class="eyebrow">Proposal · HTML surrogate report</div>
+      <h1>Lead with the answer, then show the evidence beside it</h1>
+      <p>Today's report (<span class="mono">multioutreg/report/template.html</span>) is complete but hard to act on. It is ordered by analysis method, so a reader has to assemble the answer to "can I use this model for output X?" from six sections and a dozen stacked images. This proposal reorders the same content around the questions a user brings, puts a verdict on the first screen, and pairs every finding with the figure that proves it.</p>
+    </div>
+
+    <div class="pitch-section">
+      <h2>What gets in the way today</h2>
+      <div class="problems">
+        <div class="problem"><h3>No answer up front</h3><p>The Overview lists model type, levels and outputs. The generated Summary is a plain bullet list. Nothing states whether the model is fit for use, or for which outputs.</p><div class="where">Overview, Summary</div></div>
+        <div class="problem"><h3>Ordered by method, not by question</h3><p>Metrics tables, then UQ plots, conformal, predictions, SHAP, PDP, sampling, diagnostics. Judging one output means visiting every section.</p><div class="where">section order</div></div>
+        <div class="problem"><h3>Findings far from evidence</h3><p>"The 95% interval covers only 74% of test points" sits in Summary. The coverage plot that shows it is several screens down, with a generic caption.</p><div class="where">summary_points vs uncertainty_plots</div></div>
+        <div class="problem"><h3>Numbers without a reference</h3><p>An R² of 0.81 or a coverage of 0.91 means little alone. Targets, the HF-only baseline and sampling-noise bands live in other tables or are missing.</p><div class="where">Regression / Uncertainty Metrics</div></div>
+        <div class="problem"><h3>One 800px image after another</h3><p>Every figure is a full-width PNG in a single column. Outputs can't be compared side by side and axes aren't shared. SHAP and PDP add one image per output, so 6 outputs means 12 large images.</p><div class="where">.plot { max-width: 800px }</div></div>
+        <div class="problem"><h3>Gaps look like failures</h3><p>An optional analysis that didn't run shows a red "plot is unavailable" message. The reader can't tell a bug from a skipped step.</p><div class="where">.errormsg</div></div>
+      </div>
+    </div>
+
+    <div class="pitch-section">
+      <h2>Same content, reorganized around seven questions</h2>
+      <div class="before-after">
+        <div class="outline">
+          <div class="eyebrow">Today</div>
+          <ol>
+            <li>Overview</li><li>Summary (bullets)</li><li>Data Imputation</li><li>Fidelity Levels (table)</li><li>Regression Metrics (table)</li><li>MF vs HF-only (table)</li><li>Model Selection (table)</li><li>Uncertainty Metrics + plots</li><li>Conformal Intervals</li><li>Multi-Objective Regret</li><li>Predictions vs True</li><li>SHAP (one per output)</li><li>PDP (one per output)</li><li>PCA</li><li>Sampling</li><li>Additional Diagnostics</li><li>Appendix</li>
+          </ol>
+        </div>
+        <div class="outline">
+          <div class="eyebrow">Proposed</div>
+          <ol>
+            <li><b>Can I use it?</b> Verdict, scorecard, key findings, next steps</li>
+            <li><b>How accurate is each output?</b> One small-multiple block per output</li>
+            <li><b>Can I trust the error bars?</b> Gaussian and conformal on the same axes</li>
+            <li><b>Did the low-fidelity data help?</b> Baseline dumbbell, level quadrant</li>
+            <li><b>What drives the outputs?</b> SHAP heatmap, PDP grid</li>
+            <li><b>Is the data adequate?</b> Sampling, imputation, test-set size</li>
+            <li><b>How was the model chosen?</b> CV dot plot with fold spread</li>
+            <li>Appendix: raw tables, thresholds, run settings (collapsed)</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class="pitch-section">
+      <h2>Ideas</h2>
+      <div class="ideas">
+        <div class="idea"><div class="letter">1</div><div class="body"><h3>A verdict and a scorecard on page one</h3><p>One sentence that says which outputs are ready, then an outputs × criteria matrix (accuracy, error bars, multi-fidelity gain) with pass / caution / fail chips. Every rule uses values the GUI already computes (<span class="mono">r2</span>, empirical coverage, <span class="mono">rmse_change_pct</span>), and the thresholds are printed in the appendix so the verdict is auditable.</p></div><div class="see"><a href="#front">See mockup A</a></div></div>
+        <div class="idea"><div class="letter">2</div><div class="body"><h3>Findings as claim + evidence cards</h3><p>Turn each <span class="mono">_summary_points</span> string into a card: the claim as the heading, a status, one small chart that proves it, and a link to the full section. The headline of each chart is the finding, not the chart type ("CD's error bars are too narrow", not "Coverage Plot").</p></div><div class="see"><a href="#front">See mockup A</a></div></div>
+        <div class="idea"><div class="letter">3</div><div class="body"><h3>A "what to do next" list</h3><p>Turn diagnoses into actions: report conformal intervals for CD, add high-fidelity runs where predicted std is largest (the <span class="mono">active</span> module can pick them), drop a level that carries no information, consider the simpler HF-only model when MF gives no gain.</p></div><div class="see"><a href="#front">See mockup A</a></div></div>
+        <div class="idea"><div class="letter">4</div><div class="body"><h3>Every number gets a reference</h3><p>Show each metric next to its target, its baseline or its noise band: coverage with the ±1.96 binomial band for the test-set size, RMSE as a % of the HF-only model, CV scores with fold spread so "statistically tied" candidates are visible.</p></div><div class="see"><a href="#output">See mockup B</a></div></div>
+        <div class="idea"><div class="letter">5</div><div class="body"><h3>Per-output blocks of small multiples</h3><p>Parity, residuals, error histogram and ordered intervals for one output in a 2×2 grid with a stat strip on top, switchable by output. Each output keeps one color across every figure in the report.</p></div><div class="see"><a href="#output">See mockup B</a></div></div>
+        <div class="idea"><div class="letter">6</div><div class="body"><h3>Captions that say what to look for, and annotations on the plot</h3><p>Replace the italic boilerplate with a one-line "look for" and draw the computed finding onto the chart itself, for example the residual slope and whether it is significant, or the points that fall outside their interval.</p></div><div class="see"><a href="#output">See mockup B</a></div></div>
+        <div class="idea"><div class="letter">7</div><div class="body"><h3>One chart where there were three</h3><p>Overlay Gaussian and conformal coverage on one calibration chart per output, with the sampling-noise band drawn around the diagonal. Today they are in separate sections with separate captions.</p></div><div class="see"><a href="#uncertainty">See mockup C</a></div></div>
+        <div class="idea"><div class="letter">8</div><div class="body"><h3>Chart forms chosen for the question</h3><p>A dumbbell for MF vs HF-only, an r vs R² quadrant for "is this fidelity level informative or just biased?", a feature × output SHAP heatmap in place of one beeswarm per output, and a PDP grid with shared axes.</p></div><div class="see"><a href="#drivers">See mockup D</a></div></div>
+        <div class="idea"><div class="letter">9</div><div class="body"><h3>Navigation and provenance</h3><p>A sticky section index, a run header (model, data hash, seed, package version, date), and a collapsed appendix that holds the raw tables. Optional steps that didn't run become a grey "skipped: reason" line, not a red error.</p></div><div class="see"><a href="#drivers">See mockup D</a></div></div>
+      </div>
+    </div>
+
+    <div class="pitch-section">
+      <h2>Example pages</h2>
+      <p style="color:var(--fg2)">All four use one synthetic run: a 3-level multi-fidelity surrogate of a wing section (panel method, coarse RANS, fine RANS) predicting CL, CD and Cm. The numbers are made up but consistent across pages, and the verdict and chips are computed from them by the rules described on each page.</p>
+      <div class="mock-links">
+        <a class="mock-link" href="#front"><b>A · Front page</b><span>Verdict, scorecard, finding cards, next steps</span></a>
+        <a class="mock-link" href="#output"><b>B · Per-output deep-dive</b><span>Stat strip with references, 2×2 diagnostics, on-chart annotations</span></a>
+        <a class="mock-link" href="#uncertainty"><b>C · Can I trust the error bars?</b><span>Gaussian vs conformal on shared axes with noise bands</span></a>
+        <a class="mock-link" href="#drivers"><b>D · Fidelity &amp; drivers</b><span>Dumbbell, level quadrant, SHAP heatmap, PDP grid, CV dot plot</span></a>
+      </div>
+    </div>
+
+    <div class="pitch-section">
+      <h2>How to get there, cheapest step first</h2>
+      <ol class="steps">
+        <li><div><b>Template only.</b> Reorder sections in <span class="mono">template.html</span>, add CSS grid so figures sit two or three across, add the sticky index, style the Summary, and swap <span class="mono">.errormsg</span> for a "skipped" line. No Python changes; all three report callers (pages 01 and 02, <span class="mono">grid_search_core.py</span>) pick it up.</div></li>
+        <li><div><b>Verdict and scorecard.</b> Add a <span class="mono">verdict(metrics, uncertainty_metrics, baseline_rows, n_test, thresholds)</span> helper next to <span class="mono">_summary_points</span>, ideally moved into <span class="mono">multioutreg/report/</span> so every caller shares it. Return structured findings (<span class="mono">claim, status, section, plot_key</span>) instead of strings.</div></li>
+        <li><div><b>New figures.</b> Add the dumbbell, level quadrant, calibration overlay, SHAP heatmap and CV dot plot to <span class="mono">multioutreg/figures/</span>, each returning the same <span class="mono">{img_b64, title, caption}</span> dict the template already renders. Emitting SVG instead of PNG keeps text crisp and files smaller.</div></li>
+        <li><div><b>Fixed output colors and shared axes.</b> Pass one output→color map through every plotting call so an output looks the same everywhere.</div></li>
+        <li><div><b>Optional interactivity.</b> Embed the per-output block's data as JSON and draw it client-side (as these mockups do) so readers can switch outputs and hover points without regenerating the report.</div></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============ A: FRONT PAGE ============ -->
+<section class="view" id="v-front" data-view="front" hidden>
+  <div class="mock-banner"><span class="tag">Mockup A</span> Front page of the report: what a reader sees before scrolling. Synthetic example data.</div>
+  <div class="report">
+    <nav class="rail" data-rail="1"></nav>
+    <div class="content">
+      <div class="rhead" data-runhead></div>
+      <div id="verdict"></div>
+      <div class="note"><span>The verdict is computed, not written. Each output gets the worst status of its three criteria; the sentence names the outputs in each group and the single most important caveat. Thresholds sit in the appendix so a reader can check them.</span></div>
+
+      <div class="panel">
+        <div class="panel-head"><div class="qnum">1 · Can I use it?</div><h2>Scorecard</h2><p>Each criterion is judged against a target or a baseline, shown under the value.</p></div>
+        <div class="tablewrap"><table id="scorecard"></table></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>Key findings</h2><p>Each finding comes with the chart that supports it. Follow the link for the full section.</p></div>
+        <div class="findings" id="findings"></div>
+        <div class="note"><span>These replace the Summary bullets. The heading is the finding itself, so a reader who only skims headings still gets the message. Each mini chart is a cropped version of the full figure later in the report, with the same colors and scales.</span></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h2>What to do next</h2></div>
+        <ul class="todo" id="todo"></ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ B: PER OUTPUT ============ -->
+<section class="view" id="v-output" data-view="output" hidden>
+  <div class="mock-banner"><span class="tag">Mockup B</span> Section 2, one block per output with a switcher. Synthetic example data.</div>
+  <div class="report">
+    <nav class="rail" data-rail="2"></nav>
+    <div class="content">
+      <div class="panel">
+        <div class="panel-head"><div class="qnum">2 · How accurate is each output?</div><h2 id="out-headline">Accuracy by output</h2><p id="out-sub"></p></div>
+        <div class="outtabs" id="outtabs" role="group" aria-label="Output"></div>
+        <div class="stats" id="outstats"></div>
+        <div class="note"><span>Each number carries its reference underneath: the target, the HF-only baseline or the range expected from test-set noise. The chip color comes from the same rules as the front-page scorecard.</span></div>
+        <div class="grid2">
+          <div class="fig"><h4>Predicted vs observed</h4><div class="look"><b>Look for:</b> points on the diagonal; bars that cross it.</div><div id="f-parity"></div></div>
+          <div class="fig"><h4>Residuals vs predicted</h4><div class="look" id="resid-look"></div><div id="f-resid"></div></div>
+          <div class="fig"><h4>Residual distribution</h4><div class="look"><b>Look for:</b> centred on zero, no long tail on one side.</div><div id="f-hist"></div></div>
+          <div class="fig"><h4>95% intervals, ordered by observed value</h4><div class="look" id="ord-look"></div><div id="f-ordered"></div><div class="legend" id="ord-legend"></div></div>
+        </div>
+        <div class="note"><span>Four views of the same test set, side by side and in the output's own color. The finding is computed and drawn onto the chart (slope of the residual trend, points outside their interval), so the caption can be one line.</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ C: UNCERTAINTY ============ -->
+<section class="view" id="v-uncertainty" data-view="uncertainty" hidden>
+  <div class="mock-banner"><span class="tag">Mockup C</span> Section 3, Gaussian and conformal intervals compared on one set of axes. Synthetic example data.</div>
+  <div class="report">
+    <nav class="rail" data-rail="3"></nav>
+    <div class="content">
+      <div class="panel">
+        <div class="panel-head"><div class="qnum">3 · Can I trust the error bars?</div><h2 id="unc-headline"></h2><p id="unc-sub"></p></div>
+        <div class="legend" id="calib-legend"></div>
+        <div class="grid3" id="calib"></div>
+        <div class="note"><span>Today the Gaussian coverage plot and the conformal plots are in different sections. Here both methods share one chart per output, and the shaded band shows how far from the diagonal a curve can wander from test-set noise alone with this many test points. Shared axes make the three outputs directly comparable.</span></div>
+      </div>
+      <div class="grid2">
+        <div class="panel">
+          <div class="panel-head"><h3>Coverage at 95%</h3><p>Share of test points inside the 95% interval. The band is the range expected from noise for n = <span data-ntest></span>.</p></div>
+          <div id="cov95"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>What the coverage costs</h3><p>Mean 95% interval width as a % of each output's test-set range. Wider is safer but less useful.</p></div>
+          <div id="width"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ D: DRIVERS ============ -->
+<section class="view" id="v-drivers" data-view="drivers" hidden>
+  <div class="mock-banner"><span class="tag">Mockup D</span> Sections 4, 5 and 7, with section 6 shown as skipped. Synthetic example data.</div>
+  <div class="report">
+    <nav class="rail" data-rail="4"></nav>
+    <div class="content">
+      <div class="panel" id="sec-4">
+        <div class="panel-head"><div class="qnum">4 · Did the low-fidelity data help?</div><h2 id="mf-headline"></h2><p>Test RMSE of the multi-fidelity model, indexed to the same base model trained on high-fidelity data only (= 100%). Outputs have different units, so indexing puts them on one axis.</p></div>
+        <div id="dumbbell"></div>
+        <div class="legend"><span><i class="lg-dot" style="background:var(--muted)"></i>HF-only baseline</span><span><i class="lg-dot" style="background:var(--fg)"></i>Multi-fidelity model</span><span><i class="lg-band"></i>within ±5%: no clear gain</span></div>
+        <div class="grid2" style="margin-top:8px">
+          <div class="fig"><h4>Which lower levels carry information?</h4><div class="look"><b>Read:</b> correlation r of a model trained on that level alone with the high-fidelity truth (x) against its R² (y). High r with low R² means biased but informative, which multi-fidelity can correct.</div><div id="quadrant"></div><div class="legend" id="quad-legend"></div></div>
+          <div class="fig"><h4>Data per level</h4><div class="look"><b>Read:</b> how many runs each level contributed, and what one run costs.</div><div class="tablewrap"><table id="levels"></table></div></div>
+        </div>
+        <div class="note"><span>The Fidelity Levels table and the MF vs HF-only table become two charts that answer "did it help?" and "why?". The quadrant explains the dumbbell: f0 helps CL because it tracks CL closely despite its bias, and does nothing for CD because it doesn't track CD at all.</span></div>
+      </div>
+
+      <div class="panel" id="sec-5">
+        <div class="panel-head"><div class="qnum">5 · What drives the outputs?</div><h2>Angle of attack dominates CL and Cm; Mach number dominates CD</h2><p>Share of mean |SHAP| per output (each column sums to 100%). One heatmap replaces one SHAP image per output.</p></div>
+        <div class="tablewrap"><div class="heat" id="heat"></div></div>
+        <h3 style="margin-top:6px">How the top three inputs move each output</h3>
+        <p style="color:var(--fg2);font-size:0.9rem">Partial dependence with the 10th–90th percentile of individual curves. Columns share an x axis, rows share a y axis.</p>
+        <div id="pdp"></div>
+        <div class="note"><span>The heatmap shows the ranking for every output in one glance and scales to many outputs. The PDP grid lines up the same input across outputs, which makes the drag rise near Mach 0.78 stand out against the flat CL and Cm curves.</span></div>
+      </div>
+
+      <div class="panel" id="sec-6">
+        <div class="panel-head"><div class="qnum">6 · Is the data adequate?</div><h3>Sampling, imputation and test size</h3></div>
+        <div class="skipped"><span class="chip skip">Skipped</span> Pair plot not requested for this run (enable "Fast" pair plot in report options). No missing values were found, so no imputation ran.</div>
+        <div class="skipped"><span class="chip warn">Small test set</span> 40 high-fidelity test points: coverage estimates are uncertain by about ±7 percentage points.</div>
+        <div class="note"><span>Optional steps that didn't run say why, in grey, instead of a red "plot unavailable" error.</span></div>
+      </div>
+
+      <div class="panel" id="sec-7">
+        <div class="panel-head"><div class="qnum">7 · How was the model chosen?</div><h2 id="cv-headline"></h2><p>5-fold CV RMSE on the high-fidelity training rows, averaged over outputs after scaling each by its std. Whiskers span ±1 std across folds. The test set was not used for selection.</p></div>
+        <div id="cvplot"></div>
+        <div class="note"><span>A ranked table hides that the top candidates overlap. Fold spread makes it visible, and the "tied" chips tell a reader that choosing the simpler of the tied models would be reasonable.</span></div>
+      </div>
+
+      <details class="appendix panel">
+        <summary>Appendix: thresholds, raw tables, run settings</summary>
+        <div class="tablewrap"><table id="thresholds"></table></div>
+      </details>
+    </div>
+  </div>
+</section>
+
+</main>
+<div id="tip" hidden></div>
+
+<script id="data-script">
+/* ---------- synthetic but internally consistent example run ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rand = mulberry32(808);
+function randn(){let u=0,v=0;while(u===0)u=rand();while(v===0)v=rand();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+function probit(p){ // Acklam
+  const a=[-39.6968302866538,220.946098424521,-275.928510446969,138.357751867269,-30.6647980661472,2.50662827745924],
+        b=[-54.4760987982241,161.585836858041,-155.698979859887,66.8013118877197,-13.2806815528857],
+        c=[-0.00778489400243029,-0.322396458041136,-2.40075827716184,-2.54973253934373,4.37466414146497,2.93816398269878],
+        d=[0.00778469570904146,0.32246712907004,2.445134137143,3.75440866190742];
+  const pl=0.02425; let q,r;
+  if(p<pl){q=Math.sqrt(-2*Math.log(p));return(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+  if(p>1-pl){q=Math.sqrt(-2*Math.log(1-p));return-(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5])/((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);}
+  q=p-0.5;r=q*q;return(((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q/(((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
+}
+const mean=a=>a.reduce((s,v)=>s+v,0)/a.length;
+const quantile=(a,p)=>{const s=[...a].sort((x,y)=>x-y);const i=Math.min(s.length-1,Math.max(0,Math.ceil(p*(s.length+1))-1));return s[i];};
+
+const N_TEST = 40, N_CAL = 40;
+const RUN = {
+  model: "AR1 co-kriging (GP)", dataset: "wing_section_mf.csv", hash: "a91f3c2", seed: 808,
+  version: "multioutreg 0.9.2", date: "2026-10-26",
+  levels: [
+    {key:"f0", name:"Panel method", n:400, cost:"1 s"},
+    {key:"f1", name:"RANS, coarse mesh", n:120, cost:"4 min"},
+    {key:"f2", name:"RANS, fine mesh", n:48, nTest:N_TEST, cost:"45 min"},
+  ],
+  inputs: ["alpha","mach","sweep","t/c","AR"],
+};
+const INPUT_LABEL = {alpha:"Angle of attack α (deg)", mach:"Mach number", sweep:"Sweep Λ (deg)", "t/c":"Thickness t/c", AR:"Aspect ratio"};
+const SPEC = [
+  {key:"CL", label:"Lift coefficient", lo:0.15, hi:1.25, r2:0.97, calib:1.0, trend:0,    mfChange:-0.38},
+  {key:"CD", label:"Drag coefficient", lo:0.018, hi:0.047, r2:0.85, calib:0.58, trend:0.14, mfChange:-0.07},
+  {key:"Cm", label:"Pitching moment", lo:-0.13, hi:0.02, r2:0.94, calib:1.35, trend:0,   mfChange:0.03},
+];
+const OUTPUTS = SPEC.map((s, idx) => {
+  const y = Array.from({length:N_TEST}, () => s.lo + (s.hi-s.lo)*Math.pow(rand(), idx===1?1.4:1));
+  const my = mean(y), vy = mean(y.map(v => (v-my)**2));
+  const sig = Math.sqrt((1-s.r2)*vy);
+  const pred = [], std = [];
+  y.forEach(v => {
+    const h = 0.7 + 0.6*rand();
+    const e = sig*h*randn() - s.trend*(v-my);
+    pred.push(v + e);
+    std.push(sig*h*s.calib);
+  });
+  const cal = Array.from({length:N_CAL}, () => Math.abs(sig*(0.7+0.6*rand())*randn()) + Math.abs(s.trend*(s.hi-s.lo)*0.25*(rand()-0.5)));
+  const res = y.map((v,i) => v - pred[i]);
+  const rmse = Math.sqrt(mean(res.map(r => r*r)));
+  const mae = mean(res.map(Math.abs));
+  const r2 = 1 - mean(res.map(r=>r*r))/vy;
+  const levels = [];
+  for (let p=0.05; p<0.991; p+=0.05) levels.push(+p.toFixed(2));
+  if (!levels.includes(0.95)) levels.push(0.95);
+  const gauss = levels.map(p => { const z = probit((1+p)/2); return mean(res.map((r,i) => Math.abs(r) <= z*std[i] ? 1 : 0)); });
+  const conf = levels.map(p => { const q = quantile(cal, p); return mean(res.map(r => Math.abs(r) <= q ? 1 : 0)); });
+  const i95 = levels.indexOf(0.95);
+  const z95 = probit(0.975), q95 = quantile(cal, 0.95);
+  const range = Math.max(...y) - Math.min(...y);
+  return {
+    ...s, color: `var(--s${idx+1})`, idx, y, pred, std, res, rmse, mae, r2,
+    levels, gauss, conf, cov95: gauss[i95], conf95: conf[i95],
+    widthG: 100*mean(std.map(sd => 2*z95*sd))/range, widthC: 100*2*q95/range,
+    hfRmse: rmse/(1+s.mfChange), mfChange: s.mfChange,
+  };
+});
+const LEVEL_FIT = { // r and R² of a model trained on that level alone vs HF test truth
+  f0: {CL:[0.95,0.58], CD:[0.38,-0.31], Cm:[0.87,0.49]},
+  f1: {CL:[0.98,0.91], CD:[0.86,0.66], Cm:[0.93,0.82]},
+};
+const SHAP = { // share of mean |SHAP|
+  CL: {alpha:0.58, mach:0.14, sweep:0.17, "t/c":0.06, AR:0.05},
+  CD: {alpha:0.27, mach:0.46, sweep:0.09, "t/c":0.12, AR:0.06},
+  Cm: {alpha:0.44, mach:0.12, sweep:0.29, "t/c":0.08, AR:0.07},
+};
+const PDP_X = {alpha:[-2,8], mach:[0.5,0.85], sweep:[0,35]};
+const PDP_F = {
+  CL: {alpha:x=>0.18+0.105*x, mach:x=>0.62+0.5*(x-0.5)-1.6*Math.max(0,x-0.78)**2*10, sweep:x=>0.78-0.0085*x},
+  CD: {alpha:x=>0.024+0.00016*(x-1)**2, mach:x=>0.025+0.003*(x-0.5)+0.09*Math.max(0,x-0.76)**2*10, sweep:x=>0.031-0.00012*x},
+  Cm: {alpha:x=>-0.02-0.0085*x, mach:x=>-0.05-0.03*(x-0.5), sweep:x=>-0.025-0.0016*x},
+};
+const PDP_SPREAD = {CL:0.06, CD:0.0025, Cm:0.012};
+const CV = [
+  {name:"AR1 co-kriging (GP)", m:0.182, sd:0.021, kind:"Multi-fidelity"},
+  {name:"Delta GP (f1 → f2)", m:0.191, sd:0.025, kind:"Multi-fidelity"},
+  {name:"Stacked GBM on residuals", m:0.197, sd:0.030, kind:"Multi-fidelity"},
+  {name:"HF-only GP", m:0.251, sd:0.028, kind:"HF-only baseline"},
+  {name:"Multi-fidelity NN", m:0.262, sd:0.036, kind:"Multi-fidelity"},
+  {name:"Independent random forest", m:0.284, sd:0.035, kind:"Independent"},
+  {name:"Nonlinear AR (NARGP)", m:null, err:"Cholesky failed: covariance not positive definite"},
+];
+
+/* ---------- verdict rules ---------- */
+const TH = { r2Good:0.90, r2Warn:0.80, mfGain:-0.05, mfHurt:0.05, covZ:1.96 };
+const covBand = (p, n) => TH.covZ*Math.sqrt(p*(1-p)/n);
+function judge(o){
+  const acc = o.r2 >= TH.r2Good ? "good" : o.r2 >= TH.r2Warn ? "warn" : "crit";
+  const b = covBand(0.95, N_TEST);
+  const covStat = c => c >= 0.95-b && c <= 1 ? "good" : c >= 0.95-2*b ? "warn" : "crit";
+  const gStat = covStat(o.cov95), cStat = covStat(o.conf95);
+  const bars = gStat === "good" ? "good" : cStat === "good" ? "warn" : gStat;
+  const mf = o.mfChange <= TH.mfGain ? "good" : o.mfChange >= TH.mfHurt ? "warn" : "neutral";
+  const order = {good:0, neutral:0, warn:1, crit:2};
+  const worst = [acc, bars, mf].reduce((w,s) => order[s] > order[w] ? s : w, "good");
+  return {acc, gStat, cStat, bars, mf, overall: worst};
+}
+OUTPUTS.forEach(o => o.j = judge(o));
+</script>
+
+<script>
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+const NS = "http://www.w3.org/2000/svg";
+function E(tag, attrs, parent, text){ const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (text != null) e.textContent = text; if (parent) parent.appendChild(e); return e; }
+const lin = (d0,d1,r0,r1) => v => r0 + (v-d0)/(d1-d0)*(r1-r0);
+function ticks(a, b, n=5){ const st0=(b-a)/n, p=Math.pow(10,Math.floor(Math.log10(st0))), m=st0/p; const st=(m<1.5?1:m<3?2:m<7?5:10)*p; const t=[]; for(let v=Math.ceil(a/st-1e-9)*st; v<=b+st*1e-6; v+=st) t.push(+v.toPrecision(10)); return t; }
+function fmt(v, d){ if (v == null) return "—"; const a=Math.abs(v); if (d!=null) return v.toFixed(d); if (a===0) return "0"; if (a>=100) return v.toFixed(0); if (a>=1) return v.toFixed(2); if (a>=0.1) return v.toFixed(2); if (a>=0.01) return v.toFixed(3); return v.toFixed(4); }
+const pct = (v, d=0) => (100*v).toFixed(d) + "%";
+const sgnPct = v => (v>0?"+":v<0?"−":"") + Math.abs(100*v).toFixed(0) + "%";
+const pad = (lo, hi, f=0.06) => { const r=hi-lo||1; return [lo-r*f, hi+r*f]; };
+function barPath(x, y, w, h, r=3){ if (h <= 0) return ""; r=Math.min(r, w/2, h); return `M${x},${y+h}V${y+r}Q${x},${y} ${x+r},${y}H${x+w-r}Q${x+w},${y} ${x+w},${y+r}V${y+h}Z`; }
+const STATUS_TEXT = {good:"Pass", warn:"Caution", crit:"Fail", neutral:"No gain"};
+const chip = (s, txt) => `<span class="chip ${s}">${txt || STATUS_TEXT[s]}</span>`;
+const sw = o => `<i class="swatch" style="background:${o.color}"></i>`;
+
+function frame(host, o){
+  const W=o.w||440, H=o.h||300, m=Object.assign({t:14,r:16,b:42,l:56}, o.m||{});
+  const svg = E("svg", {viewBox:`0 0 ${W} ${H}`, role:"img", "aria-label":o.label||""}, null);
+  host.appendChild(svg);
+  const X = lin(o.x[0], o.x[1], m.l, W-m.r), Y = lin(o.y[0], o.y[1], H-m.b, m.t);
+  const g = E("g", {}, svg);
+  const yt = o.yticks || ticks(o.y[0], o.y[1], o.ny||5), xt = o.xticks || ticks(o.x[0], o.x[1], o.nx||5);
+  if (!o.noYgrid) yt.forEach(v => { E("line", {x1:m.l, x2:W-m.r, y1:Y(v), y2:Y(v), stroke:"var(--grid)", "stroke-width":1}, g); E("text", {x:m.l-8, y:Y(v)+4, "text-anchor":"end", "font-size":11, fill:"var(--muted)"}, g, (o.yfmt||fmt)(v)); });
+  if (!o.noX) { xt.forEach(v => E("text", {x:X(v), y:H-m.b+16, "text-anchor":"middle", "font-size":11, fill:"var(--muted)"}, g, (o.xfmt||fmt)(v))); E("line", {x1:m.l, x2:W-m.r, y1:H-m.b, y2:H-m.b, stroke:"var(--axis)", "stroke-width":1}, g); }
+  if (o.xlab) E("text", {x:(m.l+W-m.r)/2, y:H-6, "text-anchor":"middle", "font-size":11.5, fill:"var(--fg2)"}, g, o.xlab);
+  if (o.ylab) E("text", {x:12, y:(m.t+H-m.b)/2, "text-anchor":"middle", "font-size":11.5, fill:"var(--fg2)", transform:`rotate(-90 12 ${(m.t+H-m.b)/2})`}, g, o.ylab);
+  return {svg, g:E("g", {}, svg), X, Y, W, H, m};
+}
+function dot(g, x, y, r, fill, tip, extra){ return E("circle", Object.assign({cx:x, cy:y, r, fill, stroke:"var(--surface)", "stroke-width":1.5, "data-tip":tip||""}, extra||{}), g); }
+
+/* ---------- shared pieces ---------- */
+const SECTIONS = [["1","Can I use it?","front"],["2","Accuracy per output","output"],["3","Error bars","uncertainty"],["4","Low-fidelity data","drivers","sec-4"],["5","What drives outputs","drivers","sec-5"],["6","Data adequacy","drivers","sec-6"],["7","Model selection","drivers","sec-7"]];
+document.querySelectorAll("[data-rail]").forEach(rail => {
+  const on = rail.dataset.rail;
+  rail.innerHTML = `<div class="eyebrow">Report sections</div>` + SECTIONS.map(([n,t,v,id]) => `<a href="#${v}" ${id?`data-scroll="${id}"`:""} class="${n===on?"on":""}"><i>${n}</i>${t}</a>`).join("") +
+    `<div class="meta"><span>${RUN.model}</span><span>${RUN.dataset} · ${RUN.hash}</span><span>seed ${RUN.seed} · ${RUN.version}</span><span>${RUN.date}</span></div>`;
+});
+document.addEventListener("click", e => { const a = e.target.closest("a[data-scroll]"); if (!a) return; setTimeout(() => { const t = document.getElementById(a.dataset.scroll); if (t) t.scrollIntoView({behavior:"smooth", block:"start"}); }, 30); });
+document.querySelectorAll("[data-runhead]").forEach(h => {
+  h.innerHTML = `<div class="eyebrow">Multi-fidelity surrogate report</div><h1>Wing section aerodynamics: CL, CD, Cm</h1>
+  <div class="runmeta"><span><b>Model</b> ${RUN.model}</span><span><b>Levels</b> ${RUN.levels.map(l=>`${l.key} ${l.name}`).join(" → ")}</span><span><b>HF data</b> ${RUN.levels[2].n} train / ${N_TEST} test</span><span><b>Run</b> ${RUN.date} · ${RUN.hash}</span></div>`;
+});
+document.querySelectorAll("[data-ntest]").forEach(s => s.textContent = N_TEST);
+
+/* ---------- mini / full charts ---------- */
+function parity(host, o, opt={}){
+  const lo = Math.min(...o.y, ...o.pred), hi = Math.max(...o.y, ...o.pred);
+  const d = pad(lo, hi);
+  const f = frame(host, {x:d, y:d, w:opt.w||440, h:opt.h||320, xlab:`Observed ${o.key}`, ylab:`Predicted ${o.key}`, label:`Predicted vs observed ${o.key}`});
+  E("line", {x1:f.X(d[0]), y1:f.Y(d[0]), x2:f.X(d[1]), y2:f.Y(d[1]), stroke:"var(--axis)", "stroke-width":1.5, "stroke-dasharray":"4 4"}, f.g);
+  const z = 1.96;
+  o.y.forEach((v,i) => E("line", {x1:f.X(v), x2:f.X(v), y1:f.Y(o.pred[i]-z*o.std[i]), y2:f.Y(o.pred[i]+z*o.std[i]), stroke:o.color, "stroke-width":2, "stroke-opacity":0.28, "stroke-linecap":"round"}, f.g));
+  o.y.forEach((v,i) => dot(f.g, f.X(v), f.Y(o.pred[i]), 4, o.color, `Observed ${fmt(v)}\nPredicted ${fmt(o.pred[i])} ± ${fmt(z*o.std[i])}`));
+  E("text", {x:f.m.l+8, y:f.m.t+14, "font-size":12, fill:"var(--fg)", "font-weight":600}, f.g, `R² ${o.r2.toFixed(3)}`);
+}
+function residuals(host, o){
+  const xs = o.pred, ys = o.res;
+  const mx = mean(xs), my = mean(ys);
+  const sxx = mean(xs.map(x => (x-mx)**2)), sxy = mean(xs.map((x,i) => (x-mx)*(ys[i]-my)));
+  const b = sxy/sxx, a = my - b*mx;
+  const resid = ys.map((y,i) => y - (a + b*xs[i]));
+  const se = Math.sqrt(mean(resid.map(r=>r*r))*xs.length/(xs.length-2) / (sxx*xs.length));
+  const tstat = b/se, sig = Math.abs(tstat) > 2.02;
+  const ym = Math.max(...ys.map(Math.abs))*1.15;
+  const f = frame(host, {x:pad(Math.min(...xs), Math.max(...xs)), y:[-ym, ym], xlab:`Predicted ${o.key}`, ylab:"Observed − predicted", label:`Residuals ${o.key}`});
+  E("line", {x1:f.m.l, x2:f.W-f.m.r, y1:f.Y(0), y2:f.Y(0), stroke:"var(--axis)", "stroke-width":1.5}, f.g);
+  xs.forEach((x,i) => dot(f.g, f.X(x), f.Y(ys[i]), 4, o.color, `Predicted ${fmt(x)}\nResidual ${fmt(ys[i])}`));
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  E("line", {x1:f.X(x0), x2:f.X(x1), y1:f.Y(a+b*x0), y2:f.Y(a+b*x1), stroke:sig?"var(--crit)":"var(--fg2)", "stroke-width":2, "stroke-dasharray":sig?"":"5 4"}, f.g);
+  const lab = sig ? `Trend: slope ${b.toFixed(2)} (t = ${tstat.toFixed(1)}), systematic bias` : `No significant trend (slope ${b.toFixed(2)}, t = ${tstat.toFixed(1)})`;
+  E("text", {x:f.W-f.m.r-4, y:f.m.t+14, "text-anchor":"end", "font-size":11.5, fill:"var(--fg)", "font-weight":600}, f.g, lab);
+  return {sig, b};
+}
+function histogram(host, o){
+  const ym = Math.max(...o.res.map(Math.abs))*1.05, nb = 12, w = 2*ym/nb;
+  const counts = Array(nb).fill(0); o.res.forEach(r => counts[Math.min(nb-1, Math.floor((r+ym)/w))]++);
+  const f = frame(host, {x:[-ym, ym], y:[0, Math.max(...counts)+1], xlab:`Residual ${o.key}`, ylab:"Test points", ny:4, label:`Residual histogram ${o.key}`});
+  counts.forEach((c,i) => { const x0 = f.X(-ym+i*w)+1, x1 = f.X(-ym+(i+1)*w)-1; E("path", {d:barPath(x0, f.Y(c), x1-x0, f.Y(0)-f.Y(c)), fill:o.color, "data-tip":`${c} points between ${fmt(-ym+i*w)} and ${fmt(-ym+(i+1)*w)}`}, f.g); });
+  E("line", {x1:f.X(0), x2:f.X(0), y1:f.m.t, y2:f.H-f.m.b, stroke:"var(--fg2)", "stroke-width":1, "stroke-dasharray":"3 3"}, f.g);
+  E("text", {x:f.X(0)+5, y:f.m.t+10, "font-size":11, fill:"var(--fg2)"}, f.g, "0");
+}
+function ordered(host, o){
+  const idx = o.y.map((_,i)=>i).sort((a,b) => o.y[a]-o.y[b]);
+  const z = 1.96, lo = Math.min(...idx.map(i => Math.min(o.y[i], o.pred[i]-z*o.std[i]))), hi = Math.max(...idx.map(i => Math.max(o.y[i], o.pred[i]+z*o.std[i])));
+  const f = frame(host, {x:[-1, idx.length], y:pad(lo, hi), xlab:"Test points, sorted by observed value", ylab:o.key, xticks:[], label:`Ordered intervals ${o.key}`});
+  let out = 0;
+  idx.forEach((i,k) => {
+    const inside = Math.abs(o.res[i]) <= z*o.std[i]; if (!inside) out++;
+    E("line", {x1:f.X(k), x2:f.X(k), y1:f.Y(o.pred[i]-z*o.std[i]), y2:f.Y(o.pred[i]+z*o.std[i]), stroke:o.color, "stroke-width":3, "stroke-opacity":0.35, "stroke-linecap":"round"}, f.g);
+    dot(f.g, f.X(k), f.Y(o.y[i]), inside?3.5:4.5, inside?"var(--fg2)":"var(--crit)", `Observed ${fmt(o.y[i])}\n95% interval ${fmt(o.pred[i]-z*o.std[i])} to ${fmt(o.pred[i]+z*o.std[i])}${inside?"":"\nOutside interval"}`);
+  });
+  E("text", {x:f.m.l+8, y:f.m.t+14, "font-size":11.5, fill:"var(--fg)", "font-weight":600}, f.g, `${out} of ${idx.length} outside (expected ≈ ${Math.round(0.05*idx.length)})`);
+  return out;
+}
+function calibChart(host, o, opt={}){
+  const f = frame(host, {x:[0,1], y:[0,1], w:opt.w||320, h:opt.h||300, m:{l:46, b:42}, xlab:"Nominal coverage", ylab:opt.noYlab?"":"Observed coverage", xfmt:v=>pct(v), yfmt:v=>pct(v), nx:4, ny:4, label:`Calibration ${o.key}`});
+  const ps = Array.from({length:41}, (_,i) => i/40);
+  const up = ps.map(p => [f.X(p), f.Y(Math.min(1, p+covBand(p, N_TEST)))]), dn = ps.map(p => [f.X(p), f.Y(Math.max(0, p-covBand(p, N_TEST)))]).reverse();
+  E("path", {d:"M"+up.concat(dn).map(q=>q.join(",")).join("L")+"Z", fill:"var(--band)"}, f.g);
+  E("line", {x1:f.X(0), y1:f.Y(0), x2:f.X(1), y2:f.Y(1), stroke:"var(--axis)", "stroke-width":1.5}, f.g);
+  const pathOf = arr => "M" + o.levels.map((p,i) => `${f.X(p)},${f.Y(arr[i])}`).join("L");
+  E("path", {d:pathOf(o.gauss), fill:"none", stroke:"var(--fg2)", "stroke-width":2, "stroke-dasharray":"5 4"}, f.g);
+  E("path", {d:pathOf(o.conf), fill:"none", stroke:o.color, "stroke-width":2}, f.g);
+  o.levels.forEach((p,i) => {
+    E("circle", {cx:f.X(p), cy:f.Y(o.gauss[i]), r:9, fill:"transparent", "data-tip":`${o.key} at ${pct(p)} nominal\nGaussian ${pct(o.gauss[i])}\nConformal ${pct(o.conf[i])}`}, f.g);
+  });
+  const i95 = o.levels.indexOf(0.95);
+  dot(f.g, f.X(0.95), f.Y(o.gauss[i95]), 4.5, "var(--fg2)", `Gaussian 95%: ${pct(o.gauss[i95])}`);
+  dot(f.g, f.X(0.95), f.Y(o.conf[i95]), 4.5, o.color, `Conformal 95%: ${pct(o.conf[i95])}`);
+  E("text", {x:f.m.l+8, y:f.m.t+14, "font-size":13, "font-weight":600, fill:"var(--fg)"}, f.g, o.key);
+  if (opt.annotate !== false) {
+    const gy = f.Y(o.gauss[i95]);
+    E("text", {x:f.X(0.95)-8, y:gy + (o.gauss[i95] < o.conf[i95] ? 16 : -8), "text-anchor":"end", "font-size":11, fill:"var(--fg2)"}, f.g, `Gaussian ${pct(o.gauss[i95])}`);
+  }
+}
+function dumbbell(host, opt={}){
+  const vals = OUTPUTS.map(o => 1+o.mfChange);
+  const x = [Math.min(0.5, Math.min(...vals)-0.05), Math.max(1.15, Math.max(...vals)+0.05)];
+  const rowH = opt.rowH || 46, H = 36 + rowH*OUTPUTS.length;
+  const f = frame(host, {x, y:[0, OUTPUTS.length], w:opt.w||640, h:H, m:{l:opt.l||62, t:8, b:34, r:24}, noYgrid:true, xfmt:v=>pct(v), xlab:"Test RMSE, % of HF-only model", nx:6, label:"Multi-fidelity vs HF-only RMSE"});
+  E("rect", {x:f.X(1+TH.mfGain), y:f.m.t, width:f.X(1+TH.mfHurt)-f.X(1+TH.mfGain), height:f.H-f.m.b-f.m.t, fill:"var(--band)"}, f.g);
+  E("line", {x1:f.X(1), x2:f.X(1), y1:f.m.t, y2:f.H-f.m.b, stroke:"var(--axis)", "stroke-width":1}, f.g);
+  OUTPUTS.forEach((o,i) => {
+    const cy = f.m.t + rowH*(i+0.5), v = 1+o.mfChange;
+    E("text", {x:f.m.l-12, y:cy+4, "text-anchor":"end", "font-size":12.5, "font-weight":600, fill:"var(--fg)"}, f.g, o.key);
+    E("line", {x1:f.X(1), x2:f.X(v), y1:cy, y2:cy, stroke:o.color, "stroke-width":3, "stroke-linecap":"round", "stroke-opacity":0.6}, f.g);
+    dot(f.g, f.X(1), cy, 5, "var(--muted)", `${o.key} HF-only RMSE ${fmt(o.hfRmse)}`);
+    dot(f.g, f.X(v), cy, 6, o.color, `${o.key} MF RMSE ${fmt(o.rmse)} (${sgnPct(o.mfChange)} vs HF-only)`);
+    const right = v > 1;
+    E("text", {x:f.X(v)+(right?12:-12), y:cy+4, "text-anchor":right?"start":"end", "font-size":12, "font-weight":600, fill:"var(--fg)"}, f.g, sgnPct(o.mfChange));
+  });
+}
+function quadrant(host, opt={}){
+  const f = frame(host, {x:[0,1], y:[-0.5,1], w:opt.w||440, h:opt.h||320, xlab:"Correlation r with HF truth", ylab:"R² against HF truth", nx:5, ny:6, label:"Fidelity level informativeness"});
+  E("rect", {x:f.X(0), y:f.Y(1), width:f.X(0.5)-f.X(0), height:f.Y(-0.5)-f.Y(1), fill:"var(--band)"}, f.g);
+  E("line", {x1:f.X(0.5), x2:f.X(0.5), y1:f.Y(1), y2:f.Y(-0.5), stroke:"var(--axis)", "stroke-dasharray":"4 4"}, f.g);
+  E("line", {x1:f.X(0.5), x2:f.X(1), y1:f.Y(0.8), y2:f.Y(0.8), stroke:"var(--axis)", "stroke-dasharray":"4 4"}, f.g);
+  [["Little usable information", 0.25, -0.38],["Informative, unbiased", 0.75, 0.93],["Informative but biased:\nMF can correct", 0.75, 0.25]].forEach(([t,x,y]) => t.split("\n").forEach((ln,k) => E("text", {x:f.X(x), y:f.Y(y)+k*13, "text-anchor":"middle", "font-size":10.5, fill:"var(--muted)", "font-weight":600}, f.g, ln)));
+  Object.entries(LEVEL_FIT).forEach(([lv, byOut]) => OUTPUTS.forEach(o => {
+    const [r, r2] = byOut[o.key], cx = f.X(r), cy = f.Y(r2);
+    const tip = `${lv} (${RUN.levels.find(l=>l.key===lv).name}) for ${o.key}\nr = ${r.toFixed(2)}, R² = ${r2.toFixed(2)}`;
+    if (lv === "f0") dot(f.g, cx, cy, 5.5, o.color, tip);
+    else E("rect", {x:cx-5, y:cy-5, width:10, height:10, rx:2, fill:o.color, stroke:"var(--surface)", "stroke-width":1.5, "data-tip":tip}, f.g);
+    E("text", {x:cx+(r>0.9?-9:9), y:cy-8, "text-anchor":r>0.9?"end":"start", "font-size":10.5, fill:"var(--fg2)"}, f.g, `${lv}·${o.key}`);
+  }));
+}
+
+/* ---------- view A ---------- */
+(function front(){
+  const groups = {good:[], warn:[], crit:[]};
+  OUTPUTS.forEach(o => groups[o.j.overall === "neutral" ? "good" : o.j.overall].push(o));
+  const names = a => a.map(o=>o.key).join(" and ");
+  const careO = groups.warn[0] || groups.crit[0];
+  let head = groups.good.length ? `Ready for ${names(groups.good)}` : "Not ready";
+  if (groups.warn.length) head += `. Use ${names(groups.warn)} with care.`;
+  if (groups.crit.length) head += ` Do not use ${names(groups.crit)} yet.`;
+  if (!groups.warn.length && !groups.crit.length) head += ".";
+  let why = "";
+  if (careO) {
+    const reasons = [];
+    if (careO.j.acc !== "good") reasons.push(`its test R² is ${careO.r2.toFixed(2)} (target ≥ ${TH.r2Good})`);
+    if (careO.j.gStat !== "good") reasons.push(`its Gaussian 95% error bars cover only ${pct(careO.cov95)} of test points, while conformal intervals cover ${pct(careO.conf95)}`);
+    why = `${careO.key} is borderline: ${reasons.join(", and ")}. Report conformal intervals for ${careO.key}, and add high-fidelity runs to improve it.`;
+  }
+  const allMf = OUTPUTS.filter(o => o.j.mf === "good");
+  $("#verdict").outerHTML = `<div class="verdict ${careO?"":"good"}"><div class="vicon" aria-hidden="true">${careO?"!":"✓"}</div><div><div class="eyebrow">Verdict</div><h2>${head}</h2><p>${why}</p>
+    <div class="chips">${OUTPUTS.map(o => `<span>${chip(o.j.overall==="neutral"?"good":o.j.overall, `${o.key}: ${o.j.overall==="crit"?"Not ready":o.j.overall==="warn"?"Use with care":"Ready"}`)}</span>`).join("")}</div></div></div>`;
+
+  const b = covBand(0.95, N_TEST);
+  $("#scorecard").innerHTML = `<thead><tr><th>Output</th><th>Accuracy</th><th>Error bars (95%)</th><th>Low-fidelity data</th><th>Overall</th></tr></thead><tbody>` +
+    OUTPUTS.map(o => `<tr>
+      <td>${sw(o)}<b>${o.key}</b><span class="sub">${o.label}</span></td>
+      <td>${chip(o.j.acc)} <span class="val">R² ${o.r2.toFixed(3)}</span><span class="sub">target ≥ ${TH.r2Good.toFixed(2)}</span></td>
+      <td>${chip(o.j.gStat, "Gaussian")} <span class="val">${pct(o.cov95)}</span><br><span style="display:inline-block;margin-top:6px">${chip(o.j.cStat, "Conformal")} <span class="val">${pct(o.conf95)}</span></span><span class="sub">expected ${pct(0.95-b)}–100% at n = ${N_TEST}</span></td>
+      <td>${chip(o.j.mf, o.j.mf==="good"?"Helps":o.j.mf==="warn"?"Hurts":"No gain")} <span class="val">${sgnPct(o.mfChange)} RMSE</span><span class="sub">vs HF-only model</span></td>
+      <td>${chip(o.j.overall==="neutral"?"good":o.j.overall, o.j.overall==="crit"?"Not ready":o.j.overall==="warn"?"Use with care":"Ready")}</td></tr>`).join("") + `</tbody>`;
+
+  const best = OUTPUTS.reduce((a,o) => o.mfChange < a.mfChange ? o : a);
+  const cd = OUTPUTS.find(o => o.key==="CD");
+  const tied = CV.filter(c => c.m != null && c.m - c.sd <= CV[0].m + CV[0].sd);
+  const cards = [
+    {st:"good", h:`Low-fidelity data cut ${best.key} error by ${Math.round(-100*best.mfChange)}%`, p:`Gain for ${allMf.map(o=>o.key).join(" and ")}; ${OUTPUTS.filter(o=>o.j.mf!=="good").map(o=>o.key).join(", ")} is within ±5% of the HF-only model.`, go:"#drivers", gotxt:"Section 4: low-fidelity data", draw:h => dumbbell(h, {w:460, rowH:34, l:44})},
+    {st:cd.j.gStat, h:`${cd.key}'s Gaussian error bars are too narrow`, p:`They cover ${pct(cd.cov95)} of test points at 95%. Conformal intervals cover ${pct(cd.conf95)}, inside the expected band.`, go:"#uncertainty", gotxt:"Section 3: error bars", draw:h => calibChart(h, cd, {w:460, h:240})},
+    {st:"warn", h:"Panel-method data (f0) says nothing about drag", p:`A model trained on f0 alone correlates r = ${LEVEL_FIT.f0.CD[0]} with high-fidelity CD. f0 is still useful for CL and Cm.`, go:"#drivers", gotxt:"Section 4: fidelity levels", draw:h => quadrant(h, {w:460, h:260})},
+    {st:"neutral", h:`The top ${tied.length} candidate models are statistically tied`, p:`Their CV scores overlap within one fold std. ${CV[0].name} was selected; ${tied[1].name} is a reasonable simpler choice.`, go:"#drivers", gotxt:"Section 7: model selection", draw:h => cvPlot(h, {w:460, compact:true})},
+  ];
+  $("#findings").innerHTML = cards.map((c,i) => `<div class="finding"><div>${chip(c.st, c.st==="good"?"Finding":c.st==="neutral"?"Note":"Caution")}</div><div><h3>${c.h}</h3><p style="margin-top:4px">${c.p}</p></div><div class="fig" id="fc${i}"></div><a class="go" href="${c.go}">${c.gotxt} →</a></div>`).join("");
+  cards.forEach((c,i) => c.draw(document.getElementById(`fc${i}`)));
+
+  $("#todo").innerHTML = [
+    [`<b>Report conformal intervals for CD.</b> Its Gaussian std is too small by roughly a factor of ${(probit(0.975)/probit((1+cd.cov95)/2)).toFixed(1)}.`, "Section 3"],
+    [`<b>Add 10–15 fine-RANS runs at Mach ≥ 0.75.</b> CD's error and predicted std are largest there (drag rise). The active-learning module can pick the points.`, "Sections 2, 5"],
+    [`<b>Drop f0 from the CD model</b>, or fit CD with f1 → f2 only. f0 carries no usable information for drag.`, "Section 4"],
+    [`<b>For Cm, the HF-only model is as good</b> (${sgnPct(OUTPUTS[2].mfChange)} RMSE) and cheaper to maintain.`, "Section 4"],
+  ].map(([t,s]) => `<li><div>${t}</div><span>${s}</span></li>`).join("");
+})();
+
+/* ---------- CV plot (used in A and D) ---------- */
+function cvPlot(host, opt={}){
+  const ok = CV.filter(c => c.m != null), rows = opt.compact ? ok.slice(0,5) : CV;
+  const rowH = opt.compact ? 26 : 34, best = ok[0], lim = best.m + best.sd;
+  const xmax = Math.max(...ok.map(c => c.m + c.sd))*1.05, xmin = Math.min(...ok.map(c => c.m - c.sd))*0.9;
+  const l = opt.compact ? 150 : 210, H = 36 + rowH*rows.length;
+  const f = frame(host, {x:[xmin, xmax], y:[0, rows.length], w:opt.w||720, h:H, m:{l, t:6, b:34, r:opt.compact?16:110}, noYgrid:true, xlab:"CV RMSE (scaled, lower is better)", nx:5, label:"Cross-validation scores"});
+  E("rect", {x:f.X(xmin), y:f.m.t, width:f.X(lim)-f.X(xmin), height:f.H-f.m.b-f.m.t, fill:"var(--band)"}, f.g);
+  rows.forEach((c,i) => {
+    const cy = f.m.t + rowH*(i+0.5), isBest = c === best;
+    const name = opt.compact && c.name.length > 22 ? c.name.slice(0,21)+"…" : c.name;
+    E("text", {x:f.m.l-12, y:cy+4, "text-anchor":"end", "font-size":opt.compact?11:12, "font-weight":isBest?700:400, fill:"var(--fg)"}, f.g, name);
+    if (c.m == null) { E("text", {x:f.m.l+4, y:cy+4, "font-size":11.5, fill:"var(--muted)"}, f.g, `Failed to fit: ${c.err}`); return; }
+    E("line", {x1:f.X(c.m-c.sd), x2:f.X(c.m+c.sd), y1:cy, y2:cy, stroke:isBest?"var(--accent)":"var(--fg2)", "stroke-width":2, "stroke-linecap":"round"}, f.g);
+    dot(f.g, f.X(c.m), cy, isBest?6:5, isBest?"var(--accent)":"var(--fg2)", `${c.name}\nCV RMSE ${c.m.toFixed(3)} ± ${c.sd.toFixed(3)}\n${c.kind}`);
+    if (!opt.compact) {
+      const tied = c.m - c.sd <= lim;
+      E("text", {x:f.W-f.m.r+12, y:cy+4, "font-size":11.5, "font-weight":600, fill:isBest?"var(--accent)":tied?"var(--fg)":"var(--muted)"}, f.g, isBest ? "Selected" : tied ? "Tied" : c.kind === "HF-only baseline" ? "Baseline" : "");
+    }
+  });
+}
+
+/* ---------- view B ---------- */
+let curOut = 0;
+function renderOutput(){
+  const o = OUTPUTS[curOut], b = covBand(0.95, N_TEST);
+  $("#outtabs").innerHTML = OUTPUTS.map((q,i) => `<button type="button" id="ob-${q.key}" aria-pressed="${i===curOut}" data-i="${i}">${sw(q)}${q.key} · ${q.label}</button>`).join("");
+  const stat = (lab, v, ref, st) => `<div class="stat"><div class="eyebrow">${lab}</div><div class="v num">${v}</div>${st||""}<div class="ref">${ref}</div></div>`;
+  $("#outstats").innerHTML =
+    stat("Test R²", o.r2.toFixed(3), `target ≥ ${TH.r2Good}`, chip(o.j.acc)) +
+    stat("RMSE", fmt(o.rmse), `HF-only ${fmt(o.hfRmse)}`, chip(o.j.mf, o.j.mf==="good"?`${sgnPct(o.mfChange)} vs HF`:o.j.mf==="warn"?"Worse than HF":"No gain")) +
+    stat("MAE", fmt(o.mae), `${(100*o.mae/(Math.max(...o.y)-Math.min(...o.y))).toFixed(1)}% of test range`) +
+    stat("Gaussian 95%", pct(o.cov95), `expected ${pct(0.95-b)}–100%`, chip(o.j.gStat)) +
+    stat("Conformal 95%", pct(o.conf95), `expected ${pct(0.95-b)}–100%`, chip(o.j.cStat));
+  ["#f-parity","#f-resid","#f-hist","#f-ordered"].forEach(s => $(s).innerHTML = "");
+  parity($("#f-parity"), o);
+  const r = residuals($("#f-resid"), o);
+  histogram($("#f-hist"), o);
+  const out = ordered($("#f-ordered"), o);
+  $("#resid-look").innerHTML = r.sig ? `<b>Finding:</b> residuals fall as predictions rise. The model overpredicts high ${o.key} and underpredicts low ${o.key}.` : `<b>Look for:</b> a flat cloud around zero. A slope means systematic bias.`;
+  $("#ord-look").innerHTML = out > 2*Math.round(0.05*N_TEST) ? `<b>Finding:</b> ${out} points fall outside their interval, about ${Math.round(out/(0.05*N_TEST))}× the number expected. The error bars are too narrow.` : `<b>Look for:</b> about 1 in 20 points outside its bar.`;
+  $("#ord-legend").innerHTML = `<span><i class="lg-line" style="border-color:${o.color};opacity:.5;border-top-width:3px"></i>95% Gaussian interval</span><span><i class="lg-dot" style="background:var(--fg2)"></i>Observed, inside</span><span><i class="lg-dot" style="background:var(--crit)"></i>Observed, outside</span>`;
+  const st = o.j.overall;
+  $("#out-headline").textContent = st==="good"||st==="neutral" ? `${o.key} is accurate and its error bars hold` : `${o.key}: ${o.j.acc!=="good"?"borderline accuracy":"accurate"}${o.j.gStat!=="good"?", error bars too narrow":""}`;
+  $("#out-sub").textContent = `${o.label} on the ${N_TEST} fine-RANS test points. Switch outputs to compare; colors and layout stay the same.`;
+}
+$("#outtabs").addEventListener("click", e => { const b = e.target.closest("button[data-i]"); if (!b) return; curOut = +b.dataset.i; renderOutput(); });
+renderOutput();
+
+/* ---------- view C ---------- */
+(function unc(){
+  const bad = OUTPUTS.filter(o => o.j.gStat !== "good"), good = OUTPUTS.filter(o => o.j.gStat === "good");
+  $("#unc-headline").textContent = bad.length ? `Gaussian error bars hold for ${good.map(o=>o.key).join(" and ")}; for ${bad.map(o=>o.key).join(", ")} use conformal intervals` : "Gaussian error bars hold for every output";
+  $("#unc-sub").textContent = `A curve inside the shaded band is consistent with good calibration for ${N_TEST} test points. Below the band means overconfident (bars too narrow); above means conservative.`;
+  $("#calib-legend").innerHTML = `<span><i class="lg-line lg-dash" style="border-color:var(--fg2)"></i>Gaussian (prediction ± z·std)</span><span><i class="lg-line" style="border-color:var(--fg)"></i>Conformal, in the output's color</span><span><i class="lg-band"></i>Expected from test-set noise</span>`;
+  OUTPUTS.forEach((o,i) => { const d = document.createElement("div"); d.className = "fig"; $("#calib").appendChild(d); calibChart(d, o, {noYlab:i>0}); });
+
+  const b = covBand(0.95, N_TEST);
+  const f = frame($("#cov95"), {x:[0.6, 1], y:[0, OUTPUTS.length], w:440, h:36+44*OUTPUTS.length, m:{l:44, t:6, b:34, r:16}, noYgrid:true, xfmt:v=>pct(v), xlab:"Observed coverage of the 95% interval", nx:4, label:"Coverage at 95%"});
+  E("rect", {x:f.X(0.95-b), y:f.m.t, width:f.X(1)-f.X(0.95-b), height:f.H-f.m.b-f.m.t, fill:"var(--band)"}, f.g);
+  E("line", {x1:f.X(0.95), x2:f.X(0.95), y1:f.m.t, y2:f.H-f.m.b, stroke:"var(--fg2)", "stroke-dasharray":"3 3"}, f.g);
+  E("text", {x:f.X(0.95)+4, y:f.m.t+10, "font-size":10.5, fill:"var(--fg2)"}, f.g, "target");
+  OUTPUTS.forEach((o,i) => {
+    const cy = f.m.t + 44*(i+0.5);
+    E("text", {x:f.m.l-10, y:cy+4, "text-anchor":"end", "font-size":12.5, "font-weight":600, fill:"var(--fg)"}, f.g, o.key);
+    E("line", {x1:f.X(Math.max(0.6,o.cov95)), x2:f.X(o.conf95), y1:cy, y2:cy, stroke:"var(--axis)", "stroke-width":2}, f.g);
+    E("rect", {x:f.X(Math.max(0.6,o.cov95))-5, y:cy-5, width:10, height:10, rx:2, fill:"var(--surface)", stroke:"var(--fg2)", "stroke-width":2, "data-tip":`${o.key} Gaussian: ${pct(o.cov95)}`}, f.g);
+    dot(f.g, f.X(o.conf95), cy, 5.5, o.color, `${o.key} conformal: ${pct(o.conf95)}`);
+  });
+  const lg = document.createElement("div"); lg.className = "legend"; lg.innerHTML = `<span><i class="lg-dot" style="background:transparent;border:2px solid var(--fg2);border-radius:2px"></i>Gaussian</span><span><i class="lg-dot" style="background:var(--fg2)"></i>Conformal (output color)</span>`; $("#cov95").appendChild(lg);
+
+  const wmax = Math.max(...OUTPUTS.flatMap(o => [o.widthG, o.widthC]))*1.15;
+  const g = frame($("#width"), {x:[0, wmax], y:[0, OUTPUTS.length], w:440, h:36+44*OUTPUTS.length, m:{l:44, t:6, b:34, r:16}, noYgrid:true, xfmt:v=>v.toFixed(0)+"%", xlab:"Mean 95% interval width, % of test range", nx:4, label:"Interval width"});
+  OUTPUTS.forEach((o,i) => {
+    const y0 = g.m.t + 44*i + 8;
+    E("text", {x:g.m.l-10, y:y0+18, "text-anchor":"end", "font-size":12.5, "font-weight":600, fill:"var(--fg)"}, g.g, o.key);
+    E("rect", {x:g.X(0), y:y0, width:g.X(o.widthG)-g.X(0), height:12, rx:2, fill:"var(--axis)", "data-tip":`${o.key} Gaussian width ${o.widthG.toFixed(1)}% of range`}, g.g);
+    E("rect", {x:g.X(0), y:y0+14, width:g.X(o.widthC)-g.X(0), height:12, rx:2, fill:o.color, "data-tip":`${o.key} conformal width ${o.widthC.toFixed(1)}% of range`}, g.g);
+    E("text", {x:g.X(o.widthG)+5, y:y0+10, "font-size":10.5, fill:"var(--fg2)"}, g.g, o.widthG.toFixed(0)+"%");
+    E("text", {x:g.X(o.widthC)+5, y:y0+24, "font-size":10.5, fill:"var(--fg2)"}, g.g, o.widthC.toFixed(0)+"%");
+  });
+  const lg2 = document.createElement("div"); lg2.className = "legend"; lg2.innerHTML = `<span><i class="lg-dot" style="background:var(--axis);border-radius:2px"></i>Gaussian</span><span><i class="lg-dot" style="background:var(--fg2);border-radius:2px"></i>Conformal (output color)</span>`; $("#width").appendChild(lg2);
+})();
+
+/* ---------- view D ---------- */
+(function drivers(){
+  const helped = OUTPUTS.filter(o => o.j.mf === "good"), none = OUTPUTS.filter(o => o.j.mf !== "good");
+  $("#mf-headline").textContent = `Yes for ${helped.map(o=>o.key).join(" and ")}; no clear gain for ${none.map(o=>o.key).join(", ")}`;
+  dumbbell($("#dumbbell"));
+  quadrant($("#quadrant"));
+  $("#quad-legend").innerHTML = `<span><i class="lg-dot" style="background:var(--fg2)"></i>f0 panel method</span><span><i class="lg-dot" style="background:var(--fg2);border-radius:2px"></i>f1 coarse RANS</span>` + OUTPUTS.map(o => `<span>${sw(o)}${o.key}</span>`).join("");
+  $("#levels").innerHTML = `<thead><tr><th>Level</th><th class="num">Runs</th><th>Cost / run</th>${OUTPUTS.map(o=>`<th class="num">r ${o.key}</th>`).join("")}</tr></thead><tbody>` +
+    RUN.levels.map(l => `<tr><td><b>${l.key}</b><span class="sub">${l.name}</span></td><td class="num">${l.n}${l.nTest?` + ${l.nTest} test`:""}</td><td>${l.cost}</td>${OUTPUTS.map(o => { const v = LEVEL_FIT[l.key]; return `<td class="num">${v ? (Math.abs(v[o.key][0])<0.5 ? `<span class="chip crit">${v[o.key][0].toFixed(2)}</span>` : v[o.key][0].toFixed(2)) : "<span class='sub' style='margin:0'>truth</span>"}</td>`; }).join("")}</tr>`).join("") + `</tbody>`;
+
+  // SHAP heatmap
+  const feats = [...RUN.inputs].sort((a,b) => mean(OUTPUTS.map(o=>SHAP[o.key][b])) - mean(OUTPUTS.map(o=>SHAP[o.key][a])));
+  const steps = ["--seq-0","--seq-1","--seq-2","--seq-3","--seq-4","--seq-5","--seq-6"];
+  const heat = $("#heat"); heat.style.gridTemplateColumns = `minmax(150px, max-content) repeat(${OUTPUTS.length}, minmax(80px, 1fr))`;
+  heat.innerHTML = `<div></div>` + OUTPUTS.map(o => `<div class="collab">${sw(o)}${o.key}</div>`).join("") +
+    feats.map(ft => `<div class="rowlab">${INPUT_LABEL[ft]}</div>` + OUTPUTS.map(o => { const v = SHAP[o.key][ft], k = Math.min(6, Math.floor(v/0.5*7)); return `<div class="cell" data-tip="${o.key}: ${INPUT_LABEL[ft]} accounts for ${pct(v)} of mean |SHAP|" style="background:var(${steps[k]});color:${k>=3?"#fff":"#0b0b0b"}">${pct(v)}</div>`; }).join("")).join("");
+
+  // PDP grid
+  const top = ["alpha","mach","sweep"], host = $("#pdp");
+  const grid = document.createElement("div"); grid.className = "grid3"; host.appendChild(grid);
+  OUTPUTS.forEach((o, ri) => {
+    const fns = PDP_F[o.key], sp = PDP_SPREAD[o.key];
+    const allY = top.flatMap(ft => { const [a,b] = PDP_X[ft]; return Array.from({length:30}, (_,i) => fns[ft](a+(b-a)*i/29)); });
+    const yd = pad(Math.min(...allY)-sp, Math.max(...allY)+sp, 0.04);
+    top.forEach((ft, ci) => {
+      const d = document.createElement("div"); d.className = "fig"; grid.appendChild(d);
+      const [a,b] = PDP_X[ft];
+      const f = frame(d, {x:[a,b], y:yd, w:300, h:200, m:{l:ci===0?54:40, b:ri===OUTPUTS.length-1?40:22, t:20, r:10}, ny:4, nx:4, noX:false, xlab:ri===OUTPUTS.length-1?INPUT_LABEL[ft]:"", ylab:ci===0?o.key:"", label:`PDP ${o.key} vs ${ft}`});
+      const xs = Array.from({length:40}, (_,i) => a+(b-a)*i/39);
+      const up = xs.map(x => `${f.X(x)},${f.Y(fns[ft](x)+sp*0.6)}`), dn = xs.map(x => `${f.X(x)},${f.Y(fns[ft](x)-sp*0.6)}`).reverse();
+      E("path", {d:"M"+up.concat(dn).join("L")+"Z", fill:o.color, "fill-opacity":0.14}, f.g);
+      E("path", {d:"M"+xs.map(x => `${f.X(x)},${f.Y(fns[ft](x))}`).join("L"), fill:"none", stroke:o.color, "stroke-width":2}, f.g);
+      xs.filter((_,i)=>i%4===0).forEach(x => E("circle", {cx:f.X(x), cy:f.Y(fns[ft](x)), r:8, fill:"transparent", "data-tip":`${o.key} at ${ft} = ${fmt(x)}: ${fmt(fns[ft](x))}`}, f.g));
+      if (ri === 0) E("text", {x:f.m.l, y:12, "font-size":11.5, "font-weight":600, fill:"var(--fg)"}, f.g, `${INPUT_LABEL[ft].split(" (")[0]} · ${pct(SHAP[o.key][ft])} of ${o.key}`);
+      else E("text", {x:f.m.l, y:12, "font-size":11, fill:"var(--fg2)"}, f.g, `${pct(SHAP[o.key][ft])} of ${o.key}`);
+      if (o.key === "CD" && ft === "mach") { E("line", {x1:f.X(0.77), x2:f.X(0.77), y1:f.m.t, y2:f.H-f.m.b, stroke:"var(--fg2)", "stroke-dasharray":"3 3"}, f.g); E("text", {x:f.X(0.77)-4, y:f.m.t+12, "text-anchor":"end", "font-size":10.5, fill:"var(--fg)", "font-weight":600}, f.g, "drag rise"); }
+    });
+  });
+
+  const tied = CV.filter(c => c.m != null && c.m - c.sd <= CV[0].m + CV[0].sd);
+  $("#cv-headline").textContent = `${CV[0].name} scored best, but the top ${tied.length} are within fold noise`;
+  cvPlot($("#cvplot"));
+
+  $("#thresholds").innerHTML = `<thead><tr><th>Rule</th><th>Pass</th><th>Caution</th><th>Fail</th></tr></thead><tbody>
+    <tr><td>Accuracy (test R²)</td><td>≥ ${TH.r2Good}</td><td>${TH.r2Warn}–${TH.r2Good}</td><td>&lt; ${TH.r2Warn}</td></tr>
+    <tr><td>Error bars (95% coverage)</td><td>within 95% − ${TH.covZ}·SE (n = ${N_TEST}: ≥ ${pct(0.95-covBand(0.95,N_TEST))})</td><td>Gaussian fails but conformal passes, or within 2× that band</td><td>below 2× the band</td></tr>
+    <tr><td>Low-fidelity data (RMSE vs HF-only)</td><td>≤ ${sgnPct(TH.mfGain)}</td><td>≥ ${sgnPct(TH.mfHurt)} (hurts)</td><td>—</td></tr>
+    <tr><td>Overall</td><td colspan="3">worst of the three; "no gain" does not lower the overall status</td></tr></tbody>`;
+})();
+
+/* ---------- routing, tooltip, notes ---------- */
+const VIEWS = ["pitch","front","output","uncertainty","drivers"];
+function route(){
+  const h = location.hash.slice(1); const v = VIEWS.includes(h) ? h : "pitch";
+  document.querySelectorAll(".view").forEach(s => s.hidden = s.dataset.view !== v);
+  document.querySelectorAll(".tabs a").forEach(a => a.setAttribute("aria-current", a.getAttribute("href") === "#"+v ? "page" : "false"));
+  if (!document.querySelector("a[data-scroll]:hover")) window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", route); route();
+const tip = $("#tip");
+document.addEventListener("pointermove", e => {
+  const t = e.target.closest && e.target.closest("[data-tip]");
+  const txt = t && t.getAttribute("data-tip");
+  if (!txt) { tip.hidden = true; return; }
+  tip.textContent = txt; tip.hidden = false;
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+  tip.style.left = x + "px"; tip.style.top = y + "px";
+});
+const nt = $("#notes-toggle");
+try { if (localStorage.getItem("mor-notes") === "0") nt.checked = false; } catch (e) {}
+const applyNotes = () => { document.body.classList.toggle("hide-notes", !nt.checked); try { localStorage.setItem("mor-notes", nt.checked ? "1" : "0"); } catch (e) {} };
+nt.addEventListener("change", applyNotes); applyNotes();
+</script>

@@ -1,0 +1,132 @@
+multioutreg.figures.conformal_plots
+===================================
+
+.. py:module:: multioutreg.figures.conformal_plots
+
+.. autoapi-nested-parse::
+
+   Visualization functions for conformal prediction intervals.
+
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.conformal_plots.plot_conformal_intervals
+   multioutreg.figures.conformal_plots.plot_conformal_intervals_ordered
+   multioutreg.figures.conformal_plots.plot_conformal_coverage
+   multioutreg.figures.conformal_plots.plot_conformal_vs_gaussian
+   multioutreg.figures.conformal_plots.plot_conditional_coverage
+
+
+Module Contents
+---------------
+
+.. py:function:: plot_conformal_intervals(y_true: numpy.ndarray, y_lower: numpy.ndarray, y_upper: numpy.ndarray, y_pred: Optional[numpy.ndarray] = None, output_names: Optional[List[str]] = None, n_cols: int = 3, alpha: float = 0.1, savefig: Optional[str] = None) -> None
+
+   Plot conformal prediction intervals alongside true values.
+
+   :param y_true:
+   :type y_true: (n_samples,) or (n_samples, n_outputs)
+   :param y_lower:
+   :type y_lower: same shape
+   :param y_upper:
+   :type y_upper: same shape
+   :param y_pred:
+   :type y_pred: same shape, optional. Point predictions.
+   :param output_names:
+   :type output_names: list of str, optional
+   :param n_cols:
+   :type n_cols: int
+   :param alpha:
+   :type alpha: float, for labeling
+   :param savefig:
+   :type savefig: str, optional
+
+
+.. py:function:: plot_conformal_intervals_ordered(y_true: numpy.ndarray, y_lower: numpy.ndarray, y_upper: numpy.ndarray, y_pred: Optional[numpy.ndarray] = None, output_names: Optional[List[str]] = None, n_cols: int = 3, alpha: float = 0.1, savefig: Optional[str] = None) -> None
+
+   Plot conformal intervals ordered by true value.
+
+   :param y_true:
+   :type y_true: (n_samples,) or (n_samples, n_outputs)
+   :param y_lower:
+   :type y_lower: same shape
+   :param y_upper:
+   :type y_upper: same shape
+   :param y_pred:
+   :type y_pred: optional, same shape
+   :param output_names:
+   :type output_names: list of str, optional
+   :param n_cols:
+   :type n_cols: int
+   :param alpha:
+   :type alpha: float
+   :param savefig:
+   :type savefig: str, optional
+
+
+.. py:function:: plot_conformal_coverage(y_true: numpy.ndarray, y_pred: numpy.ndarray, calibration_residuals: numpy.ndarray, output_names: Optional[List[str]] = None, n_cols: int = 3, alphas: Optional[List[float]] = None) -> None
+
+   Coverage plot for conformal intervals at multiple alpha levels.
+
+   :param y_true:
+   :type y_true: (n_samples, n_outputs)
+   :param y_pred:
+   :type y_pred: (n_samples, n_outputs)
+   :param calibration_residuals:
+   :type calibration_residuals: (n_cal, n_outputs), stored residuals from fitting
+   :param output_names:
+   :type output_names: list of str, optional
+   :param n_cols:
+   :type n_cols: int
+   :param alphas:
+   :type alphas: list of alpha values. Default covers common levels.
+
+
+.. py:function:: plot_conformal_vs_gaussian(y_true: numpy.ndarray, y_pred: numpy.ndarray, y_std: numpy.ndarray, calibration_residuals: numpy.ndarray, output_names: Optional[List[str]] = None, alphas: Optional[List[float]] = None) -> None
+
+   Side-by-side comparison: Gaussian CI vs Conformal PI coverage.
+
+   Shows that Gaussian intervals can be miscalibrated while conformal
+   intervals achieve the target coverage.
+
+   :param y_true:
+   :type y_true: (n_samples, n_outputs)
+   :param y_pred:
+   :type y_pred: (n_samples, n_outputs)
+   :param y_std:
+   :type y_std: (n_samples, n_outputs), model uncertainty estimates
+   :param calibration_residuals:
+   :type calibration_residuals: (n_cal, n_outputs)
+   :param output_names:
+   :type output_names: list of str, optional
+   :param alphas:
+   :type alphas: list of alpha levels
+
+
+.. py:function:: plot_conditional_coverage(y_true: numpy.ndarray, y_lower: numpy.ndarray, y_upper: numpy.ndarray, n_bins: int = 10, output_names: Optional[List[str]] = None, alpha: float = 0.1, savefig: Optional[str] = None) -> None
+
+   Coverage as a function of y_true value.
+
+   Conformal prediction guarantees marginal coverage; this plot reveals
+   whether coverage is approximately uniform across the response range.
+
+   :param y_true:
+   :type y_true: (n_samples,) or (n_samples, n_outputs)
+   :param y_lower:
+   :type y_lower: same shape
+   :param y_upper:
+   :type y_upper: same shape
+   :param n_bins:
+   :type n_bins: int
+   :param output_names:
+   :type output_names: list of str, optional
+   :param alpha:
+   :type alpha: float
+   :param savefig:
+   :type savefig: str, optional
+
+

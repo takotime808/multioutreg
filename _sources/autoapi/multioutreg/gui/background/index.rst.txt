@@ -1,0 +1,90 @@
+multioutreg.gui.background
+==========================
+
+.. py:module:: multioutreg.gui.background
+
+.. autoapi-nested-parse::
+
+   Run slow plotting work in worker processes so it doesn't hold up the app.
+
+   Streamlit runs a page top to bottom in one thread, so a 10 s pair plot or a
+   report full of SHAP / PDP / UMAP figures would stall model fitting and every
+   result after it. :func:`submit` hands such work to a process pool and returns a
+   :class:`BackgroundJob` the page keeps in ``st.session_state`` and checks later.
+
+   Processes, not threads: pyplot keeps global "current figure" state (the report
+   helpers save whatever figure is current), and plotting is pure Python, so a
+   thread would neither be safe nor run in parallel under the GIL.
+
+   Each pool has a single worker: every worker re-imports numpy, sklearn and
+   matplotlib (the report worker also SHAP and UMAP), and Streamlit Community
+   Cloud allows as little as 690 MB (see ``docs/parallel_computing.md``).
+
+   There are two pools. ``"plots"`` starts light, so a pair plot begins drawing
+   within a second or two. ``"report"`` imports the report modules and warms up UMAP
+   (about 30 s to import and compile) when its workers start; call
+   :func:`warm_up` early so that cost is paid while the user is still choosing
+   columns.
+
+   Set ``MOR_BACKGROUND_JOBS=0`` to run every job inline instead (the test suite
+   does this; see ``tests/conftest.py``).
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.gui.background.BackgroundJob
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.gui.background.background_enabled
+   multioutreg.gui.background.warm_up
+   multioutreg.gui.background.submit
+
+
+Module Contents
+---------------
+
+.. py:function:: background_enabled() -> bool
+
+   False when ``MOR_BACKGROUND_JOBS`` is set to 0/false/no/off.
+
+
+.. py:function:: warm_up(pool: str = 'report') -> None
+
+   Start *pool*'s worker processes now so their imports overlap with other work.
+
+
+.. py:class:: BackgroundJob(pool: str, fn: Callable[..., Any], *args: Any, **kwargs: Any)
+
+   Result of ``fn(*args, **kwargs)``, computed in a worker process when possible.
+
+   If the worker can't run it (the arguments don't pickle, the pool died),
+   :meth:`result` runs ``fn`` inline instead, so a job always gives the same
+   answer as a direct call, including raising the same exception.
+
+
+   .. py:method:: done() -> bool
+
+      True once :meth:`result` would return without waiting on a worker.
+
+
+
+   .. py:method:: result() -> Any
+
+      Return the job's value, waiting for the worker if it is still running.
+
+
+
+.. py:function:: submit(pool: str, fn: Callable[..., Any], *args: Any, **kwargs: Any) -> BackgroundJob
+
+   Start ``fn(*args, **kwargs)`` in *pool* ("plots" or "report") and return the job.
+
+

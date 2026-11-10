@@ -1,0 +1,420 @@
+multioutreg.active.benchmarks
+=============================
+
+.. py:module:: multioutreg.active.benchmarks
+
+.. autoapi-nested-parse::
+
+   Analytic benchmark functions for active learning, with fidelity variants.
+
+   Definitions follow the Virtual Library of Simulation Experiments
+   (Surjanovic & Bingham, https://www.sfu.ca/~ssurjano/) and, for Friedman 1,
+   Gramacy & Lee, Himmelblau, ZDT, Viennet 2, the heterogeneous and the
+   multi-fidelity Branin functions, the BenchmarkFcns library
+   (https://github.com/mazhar-ansari-ardeh/BenchmarkFcns, MIT), ported to NumPy.
+   Every function takes ``X`` of shape ``(n, d)`` in its own bounds and returns
+   ``(n, n_outputs)``.
+
+   Fidelity levels are ordered lowest first: the first level (index 0) is the
+   cheapest and the last is the high fidelity, as in Kennedy & O'Hagan (2000),
+   SMT's ``MFK`` and Emukit. Mainini et al. (2022) and BenchmarkFcns number the
+   other way (``f_1`` / column 0 is the highest fidelity), so reverse their
+   levels when porting.
+
+   :data:`L1_BENCHMARKS` (``"mf1.1"`` ... ``"mf6"``) is the AVT-331 L1
+   multi-fidelity suite of Mainini et al. (2022, arXiv:2204.07867), written from
+   the paper and checked against the authors' reference optima
+   (https://gitlab.com/qudo046/avt-331-l1-benchmarks). Its raw functions keep
+   the paper's ``level`` numbering (1 is the highest fidelity); the
+   :class:`Benchmark` objects follow this module's lowest-first order.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.active.benchmarks.HIMMELBLAU_MINIMA
+   multioutreg.active.benchmarks.L1_BENCHMARKS
+   multioutreg.active.benchmarks.BENCHMARKS
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.active.benchmarks.Benchmark
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.active.benchmarks.forrester
+   multioutreg.active.benchmarks.forrester_lo
+   multioutreg.active.benchmarks.branin
+   multioutreg.active.benchmarks.currin
+   multioutreg.active.benchmarks.currin_lo
+   multioutreg.active.benchmarks.branin_currin
+   multioutreg.active.benchmarks.ishigami
+   multioutreg.active.benchmarks.hartmann3
+   multioutreg.active.benchmarks.park
+   multioutreg.active.benchmarks.park_lo
+   multioutreg.active.benchmarks.borehole
+   multioutreg.active.benchmarks.borehole_lo
+   multioutreg.active.benchmarks.branin_mf_lo
+   multioutreg.active.benchmarks.heterogeneous
+   multioutreg.active.benchmarks.heterogeneous_lo
+   multioutreg.active.benchmarks.friedman1
+   multioutreg.active.benchmarks.gramacy_lee
+   multioutreg.active.benchmarks.himmelblau
+   multioutreg.active.benchmarks.zdt1
+   multioutreg.active.benchmarks.zdt2
+   multioutreg.active.benchmarks.zdt3
+   multioutreg.active.benchmarks.zdt_front
+   multioutreg.active.benchmarks.dtlz2
+   multioutreg.active.benchmarks.dtlz_front
+   multioutreg.active.benchmarks.viennet2
+   multioutreg.active.benchmarks.forrester_mf
+   multioutreg.active.benchmarks.jump_forrester
+   multioutreg.active.benchmarks.rosenbrock_mf
+   multioutreg.active.benchmarks.rastrigin_mf
+   multioutreg.active.benchmarks.heterogeneous_mf
+   multioutreg.active.benchmarks.springs
+   multioutreg.active.benchmarks.spring_masses
+   multioutreg.active.benchmarks.paciorek
+   multioutreg.active.benchmarks.get_benchmark
+
+
+Module Contents
+---------------
+
+.. py:function:: forrester(X)
+
+   Forrester et al. (2008): ``(6x - 2)^2 sin(12x - 4)`` on [0, 1].
+
+
+.. py:function:: forrester_lo(X)
+
+   Low-fidelity Forrester: ``0.5 f(x) + 10 (x - 0.5) - 5``.
+
+
+.. py:function:: branin(X)
+
+   Branin-Hoo on [-5, 10] x [0, 15]; global minimum 0.397887.
+
+
+.. py:function:: currin(X)
+
+   Currin et al. (1988) exponential function on [0, 1]^2.
+
+
+.. py:function:: currin_lo(X)
+
+   Low-fidelity Currin (Xiong et al. 2013): average of four shifted copies.
+
+
+.. py:function:: branin_currin(X)
+
+   Two-output Branin (rescaled to [0, 1]^2) and Currin, as in BoTorch.
+
+
+.. py:function:: ishigami(X, a: float = 7.0, b: float = 0.1)
+
+   Ishigami & Homma (1990) on [-pi, pi]^3.
+
+
+.. py:function:: hartmann3(X)
+
+   Hartmann 3-D on [0, 1]^3; global minimum -3.86278 at (0.1146, 0.5556, 0.8525).
+
+
+.. py:function:: park(X)
+
+   Park (1991) first function on [0, 1]^4 (x1 is kept away from 0).
+
+
+.. py:function:: park_lo(X)
+
+   Low-fidelity Park (Xiong et al. 2013).
+
+
+.. py:function:: borehole(X)
+
+   Borehole water flow (Morris et al. 1993), 8 inputs in physical units.
+
+
+.. py:function:: borehole_lo(X)
+
+   Low-fidelity borehole (Xiong et al. 2013).
+
+
+.. py:function:: branin_mf_lo(X)
+
+   Low-fidelity Branin: ``10 f(1.2 x) + 5 x1 + 10 x2``.
+
+   The low level sees stretched inputs, so no scaling of it matches the high
+   level; a hard case for additive or scaled corrections.
+
+
+.. py:function:: heterogeneous(X)
+
+   Heterogeneous function (Mainini et al. 2022, eq. 16, D = 1) on [0, 1]: the high level ``f_1``.
+
+
+.. py:function:: heterogeneous_lo(X)
+
+   Low level ``f_2 = (f_1 - 1 + x) / (1 + 0.25 x)``: the scale between levels varies with x.
+
+   BenchmarkFcns labels these two levels the other way round; Mainini et al.
+   obtain the low level from ``f_1`` through this bridge function.
+
+
+.. py:function:: friedman1(X)
+
+   Friedman (1991) on [0, 1]^10; only x1..x5 enter, x6..x10 are inert.
+
+   Noise-free; the usual benchmark adds N(0, 1) noise.
+
+
+.. py:function:: gramacy_lee(X)
+
+   Gramacy & Lee (2012) on [0.5, 2.5]: fast oscillation on the left, smooth on the right.
+
+
+.. py:data:: HIMMELBLAU_MINIMA
+
+.. py:function:: himmelblau(X)
+
+   Himmelblau on [-5, 5]^2: four global minima of 0 (``HIMMELBLAU_MINIMA``).
+
+
+.. py:function:: zdt1(X)
+
+   ZDT1 (Zitzler, Deb & Thiele 2000) on [0, 1]^d, two outputs; convex front.
+
+
+.. py:function:: zdt2(X)
+
+   ZDT2 on [0, 1]^d, two outputs; concave front.
+
+
+.. py:function:: zdt3(X)
+
+   ZDT3 on [0, 1]^d, two outputs; front in five disconnected pieces.
+
+
+.. py:function:: zdt_front(name: str, n: int = 500) -> numpy.ndarray
+
+   Points on the true Pareto front of ``"zdt1"``, ``"zdt2"`` or ``"zdt3"``.
+
+   The front is reached at ``x2 = ... = xd = 0`` (so ``g = 1``); for ZDT3 only
+   the non-dominated part of that curve is kept, so fewer than ``n`` rows
+   come back.
+
+
+.. py:function:: dtlz2(X, n_objectives: int = 3)
+
+   DTLZ2 (Deb et al. 2005) on [0, 1]^d with ``n_objectives`` outputs.
+
+   The first ``m - 1`` inputs place a point on the positive orthant of the
+   unit sphere; the rest push it outwards by ``1 + g`` with
+   ``g = sum((x_i - 0.5)^2)``, so the true front is the unit sphere
+   (``g = 0``) and the outputs are strongly dependent. Needs ``d >= m``.
+
+
+.. py:function:: dtlz_front(name: str = 'dtlz2', n: int = 500, n_objectives: int = 3, seed=0) -> numpy.ndarray
+
+   ``n`` random points on the true Pareto front of ``"dtlz2"``: the unit sphere's positive orthant.
+
+
+.. py:function:: viennet2(X)
+
+   Viennet 2 on [-4, 4]^2: three quadratic outputs of different shape.
+
+
+.. py:function:: forrester_mf(X, level: int = 1)
+
+   Four-level Forrester on [0, 1] (MF1.1); ``f_3``, ``f_4`` are affine in ``f_1``.
+
+
+.. py:function:: jump_forrester(X, level: int = 1)
+
+   Forrester with a +10 jump at x = 0.5 (MF1.2), two levels.
+
+   The low level's offset right of the jump is -7, as in the authors' code;
+   the paper's text gives -2.
+
+
+.. py:function:: rosenbrock_mf(X, level: int = 1)
+
+   Three-level Rosenbrock on [-2, 2]^D (MF2). ``f_2`` moves the valley; ``f_3`` rescales ``f_1``.
+
+
+.. py:function:: rastrigin_mf(X, level: int = 1, theta: float = 0.2)
+
+   Three-level shifted-rotated Rastrigin on [-0.1, 0.2]^D (MF3); minimum 0 at x = 0.1.
+
+   Only the last two coordinates are rotated, as in the authors' code. Lower
+   levels add a resolution error ``a cos^2(w z + b + pi)`` that grows as
+   ``phi`` falls.
+
+
+.. py:function:: heterogeneous_mf(X, level: int = 1)
+
+   Heterogeneous function on [0, 1]^D (MF4), D = 1, 2 or 3, two levels.
+
+   For D = 1 the high level equals :func:`heterogeneous`. For D >= 2 the
+   minimum, -0.562712, is the whole face ``x_1 = 0``.
+
+
+.. py:function:: springs(X, level: int = 1)
+
+   Spring stiffnesses ``(k1, k2)`` in [1, 4]^2 with unit masses (MF5.1); RK4 step 0.01 / 0.6.
+
+
+.. py:function:: spring_masses(X, level: int = 1)
+
+   ``(k1, k2, m1, m2)`` in [1, 4]^4 (MF5.2). The minimum -1 is reached at more than one design.
+
+
+.. py:function:: paciorek(X, level: int = 1, rng=None)
+
+   Paciorek ``sin(1 / (x1 x2))`` on [0.3, 1]^2 (MF6) with Gaussian noise.
+
+   ``level=0`` is the noise-free truth; level 1 adds N(0, 0.0125^2) and level
+   2 (the low fidelity, ``- 9 A^2 cos(1 / (x1 x2))`` with A = 0.5) adds
+   N(0, 0.075^2).
+
+
+.. py:class:: Benchmark
+
+   An analytic test problem with bounds and, optionally, fidelity levels.
+
+   ``functions`` and ``costs`` are keyed by level, ordered cheapest first
+   (index 0 is the lowest fidelity); the last level is the high fidelity.
+
+   The optional fields describe the answer, for scoring an optimizer with
+   :meth:`optimum_errors`: ``maximum`` (the largest value of the high level),
+   ``argmin`` (known minimizers, one per row, in the problem's coordinates)
+   or ``argmin_distance`` (unit-cube distance to an optimal set that is not
+   a finite list of points), ``truth`` (the noise-free high level, for noisy
+   problems) and ``budget`` (the evaluation budget, in high-fidelity
+   equivalents, that the problem's source prescribes).
+
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: bounds
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: functions
+      :type:  Dict[str, Callable[[numpy.ndarray], numpy.ndarray]]
+
+
+   .. py:attribute:: costs
+      :type:  Dict[str, float]
+
+
+   .. py:attribute:: minimum
+      :type:  Optional[float]
+      :value: None
+
+
+
+   .. py:attribute:: maximum
+      :type:  Optional[float]
+      :value: None
+
+
+
+   .. py:attribute:: argmin
+      :type:  Optional[numpy.ndarray]
+      :value: None
+
+
+
+   .. py:attribute:: argmin_distance
+      :type:  Optional[Callable[[numpy.ndarray], numpy.ndarray]]
+      :value: None
+
+
+
+   .. py:attribute:: truth
+      :type:  Optional[Callable[[numpy.ndarray], numpy.ndarray]]
+      :value: None
+
+
+
+   .. py:attribute:: budget
+      :type:  Optional[float]
+      :value: None
+
+
+
+   .. py:property:: levels
+
+
+   .. py:property:: high
+      :type: str
+
+
+
+   .. py:property:: n_features
+      :type: int
+
+
+
+   .. py:method:: sample(n: int, method: str = 'sobol', seed=None) -> numpy.ndarray
+
+      Space-filling (``"sobol"``, ``"lhs"``) or ``"random"`` points in bounds.
+
+
+
+   .. py:method:: true_value(X) -> numpy.ndarray
+
+      Noise-free high-fidelity value: ``truth`` if set, else the high level.
+
+
+
+   .. py:method:: optimum_errors(x_hat) -> Dict[str, float]
+
+      Mainini et al. (2022) errors ``{"Ex", "Ef", "Et"}`` of an estimated minimizer ``x_hat``.
+
+      Needs ``minimum``, ``maximum`` and ``argmin`` or ``argmin_distance``.
+      ``Ef`` uses the noise-free high level at ``x_hat``.
+
+
+
+.. py:data:: L1_BENCHMARKS
+   :value: ('mf1.1', 'mf1.2', 'mf2.1', 'mf2.2', 'mf2.3', 'mf3.1', 'mf3.2', 'mf3.3', 'mf4.1', 'mf4.2',...
+
+
+.. py:function:: get_benchmark(name: str, cost_ratio: Optional[float] = None, n_features: Optional[int] = None, seed=None) -> Benchmark
+
+   Return a :class:`Benchmark` by name.
+
+   Multi-fidelity benchmarks have levels ``"lo"`` and ``"hi"`` with costs
+   ``1`` and ``cost_ratio`` (default 10). ``n_features`` sets the input
+   dimension of the scalable ZDT problems (default 6; the literature uses
+   30, which needs far more training points) and of DTLZ2 (default 7, three
+   objectives); the other benchmarks have a fixed dimension.
+
+   The names in :data:`L1_BENCHMARKS` (``"mf1.1"`` ... ``"mf6"``) are the
+   AVT-331 L1 suite of Mainini et al. (2022), with the paper's own costs (a
+   fraction of one high-fidelity run), budget, range and optimum, so
+   ``cost_ratio`` does not apply. They have two to four levels, named
+   ``"lo"``, (``"mid"`` or ``"mid_lo"``, ``"mid_hi"``) and ``"hi"``; the
+   paper's ``f_1`` is ``"hi"``. ``seed`` seeds the noise of ``"mf6"``.
+
+
+.. py:data:: BENCHMARKS
+   :value: ('forrester', 'branin', 'currin', 'branin_currin', 'ishigami', 'hartmann3', 'park', 'borehole',...
+
+

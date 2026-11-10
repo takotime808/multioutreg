@@ -1,0 +1,56 @@
+multioutreg.surrogates.base_sklearn
+===================================
+
+.. py:module:: multioutreg.surrogates.base_sklearn
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.base_sklearn.BaseSurrogate
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.base_sklearn.scaled
+
+
+Module Contents
+---------------
+
+.. py:function:: scaled(estimator)
+
+   ``StandardScaler`` + *estimator*, for models whose fit depends on input units.
+
+
+.. py:class:: BaseSurrogate(base_estimator, scale_inputs=False)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Base class for multi-output surrogates.
+
+   ``scale_inputs=True`` standardises X (fitted on the training data) before the
+   estimator; distance/kernel/penalty-based models (GP, SVR, KNN, MLP, Lasso,
+   ElasticNet) otherwise depend on the units of the inputs.
+
+
+   .. py:attribute:: scale_inputs
+      :value: False
+
+
+
+   .. py:attribute:: model
+
+
+   .. py:method:: fit(X, Y)
+
+
+   .. py:method:: predict(X, return_std=False)
+
+

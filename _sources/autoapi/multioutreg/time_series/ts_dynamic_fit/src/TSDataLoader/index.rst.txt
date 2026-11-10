@@ -1,0 +1,48 @@
+multioutreg.time_series.ts_dynamic_fit.src.TSDataLoader
+=======================================================
+
+.. py:module:: multioutreg.time_series.ts_dynamic_fit.src.TSDataLoader
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.src.TSDataLoader.TSDataLoader
+
+
+Module Contents
+---------------
+
+.. py:class:: TSDataLoader(data_dir: str = 'examples/example_data_ts/data')
+
+   Time-series data loader for OrderDetails, Shifts_Closed,
+   sp_hourly_sales, and TimeEntries.
+
+
+   .. py:attribute:: data_path
+      :type:  pathlib.Path
+
+
+   .. py:method:: read_data(data_path: str) -> pandas.DataFrame
+
+      Generic CSV loader for single file.
+
+      :param data_path: Path to CSV file.
+      :type data_path: str
+
+      :returns: Data loaded from the file.
+      :rtype: pd.DataFrame
+
+
+
+   .. py:method:: get() -> pandas.DataFrame
+
+      Loads time-series datasets based on file type prefix.
+
+      :returns: Combined time-series analysis data.
+      :rtype: DataFrame
+
+
+

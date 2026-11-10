@@ -1,0 +1,151 @@
+multioutreg.conformal.joint
+===========================
+
+.. py:module:: multioutreg.conformal.joint
+
+.. autoapi-nested-parse::
+
+   Joint (simultaneous) conformal prediction regions for multi-output regression.
+
+   ``SplitConformalPredictor`` and ``CVPlusConformalPredictor`` calibrate each
+   output on its own, so each interval covers its output with probability
+   ``1 - alpha`` but all of them together cover the whole output vector less
+   often (as low as ``1 - m * alpha`` for ``m`` outputs). The predictor here
+   calibrates one score per row instead, so the region it returns covers the
+   whole vector with probability ``1 - alpha``.
+
+   Scores (``score=``):
+
+   - ``"max"``: max-norm of the residuals, each divided by a per-output scale.
+     The region is a hyperrectangle.
+   - ``"mahalanobis"``: Mahalanobis norm under the residual covariance
+     (Johnstone & Cox 2021). The region is an ellipsoid that follows the
+     correlation between outputs, so it is smaller than a rectangle when the
+     residuals are correlated.
+   - ``"bonferroni"``: per-output intervals at ``alpha / m``. Valid without any
+     shape estimate, but conservative; kept as the baseline the other two
+     should beat.
+
+   The scales and covariance (the region's *shape*) are estimated on a share of
+   the calibration rows (``shape_size``) that the quantile never sees, so the
+   coverage guarantee holds whatever shape is estimated. ``shape_size=0`` uses
+   the training residuals instead, which keeps every calibration row for the
+   quantile but gives a poor shape for models that interpolate their training
+   data (noise-free GPs, 1-NN), whose training residuals are near zero.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.conformal.joint.JointConformalPredictor
+
+
+Module Contents
+---------------
+
+.. py:class:: JointConformalPredictor(estimator, score: str = 'max', calibration_size: float = 0.2, shape_size: float = 0.5, adaptive: bool = False, ridge: float = 1e-06, random_state: Optional[int] = None)
+
+   Bases: :py:obj:`multioutreg.conformal.base.BaseConformalPredictor`
+
+
+   Split conformal regions with simultaneous coverage across outputs.
+
+   Coverage guarantee: P(the whole output vector lies in the region)
+   >= 1 - alpha for exchangeable data.
+
+   :param estimator: Any regressor with fit/predict. Cloned (or deep-copied) internally.
+   :type estimator: regressor
+   :param score: Nonconformity score, and so the shape of the region (see module
+                 docstring). Default ``"max"``.
+   :type score: {"max", "mahalanobis", "bonferroni"}
+   :param calibration_size: Fraction of the data held out from model fitting (default 0.2).
+   :type calibration_size: float
+   :param shape_size: Fraction of the held-out rows used to estimate the per-output scales
+                      or the residual covariance; the rest set the conformal quantile.
+                      ``0`` estimates the shape from training residuals. Ignored for
+                      ``"bonferroni"``. Default 0.5.
+   :type shape_size: float
+   :param adaptive: If True, residuals are divided by the model's ``return_std`` before
+                    scoring, so the region grows and shrinks with the model's own
+                    uncertainty.
+   :type adaptive: bool
+   :param ridge: Added to the covariance diagonal, relative to its mean variance, so
+                 a singular covariance (outputs that are exact functions of each
+                 other) can still be inverted. Default 1e-6.
+   :type ridge: float
+   :param random_state: Seed for the calibration and shape splits.
+   :type random_state: int, optional
+
+
+   .. py:attribute:: score
+      :value: 'max'
+
+
+
+   .. py:attribute:: calibration_size
+      :value: 0.2
+
+
+
+   .. py:attribute:: shape_size
+      :value: 0.5
+
+
+
+   .. py:attribute:: adaptive
+      :value: False
+
+
+
+   .. py:attribute:: ridge
+      :value: 1e-06
+
+
+
+   .. py:method:: fit(X: numpy.ndarray, y: numpy.ndarray) -> JointConformalPredictor
+
+      Fit the model, estimate the region shape and store calibration scores.
+
+      :param X:
+      :type X: (n_samples, n_features)
+      :param y:
+      :type y: (n_samples,) or (n_samples, n_outputs)
+
+
+
+   .. py:method:: predict_interval(X: numpy.ndarray, alpha: float = 0.1) -> Tuple[numpy.ndarray, numpy.ndarray]
+
+      Simultaneous intervals: all outputs covered together with prob >= 1-alpha.
+
+      For ``"max"`` and ``"bonferroni"`` these bounds are the region itself.
+      For ``"mahalanobis"`` they are the ellipsoid's bounding box, which is
+      valid but larger than the ellipsoid; use :meth:`contains` and
+      :meth:`log_volume` to work with the ellipsoid directly.
+
+      :returns: **y_lower, y_upper** -- Shape (n_samples,) for single output or (n_samples, n_outputs).
+      :rtype: np.ndarray
+
+
+
+   .. py:method:: contains(X: numpy.ndarray, y: numpy.ndarray, alpha: float = 0.1) -> numpy.ndarray
+
+      Whether each row of ``y`` lies inside the joint region at ``X``.
+
+      :rtype: np.ndarray of bool, shape (n_samples,)
+
+
+
+   .. py:method:: log_volume(X: numpy.ndarray, alpha: float = 0.1) -> numpy.ndarray
+
+      Natural log of the region's volume at each row of ``X``.
+
+      Compares region sizes across scores: at the same coverage, a smaller
+      volume is a tighter region. ``inf`` when the quantile is unbounded.
+
+      :rtype: np.ndarray, shape (n_samples,)
+
+
+

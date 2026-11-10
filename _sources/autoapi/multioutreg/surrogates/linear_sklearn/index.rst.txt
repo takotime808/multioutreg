@@ -1,0 +1,25 @@
+multioutreg.surrogates.linear_sklearn
+=====================================
+
+.. py:module:: multioutreg.surrogates.linear_sklearn
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.linear_sklearn.LinearRegressionSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: LinearRegressionSurrogate(**kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.base_sklearn.BaseSurrogate`
+
+
+   Multi-output linear regression surrogate.
+
+

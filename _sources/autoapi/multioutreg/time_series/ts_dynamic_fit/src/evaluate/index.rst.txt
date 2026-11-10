@@ -1,0 +1,269 @@
+multioutreg.time_series.ts_dynamic_fit.src.evaluate
+===================================================
+
+.. py:module:: multioutreg.time_series.ts_dynamic_fit.src.evaluate
+
+.. autoapi-nested-parse::
+
+   Rank ARIMA / SARIMA / LSTM by rolling-origin, out-of-sample MASE (audit item 6).
+
+   The scheme is ``docs/AUDIT_CHECKLIST.md`` Appendix A.4:
+
+   1. Horizon H: ``horizon`` if given, else the seasonal period s when s >= 2,
+      else 1.
+   2. Test region: the last ``max(H, ceil(0.2 n))`` points (FPP3 section 5.8).
+   3. Minimum training length ``max(2 s, train_window + H, 16)``; the test region
+      shrinks toward H when the series is short, and a series shorter than
+      ``min_train + H`` is rejected.
+   4. Origins: every origin in the test region (step 1) when there are at most
+      :data:`MAX_ORIGINS`, else that many evenly spaced ones (``folds`` overrides).
+   5. Every model is refitted at every origin on all data before it and forecasts
+      H steps on the original scale; all models are scored against the same
+      values by one function. Rank on MASE averaged over origins (each origin
+      scaled by its own training window).
+   6. A Diebold-Mariano test with the Harvey-Leybourne-Newbold correction
+      compares the best and second-best model; it is reported, never used to
+      pick the winner.
+
+   ARIMA / SARIMA search their order once, on the first (smallest) training
+   window, and only re-estimate parameters at later origins: the search sees no
+   test data, and it costs one search instead of one per origin.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.src.evaluate.MAX_ORIGINS
+   multioutreg.time_series.ts_dynamic_fit.src.evaluate.MIN_PARAM_POINTS
+   multioutreg.time_series.ts_dynamic_fit.src.evaluate.BASELINES
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.src.evaluate.OriginPlan
+   multioutreg.time_series.ts_dynamic_fit.src.evaluate.ModelScore
+   multioutreg.time_series.ts_dynamic_fit.src.evaluate.RankingResult
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.ts_dynamic_fit.src.evaluate.plan_origins
+   multioutreg.time_series.ts_dynamic_fit.src.evaluate.diebold_mariano
+   multioutreg.time_series.ts_dynamic_fit.src.evaluate.evaluate_forecasters
+   multioutreg.time_series.ts_dynamic_fit.src.evaluate.default_factories
+   multioutreg.time_series.ts_dynamic_fit.src.evaluate.rank_forecasters
+   multioutreg.time_series.ts_dynamic_fit.src.evaluate.detect_seasonality
+
+
+Module Contents
+---------------
+
+.. py:data:: MAX_ORIGINS
+   :value: 10
+
+
+.. py:data:: MIN_PARAM_POINTS
+   :value: 16
+
+
+.. py:data:: BASELINES
+
+.. py:class:: OriginPlan
+
+   Where the models are refitted and scored.
+
+
+   .. py:attribute:: n
+      :type:  int
+
+
+   .. py:attribute:: horizon
+      :type:  int
+
+
+   .. py:attribute:: seasonality
+      :type:  int
+
+
+   .. py:attribute:: min_train
+      :type:  int
+
+
+   .. py:attribute:: test_region
+      :type:  int
+
+
+   .. py:attribute:: origins
+      :type:  tuple
+
+
+   .. py:attribute:: scheme
+      :type:  str
+
+
+   .. py:property:: mase_seasonality
+      :type: int
+
+
+
+   .. py:method:: splits()
+
+      Yield ``(train_idx, test_idx)`` with an expanding training window.
+
+
+
+   .. py:method:: describe() -> str
+
+
+.. py:function:: plan_origins(n: int, seasonality: int = 0, horizon: Optional[int] = None, folds: Optional[int] = None, train_window: int = 10) -> OriginPlan
+
+   Apply the A.4 rule to a series of length *n*.
+
+
+.. py:function:: diebold_mariano(loss_a, loss_b, lag: int = 0) -> dict
+
+   Diebold-Mariano test of equal expected loss, with the HLN correction.
+
+   ``loss_a`` / ``loss_b`` are per-forecast losses (e.g. squared errors) of
+   two models on the same targets; ``lag`` is the number of autocovariances
+   in the long-run variance (``h - 1`` for overlapping h-step forecasts).
+   Returns the HLN-corrected statistic (t with ``n - 1`` df) and two-sided
+   p-value; a negative statistic means model a has the lower loss.
+   Diebold & Mariano (1995); Harvey, Leybourne & Newbold (1997).
+
+
+.. py:class:: ModelScore
+
+   .. py:attribute:: name
+      :type:  str
+
+
+   .. py:attribute:: mase
+      :type:  float
+
+
+   .. py:attribute:: rmse
+      :type:  float
+
+
+   .. py:attribute:: mae
+      :type:  float
+
+
+   .. py:attribute:: smape
+      :type:  float
+
+
+   .. py:attribute:: per_origin_mase
+      :type:  List[float]
+
+
+   .. py:attribute:: errors
+      :type:  numpy.ndarray
+
+
+   .. py:attribute:: order
+      :type:  object
+      :value: None
+
+
+
+   .. py:attribute:: error
+      :type:  Optional[str]
+      :value: None
+
+
+
+   .. py:method:: as_dict() -> dict
+
+
+.. py:class:: RankingResult
+
+   .. py:attribute:: plan
+      :type:  OriginPlan
+
+
+   .. py:attribute:: scores
+      :type:  List[ModelScore]
+
+
+   .. py:attribute:: failures
+      :type:  Dict[str, str]
+
+
+   .. py:attribute:: best_model
+      :type:  str
+
+
+   .. py:attribute:: diebold_mariano
+      :type:  Optional[dict]
+      :value: None
+
+
+
+   .. py:attribute:: diebold_mariano_baseline
+      :type:  Optional[dict]
+      :value: None
+
+
+
+   .. py:attribute:: final_model
+      :type:  object
+      :value: None
+
+
+
+   .. py:attribute:: forecast
+      :type:  Optional[numpy.ndarray]
+      :value: None
+
+
+
+   .. py:attribute:: extra
+      :type:  dict
+
+
+   .. py:method:: as_dict() -> dict
+
+
+.. py:function:: evaluate_forecasters(y, factories: Dict[str, Callable[[], object]], plan: OriginPlan, on_step: Optional[Callable[[str], None]] = None, refit_best: bool = True, baseline: Optional[str] = None) -> RankingResult
+
+   Score every forecaster on *plan*'s origins and rank them by mean MASE.
+
+   With ``baseline`` (a key of *factories*), the winner is also tested
+   against that model -- the question that matters when the baseline is the
+   random walk -- unless the baseline itself wins.
+
+
+.. py:function:: default_factories(plan: OriginPlan, train_window: int = 10, lstm_epochs: int = 100, n_jobs: int = -1, include_naive: bool = True, baseline: str = 'naive') -> Dict[str, Callable]
+
+   ARIMA, SARIMA, LSTM (and a baseline) configured for *plan*.
+
+   ``baseline='naive'`` adds the (seasonal) last-value forecast; ``'zero'``
+   adds the no-change forecast, the right benchmark for a series of returns
+   or differences (it is the random walk in levels).
+
+
+.. py:function:: rank_forecasters(y, horizon: Optional[int] = None, folds: Optional[int] = None, seasonality: Optional[int] = None, train_window: int = 10, lstm_epochs: int = 100, n_jobs: int = -1, on_step: Optional[Callable[[str], None]] = None, baseline: str = 'naive') -> RankingResult
+
+   Plan the origins, evaluate ARIMA / SARIMA / LSTM / a baseline, rank, refit the winner.
+
+   The seasonal period is detected on the first 80% of the series only (the
+   part that is never a test target), unless ``seasonality`` is given.
+   ``baseline`` is ``'naive'`` or ``'zero'`` (see :func:`default_factories`).
+
+
+.. py:function:: detect_seasonality(y) -> int
+
+   Seasonal period of *y* (after the ADF-chosen differencing), 0 if none.
+
+

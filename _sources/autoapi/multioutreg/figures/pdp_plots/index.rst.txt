@@ -1,0 +1,50 @@
+multioutreg.figures.pdp_plots
+=============================
+
+.. py:module:: multioutreg.figures.pdp_plots
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.figures.pdp_plots.generate_pdp_plot
+   multioutreg.figures.pdp_plots.pdp_grid_data
+
+
+Module Contents
+---------------
+
+.. py:function:: generate_pdp_plot(model: Any, X: numpy.ndarray, output_names: List[str], feature_names: List[str]) -> Dict[str, str]
+
+   Generate partial dependence plots (PDPs) for each output dimension.
+
+   :param model: Fitted multi-output model. Uses ``model.estimators_[i]`` when present,
+                 and otherwise column ``i`` of ``model.predict``.
+   :type model: Any
+   :param X: Input features.
+   :type X: np.ndarray
+   :param output_names: Names of output dimensions.
+   :type output_names: List[str]
+   :param feature_names: Names of the input features.
+   :type feature_names: List[str]
+
+   :returns: Dictionary mapping output names to base64-encoded PDP plots.
+   :rtype: Dict[str, str]
+
+
+.. py:function:: pdp_grid_data(model: Any, X: numpy.ndarray, output_names: List[str], feature_names: List[str], features: List[int] | None = None, grid_resolution: int = 20, max_rows: int = 150, random_state: int = 0) -> Dict[str, Any]
+
+   Partial dependence and ICE spread as numbers, for charts drawn elsewhere.
+
+   For each feature in ``features`` (default: all), the feature is set to each
+   of ``grid_resolution`` values between its 5th and 95th percentile on up to
+   ``max_rows`` rows of ``X`` and the model is evaluated. The mean over rows is
+   the partial dependence; the 10th and 90th percentiles of the individual
+   (ICE) curves show how much the effect varies between rows.
+
+   Returns ``{"features": [names], "grid": {feature: [x...]},
+   "curves": {output: {feature: {"mean": [...], "p10": [...], "p90": [...]}}}}``.
+
+

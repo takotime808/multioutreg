@@ -1,0 +1,88 @@
+multioutreg.surrogates.pls_sklearn
+==================================
+
+.. py:module:: multioutreg.surrogates.pls_sklearn
+
+.. autoapi-nested-parse::
+
+   Partial least squares surrogate: one joint linear model for all outputs.
+
+   ``PLSRegression`` projects the inputs onto ``k`` latent directions chosen to
+   covary with the outputs, then regresses every output on the same ``k`` scores.
+   The outputs share their latent structure, so it suits many correlated outputs
+   and collinear or high-dimensional inputs (``p`` close to or above ``n``).
+
+   The predictive std treats the fitted model as ordinary least squares on the
+   latent scores ``T`` (``n x k``)::
+
+       var_j(x) = s_j^2 * (1 + 1/n + t(x)^T (T^T T)^-1 t(x))
+
+   where ``s_j^2`` is the residual variance of output ``j`` on ``n - k - 1``
+   degrees of freedom and ``t(x)`` are the scores of ``x``. This ignores the
+   uncertainty in the latent directions themselves, so it is slightly optimistic
+   on small designs.
+
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.surrogates.pls_sklearn.PLSSurrogate
+
+
+Module Contents
+---------------
+
+.. py:class:: PLSSurrogate(n_components=2, scale=True, **kwargs)
+
+   Bases: :py:obj:`multioutreg.surrogates.conformal_mixin.ConformalMixin`
+
+
+   Joint multi-output partial least squares surrogate.
+
+   :param n_components: Number of latent components, clamped to ``min(n_features, n_samples - 1)``.
+   :type n_components: int
+   :param scale: Scale inputs and outputs to unit variance (``PLSRegression`` default).
+   :type scale: bool
+   :param \*\*kwargs: Passed to :class:`sklearn.cross_decomposition.PLSRegression`.
+
+   .. attribute:: pls_
+
+
+
+      :type: PLSRegression
+
+   .. attribute:: n_components_
+
+
+
+      :type: int
+
+   .. attribute:: residual_var_
+
+      Per-output residual variance ``s_j^2``.
+
+      :type: np.ndarray
+
+
+   .. py:attribute:: n_components
+      :value: 2
+
+
+
+   .. py:attribute:: scale
+      :value: True
+
+
+
+   .. py:attribute:: pls_kwargs
+
+
+   .. py:method:: fit(X, Y)
+
+
+   .. py:method:: predict(X, return_std=False)
+
+

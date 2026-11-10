@@ -1,0 +1,133 @@
+multioutreg.active.acquisition
+==============================
+
+.. py:module:: multioutreg.active.acquisition
+
+.. autoapi-nested-parse::
+
+   Acquisition functions for active learning on multi-output surrogates.
+
+   Every acquisition takes ``mean`` and ``std`` arrays of shape
+   ``(n_candidates, n_outputs)`` and returns a score of shape ``(n_candidates,)``
+   where larger is better. See ``docs/active_learning.md`` for the design.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.active.acquisition.ACQUISITIONS
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.active.acquisition.CommitteeSurrogate
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.active.acquisition.predict_mean_std
+   multioutreg.active.acquisition.output_scale
+   multioutreg.active.acquisition.aggregate
+   multioutreg.active.acquisition.max_variance
+   multioutreg.active.acquisition.upper_confidence_bound
+   multioutreg.active.acquisition.expected_improvement
+   multioutreg.active.acquisition.probability_of_improvement
+
+
+Module Contents
+---------------
+
+.. py:class:: CommitteeSurrogate(model_factory: Callable, n_members: int = 5, random_state=0)
+
+   Query-by-committee uncertainty for any surrogate.
+
+   Fits ``n_members`` copies of ``model_factory()`` on bootstrap resamples and
+   predicts the member mean, with the spread across members as ``std``. This
+   lets models without native uncertainty (KNN, linear, plain trees) take part
+   in variance-based active learning (Burbidge et al. 2007).
+
+   :param model_factory: Zero-argument callable returning an unfitted surrogate with
+                         ``fit(X, Y)`` and ``predict(X)``.
+   :type model_factory: callable
+   :param n_members:
+   :type n_members: int, default 5
+   :param random_state:
+   :type random_state: int or None, default 0
+
+
+   .. py:attribute:: model_factory
+
+
+   .. py:attribute:: n_members
+      :value: 5
+
+
+
+   .. py:attribute:: random_state
+      :value: 0
+
+
+
+   .. py:method:: fit(X, Y) -> CommitteeSurrogate
+
+
+   .. py:method:: predict(X, return_std: bool = False)
+
+
+.. py:function:: predict_mean_std(model, X, allow_zero_std: bool = False, **predict_kwargs)
+
+   Return ``(mean, std)`` as 2-D arrays, refusing silent zero uncertainty.
+
+   ``BaseSurrogate`` and ``AutoDetectMultiOutputRegressor`` fill ``std`` with
+   zeros for outputs whose model has no native uncertainty. A variance-based
+   acquisition would read that as "perfectly known" and never sample for that
+   output, so this raises unless ``allow_zero_std`` is set.
+
+
+.. py:function:: output_scale(Y) -> numpy.ndarray
+
+   Per-output standard deviation of observed values (1 where degenerate).
+
+
+.. py:function:: aggregate(values, how: str = 'sum', weights: Optional[Sequence[float]] = None) -> numpy.ndarray
+
+   Combine per-output scores ``(n, n_outputs)`` into one score ``(n,)``.
+
+
+.. py:function:: max_variance(mean, std, y_scale=None, how: str = 'sum', weights=None) -> numpy.ndarray
+
+   Standardized predictive variance, aggregated over outputs (ALM).
+
+   ``y_scale`` (per-output std of the training targets, see
+   :func:`output_scale`) keeps large-scale outputs from dominating.
+
+
+.. py:function:: upper_confidence_bound(mean, std, beta: float = 4.0, weights=None, minimize: bool = True) -> numpy.ndarray
+
+   GP-UCB (Srinivas et al. 2010) on the scalarized objective.
+
+   With ``minimize=True`` this is the negated lower confidence bound, so that
+   larger is still better.
+
+
+.. py:function:: expected_improvement(mean, std, best: float, xi: float = 0.0, weights=None, minimize: bool = True) -> numpy.ndarray
+
+   Expected improvement over ``best`` (Jones et al. 1998).
+
+
+.. py:function:: probability_of_improvement(mean, std, best: float, xi: float = 0.0, weights=None, minimize: bool = True) -> numpy.ndarray
+
+   Probability of improving on ``best`` by at least ``xi`` (Kushner 1964).
+
+
+.. py:data:: ACQUISITIONS
+

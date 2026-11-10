@@ -1,0 +1,205 @@
+multioutreg.report.data
+=======================
+
+.. py:module:: multioutreg.report.data
+
+.. autoapi-nested-parse::
+
+   The data behind a redesigned (v2) report.
+
+   :class:`ReportData` holds everything the v2 template and its charts need, as
+   plain dicts and lists, so it can be written into the report as JSON and read
+   back (``ReportData.from_json``) to rebuild the report without retraining.
+   :func:`multioutreg.report.build.build_report_data` fills it.
+
+
+
+Attributes
+----------
+
+.. autoapisummary::
+
+   multioutreg.report.data.MAX_POINTS
+   multioutreg.report.data.SCHEMA_VERSION
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   multioutreg.report.data.ReportData
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.report.data.downsample_index
+
+
+Module Contents
+---------------
+
+.. py:data:: MAX_POINTS
+   :value: 2000
+
+
+.. py:data:: SCHEMA_VERSION
+   :value: 1
+
+
+.. py:class:: ReportData
+
+   Everything shown in a v2 report.
+
+   ``run`` holds metadata (title, model, data hash, seed, version, date, CV
+   description, sizes). ``outputs`` has one dict per output with its metrics,
+   status, derived series (coverage curves, interval widths, residual trend)
+   and the (possibly downsampled) test arrays. The other fields are ``None`` or
+   empty when the caller had nothing to put there, and the matching section is
+   hidden or marked as skipped.
+
+
+   .. py:attribute:: run
+      :type:  Dict[str, Any]
+
+
+   .. py:attribute:: outputs
+      :type:  List[Dict[str, Any]]
+
+
+   .. py:attribute:: thresholds
+      :type:  Dict[str, float]
+
+
+   .. py:attribute:: verdict
+      :type:  Dict[str, Any]
+
+
+   .. py:attribute:: findings
+      :type:  List[Dict[str, Any]]
+      :value: []
+
+
+
+   .. py:attribute:: next_steps
+      :type:  List[Dict[str, Any]]
+      :value: []
+
+
+
+   .. py:attribute:: uncertainty_metrics
+      :type:  Dict[str, float]
+
+
+   .. py:attribute:: conformal_alpha
+      :type:  Optional[float]
+      :value: None
+
+
+
+   .. py:attribute:: levels
+      :type:  List[Dict[str, Any]]
+      :value: []
+
+
+
+   .. py:attribute:: baseline_label
+      :type:  Optional[str]
+      :value: None
+
+
+
+   .. py:attribute:: cv
+      :type:  Optional[Dict[str, Any]]
+      :value: None
+
+
+
+   .. py:attribute:: shap
+      :type:  Optional[Dict[str, Any]]
+      :value: None
+
+
+
+   .. py:attribute:: pdp
+      :type:  Optional[Dict[str, Any]]
+      :value: None
+
+
+
+   .. py:attribute:: imputation
+      :type:  Optional[Dict[str, Any]]
+      :value: None
+
+
+
+   .. py:attribute:: regret
+      :type:  Optional[Dict[str, Any]]
+      :value: None
+
+
+
+   .. py:attribute:: pca
+      :type:  Optional[Dict[str, Any]]
+      :value: None
+
+
+
+   .. py:attribute:: sampling
+      :type:  Optional[Dict[str, Any]]
+      :value: None
+
+
+
+   .. py:attribute:: figures
+      :type:  List[Dict[str, Any]]
+      :value: []
+
+
+
+   .. py:attribute:: skipped
+      :type:  List[Dict[str, str]]
+      :value: []
+
+
+
+   .. py:attribute:: summary_points
+      :type:  List[str]
+      :value: []
+
+
+
+   .. py:attribute:: schema_version
+      :type:  int
+      :value: 1
+
+
+
+   .. py:method:: to_dict(include_images: bool = True) -> Dict[str, Any]
+
+      Plain-Python copy: numpy converted, NaN/inf as ``None``, floats in
+      arrays rounded to 4 significant figures.
+
+
+
+   .. py:method:: to_json(include_images: bool = True, indent: Optional[int] = None) -> str
+
+
+   .. py:method:: from_dict(d: Dict[str, Any]) -> ReportData
+      :classmethod:
+
+
+
+   .. py:method:: from_json(text: str) -> ReportData
+      :classmethod:
+
+
+
+.. py:function:: downsample_index(n: int, cap: int = MAX_POINTS, seed: int = 0) -> numpy.ndarray
+
+   Sorted indices of at most ``cap`` of ``n`` points (all of them if n <= cap).
+
+

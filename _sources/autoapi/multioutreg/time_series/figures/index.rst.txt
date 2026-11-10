@@ -1,0 +1,39 @@
+multioutreg.time_series.figures
+===============================
+
+.. py:module:: multioutreg.time_series.figures
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.figures.plot_forecast_result
+
+
+Module Contents
+---------------
+
+.. py:function:: plot_forecast_result(result: multioutreg.time_series.chronos_adapter.ForecastResult, history: Optional[numpy.ndarray] = None, series_idx: int = 0, ax: Optional[matplotlib.pyplot.Axes] = None, title: str = '') -> matplotlib.pyplot.Figure
+
+   Plot a ForecastResult for one series as a quantile fan chart.
+
+   Plots the median quantile as the point forecast and shades the outermost
+   quantile band as a confidence fan.  If ``history`` is provided, the
+   historical values are prepended on the left side.
+
+   :param result: Must have shape ``[n_series, n_quantiles, horizon]``.
+   :type result: ForecastResult
+   :param history: 1D array of historical observations to show before the forecast.
+   :type history: np.ndarray | None
+   :param series_idx: Which series in ``result.ids`` to plot.
+   :type series_idx: int, default 0
+   :param ax: Axes to plot into; a new figure is created when ``None``.
+   :type ax: plt.Axes | None
+   :param title: Plot title.
+   :type title: str
+
+   :rtype: plt.Figure
+
+

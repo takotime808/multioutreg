@@ -1,0 +1,40 @@
+multioutreg.time_series.metrics
+===============================
+
+.. py:module:: multioutreg.time_series.metrics
+
+
+Functions
+---------
+
+.. autoapisummary::
+
+   multioutreg.time_series.metrics.smape
+   multioutreg.time_series.metrics.mase
+   multioutreg.time_series.metrics.weighted_quantile_loss
+
+
+Module Contents
+---------------
+
+.. py:function:: smape(y_true: numpy.ndarray, y_pred: numpy.ndarray, eps: float = 1e-08) -> float
+
+.. py:function:: mase(y_true: numpy.ndarray, y_pred: numpy.ndarray, y_train: numpy.ndarray, seasonality: int = 1) -> float
+
+   Mean absolute scaled error (Hyndman & Koehler, 2006).
+
+   The forecast MAE on ``y_true`` is divided by the in-sample MAE of the
+   seasonal-naive forecast on ``y_train`` (``y_train[t] - y_train[t - m]``).
+   Scaling by the training series keeps the denominator defined for a
+   1-step evaluation window and makes the score comparable across windows.
+
+
+.. py:function:: weighted_quantile_loss(y_true: numpy.ndarray, q_forecasts: numpy.ndarray, q_levels) -> float
+
+   WQL as defined in the Chronos paper (Ansari et al., 2024; lower is better).
+
+   For each quantile level q, ``WQL_q = 2 * sum_t pinball_q(y_t, yhat_t) / sum_t |y_t|``;
+   the result is the mean over the Q levels.
+   y_true: [H], q_forecasts: [Q, H], q_levels: [Q]
+
+

@@ -1,0 +1,40 @@
+Sampling Audit Report
+=====================
+CSV source: {{ csv_path }}
+YAML config: {{ yaml_path }}
+
+Variables checked:
+{% for var in variables %}
+- {{ var }}
+{% endfor %}
+
+Table of statistics:
+| Method  | KS     | AD     | Chi2   | Energy | Coverage | Notes |
+|---------|--------|--------|--------|--------|----------|-------|
+{% for row in table_rows %}
+| {{ row.method }} | {{ row.ks_stat }} | {{ row.ad_stat }} | {{ row.chi2_stat }} | {{ row.energy_stat }} | {{ row.coverage_score }} | {{ row.comment }} |
+{% endfor %}
+
+Best-matched method: **{{ best_method }}**
+
+Notes:
+{{ summary_comment }}
+
+Justification:
+{% for k, v in justification.items() %}
+- {{ k }}: {{ v }}
+{% endfor %}
+
+Plots:
+Histograms:
+{% for f in plot_filenames.histograms %}
+- {{ f }}
+{% endfor %}
+ECDF:
+{% for f in plot_filenames.ecdf %}
+- {{ f }}
+{% endfor %}
+QQ plots:
+{% for f in plot_filenames.qq %}
+- {{ f }}
+{% endfor %}
