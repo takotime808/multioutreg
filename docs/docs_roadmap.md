@@ -150,10 +150,13 @@ Blockers, in order:
 - [ ] Settle the patent question and pick an open-source license
   (MIT / BSD-3 / Apache-2.0). Apache-2.0 includes a patent grant, which
   matters if the patent goes ahead.
-- [x] Move `torch`, `chronos-forecasting` and `streamlit` out of core into
-  extras (`[torch]`, `[ts]`, `[gui]`);
+- [ ] Move `torch`, `chronos-forecasting`, `streamlit` and `plotly` out of
+  core. The `[torch]`, `[ts]` and `[gui]` extras exist and
   `tests/unit/test_optional_dependencies.py` checks the library and CLI
-  import without them.
+  import without those packages, but they are still listed in core: the
+  hosted Streamlit app installs core dependencies only, and removing them
+  broke it. First make the deployment install the extras, and check that on
+  a branch deployment.
 - [ ] Move `shap` and `umap-learn` into an `[explain]` extra. The report has
   to degrade cleanly without SHAP first.
 - [ ] Loosen the `numpy`, `pandas` and `pyarrow` pins, or document why each

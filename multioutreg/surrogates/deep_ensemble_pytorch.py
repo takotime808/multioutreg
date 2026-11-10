@@ -55,7 +55,7 @@ class DeepEnsembleSurrogate(ConformalMixin):
     nominal). Use it only for noise-free data or wrap it with conformal
     prediction.
 
-    Requires PyTorch (optional extra)::
+    Requires PyTorch (currently a core dependency; also the ``torch`` extra)::
 
         pip install "multioutreg[torch]"
 

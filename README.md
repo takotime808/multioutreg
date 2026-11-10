@@ -69,15 +69,14 @@ for a short demonstration.
 uv sync --extra test  # or: pip install .[test]
 ```
 
-The core install has no PyTorch or Streamlit. Optional surrogates and features
-are extras, e.g. `pip install ".[xgboost]"`; the Streamlit app needs `".[gui]"`
-and the time-series commands need `".[ts]"`. `pip install ".[all]"` installs every library
+Optional surrogates and features are available as extras, e.g.
+`pip install ".[xgboost]"`. `pip install ".[all]"` installs every library
 feature plus the test tooling. The example-notebook dependencies (`ray`,
 `hyperopt`, `plotly`) are kept separate by convention: add them with
 `pip install ".[all,examples]"`. See [docs/install.md](docs/install.md) for the
 full list.
 
-**Streamlit App:** (needs the `gui` extra: `uv sync --extra gui`, or `--extra all`)
+**Streamlit App:**
 ```sh
 .venv/bin/streamlit run multioutreg/gui/Grid_Search_Surrogate_Models.py
 ```
