@@ -158,6 +158,8 @@ evaluation plan, per-output model selection, optional active learning, and the
 uncertainty report. Stage-by-stage notes are in
 [docs/how_it_works.md](docs/how_it_works.md).
 
+#### Option A: Mermaid (current)
+
 ```mermaid
 flowchart LR
     %% ---------- 410 Interfaces ----------
@@ -256,6 +258,18 @@ flowchart LR
     MET & INT & SENS --> REP
     BEST --> BUN
 ```
+
+#### Option B: Graphviz
+
+Source: [`docs/diagrams/architecture.dot`](docs/diagrams/architecture.dot)
+
+![End-to-end architecture, rendered with Graphviz](docs/_static/diagrams/architecture_graphviz.svg)
+
+#### Option C: D2
+
+Source: [`docs/diagrams/architecture.d2`](docs/diagrams/architecture.d2)
+
+![End-to-end architecture, rendered with D2](docs/_static/diagrams/architecture_d2.svg)
 
 ### Sequence of Interactions
 

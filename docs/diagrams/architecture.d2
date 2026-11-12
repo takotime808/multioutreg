@@ -1,0 +1,116 @@
+# D2 version of the end-to-end architecture diagram.
+# Render: d2 --layout=elk docs/diagrams/architecture.d2 docs/_static/diagrams/architecture_d2.svg
+# Top-down: ELK ignores per-container `direction`, and a left-to-right layout
+# of this many nodes is too wide to read.
+direction: down
+
+classes: {
+  decision: {shape: diamond}
+  io: {shape: parallelogram}
+  model: {shape: oval}
+  optional: {style.stroke-dash: 4}
+}
+
+# ---------- 410 Interfaces ----------
+IF: Interfaces · 410 {
+  LIB: "Python library\nmultioutreg · 410a"
+  CLI: "CLI · 410b\ngrid_search, grid_search_auto_detect,\ndetect_sampling, ts-forecast, ts-pipeline"
+  GUI: "Streamlit GUI · 410c\nGrid_Search_Surrogate_Models"
+  DOC: "Sphinx docs + notebooks · 410d"
+}
+
+# ---------- 420 Data intake & diagnostics ----------
+DATA: Data intake & diagnostics · 420 {
+  CSV: "CSV + input / output columns · 421" {class: io}
+  MISS: "Missing-value scan · 422\nrows missing a target are dropped"
+  TSQ: "Temporal structure? · 423\nADF, Ljung-Box" {class: decision}
+  SAMP: "Sampling-design detection · 424\nLHS / Sobol / Halton / grid / random,\nKS sample-bias check"
+}
+
+# ---------- 430 Evaluation plan ----------
+PLAN: Sample-size-dependent evaluation plan · 430 {
+  EP: "25% test split\nholds ≥ 30 rows? · 431" {class: decision}
+  HO: "Holdout 75 / 25 · 432"
+  NCV: "Nested 5-fold CV · 433"
+  CQ: "Enough calibration rows\nfor alpha? · 434" {class: decision}
+  SPC: "Split conformal · 435"
+  CVP: "CV+ conformal · 436"
+}
+
+# ---------- 440 Candidate surrogates ----------
+CAND: Candidate surrogates · 440 {
+  PRE: "Fit on training rows only · 441\nKNN imputer, standardise, optional PCA"
+  SCR: "Statistical pre-screening · 442\nnormality, linearity, heteroscedasticity,\nmulticollinearity, nonlinear dependency"
+  M1: "GP family\nGP, ARD-GP, sparse GP, KPLS" {class: model}
+  M2: "Tree ensembles\nRF, ExtraTrees, LightGBM, XGB, CatBoost, NGBoost" {class: model}
+  M3: "Linear / kernel\nBayesian ridge, SVR, kNN" {class: model}
+  MN: "Neural / joint\nBNN, deep ensemble, MoE" {class: model}
+}
+
+# ---------- 450 Model selection ----------
+SEL: Per-output model selection · 450 {
+  GS: "Inner-CV grid search · 451\nn ≤ 100: RepeatedKFold ×3\nn ≤ 1000: 10-fold · else 5-fold"
+  RULE: "Choose per output · 452\nbest mean score, or one-SE rule\n(simplest model within 1 SE)"
+  BEST: "Best model\nper output · 453" {shape: circle}
+}
+
+# ---------- 460 Sample enrichment ----------
+AL: Optional sample enrichment · 460 {
+  BUD: "Simulator budget\nleft? · 461" {class: decision}
+  ASK: "ActiveLearner.ask · 462\nSobol pool scored by max-variance,\nUCB, EI or PI; batch selection"
+  SIM: "Run simulator at new points · 463\nsingle or multi-fidelity"
+}
+
+# ---------- 470 Uncertainty quantification & outputs ----------
+UQ: Uncertainty quantification & outputs · 470 {
+  MET: "Accuracy + UQ metrics · 471\nR², RMSE, MAE, calibration, coverage"
+  INT: "Prediction intervals · 472\nGaussian ±σ and conformal"
+  SENS: "Sensitivity + diagnostics · 473\nSHAP, PDP, residuals, UMAP, PCA"
+  REP: "HTML report · 474" {class: io}
+  BUN: "Model bundle (joblib) · 475\nimputer + PCA + model + versions" {class: io}
+}
+
+# ---------- 480 Time-series branch ----------
+TS: Time-series branch · 480 {
+  ZS: "ts-forecast · 481\nChronos zero-shot quantiles"
+  TP: "ts-pipeline · 482\nARIMA, SARIMA, LSTM ranked by\nrolling-origin RMSE / MAE / MAPE"
+}
+
+IF.LIB -> DATA.CSV
+IF.CLI -> DATA.CSV
+IF.GUI -> DATA.CSV
+IF.DOC -> IF.LIB {class: optional}
+DATA.CSV -> DATA.MISS -> DATA.TSQ
+DATA.TSQ -> TS.ZS: yes
+DATA.TSQ -> TS.TP: yes
+DATA.TSQ -> PLAN.EP: no
+DATA.CSV -> DATA.SAMP {class: optional}
+PLAN.EP -> PLAN.HO: yes
+PLAN.EP -> PLAN.NCV: no
+PLAN.HO -> PLAN.CQ
+PLAN.NCV -> PLAN.CQ
+PLAN.CQ -> PLAN.SPC: yes
+PLAN.CQ -> PLAN.CVP: no
+PLAN.SPC -> CAND.PRE
+PLAN.CVP -> CAND.PRE
+CAND.PRE -> CAND.SCR
+CAND.SCR -> CAND.M1
+CAND.SCR -> CAND.M2
+CAND.SCR -> CAND.M3
+CAND.SCR -> CAND.MN
+CAND.M1 -> SEL.GS
+CAND.M2 -> SEL.GS
+CAND.M3 -> SEL.GS
+CAND.MN -> SEL.GS
+SEL.GS -> SEL.RULE -> SEL.BEST
+SEL.BEST -> AL.BUD {class: optional}
+AL.BUD -> AL.ASK: yes
+AL.ASK -> AL.SIM
+AL.SIM -> CAND.PRE: append rows, refit {class: optional}
+SEL.BEST -> UQ.MET
+SEL.BEST -> UQ.INT
+SEL.BEST -> UQ.SENS
+UQ.MET -> UQ.REP
+UQ.INT -> UQ.REP
+UQ.SENS -> UQ.REP
+SEL.BEST -> UQ.BUN

@@ -1,0 +1,111 @@
+// Graphviz version of the end-to-end architecture diagram.
+// Render: dot -Tsvg docs/diagrams/architecture.dot -o docs/_static/diagrams/architecture_graphviz.svg
+digraph multioutreg {
+    rankdir=TB;  // left-to-right is ~8:1 wide and unreadable at this size
+    compound=true;
+    newrank=true;
+    nodesep=0.35;
+    ranksep=0.6;
+    fontname="Helvetica";
+    node [fontname="Helvetica", fontsize=11, shape=box, style="rounded,filled", fillcolor="#ffffff", color="#5b6b7f"];
+    edge [fontname="Helvetica", fontsize=10, color="#5b6b7f"];
+    graph [fontsize=13, style="rounded,filled", color="#9aa8b8"];
+
+    // ---------- 410 Interfaces ----------
+    subgraph cluster_IF {
+        label="Interfaces · 410"; fillcolor="#eef3fb";
+        LIB [label="Python library\nmultioutreg · 410a"];
+        CLI [label="CLI · 410b\ngrid_search, grid_search_auto_detect,\ndetect_sampling, ts-forecast, ts-pipeline"];
+        GUI [label="Streamlit GUI · 410c\nGrid_Search_Surrogate_Models"];
+        DOC [label="Sphinx docs + notebooks · 410d"];
+    }
+
+    // ---------- 420 Data intake & diagnostics ----------
+    subgraph cluster_DATA {
+        label="Data intake & diagnostics · 420"; fillcolor="#eef7f0";
+        CSV  [label="CSV + input / output columns · 421", shape=parallelogram, style=filled];
+        MISS [label="Missing-value scan · 422\nrows missing a target are dropped"];
+        TSQ  [label="Temporal structure? · 423\nADF, Ljung-Box", shape=diamond, style=filled];
+        SAMP [label="Sampling-design detection · 424\nLHS / Sobol / Halton / grid / random,\nKS sample-bias check"];
+    }
+
+    // ---------- 430 Evaluation plan ----------
+    subgraph cluster_PLAN {
+        label="Sample-size-dependent evaluation plan · 430"; fillcolor="#fbf5ea";
+        EP  [label="25% test split\nholds ≥ 30 rows? · 431", shape=diamond, style=filled];
+        HO  [label="Holdout 75 / 25 · 432"];
+        NCV [label="Nested 5-fold CV · 433"];
+        CQ  [label="Enough calibration rows\nfor alpha? · 434", shape=diamond, style=filled];
+        SPC [label="Split conformal · 435"];
+        CVP [label="CV+ conformal · 436"];
+    }
+
+    // ---------- 440 Candidate surrogates ----------
+    subgraph cluster_CAND {
+        label="Candidate surrogates · 440"; fillcolor="#f4eefb";
+        PRE [label="Fit on training rows only · 441\nKNN imputer, standardise, optional PCA"];
+        SCR [label="Statistical pre-screening · 442\nnormality, linearity, heteroscedasticity,\nmulticollinearity, nonlinear dependency"];
+        node [style="filled", shape=box, peripheries=1];
+        M1 [label="GP family\nGP, ARD-GP, sparse GP, KPLS", style="rounded,filled,bold"];
+        M2 [label="Tree ensembles\nRF, ExtraTrees, LightGBM, XGB, CatBoost, NGBoost", style="rounded,filled,bold"];
+        M3 [label="Linear / kernel\nBayesian ridge, SVR, kNN", style="rounded,filled,bold"];
+        MN [label="Neural / joint\nBNN, deep ensemble, MoE", style="rounded,filled,bold"];
+    }
+
+    // ---------- 450 Model selection ----------
+    subgraph cluster_SEL {
+        label="Per-output model selection · 450"; fillcolor="#eaf6f8";
+        GS   [label="Inner-CV grid search · 451\nn ≤ 100: RepeatedKFold ×3\nn ≤ 1000: 10-fold · else 5-fold"];
+        RULE [label="Choose per output · 452\nbest mean score, or one-SE rule\n(simplest model within 1 SE)"];
+        BEST [label="Best model\nper output · 453", shape=circle, style=filled, fillcolor="#d9ecf2"];
+    }
+
+    // ---------- 460 Sample enrichment ----------
+    subgraph cluster_AL {
+        label="Optional sample enrichment · 460"; fillcolor="#fbeeee";
+        BUD [label="Simulator budget\nleft? · 461", shape=diamond, style=filled];
+        ASK [label="ActiveLearner.ask · 462\nSobol pool scored by max-variance,\nUCB, EI or PI; batch selection"];
+        SIM [label="Run simulator at new points · 463\nsingle or multi-fidelity"];
+    }
+
+    // ---------- 470 Uncertainty quantification & outputs ----------
+    subgraph cluster_UQ {
+        label="Uncertainty quantification & outputs · 470"; fillcolor="#eef3fb";
+        MET  [label="Accuracy + UQ metrics · 471\nR², RMSE, MAE, calibration, coverage"];
+        INT  [label="Prediction intervals · 472\nGaussian ±σ and conformal"];
+        SENS [label="Sensitivity + diagnostics · 473\nSHAP, PDP, residuals, UMAP, PCA"];
+        REP  [label="HTML report · 474", shape=parallelogram, style=filled];
+        BUN  [label="Model bundle (joblib) · 475\nimputer + PCA + model + versions", shape=parallelogram, style=filled];
+    }
+
+    // ---------- 480 Time-series branch ----------
+    subgraph cluster_TS {
+        label="Time-series branch · 480"; fillcolor="#f2f2f2";
+        ZS [label="ts-forecast · 481\nChronos zero-shot quantiles"];
+        TP [label="ts-pipeline · 482\nARIMA, SARIMA, LSTM ranked by\nrolling-origin RMSE / MAE / MAPE"];
+    }
+
+    {LIB CLI GUI} -> CSV;
+    DOC -> LIB [style=dashed];
+    CSV -> MISS -> TSQ;
+    TSQ -> {ZS TP} [label="yes"];
+    TSQ -> EP [label="no"];
+    CSV -> SAMP [style=dashed];
+    EP -> HO [label="yes"];
+    EP -> NCV [label="no"];
+    {HO NCV} -> CQ;
+    CQ -> SPC [label="yes"];
+    CQ -> CVP [label="no"];
+    {SPC CVP} -> PRE;
+    PRE -> SCR;
+    SCR -> {M1 M2 M3 MN};
+    {M1 M2 M3 MN} -> GS;
+    GS -> RULE -> BEST;
+    BEST -> BUD [style=dashed];
+    BUD -> ASK [label="yes"];
+    ASK -> SIM;
+    SIM -> PRE [style=dashed, label="append rows, refit", constraint=false];
+    BEST -> {MET INT SENS};
+    {MET INT SENS} -> REP;
+    BEST -> BUN;
+}
